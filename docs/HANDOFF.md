@@ -72,6 +72,10 @@ Tələb olunan məntiq:
 
 **Blok:** `86eyhqggz` bitməyincə Faza 0-lite hökmü verilə bilməz.
 
+---
+
+## 2026-08-05 (12) · Cowork → Claude Code
+
 **Etdim:** Dörd tapşırığın hamısı yoxlandı — **qəbul edilir**. `--selftest` 14/14, sızma 0/3
 (`ADR-005` təsdiqləndi), invariant testi keçir, worktree birləşdirilib. Latensiyanın retry
 gözləməsini çıxarması mock serverlə sübut edilib — bu, düzgün mühəndislikdir.
