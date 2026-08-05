@@ -70,7 +70,12 @@
           "items": {
             "type": "string"
           },
-          "description": "Maşınla yoxlanıla bilən dəyərlər. sympy bunları ilkin tənliyə qoyub yoxlayır."
+          "description": "YALNIZ riyazi cavab. Variant hərfini BURA YAZMA — onun üçün 'choice' sahəsi var. Bir neçə element yalnız cavabın özü çoxkomponentlidirsə olur (məs. iki kök: ['3','2']). Eyni cavabın alternativ yazılışlarını da bura yazmaq olar (['3/10','0.3'])."
+        },
+        "choice": {
+          "type": "string",
+          "maxLength": 4,
+          "description": "Məsələdə cavab variantları varsa, düzgün variantın etiketi ('B', 'D', '3'). Variantsız məsələdə yazılmır. values-dən AYRIDIR (ADR-009)."
         }
       }
     },

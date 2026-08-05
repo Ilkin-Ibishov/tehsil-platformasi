@@ -126,7 +126,11 @@ Bu üç sahənin dəyəri QAPALI SİYAHIDANDIR. Qısaltma, dəyişdirmə, uydurm
   detected_language →  az | ru | en | tr | other    (məsələ ŞƏKİLDƏ hansı dildədir)
   grade             →  5-dən 11-ə qədər tam ədəd (giriş məlumatından götür)
 
-final_answer MƏCBURİ: latex (göstərilən forma), values (maşınla yoxlanacaq sadə dəyərlər massivi).
+final_answer MƏCBURİ: latex (göstərilən forma), values (maşınla yoxlanacaq dəyərlər).
+final_answer.values-ə YALNIZ RİYAZİ CAVAB yazılır. Variant hərfini ORA YAZMA.
+  Pis:   "values": ["0", "B", "b"]      ← hərf riyazi cavabla qarışıb
+  Yaxşı: "values": ["0"], "choice": "B"
+Variantsız məsələdə choice yazılmır. İki kök varsa hər ikisi values-də: ["3", "2"].
 
 Hər addımda MƏCBURİ: index, title, explanation, check, error_code, hint.
 UZUNLUQ HƏDDLƏRİ — aşılsa cavab tamamilə rədd edilir:
@@ -140,6 +144,8 @@ check MÜTLƏQ obyektdir, sətir DEYİL: {"ask": "...", "accept": ["..."], "inpu
                 mənfi ədəd → HƏM "-5" HƏM "−5"
                 onluq kəsr → HƏM "2.5" HƏM "2,5" (dilə görə ayırıcı dəyişir)
   input_kind  — "number" | "expression" | "choice"
+
+final_answer.choice — variantlı məsələdə düzgün variantın etiketi ("B", "D", "3").
 
 ═══ error_code — YALNIZ BU 11 DƏYƏRDƏN BİRİ ═══
 
