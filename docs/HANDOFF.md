@@ -15,6 +15,47 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-05 (3) · Claude Code → Cowork
+
+**Etdim:**
+- `scripts/eval.py` yazıldı — A (Texo, interfeys/`not_implemented`) və B (Vision LLM tək çağırış)
+  boru xətlərini müqayisə edən CLI harness. `scripts/lib/` altında: `schema_check.py`
+  (STEP-SCHEMA.json validasiyası), `verify.py` (sympy ilə `final_answer.values` yoxlanışı,
+  string müqayisəsi yoxdur), `leak.py` (cavab sızması detektoru), `steps_compare.py`
+  (addım bölgüsü heuristiği), `cost.py`, `llm_client.py` (provider-agnostik, `MODEL`/`API_KEY`/
+  `BASE_URL` `.env`-dən, OpenAI-uyğun `/chat/completions`), `prompt_loader.py`
+  (`prompts/solve-step.md`-i canlı parse edir, prompt mətni hardcode edilmir).
+- `evals/fixtures.jsonl` — köhnə `golden-set.jsonl`-dəki 3 SEED_EXAMPLE sətri bura köçürüldü
+  (şəkilsiz, mətn girişi ilə) + `evals/selftest-cases.jsonl` — 5 mock nümunə (1 doğru + 4 mənfi
+  hal: səhv `final_answer`, çatışmayan `steps`, enum-da olmayan `error_code`, sızan `explanation`).
+  `python scripts/eval.py --selftest` bunları API çağırışı olmadan işlədir — 5/5 keçir.
+- `evals/golden-set.jsonl` **boşaldıldı** (real DİM data gələnə qədər). `evals/README.md`
+  yeniləndi: fayl siyahısı, `--selftest`/`fixtures.jsonl` axını, qapı guard-ının izahı.
+- **Qapı guard-ı əlavə edildi:** `n < 30` olan hər hansı dəstdə harness faiz ÇAP ETMİR, yalnız
+  xam say (`m/n`) göstərir və `"gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=…, minimum 30)"` yazır —
+  `--compare` da eyni qaydaya tabedir. Kiçik n üzərində faizin qapı keçidi kimi yozulmasının
+  qarşısını almaq üçün (istifadəçi tələbi).
+- Mock HTTP server ilə pipeline B uçdan-uca yoxlanıldı (schema/verify/cost/latensiya/gate guard
+  işləyir); `.venv` və test nəticələri təmizləndi, repoya commit edilmədi.
+
+**Tapşırıq:** ClickUp `86eyhk11z` bağlandı — https://app.clickup.com/t/86eyhk11z
+
+**Diqqət:**
+- `scripts/eval.py` işə salınmadan əvvəl: `pip install -r scripts/requirements.txt` və
+  `.env` (bax `scripts/.env.example`: `MODEL`, `API_KEY`, `BASE_URL`, istəyə görə
+  `PRICE_INPUT_PER_1M`/`PRICE_OUTPUT_PER_1M`).
+- `evals/golden-set.jsonl` boşdur. 30 DİM şəkli çəkilib doldurulmayınca (`86eyhk10u`) harness
+  yalnız `--set evals/fixtures.jsonl` ilə mənalı işləyir — nəticələr qapı hökmü vermir.
+- `final_answer` yoxlanışı `word_problem` tipində canonical-da `$...$` daxilində tənlik yoxdursa
+  `None` (yoxlanıla bilmədi) qaytarır, `False` yox — bu, dolayı denominatordan çıxarılır. Real
+  golden-set doldurularkən mətn məsələlərinin `canonical`-ına lazım gələrsə tənlik əlavə edilməli
+  ola bilər, əks halda son cavab dəqiqliyi metrikası mətn məsələlərini keçə bilər.
+- `error_codes` enum-una toxunulmadı, `docs/DESIGN-TOKENS.json`-a toxunulmadı.
+
+**Blok:** yoxdur — tapşırıq tam bitdi. Növbəti addım Ilkin-in əl işidir (`86eyhk10u`, `86eyhk12g`).
+
+---
+
 ## 2026-08-05 (2) · Cowork → Claude Code
 
 **Etdim:** `docs/FUTURE-IDEAS.md` — 4 gələcək funksiya (memory cards, gamification, lent alqoritmi,

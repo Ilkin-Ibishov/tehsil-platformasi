@@ -24,11 +24,16 @@ Bir şəkildə **bir məsələ** olsun (Kamera ekranı onsuz da çərçivə ilə
 
 ```
 evals/
-├── images/            # şəkillər (git-ə getmir, .gitignore-dadır)
+├── images/               # şəkillər (git-ə getmir, .gitignore-dadır)
 │   └── 001.jpg ...
-├── golden-set.jsonl   # ground truth — hər sətir bir məsələ
-└── results/           # eval nəticələri (git-ə getmir)
+├── golden-set.jsonl      # ground truth — real DİM şəkilləri çəkilənə qədər BOŞDUR
+├── fixtures.jsonl        # sintetik, şəkilsiz nümunələr — golden-set boş olanda da harness işə düşsün deyə
+├── selftest-cases.jsonl  # harness-in öz məntiqini (schema/verify/leak) yoxlayan mock nümunələr
+└── results/              # eval nəticələri (git-ə getmir)
 ```
+
+`golden-set.jsonl` boş olduğu müddətcə `--set evals/fixtures.jsonl` istifadə et. Fixture nəticələri
+qapı hökmü vermir (aşağıya bax) — yalnız harness-in canlı LLM çağırışı ilə uçdan-uca işlədiyini yoxlayır.
 
 ## `golden-set.jsonl` formatı
 
@@ -76,9 +81,17 @@ Nəticə `docs/decisions/ADR-001-ocr-pipeline.md`-ə yazılır. B, A-dan pis dey
 ## İşə salma
 
 ```bash
+pip install -r scripts/requirements.txt
+cp scripts/.env.example .env   # MODEL, API_KEY, BASE_URL doldur
+
+python scripts/eval.py --selftest                                  # API çağırışı yoxdur — harness-in özünü yoxlayır
+python scripts/eval.py --pipeline B --set evals/fixtures.jsonl      # golden-set boşkən canlı test
 python scripts/eval.py --pipeline A --set evals/golden-set.jsonl
 python scripts/eval.py --pipeline B --set evals/golden-set.jsonl
 python scripts/eval.py --compare
 ```
 
-> `scripts/eval.py` hələ yazılmayıb — Faza 0-ın birinci tapşırığıdır.
+**Qapı guard-ı:** `n < 30` olan hər hansı dəst üzərində harness faiz ÇAP ETMİR, yalnız xam say
+(məs. `2/3`) göstərir və nəticə JSON-una `"gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=…, minimum 30)"`
+yazır. Bu, kiçik nümunə üzərində görünən faizin qapı keçidi kimi yozulmasının qarşısını alır —
+Faza 0-ın bütün mənası bu rəqəmə güvənməkdir, ona görə etibarsız halda rəqəm göstərilmir.
