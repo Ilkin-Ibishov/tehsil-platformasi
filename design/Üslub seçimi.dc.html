@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Nunito:wght@600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #08090C; }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  a { color: #63E6BE; text-decoration: none; }
+  a:hover { color: #8AF0D2; }
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #08090C; color: rgba(255,255,255,0.92); font-family: 'Golos Text', sans-serif; padding: 40px; display: flex; flex-direction: column; gap: 32px;">
+
+  <div style="display: flex; flex-direction: column; gap: 12px; max-width: 70ch;">
+    <div style="display: grid; row-gap: 10px;">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: rgba(255,255,255,0.45);">ÜSLUB SEÇİMİ · 5 İSTİQAMƏT · LIGHT + DARK</span>
+      <span style="font-size: 30px; font-weight: 600; line-height: 1.15; letter-spacing: -0.02em;">Eyni ekran, beş fərqli dizayn dili</span>
+      <span style="font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.64); max-width: 60ch; text-wrap: pretty;">Hər sütunda həll ekranının kiçik variantı var — solda dark, sağda light. Bəyəndiyin variantın nömrəsini yaz (məsələn 1c), bütün ekranları o dilə keçirim.</span>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start;">
+
+    <div id="1a" style="display: flex; flex-direction: column; gap: 14px; width: 620px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 8px; border: 1px solid #63E6BE; color: #63E6BE;">1a</span>
+        <span style="font-size: 22px; font-weight: 600;">Akademik sakit</span>
+      </div>
+      <span style="font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.64); max-width: 58ch;">Khan Academy məktəbi: çox boşluq, yumşaq mavi aksent, 12px radius, kölgəsiz kartlar. Ən etibarlı və “məktəbə uyğun” görünən variant; valideyn üçün ən inandırıcı, şagird üçün ən sakit.</span>
+      <div style="display: flex; gap: 20px;">
+        <div style="width: 290px; background: #101725; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; font-family: 'IBM Plex Sans', sans-serif;">
+          <span style="font-size: 12px; letter-spacing: 0.04em; color: #8FB4FF;">RİYAZİYYAT · ADDIM 2/4</span>
+          <span style="font-size: 22px; font-weight: 600; line-height: 1.25; color: rgba(255,255,255,0.94);">Diskriminantı hesabla</span>
+          <span style="font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.62);">Kökün sayını diskriminant göstərir.</span>
+          <div style="background: rgba(143,180,255,0.1); border: 1px solid rgba(143,180,255,0.25); border-radius: 12px; padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 16px; color: #C9DBFF;">D = b² − 4ac</div>
+          <div style="display: flex; gap: 8px;">
+            <span style="flex: 1; height: 6px; border-radius: 99px; background: #8FB4FF;"></span>
+            <span style="flex: 1; height: 6px; border-radius: 99px; background: #8FB4FF;"></span>
+            <span style="flex: 1; height: 6px; border-radius: 99px; background: rgba(255,255,255,0.12);"></span>
+            <span style="flex: 1; height: 6px; border-radius: 99px; background: rgba(255,255,255,0.12);"></span>
+          </div>
+          <button type="button" onClick="{{ noop }}" style="min-height: 48px; border: none; border-radius: 12px; background: #6B93F5; color: #08111F; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer;">Növbəti addım</button>
+        </div>
+        <div style="width: 290px; background: #FFFFFF; border: 1px solid #E3E8EF; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; font-family: 'IBM Plex Sans', sans-serif;">
+          <span style="font-size: 12px; letter-spacing: 0.04em; color: #3B63C9;">RİYAZİYYAT · ADDIM 2/4</span>
+          <span style="font-size: 22px; font-weight: 600; line-height: 1.25; color: #17223B;">Diskriminantı hesabla</span>
+          <span style="font-size: 14px; line-height: 1.6; color: #55617A;">Kökün sayını diskriminant göstərir.</span>
+          <div style="background: #F2F6FF; border: 1px solid #D8E3FA; border-radius: 12px; padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 16px; color: #23346B;">D = b² − 4ac</div>
+          <div style="display: flex; gap: 8px;">
+            <span style="flex: 1; height: 6px; border-radius: 99px; background: #3B63C9;"></span>
+            <span style="flex: 1; height: 6px; border-radius: 99px; background: #3B63C9;"></span>
+            <span style="flex: 1; height: 6px; border-radius: 99px; background: #E3E8EF;"></span>
+            <span style="flex: 1; height: 6px; border-radius: 99px; background: #E3E8EF;"></span>
+          </div>
+          <button type="button" onClick="{{ noop }}" style="min-height: 48px; border: none; border-radius: 12px; background: #3B63C9; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer;">Növbəti addım</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="1b" style="display: flex; flex-direction: column; gap: 14px; width: 620px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 8px; border: 1px solid #63E6BE; color: #63E6BE;">1b</span>
+        <span style="font-size: 22px; font-weight: 600;">Oyunlaşdırılmış</span>
+      </div>
+      <span style="font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.64); max-width: 58ch;">Qalın yuvarlaq formalar, iri hərflər, canlı əhəng-yaşıl, seçim variantları böyük toxunma bloklarında. 10–14 yaş üçün ən yüksək cəlbedicilik; 16+ və valideyn üçün “uşaq oyunu” riski var.</span>
+      <div style="display: flex; gap: 20px;">
+        <div style="width: 290px; background: #131A17; border: 2px solid #24312A; border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 16px; font-family: 'Nunito', sans-serif;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; letter-spacing: 0.06em; color: #A9E34B;">ADDIM 2/4 · STREAK 12</span>
+          <span style="font-size: 24px; font-weight: 800; line-height: 1.2; color: #F2FFF4;">Diskriminantı tap!</span>
+          <div style="background: #1B241E; border: 2px solid #2C3A2F; border-radius: 18px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 17px; color: #BFF5C8;">D = b² − 4ac</div>
+          <div style="display: flex; gap: 10px;">
+            <span style="flex: 1; min-height: 44px; border: 2px solid #2C3A2F; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #F2FFF4;">1</span>
+            <span style="flex: 1; min-height: 44px; border: 2px solid #A9E34B; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #A9E34B; background: rgba(169,227,75,0.12);">49</span>
+          </div>
+          <button type="button" onClick="{{ noop }}" style="min-height: 52px; border: 2px solid #A9E34B; border-radius: 18px; background: rgba(169,227,75,0.16); color: #E7FFC2; font-family: inherit; font-size: 17px; font-weight: 800; cursor: pointer;">Cavabı yoxla</button>
+        </div>
+        <div style="width: 290px; background: #FFFFFF; border: 2px solid #E5E5E5; border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 16px; font-family: 'Nunito', sans-serif;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; letter-spacing: 0.06em; color: #5C8A00;">ADDIM 2/4 · STREAK 12</span>
+          <span style="font-size: 24px; font-weight: 800; line-height: 1.2; color: #3C3C3C;">Diskriminantı tap!</span>
+          <div style="background: #F7FFF0; border: 2px solid #DDEFB8; border-radius: 18px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 17px; color: #4F6B00;">D = b² − 4ac</div>
+          <div style="display: flex; gap: 10px;">
+            <span style="flex: 1; min-height: 44px; border: 2px solid #E5E5E5; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #3C3C3C;">1</span>
+            <span style="flex: 1; min-height: 44px; border: 2px solid #8CB800; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #4F6B00; background: #F4FCE0;">49</span>
+          </div>
+          <button type="button" onClick="{{ noop }}" style="min-height: 52px; border: none; border-radius: 18px; background: #6F9B00; color: #FFFFFF; font-family: inherit; font-size: 17px; font-weight: 800; cursor: pointer;">Cavabı yoxla</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="1c" style="display: flex; flex-direction: column; gap: 14px; width: 620px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 8px; border: 1px solid #63E6BE; color: #63E6BE;">1c</span>
+        <span style="font-size: 22px; font-weight: 600;">Utilitar alət</span>
+      </div>
+      <span style="font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.64); max-width: 58ch;">Photomath məktəbi: sıx sətirlər, kiçik radius, bənövşəyi-indigo aksent, riyazi tipoqrafiyaya maksimum yer. Ən sürətli oxunan variant; “dərs” yox, “alət” hissi verir.</span>
+      <div style="display: flex; gap: 20px;">
+        <div style="width: 290px; background: #14141B; border: 1px solid #24242F; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; font-family: 'Golos Text', sans-serif;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 12px; color: rgba(255,255,255,0.5);">2 / 4 addım</span>
+            <span style="font-size: 12px; color: #A78BFA;">izahı aç</span>
+          </div>
+          <span style="font-size: 17px; font-weight: 600; color: rgba(255,255,255,0.94);">Diskriminantı hesabla</span>
+          <div style="border-top: 1px solid #24242F; border-bottom: 1px solid #24242F; padding: 12px 0; font-family: 'JetBrains Mono', monospace; font-size: 18px; color: rgba(255,255,255,0.94);">D = b² − 4ac</div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: rgba(255,255,255,0.6);">= (−5)² − 4·1·6</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #A78BFA;">= 1</span>
+          </div>
+          <button type="button" onClick="{{ noop }}" style="min-height: 44px; border: none; border-radius: 8px; background: #7C5CFC; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;">Növbəti addım</button>
+        </div>
+        <div style="width: 290px; background: #FFFFFF; border: 1px solid #E7E7EF; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; font-family: 'Golos Text', sans-serif;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 12px; color: #6B6B80;">2 / 4 addım</span>
+            <span style="font-size: 12px; color: #6D4AFF;">izahı aç</span>
+          </div>
+          <span style="font-size: 17px; font-weight: 600; color: #14141B;">Diskriminantı hesabla</span>
+          <div style="border-top: 1px solid #E7E7EF; border-bottom: 1px solid #E7E7EF; padding: 12px 0; font-family: 'JetBrains Mono', monospace; font-size: 18px; color: #14141B;">D = b² − 4ac</div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #6B6B80;">= (−5)² − 4·1·6</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #6D4AFF;">= 1</span>
+          </div>
+          <button type="button" onClick="{{ noop }}" style="min-height: 44px; border: none; border-radius: 8px; background: #6D4AFF; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;">Növbəti addım</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="1d" style="display: flex; flex-direction: column; gap: 14px; width: 620px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 8px; border: 1px solid #63E6BE; color: #63E6BE;">1d</span>
+        <span style="font-size: 22px; font-weight: 600;">Redaksiya (indiki)</span>
+      </div>
+      <span style="font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.64); max-width: 58ch;">Bizim hazırkı dil: kart yox, tam enli hairline sətirlər, kontur rəqəmlər, mono etiketlər, tək mint aksent. Ən fərqli və “böyümüş” görünüş; light rejimdə xüsusilə təmiz çıxır.</span>
+      <div style="display: flex; gap: 20px;">
+        <div style="width: 290px; background: #0F1115; border: 1px solid rgba(255,255,255,0.07); padding: 20px 0; display: flex; flex-direction: column; gap: 14px; font-family: 'Golos Text', sans-serif;">
+          <div style="padding: 0 18px; display: grid; row-gap: 2px;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 52px; line-height: 0.85; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.22);">02</span>
+            <span style="font-size: 20px; font-weight: 600; color: rgba(255,255,255,0.92);">Diskriminantı hesabla</span>
+          </div>
+          <span style="padding: 0 18px; font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.64);">Kökün sayını diskriminant verir.</span>
+          <div style="padding: 14px 18px; border-top: 1px solid rgba(255,255,255,0.07); border-bottom: 1px solid rgba(255,255,255,0.07); font-family: 'JetBrains Mono', monospace; font-size: 18px; color: rgba(255,255,255,0.92);">D = b² − 4ac</div>
+          <div style="padding: 0 18px; font-size: 13px; color: rgba(255,255,255,0.64); border-bottom: 1px solid transparent;">niyə belədir</div>
+          <div style="border-top: 1px solid rgba(255,255,255,0.07); min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; font-size: 15px; color: rgba(255,255,255,0.92);">Növbəti addım<span style="font-family: 'JetBrains Mono', monospace; color: #63E6BE;">→</span></div>
+        </div>
+        <div style="width: 290px; background: #FBFAF7; border: 1px solid #E4E1DA; padding: 20px 0; display: flex; flex-direction: column; gap: 14px; font-family: 'Golos Text', sans-serif;">
+          <div style="padding: 0 18px; display: grid; row-gap: 2px;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 52px; line-height: 0.85; color: transparent; -webkit-text-stroke: 1px rgba(20,24,20,0.24);">02</span>
+            <span style="font-size: 20px; font-weight: 600; color: #16181C;">Diskriminantı hesabla</span>
+          </div>
+          <span style="padding: 0 18px; font-size: 14px; line-height: 1.6; color: #5A6069;">Kökün sayını diskriminant verir.</span>
+          <div style="padding: 14px 18px; border-top: 1px solid #E4E1DA; border-bottom: 1px solid #E4E1DA; font-family: 'JetBrains Mono', monospace; font-size: 18px; color: #16181C;">D = b² − 4ac</div>
+          <div style="padding: 0 18px; font-size: 13px; color: #5A6069;">niyə belədir</div>
+          <div style="border-top: 1px solid #E4E1DA; min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; font-size: 15px; color: #16181C;">Növbəti addım<span style="font-family: 'JetBrains Mono', monospace; color: #0E9B86;">→</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="1e" style="display: flex; flex-direction: column; gap: 14px; width: 620px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 8px; border: 1px solid #63E6BE; color: #63E6BE;">1e</span>
+        <span style="font-size: 22px; font-weight: 600;">Repetitor (isti serif)</span>
+      </div>
+      <span style="font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.64); max-width: 58ch;">Brilliant/Notion aralığı: isti kağız fonu, serif başlıqlar, yumşaq kölgə, adaçayı-yaşıl aksent. Fərdi repetitor hissi verir — valideyn üçün “premium”, şagird üçün sakit.</span>
+      <div style="display: flex; gap: 20px;">
+        <div style="width: 290px; background: #1A1917; border: 1px solid #2B2924; border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 16px; font-family: 'Golos Text', sans-serif;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #9BBF9B;">İKİNCİ ADDIM</span>
+          <span style="font-family: 'Source Serif 4', serif; font-size: 25px; font-weight: 600; line-height: 1.2; color: #F5F1E9;">Diskriminantı hesabla</span>
+          <span style="font-size: 14px; line-height: 1.65; color: rgba(245,241,233,0.66);">Kökün sayı buradan görünür — hesablamağa dəyər.</span>
+          <div style="background: #221F1B; border-radius: 14px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 17px; color: #E8E2D6;">D = b² − 4ac</div>
+          <button type="button" onClick="{{ noop }}" style="min-height: 48px; border: none; border-radius: 999px; background: #7FA87F; color: #10150F; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer;">Davam et</button>
+        </div>
+        <div style="width: 290px; background: #F7F3EC; border: 1px solid #E6DFD3; border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 16px; font-family: 'Golos Text', sans-serif; box-shadow: 0 8px 24px rgba(60,50,35,0.06);">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #4F7A50;">İKİNCİ ADDIM</span>
+          <span style="font-family: 'Source Serif 4', serif; font-size: 25px; font-weight: 600; line-height: 1.2; color: #22201B;">Diskriminantı hesabla</span>
+          <span style="font-size: 14px; line-height: 1.65; color: #5C574D;">Kökün sayı buradan görünür — hesablamağa dəyər.</span>
+          <div style="background: #FFFFFF; border: 1px solid #E6DFD3; border-radius: 14px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 17px; color: #22201B;">D = b² − 4ac</div>
+          <button type="button" onClick="{{ noop }}" style="min-height: 48px; border: none; border-radius: 999px; background: #4F7A50; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer;">Davam et</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  renderVals() { return { noop: () => {} }; }
+}
+</script>
+</body>
+</html>

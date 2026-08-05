@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<script src="./image-slot.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #101311; }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  a { color: inherit; text-decoration: none; }
+  @keyframes gir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes tarama { 0% { transform: translateY(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(250px); opacity: 0; } }
+  @keyframes nefes { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.85; } }
+  ::-webkit-scrollbar { display: none; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</helmet>
+<div style="--bg: {{ vBg }}; --sur: {{ vSur }}; --bor: {{ vBor }}; --t1: {{ vT1 }}; --t2: {{ vT2 }}; --t3: {{ vT3 }}; --acc: {{ vAcc }}; --accsoft: {{ vAccSoft }}; --accink: {{ vAccInk }}; --warn: {{ vWarn }}; --warnsoft: {{ vWarnSoft }}; --rad: {{ vRad }}; --radsm: {{ vRadSm }}; --hfont: {{ vHFont }}; --hweight: {{ vHWeight }}; --hsize: {{ vHSize }}; --tap: {{ vTap }}; min-height: 100vh; background: var(--bg, #101311); color: var(--t1, rgba(255,255,255,0.93)); font-family: 'Golos Text', 'Noto Sans', sans-serif; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; transition: background 260ms ease, color 260ms ease;">
+
+  <div style="display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 12px; padding: 12px 20px 0;">
+    <button type="button" onClick="{{ noop }}" aria-label="Bağla" style="width: 44px; height: 44px; margin-left: -12px; border: none; background: transparent; color: var(--t2); font-size: 18px; cursor: pointer; display: flex; align-items: center;">✕</button>
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--t3); text-align: center;">TAPŞIRIĞI ÇƏK</span>
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; color: var(--t3);">3/5</span>
+  </div>
+
+  <div style="display: flex; gap: 8px; padding: 16px 20px 0; overflow-x: auto;">
+    <button type="button" onClick="{{ fRiyaziyyat }}" style="min-height: 44px; padding: 0 18px; white-space: nowrap; border: 2px solid {{ kRiyaziyyat }}; border-radius: 99px; background: {{ fnRiyaziyyat }}; color: {{ yRiyaziyyat }}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, color 180ms ease, transform 140ms ease;" style-active="transform: scale(0.96);">Riyaziyyat</button>
+    <button type="button" onClick="{{ fFizika }}" style="min-height: 44px; padding: 0 16px; white-space: nowrap; border: 1px dashed var(--bor); border-radius: 99px; background: transparent; color: var(--t3); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: color 180ms ease, border-color 180ms ease;" style-hover="color: var(--t2); border-color: var(--t3);">Fizika<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;">tezliklə</span></button>
+    <button type="button" onClick="{{ fKimya }}" style="min-height: 44px; padding: 0 16px; white-space: nowrap; border: 1px dashed var(--bor); border-radius: 99px; background: transparent; color: var(--t3); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: color 180ms ease, border-color 180ms ease;" style-hover="color: var(--t2); border-color: var(--t3);">Kimya<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;">tezliklə</span></button>
+    <button type="button" onClick="{{ fDil }}" style="min-height: 44px; padding: 0 16px; white-space: nowrap; border: 1px dashed var(--bor); border-radius: 99px; background: transparent; color: var(--t3); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: color 180ms ease, border-color 180ms ease;" style-hover="color: var(--t2); border-color: var(--t3);">Ana dili<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;">tezliklə</span></button>
+  </div>
+
+  <sc-if value="{{ sorguVar }}" hint-placeholder-val="{{ false }}">
+    <div style="margin: 12px 20px 0; padding: 12px 16px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); display: flex; align-items: center; justify-content: space-between; gap: 14px; animation: gir 200ms ease-out both;">
+      <span style="font-size: 14px; line-height: 1.5; color: var(--t2); max-width: 28ch; text-wrap: pretty;">{{ sorguMetni }}</span>
+      <button type="button" onClick="{{ xeberVer }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: {{ sorguDuymeRengi }}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;">{{ sorguDuyme }}</button>
+    </div>
+  </sc-if>
+
+  <div style="flex: 1; padding: 18px 20px 0; display: flex; flex-direction: column; gap: 16px;">
+    <div style="position: relative; width: 100%; height: 310px; border-radius: var(--rad); background: var(--sur); border: 1px solid var(--bor); overflow: hidden;">
+      <image-slot id="kamera-tapsiriq" shape="rect" placeholder="ev tapşırığının şəkli"></image-slot>
+      <div style="position: absolute; inset: 0; pointer-events: none;">
+        <span style="position: absolute; top: 16px; left: 16px; width: 30px; height: 30px; border-top: 3px solid var(--acc); border-left: 3px solid var(--acc); border-top-left-radius: var(--radsm);"></span>
+        <span style="position: absolute; top: 16px; right: 16px; width: 30px; height: 30px; border-top: 3px solid var(--acc); border-right: 3px solid var(--acc); border-top-right-radius: var(--radsm);"></span>
+        <span style="position: absolute; bottom: 16px; left: 16px; width: 30px; height: 30px; border-bottom: 3px solid var(--acc); border-left: 3px solid var(--acc); border-bottom-left-radius: var(--radsm);"></span>
+        <span style="position: absolute; bottom: 16px; right: 16px; width: 30px; height: 30px; border-bottom: 3px solid var(--acc); border-right: 3px solid var(--acc); border-bottom-right-radius: var(--radsm);"></span>
+        <sc-if value="{{ taniyir }}" hint-placeholder-val="{{ false }}">
+          <span style="position: absolute; top: 30px; left: 16px; right: 16px; height: 2px; border-radius: 99px; background: var(--acc); animation: tarama 1600ms ease-in-out infinite both;"></span>
+        </sc-if>
+      </div>
+    </div>
+
+    <sc-if value="{{ hazir }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; align-items: baseline; gap: 10px; animation: gir 200ms ease-out both;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3);">→</span>
+        <span style="font-size: 14px; line-height: 1.6; color: var(--t2); max-width: 34ch;">Bir tənliyi çərçivənin içinə sal. Bütün səhifəni çəkməyə ehtiyac yoxdur.</span>
+      </div>
+    </sc-if>
+    <sc-if value="{{ taniyir }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: var(--rad); background: var(--accsoft); animation: gir 200ms ease-out both;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--acc); animation: nefes 1400ms ease-in-out infinite both;">MƏTN OXUNUR</span>
+        <span style="font-size: 14px; line-height: 1.6; color: var(--t2);">Telefonu tərpətmə — 2 saniyə.</span>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isiqAz }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: var(--rad); background: var(--warnsoft); animation: gir 200ms ease-out both;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; align-self: flex-start; padding: 4px 8px; border-radius: var(--radsm); border: 1px solid var(--warn); color: var(--warn);">İŞIQ AZDIR</span>
+        <span style="font-size: 14px; line-height: 1.6; color: var(--t2); max-width: 34ch;">Belə şəkildə hərflər səhv oxunur. Fənəri yandır və ya işığa yaxınlaş.</span>
+        <button type="button" onClick="{{ fenerAc }}" style="align-self: flex-start; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--warn); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border-bottom: 1px solid var(--warn);">fənəri yandır</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ icaze }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 14px; animation: gir 200ms ease-out both;">
+        <span style="font-family: var(--hfont); font-weight: var(--hweight); font-size: 22px; line-height: 1.3;">Kameraya icazə lazımdır</span>
+        <span style="font-size: 14px; line-height: 1.6; color: var(--t2); max-width: 34ch;">Şəkil telefonda qalır, yalnız tənliyin mətni serverə gedir.</span>
+        <button type="button" onClick="{{ noop }}" style="align-self: flex-start; min-height: var(--tap); padding: 0 22px; border: none; border-radius: var(--rad); background: var(--acc); color: var(--accink); font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: transform 140ms ease;" style-active="transform: scale(0.97);">İcazə ver</button>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="position: sticky; bottom: 0; background: var(--bg); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; padding: 18px 20px 26px; transition: background 260ms ease;">
+    <button type="button" onClick="{{ noop }}" style="justify-self: start; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer;">qalereya</button>
+    <button type="button" onClick="{{ cek }}" aria-label="Şəkil çək" style="width: 76px; height: 76px; border-radius: 50%; border: 3px solid var(--bor); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color 200ms ease, transform 140ms ease;" style-hover="border-color: var(--acc);" style-active="transform: scale(0.94);">
+      <span style="width: 58px; height: 58px; border-radius: 50%; background: {{ shutterRengi }}; transition: background 220ms ease;"></span>
+    </button>
+    <button type="button" onClick="{{ fenerDeyis }}" style="justify-self: end; min-height: 44px; padding: 0; border: none; background: transparent; color: {{ fenerRengi }}; font-family: inherit; font-size: 14px; cursor: pointer; transition: color 180ms ease;">{{ fenerMetni }}</button>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;tema&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Görünüş&quot;},&quot;ton&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;genc&quot;,&quot;yetkin&quot;],&quot;default&quot;:&quot;genc&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Görünüş&quot;},&quot;veziyyet&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;hazir&quot;,&quot;taniyir&quot;,&quot;isiq&quot;,&quot;icaze&quot;],&quot;default&quot;:&quot;hazir&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Vəziyyət&quot;}}">
+const TEMA = {
+  dark: { bg: '#101311', sur: '#171B18', bor: 'rgba(255,255,255,0.12)',
+    t1: 'rgba(255,255,255,0.93)', t2: 'rgba(255,255,255,0.66)', t3: 'rgba(255,255,255,0.55)',
+    acc: '#A6E06A', accSoft: 'rgba(166,224,106,0.14)', accInk: '#12200A',
+    warn: '#F2B441', warnSoft: 'rgba(242,180,65,0.12)' },
+  light: { bg: '#FBFBF8', sur: '#F1F1EC', bor: '#DDE0D8',
+    t1: '#151814', t2: '#565B52', t3: '#878C81',
+    acc: '#4F7A16', accSoft: 'rgba(79,122,22,0.10)', accInk: '#FFFFFF',
+    warn: '#A96A00', warnSoft: 'rgba(169,106,0,0.09)' }
+};
+const TON = {
+  genc: { rad: '18px', radSm: '8px', hFont: "'Nunito', sans-serif", hWeight: '800', hSize: '28px', tap: '52px' },
+  yetkin: { rad: '8px', radSm: '4px', hFont: "'Golos Text', sans-serif", hWeight: '600', hSize: '26px', tap: '48px' }
+};
+
+class Component extends DCLogic {
+  state = { fenn: 'riyaziyyat', fener: false, cekilir: false, sorgu: null, xeber: false };
+
+  componentWillUnmount() { clearTimeout(this._t); }
+
+  renderVals() {
+    const t = TEMA[this.props.tema === 'light' ? 'light' : 'dark'];
+    const ton = TON[this.props.ton === 'yetkin' ? 'yetkin' : 'genc'];
+    const veziyyet = this.props.veziyyet ?? 'hazir';
+    const { fenn, fener, cekilir, sorgu, xeber } = this.state;
+    const ADLAR = { fizika: 'Fizika', kimya: 'Kimya', dil: 'Ana dili' };
+    const sorguAc = k => () => this.setState({ sorgu: k, xeber: false });
+    const taniyir = veziyyet === 'taniyir' || cekilir;
+    const kenar = k => (fenn === k ? t.acc : t.bor);
+    const fon = k => (fenn === k ? t.accSoft : 'transparent');
+    const yazi = k => (fenn === k ? t.acc : t.t2);
+    const set = k => () => this.setState({ fenn: k });
+
+    return {
+      vBg: t.bg, vSur: t.sur, vBor: t.bor, vT1: t.t1, vT2: t.t2, vT3: t.t3,
+      vAcc: t.acc, vAccSoft: t.accSoft, vAccInk: t.accInk, vWarn: t.warn, vWarnSoft: t.warnSoft,
+      vRad: ton.rad, vRadSm: ton.radSm, vHFont: ton.hFont, vHWeight: ton.hWeight, vHSize: ton.hSize, vTap: ton.tap,
+      hazir: veziyyet === 'hazir' && !cekilir,
+      taniyir: taniyir && veziyyet !== 'icaze',
+      isiqAz: veziyyet === 'isiq' && !cekilir,
+      icaze: veziyyet === 'icaze',
+      kRiyaziyyat: kenar('riyaziyyat'), fnRiyaziyyat: fon('riyaziyyat'), yRiyaziyyat: yazi('riyaziyyat'),
+      kFizika: kenar('fizika'), fnFizika: fon('fizika'), yFizika: yazi('fizika'),
+      kKimya: kenar('kimya'), fnKimya: fon('kimya'), yKimya: yazi('kimya'),
+      kDil: kenar('dil'), fnDil: fon('dil'), yDil: yazi('dil'),
+      fRiyaziyyat: set('riyaziyyat'), fFizika: sorguAc('fizika'), fKimya: sorguAc('kimya'), fDil: sorguAc('dil'),
+      sorguVar: !!sorgu,
+      sorguMetni: xeber
+        ? (ADLAR[sorgu] || '') + ' hazır olanda sənə bildiriş gələcək.'
+        : (ADLAR[sorgu] || '') + ' hələ hazır deyil — istəyirsən xəbər verək?',
+      sorguDuyme: xeber ? 'oldu' : 'xəbər ver',
+      sorguDuymeRengi: xeber ? t.acc : t.t1,
+      xeberVer: () => (xeber ? this.setState({ sorgu: null, xeber: false }) : this.setState({ xeber: true })),
+      shutterRengi: taniyir ? t.accSoft : t.acc,
+      fenerMetni: fener ? 'fənər açıq' : 'fənər',
+      fenerRengi: fener ? t.warn : t.t2,
+      fenerDeyis: () => this.setState(s => ({ fener: !s.fener })),
+      fenerAc: () => this.setState({ fener: true }),
+      cek: () => {
+        clearTimeout(this._t);
+        this.setState({ cekilir: true });
+        this._t = setTimeout(() => this.setState({ cekilir: false }), 2200);
+      },
+      noop: () => {}
+    };
+  }
+}
+</script>
+</body>
+</html>

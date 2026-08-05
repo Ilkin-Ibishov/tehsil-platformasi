@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #101311; }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  a { color: inherit; text-decoration: none; }
+  @keyframes gir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes reqem { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  ::-webkit-scrollbar { display: none; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</helmet>
+<div style="--bg: {{ vBg }}; --sur: {{ vSur }}; --bor: {{ vBor }}; --t1: {{ vT1 }}; --t2: {{ vT2 }}; --t3: {{ vT3 }}; --acc: {{ vAcc }}; --accsoft: {{ vAccSoft }}; --accmid: {{ vAccMid }}; --accink: {{ vAccInk }}; --warn: {{ vWarn }}; --warnsoft: {{ vWarnSoft }}; --rad: {{ vRad }}; --radsm: {{ vRadSm }}; --hfont: {{ vHFont }}; --hweight: {{ vHWeight }}; --hsize: {{ vHSize }}; min-height: 100vh; background: var(--bg, #101311); color: var(--t1, rgba(255,255,255,0.93)); font-family: 'Golos Text', 'Noto Sans', sans-serif; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; transition: background 260ms ease, color 260ms ease;">
+
+  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 18px 20px 0;">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--t3);">AYSEL · 8-Cİ SİNİF</span>
+    <button type="button" onClick="{{ dovrDeyis }}" style="min-height: 44px; padding: 0 12px; border: 1px solid var(--bor); border-radius: 99px; background: var(--sur); color: var(--t2); font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; cursor: pointer; transition: border-color 180ms ease, color 180ms ease;" style-hover="border-color: var(--acc); color: var(--acc);">{{ dovr }}</button>
+  </div>
+
+  <div style="flex: 1; padding: 24px 20px 24px; display: flex; flex-direction: column; gap: 30px;">
+
+    <div style="display: grid; row-gap: 8px;">
+      <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 64px; line-height: 0.85; letter-spacing: -0.04em; color: var(--acc); animation: reqem 380ms cubic-bezier(0.16,1,0.3,1) both;">{{ hellSayi }}</span>
+      <span style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.2; letter-spacing: -0.02em; max-width: 24ch; animation: gir 280ms cubic-bezier(0.16,1,0.3,1) 70ms both;">{{ xulase }}</span>
+    </div>
+
+    <div style="border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); overflow: hidden;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; padding: 0 18px; border-bottom: 1px solid var(--bor);">
+        <span style="font-size: 14px; color: var(--t2);">Özü keçdiyi addımlar</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; color: var(--acc);">{{ ozuFaiz }}</span>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; padding: 0 18px; border-bottom: 1px solid var(--bor);">
+        <span style="font-size: 14px; color: var(--t2);">Cavaba dərhal baxdığı hallar</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; color: {{ atlamaRengi }};">{{ atlama }}</span>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; padding: 0 18px;">
+        <span style="font-size: 14px; color: var(--t2);">Ortalama iş vaxtı</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; color: var(--t1);">{{ vaxt }}</span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--t3);">TƏKRARLANAN SƏHVLƏR</span>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: grid; row-gap: 8px; padding: 16px 18px; border: 1px solid var(--warn); border-radius: var(--rad); background: var(--warnsoft);">
+          <span style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; padding: 4px 8px; border-radius: var(--radsm); border: 1px solid var(--warn); color: var(--warn);">İŞARƏ İTDİ</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--t2);">6 dəfə</span>
+          </span>
+          <span style="font-size: 14px; line-height: 1.6; color: var(--t2); max-width: 34ch;">Mənfi əmsalı köçürəndə minusu itirir. Bu, kvadrat tənlikdə ən çox bal aparan səhvdir.</span>
+        </div>
+        <div style="display: grid; row-gap: 8px; padding: 16px 18px; border: 1px solid var(--warn); border-radius: var(--rad); background: var(--warnsoft);">
+          <span style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; padding: 4px 8px; border-radius: var(--radsm); border: 1px solid var(--warn); color: var(--warn);">KVADRAT UNUDULDU</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--t2);">3 dəfə</span>
+          </span>
+          <span style="font-size: 14px; line-height: 1.6; color: var(--t2); max-width: 34ch;">Diskriminantda b-ni kvadrata yüksəltməmişdən 4ac-ni çıxır.</span>
+        </div>
+        <div style="display: grid; row-gap: 8px; padding: 16px 18px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur);">
+          <span style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; padding: 4px 8px; border-radius: var(--radsm); border: 1px solid var(--bor); color: var(--t2);">YERİNƏQOYMA</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--t2);">1 dəfə</span>
+          </span>
+          <span style="font-size: 14px; line-height: 1.6; color: var(--t2); max-width: 34ch;">Yoxlama addımını atlayır — cavabı yerinə qoymadan qəbul edir.</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--t3);">MÖVZULAR</span>
+      <div style="border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); overflow: hidden;">
+        <div style="display: grid; row-gap: 10px; padding: 16px 18px; border-bottom: 1px solid var(--bor);">
+          <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+            <span style="font-size: 16px; font-weight: 500;">Kvadrat tənlik</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--acc);">82%</span>
+          </span>
+          <span style="display: block; height: 6px; border-radius: 99px; background: var(--bor);"><span style="display: block; height: 6px; width: 82%; border-radius: 99px; background: var(--acc);"></span></span>
+        </div>
+        <div style="display: grid; row-gap: 10px; padding: 16px 18px; border-bottom: 1px solid var(--bor);">
+          <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+            <span style="font-size: 16px; font-weight: 500;">Faiz məsələləri</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--acc);">64%</span>
+          </span>
+          <span style="display: block; height: 6px; border-radius: 99px; background: var(--bor);"><span style="display: block; height: 6px; width: 64%; border-radius: 99px; background: var(--acc);"></span></span>
+        </div>
+        <div style="display: grid; row-gap: 10px; padding: 16px 18px;">
+          <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+            <span style="font-size: 16px; font-weight: 500;">Həndəsə · sahə</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--warn);">38%</span>
+          </span>
+          <span style="display: block; height: 6px; border-radius: 99px; background: var(--bor);"><span style="display: block; height: 6px; width: 38%; border-radius: 99px; background: var(--warn);"></span></span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--t3);">İŞ SAATLARI</span>
+      <div style="padding: 16px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; align-items: end; height: 56px;">
+          <span style="height: 56%; border-radius: var(--radsm); background: var(--accmid);"></span>
+          <span style="height: 32%; border-radius: var(--radsm); background: var(--accmid);"></span>
+          <span style="height: 100%; border-radius: var(--radsm); background: var(--acc);"></span>
+          <span style="height: 16%; border-radius: var(--radsm); background: var(--bor);"></span>
+          <span style="height: 46%; border-radius: var(--radsm); background: var(--accmid);"></span>
+          <span style="height: 82%; border-radius: var(--radsm); background: var(--accmid);"></span>
+          <span style="height: 10%; border-radius: var(--radsm); background: var(--bor);"></span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3); text-align: center;">B.e</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3); text-align: center;">Ç.a</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t1); text-align: center;">Ç</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3); text-align: center;">C.a</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3); text-align: center;">C</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3); text-align: center;">Ş</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3); text-align: center;">B</span>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">İşin əsas hissəsi çərşənbə axşamı gecə saatlarına düşür — ev tapşırığını günün əvvəlinə çəkmək səhv sayını azaldır.</p>
+    </div>
+  </div>
+
+  <div style="position: sticky; bottom: 0; background: var(--bg); padding: 8px 20px 20px; display: flex; gap: 10px; transition: background 260ms ease;">
+    <button type="button" onClick="{{ noop }}" style="flex: 1; min-height: 56px; border: none; border-radius: var(--rad); background: var(--acc); color: var(--accink); font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; transition: transform 140ms ease;" style-active="transform: scale(0.985);">
+      <span>Hesabatı paylaş</span>
+      <span style="font-family: 'JetBrains Mono', monospace; display: inline-block; transition: transform 220ms cubic-bezier(0.16,1,0.3,1);" style-hover="transform: translateX(6px);">→</span>
+    </button>
+    <button type="button" onClick="{{ noop }}" aria-label="Tənzimləmə" style="min-height: 56px; padding: 0 18px; border: 1px solid var(--bor); border-radius: var(--rad); background: transparent; color: var(--t2); font-family: 'JetBrains Mono', monospace; font-size: 16px; cursor: pointer; transition: transform 140ms ease;" style-active="transform: scale(0.97);">⚙</button>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;tema&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Görünüş&quot;},&quot;ton&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;genc&quot;,&quot;yetkin&quot;],&quot;default&quot;:&quot;genc&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Görünüş&quot;},&quot;atlamaFaizi&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:18,&quot;min&quot;:0,&quot;max&quot;:100,&quot;step&quot;:1,&quot;unit&quot;:&quot;%&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Məzmun&quot;}}">
+const TEMA = {
+  dark: { bg: '#101311', sur: '#171B18', bor: 'rgba(255,255,255,0.09)',
+    t1: 'rgba(255,255,255,0.93)', t2: 'rgba(255,255,255,0.66)', t3: 'rgba(255,255,255,0.55)',
+    acc: '#A6E06A', accSoft: 'rgba(166,224,106,0.14)', accMid: 'rgba(166,224,106,0.34)', accInk: '#12200A',
+    warn: '#F2B441', warnSoft: 'rgba(242,180,65,0.1)' },
+  light: { bg: '#FBFBF8', sur: '#FFFFFF', bor: '#E3E5DE',
+    t1: '#151814', t2: '#565B52', t3: '#878C81',
+    acc: '#4F7A16', accSoft: 'rgba(79,122,22,0.10)', accMid: 'rgba(79,122,22,0.26)', accInk: '#FFFFFF',
+    warn: '#A96A00', warnSoft: 'rgba(169,106,0,0.07)' }
+};
+const TON = {
+  genc: { rad: '18px', radSm: '8px', hFont: "'Nunito', sans-serif", hWeight: '800', hSize: '28px' },
+  yetkin: { rad: '8px', radSm: '4px', hFont: "'Golos Text', sans-serif", hWeight: '600', hSize: '26px' }
+};
+
+class Component extends DCLogic {
+  state = { hefte: true };
+
+  renderVals() {
+    const t = TEMA[this.props.tema === 'light' ? 'light' : 'dark'];
+    const ton = TON[this.props.ton === 'yetkin' ? 'yetkin' : 'genc'];
+    const hefte = this.state.hefte;
+    const atlamaFaizi = this.props.atlamaFaizi ?? 18;
+    return {
+      vBg: t.bg, vSur: t.sur, vBor: t.bor, vT1: t.t1, vT2: t.t2, vT3: t.t3,
+      vAcc: t.acc, vAccSoft: t.accSoft, vAccMid: t.accMid, vAccInk: t.accInk, vWarn: t.warn, vWarnSoft: t.warnSoft,
+      vRad: ton.rad, vRadSm: ton.radSm, vHFont: ton.hFont, vHWeight: ton.hWeight, vHSize: ton.hSize,
+      dovr: hefte ? 'BU HƏFTƏ' : 'BU AY',
+      dovrDeyis: () => this.setState(s => ({ hefte: !s.hefte })),
+      hellSayi: hefte ? '14' : '52',
+      xulase: hefte
+        ? '14 tapşırıq həll olundu — keçən həftədən 4 çox'
+        : '52 tapşırıq həll olundu — ayın ikinci yarısı daha sıx',
+      ozuFaiz: (100 - atlamaFaizi) + '%',
+      atlama: atlamaFaizi + '%',
+      atlamaRengi: atlamaFaizi > 30 ? t.warn : t.t1,
+      vaxt: hefte ? '6 dəq' : '7 dəq',
+      noop: () => {}
+    };
+  }
+}
+</script>
+</body>
+</html>

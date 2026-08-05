@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #101311; }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  a { color: inherit; text-decoration: none; }
+  @keyframes gir { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes tik { 0% { transform: scale(0.4); opacity: 0; } 60% { transform: scale(1.14); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+  .katex { font-size: 1em !important; }
+  ::-webkit-scrollbar { display: none; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</helmet>
+<div style="--bg: {{ vBg }}; --sur: {{ vSur }}; --bor: {{ vBor }}; --t1: {{ vT1 }}; --t2: {{ vT2 }}; --t3: {{ vT3 }}; --acc: {{ vAcc }}; --accsoft: {{ vAccSoft }}; --accink: {{ vAccInk }}; --warn: {{ vWarn }}; --warnsoft: {{ vWarnSoft }}; --rad: {{ vRad }}; --radsm: {{ vRadSm }}; --hfont: {{ vHFont }}; --hweight: {{ vHWeight }}; --hsize: {{ vHSize }}; --tap: {{ vTap }}; --zolaq: {{ vZolaq }}; min-height: 100vh; background: var(--bg, #101311); color: var(--t1, rgba(255,255,255,0.93)); font-family: 'Golos Text', 'Noto Sans', sans-serif; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; transition: background 260ms ease, color 260ms ease;">
+
+  <div style="display: flex; gap: 4px; padding: 12px 20px 0;">
+    <span style="height: var(--zolaq, 6px); border-radius: 99px; flex: 1; transition: background 300ms ease; background: {{ p1 }};"></span>
+    <span style="height: var(--zolaq, 6px); border-radius: 99px; flex: 1; transition: background 300ms ease; background: {{ p2 }};"></span>
+    <span style="height: var(--zolaq, 6px); border-radius: 99px; flex: 1; transition: background 300ms ease; background: {{ p3 }};"></span>
+    <span style="height: var(--zolaq, 6px); border-radius: 99px; flex: 1; transition: background 300ms ease; background: {{ p4 }};"></span>
+  </div>
+
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px 0;">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--t3);">{{ kicker }}</span>
+    <button type="button" onClick="{{ noop }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t3); font-family: inherit; font-size: 14px; cursor: pointer;">bağla</button>
+  </div>
+
+  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 20px;">
+
+    <sc-if value="{{ k1 }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 20px; animation: gir 320ms cubic-bezier(0.16,1,0.3,1) both;">
+        <p style="margin: 0; font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.2; letter-spacing: -0.02em; max-width: 20ch; text-wrap: pretty;">Diskriminant kökün sayını bir baxışda deyir</p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 16px; min-height: 64px; padding: 0 18px; border: 2px solid var(--acc); border-radius: var(--rad); background: var(--accsoft);">
+            <span data-tex="D > 0" style="font-family: 'JetBrains Mono', monospace; font-size: 22px; color: var(--acc); min-width: 74px;">D &gt; 0</span>
+            <span style="font-size: 16px; font-weight: 500;">iki fərqli kök</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 16px; min-height: 64px; padding: 0 18px; border: 2px solid var(--bor); border-radius: var(--rad); background: var(--sur);">
+            <span data-tex="D = 0" style="font-family: 'JetBrains Mono', monospace; font-size: 22px; color: var(--t1); min-width: 74px;">D = 0</span>
+            <span style="font-size: 16px; font-weight: 500;">bir kök</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 16px; min-height: 64px; padding: 0 18px; border: 2px solid var(--bor); border-radius: var(--rad); background: var(--sur);">
+            <span data-tex="D < 0" style="font-family: 'JetBrains Mono', monospace; font-size: 22px; color: var(--t3); min-width: 74px;">D &lt; 0</span>
+            <span style="font-size: 16px; color: var(--t2);">həqiqi kök yoxdur</span>
+          </div>
+        </div>
+        <p style="margin: 0; font-size: 16px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">Buna görə imtahanda əvvəlcə D-ni hesablayırlar — kökləri tapmağa dəyər-dəyməz orada aydın olur.</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ k2 }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 20px; animation: gir 320ms cubic-bezier(0.16,1,0.3,1) both;">
+        <p style="margin: 0; font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.2; letter-spacing: -0.02em; max-width: 20ch; text-wrap: pretty;">Vuruqlara ayırma düsturdan sürətlidir</p>
+        <div style="padding: 18px; border: 2px solid var(--acc); border-radius: var(--rad); background: var(--accsoft); display: flex; flex-direction: column; gap: 10px;">
+          <span data-tex="x^2 - 5x + 6 = (x-2)(x-3)" style="font-family: 'JetBrains Mono', monospace; font-size: 20px; color: var(--t1);">x² − 5x + 6 = (x−2)(x−3)</span>
+          <span style="font-size: 14px; color: var(--t2);">hasil 6, cəm 5 → 2 və 3</span>
+        </div>
+        <p style="margin: 0; font-size: 16px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">Əmsallar tam ədəddirsə, cütü gözünlə tap — düsturu yazmağa 30 saniyə qazanırsan.</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ k3 }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 20px; animation: gir 320ms cubic-bezier(0.16,1,0.3,1) both;">
+        <p style="margin: 0; font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.2; letter-spacing: -0.02em; max-width: 20ch; text-wrap: pretty;">Ən çox itən şey minus işarəsidir</p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 0 18px; border: 2px solid var(--warn); border-radius: var(--rad); background: var(--warnsoft);">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 8px; border-radius: var(--radsm); border: 1px solid var(--warn); color: var(--warn);">SƏHV</span>
+            <span data-tex="b = 5" style="font-family: 'JetBrains Mono', monospace; font-size: 20px; color: var(--t2);">b = 5</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 0 18px; border: 2px solid var(--acc); border-radius: var(--rad); background: var(--accsoft);">
+            <span style="color: var(--acc); font-size: 16px; display: inline-block; animation: tik 360ms cubic-bezier(0.16,1,0.3,1) both;">✓</span>
+            <span data-tex="b = -5" style="font-family: 'JetBrains Mono', monospace; font-size: 20px; color: var(--acc);">b = −5</span>
+          </div>
+        </div>
+        <p style="margin: 0; font-size: 16px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">İşarə ədədin bir hissəsidir. Əmsalı yazanda onu ədədlə birlikdə köçür.</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ k4 }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 20px; animation: gir 320ms cubic-bezier(0.16,1,0.3,1) both;">
+        <p style="margin: 0; font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.2; letter-spacing: -0.02em; max-width: 20ch; text-wrap: pretty;">Yadda qaldı? 3 sualla yoxla</p>
+        <div style="padding: 18px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-size: 17px; font-weight: 600;">Kvadrat tənlik · 3 sual</span>
+          <span style="font-size: 14px; color: var(--t2);">təxminən 90 saniyə</span>
+        </div>
+        <button type="button" onClick="{{ noop }}" style="width: 100%; min-height: 56px; border: none; border-radius: var(--rad); background: var(--acc); color: var(--accink); font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; transition: transform 140ms ease;" style-active="transform: scale(0.985);">
+          <span>Testə başla</span>
+          <span style="font-family: 'JetBrains Mono', monospace;">→</span>
+        </button>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 22px; padding: 0 20px 8px;">
+    <button type="button" onClick="{{ beyen }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: {{ beyenRengi }}; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: color 180ms ease;">{{ beyenMetni }}</button>
+    <button type="button" onClick="{{ saxla }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: {{ saxlaRengi }}; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: color 180ms ease;">{{ saxlaMetni }}</button>
+    <button type="button" onClick="{{ noop }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer;">paylaş</button>
+  </div>
+
+  <div style="position: sticky; bottom: 0; background: var(--bg); padding: 8px 20px 20px; display: flex; gap: 10px; transition: background 260ms ease;">
+    <button type="button" onClick="{{ geri }}" aria-label="Əvvəlki kart" style="min-height: 56px; padding: 0 20px; border: 1px solid var(--bor); border-radius: var(--rad); background: transparent; color: {{ geriRengi }}; font-family: 'JetBrains Mono', monospace; font-size: 16px; cursor: pointer; transition: transform 140ms ease, color 200ms ease;" style-active="transform: scale(0.97);">↑</button>
+    <button type="button" onClick="{{ ireli }}" style="flex: 1; min-height: 56px; border: none; border-radius: var(--rad); background: var(--acc); color: var(--accink); font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; transition: transform 140ms ease;" style-active="transform: scale(0.985);">
+      <span>{{ irelimetni }}</span>
+      <span style="font-family: 'JetBrains Mono', monospace; display: inline-block; transition: transform 220ms cubic-bezier(0.16,1,0.3,1);" style-hover="transform: translateY(-4px);">↓</span>
+    </button>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;tema&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Görünüş&quot;},&quot;ton&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;genc&quot;,&quot;yetkin&quot;],&quot;default&quot;:&quot;genc&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Görünüş&quot;}}">
+const TEMA = {
+  dark: { bg: '#101311', sur: '#171B18', bor: 'rgba(255,255,255,0.09)',
+    t1: 'rgba(255,255,255,0.93)', t2: 'rgba(255,255,255,0.66)', t3: 'rgba(255,255,255,0.45)',
+    acc: '#A6E06A', accSoft: 'rgba(166,224,106,0.14)', accInk: '#12200A',
+    warn: '#F2B441', warnSoft: 'rgba(242,180,65,0.12)', zolaqBos: 'rgba(255,255,255,0.1)', passiv: 'rgba(255,255,255,0.3)' },
+  light: { bg: '#FBFBF8', sur: '#FFFFFF', bor: '#E3E5DE',
+    t1: '#151814', t2: '#565B52', t3: '#878C81',
+    acc: '#4F7A16', accSoft: 'rgba(79,122,22,0.10)', accInk: '#FFFFFF',
+    warn: '#A96A00', warnSoft: 'rgba(169,106,0,0.09)', zolaqBos: '#E3E5DE', passiv: '#B4B8AE' }
+};
+const TON = {
+  genc: { rad: '18px', radSm: '8px', hFont: "'Nunito', sans-serif", hWeight: '800', hSize: '30px', tap: '52px', zolaq: '6px' },
+  yetkin: { rad: '8px', radSm: '4px', hFont: "'Golos Text', sans-serif", hWeight: '600', hSize: '26px', tap: '48px', zolaq: '4px' }
+};
+
+class Component extends DCLogic {
+  state = { kart: 0, beyenilen: [], saxlanan: [] };
+
+  componentDidMount() { this.tex(); }
+  componentDidUpdate() { this.tex(); }
+
+  tex() {
+    const k = window.katex;
+    if (!k) { if (!this._t) this._t = setTimeout(() => { this._t = null; this.tex(); }, 250); return; }
+    document.querySelectorAll('[data-tex]:not([data-tex-done])').forEach(el => {
+      try {
+        el.textContent = '';
+        k.render(el.getAttribute('data-tex'), el, { throwOnError: false, displayMode: false });
+        el.setAttribute('data-tex-done', '1');
+      } catch (e) {}
+    });
+  }
+
+  renderVals() {
+    const t = TEMA[this.props.tema === 'light' ? 'light' : 'dark'];
+    const ton = TON[this.props.ton === 'yetkin' ? 'yetkin' : 'genc'];
+    const { kart, beyenilen, saxlanan } = this.state;
+    const son = 3;
+    const zolaq = i => (i <= kart ? t.acc : t.zolaqBos);
+    const bey = beyenilen.includes(kart);
+    const sax = saxlanan.includes(kart);
+    const cevir = key => () => this.setState(s => ({
+      [key]: s[key].includes(kart) ? s[key].filter(i => i !== kart) : s[key].concat(kart)
+    }));
+
+    return {
+      vBg: t.bg, vSur: t.sur, vBor: t.bor, vT1: t.t1, vT2: t.t2, vT3: t.t3,
+      vAcc: t.acc, vAccSoft: t.accSoft, vAccInk: t.accInk, vWarn: t.warn, vWarnSoft: t.warnSoft,
+      vRad: ton.rad, vRadSm: ton.radSm, vHFont: ton.hFont, vHWeight: ton.hWeight, vHSize: ton.hSize,
+      vTap: ton.tap, vZolaq: ton.zolaq,
+      p1: zolaq(0), p2: zolaq(1), p3: zolaq(2), p4: zolaq(3),
+      kicker: 'LENT · ' + String(kart + 1).padStart(2, '0') + '/04 · KVADRAT TƏNLİK',
+      k1: kart === 0, k2: kart === 1, k3: kart === 2, k4: kart === 3,
+      beyenMetni: bey ? 'bəyəndim' : 'bəyən',
+      beyenRengi: bey ? t.acc : t.t2,
+      saxlaMetni: sax ? 'saxlanıldı' : 'saxla',
+      saxlaRengi: sax ? t.acc : t.t2,
+      beyen: cevir('beyenilen'),
+      saxla: cevir('saxlanan'),
+      irelimetni: kart >= son ? 'Lentə qayıt' : 'Növbəti kart',
+      geriRengi: kart === 0 ? t.passiv : t.t2,
+      ireli: () => this.setState(s => ({ kart: s.kart >= son ? 0 : s.kart + 1 })),
+      geri: () => this.setState(s => ({ kart: Math.max(0, s.kart - 1) })),
+      noop: () => {}
+    };
+  }
+}
+</script>
+</body>
+</html>

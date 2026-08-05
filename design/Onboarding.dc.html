@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #101311; }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  a { color: inherit; text-decoration: none; }
+  @keyframes gir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes reqem { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes tik { 0% { transform: scale(0.4); opacity: 0; } 60% { transform: scale(1.14); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+  ::-webkit-scrollbar { display: none; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</helmet>
+<div style="--bg: {{ vBg }}; --sur: {{ vSur }}; --bor: {{ vBor }}; --t1: {{ vT1 }}; --t2: {{ vT2 }}; --t3: {{ vT3 }}; --acc: {{ vAcc }}; --accsoft: {{ vAccSoft }}; --accink: {{ vAccInk }}; --rad: {{ vRad }}; --radsm: {{ vRadSm }}; --hfont: {{ vHFont }}; --hweight: {{ vHWeight }}; --hsize: {{ vHSize }}; --tap: {{ vTap }}; --zolaq: {{ vZolaq }}; min-height: 100vh; background: var(--bg, #101311); color: var(--t1, rgba(255,255,255,0.93)); font-family: 'Golos Text', 'Noto Sans', sans-serif; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; transition: background 260ms ease, color 260ms ease;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px 0;">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--t3);">QURAŞDIRMA</span>
+    <button type="button" onClick="{{ noop }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t3); font-family: inherit; font-size: 14px; cursor: pointer;">keç</button>
+  </div>
+
+  <div style="display: flex; gap: 4px; padding: 12px 20px 0;">
+    <span style="height: var(--zolaq, 6px); border-radius: 99px; flex: 1; transition: background 380ms cubic-bezier(0.16,1,0.3,1); background: {{ p1 }};"></span>
+    <span style="height: var(--zolaq, 6px); border-radius: 99px; flex: 1; transition: background 380ms cubic-bezier(0.16,1,0.3,1); background: {{ p2 }};"></span>
+    <span style="height: var(--zolaq, 6px); border-radius: 99px; flex: 1; transition: background 380ms cubic-bezier(0.16,1,0.3,1); background: {{ p3 }};"></span>
+    <span style="height: var(--zolaq, 6px); border-radius: 99px; flex: 1; transition: background 380ms cubic-bezier(0.16,1,0.3,1); background: {{ p4 }};"></span>
+  </div>
+
+  <div style="flex: 1; padding: 32px 20px 24px;">
+
+    <sc-if value="{{ e1 }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 22px;">
+        <div style="display: grid; row-gap: 8px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--acc); animation: reqem 340ms cubic-bezier(0.16,1,0.3,1) both;">01 / 04</span>
+          <span style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.15; letter-spacing: -0.02em; max-width: 22ch; animation: gir 280ms cubic-bezier(0.16,1,0.3,1) 70ms both;">Hansı dildə oxuyursan?</span>
+        </div>
+        <p style="margin: 0; font-size: 16px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">İzahlar bu dildə gələcək. Sonradan dəyişmək olar.</p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button type="button" onClick="{{ dilAz }}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; padding: 0 18px; border: 2px solid {{ kAz }}; border-radius: var(--rad); background: {{ fAz }}; color: var(--t1); font-family: inherit; font-size: 17px; font-weight: 600; text-align: left; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, transform 140ms ease;" style-active="transform: scale(0.99);">
+            <span>Azərbaycan</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: {{ dAz }};">{{ mAz }}</span>
+          </button>
+          <button type="button" onClick="{{ dilRu }}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; padding: 0 18px; border: 2px solid {{ kRu }}; border-radius: var(--rad); background: {{ fRu }}; color: var(--t1); font-family: inherit; font-size: 17px; font-weight: 600; text-align: left; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, transform 140ms ease;" style-active="transform: scale(0.99);">
+            <span>Русский</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: {{ dRu }};">{{ mRu }}</span>
+          </button>
+          <button type="button" onClick="{{ dilEn }}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; padding: 0 18px; border: 2px solid {{ kEn }}; border-radius: var(--rad); background: {{ fEn }}; color: var(--t1); font-family: inherit; font-size: 17px; font-weight: 600; text-align: left; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, transform 140ms ease;" style-active="transform: scale(0.99);">
+            <span>English</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: {{ dEn }};">{{ mEn }}</span>
+          </button>
+          <button type="button" onClick="{{ dilTr }}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; padding: 0 18px; border: 2px solid {{ kTr }}; border-radius: var(--rad); background: {{ fTr }}; color: var(--t1); font-family: inherit; font-size: 17px; font-weight: 600; text-align: left; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, transform 140ms ease;" style-active="transform: scale(0.99);">
+            <span>Türkçe</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: {{ dTr }};">{{ mTr }}</span>
+          </button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ e2 }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 22px;">
+        <div style="display: grid; row-gap: 8px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--acc); animation: reqem 340ms cubic-bezier(0.16,1,0.3,1) both;">02 / 04</span>
+          <span style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.15; letter-spacing: -0.02em; max-width: 22ch; animation: gir 280ms cubic-bezier(0.16,1,0.3,1) 70ms both;">Kim istifadə edəcək?</span>
+        </div>
+        <p style="margin: 0; font-size: 16px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">Valideyn hesabı şagirdin hesabına bağlanır — ödəniş və hesabat sənə gəlir.</p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button type="button" onClick="{{ rolSagird }}" style="display: grid; row-gap: 6px; min-height: 92px; padding: 18px; border: 2px solid {{ kS }}; border-radius: var(--rad); background: {{ fS }}; color: var(--t1); font-family: inherit; text-align: left; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, transform 140ms ease;" style-active="transform: scale(0.99);">
+            <span style="display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 17px; font-weight: 600;">Şagirdəm<span style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: {{ rS }};">{{ mS }}</span></span>
+            <span style="font-size: 14px; line-height: 1.6; color: var(--t2);">Tapşırığı çəkirəm, izah alıram</span>
+          </button>
+          <button type="button" onClick="{{ rolValideyn }}" style="display: grid; row-gap: 6px; min-height: 92px; padding: 18px; border: 2px solid {{ kV }}; border-radius: var(--rad); background: {{ fV }}; color: var(--t1); font-family: inherit; text-align: left; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, transform 140ms ease;" style-active="transform: scale(0.99);">
+            <span style="display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 17px; font-weight: 600;">Valideynəm<span style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: {{ rV }};">{{ mV }}</span></span>
+            <span style="font-size: 14px; line-height: 1.6; color: var(--t2);">Uşağın irəliləyişini izləyirəm</span>
+          </button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ e3 }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 22px;">
+        <div style="display: grid; row-gap: 8px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--acc); animation: reqem 340ms cubic-bezier(0.16,1,0.3,1) both;">03 / 04</span>
+          <span style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.15; letter-spacing: -0.02em; max-width: 22ch; animation: gir 280ms cubic-bezier(0.16,1,0.3,1) 70ms both;">Hansı sinifdəsən?</span>
+        </div>
+        <p style="margin: 0; font-size: 16px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">İzahın dərinliyi və lentdəki mövzular sinfə görə seçilir.</p>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+          <button type="button" onClick="{{ sinif5 }}" style="min-height: 60px; border: 2px solid {{ k5 }}; border-radius: var(--rad); background: {{ f5 }}; color: {{ y5 }}; font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, color 180ms ease, transform 140ms ease;" style-active="transform: scale(0.96);">5</button>
+          <button type="button" onClick="{{ sinif6 }}" style="min-height: 60px; border: 2px solid {{ k6 }}; border-radius: var(--rad); background: {{ f6 }}; color: {{ y6 }}; font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, color 180ms ease, transform 140ms ease;" style-active="transform: scale(0.96);">6</button>
+          <button type="button" onClick="{{ sinif7 }}" style="min-height: 60px; border: 2px solid {{ k7 }}; border-radius: var(--rad); background: {{ f7 }}; color: {{ y7 }}; font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, color 180ms ease, transform 140ms ease;" style-active="transform: scale(0.96);">7</button>
+          <button type="button" onClick="{{ sinif8 }}" style="min-height: 60px; border: 2px solid {{ k8 }}; border-radius: var(--rad); background: {{ f8 }}; color: {{ y8 }}; font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, color 180ms ease, transform 140ms ease;" style-active="transform: scale(0.96);">8</button>
+          <button type="button" onClick="{{ sinif9 }}" style="min-height: 60px; border: 2px solid {{ k9 }}; border-radius: var(--rad); background: {{ f9 }}; color: {{ y9 }}; font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, color 180ms ease, transform 140ms ease;" style-active="transform: scale(0.96);">9</button>
+          <button type="button" onClick="{{ sinif10 }}" style="min-height: 60px; border: 2px solid {{ k10 }}; border-radius: var(--rad); background: {{ f10 }}; color: {{ y10 }}; font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, color 180ms ease, transform 140ms ease;" style-active="transform: scale(0.96);">10</button>
+          <button type="button" onClick="{{ sinif11 }}" style="min-height: 60px; border: 2px solid {{ k11 }}; border-radius: var(--rad); background: {{ f11 }}; color: {{ y11 }}; font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; cursor: pointer; transition: border-color 180ms ease, background 180ms ease, color 180ms ease, transform 140ms ease;" style-active="transform: scale(0.96);">11</button>
+        </div>
+        <div style="padding: 14px 16px; border-left: 3px solid var(--acc); border-radius: var(--radsm); background: var(--accsoft); display: flex; align-items: baseline; gap: 10px;">
+          <span style="font-size: 14px; line-height: 1.6; color: var(--t2);">{{ sinifMetni }}</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ e4 }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 22px;">
+        <div style="display: grid; row-gap: 8px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--acc); animation: reqem 340ms cubic-bezier(0.16,1,0.3,1) both;">04 / 04</span>
+          <span style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.15; letter-spacing: -0.02em; max-width: 22ch; animation: gir 280ms cubic-bezier(0.16,1,0.3,1) 70ms both;">Hazırdır</span>
+        </div>
+        <p style="margin: 0; font-size: 16px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">Gündə 5 pulsuz həll. İlk tapşırığını çək — qalanı özü gəlir.</p>
+        <div style="border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); overflow: hidden;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 0 18px; border-bottom: 1px solid var(--bor);">
+            <span style="font-size: 14px; color: var(--t2);">Dil</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--acc);">{{ secilenDil }}</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 0 18px; border-bottom: 1px solid var(--bor);">
+            <span style="font-size: 14px; color: var(--t2);">Rol</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--acc);">{{ secilenRol }}</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 0 18px;">
+            <span style="font-size: 14px; color: var(--t2);">Sinif</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--acc);">{{ secilenSinif }}</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 10px;">
+          <span style="color: var(--acc); font-size: 14px; display: inline-block; animation: tik 360ms cubic-bezier(0.16,1,0.3,1) both;">✓</span>
+          <span style="font-size: 14px; line-height: 1.6; color: var(--t2);">Bunları sonra profildən dəyişə bilərsən.</span>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="position: sticky; bottom: 0; background: var(--bg); padding: 12px 20px 20px; display: flex; gap: 10px; transition: background 260ms ease;">
+    <sc-if value="{{ geriVar }}" hint-placeholder-val="{{ false }}">
+      <button type="button" onClick="{{ geri }}" aria-label="Geri" style="min-height: 56px; padding: 0 20px; border: 1px solid var(--bor); border-radius: var(--rad); background: transparent; color: var(--t2); font-family: 'JetBrains Mono', monospace; font-size: 16px; cursor: pointer; transition: transform 140ms ease;" style-active="transform: scale(0.97);">←</button>
+    </sc-if>
+    <sc-if value="{{ irelivar }}" hint-placeholder-val="{{ true }}">
+      <button type="button" onClick="{{ ireli }}" style="flex: 1; min-height: 56px; border: none; border-radius: var(--rad); background: var(--acc); color: var(--accink); font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; transition: transform 140ms ease;" style-active="transform: scale(0.985);">
+        <span>Davam et</span>
+        <span style="font-family: 'JetBrains Mono', monospace; display: inline-block; transition: transform 220ms cubic-bezier(0.16,1,0.3,1);" style-hover="transform: translateX(6px);">→</span>
+      </button>
+    </sc-if>
+    <sc-if value="{{ basla }}" hint-placeholder-val="{{ false }}">
+      <button type="button" onClick="{{ noop }}" style="flex: 1; min-height: 56px; border: none; border-radius: var(--rad); background: var(--acc); color: var(--accink); font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; transition: transform 140ms ease;" style-active="transform: scale(0.985);">
+        <span>İlk tapşırığı çək</span>
+        <span style="font-family: 'JetBrains Mono', monospace;">→</span>
+      </button>
+    </sc-if>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;tema&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Görünüş&quot;},&quot;ton&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;genc&quot;,&quot;yetkin&quot;],&quot;default&quot;:&quot;genc&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Görünüş&quot;}}">
+const TEMA = {
+  dark: { bg: '#101311', sur: '#171B18', bor: 'rgba(255,255,255,0.09)',
+    t1: 'rgba(255,255,255,0.93)', t2: 'rgba(255,255,255,0.66)', t3: 'rgba(255,255,255,0.55)',
+    acc: '#A6E06A', accSoft: 'rgba(166,224,106,0.14)', accInk: '#12200A',
+    zolaqBos: 'rgba(255,255,255,0.1)', passiv: 'rgba(255,255,255,0.3)' },
+  light: { bg: '#FBFBF8', sur: '#FFFFFF', bor: '#E3E5DE',
+    t1: '#151814', t2: '#565B52', t3: '#878C81',
+    acc: '#4F7A16', accSoft: 'rgba(79,122,22,0.10)', accInk: '#FFFFFF',
+    zolaqBos: '#E3E5DE', passiv: '#B4B8AE' }
+};
+const TON = {
+  genc: { rad: '18px', radSm: '10px', hFont: "'Nunito', sans-serif", hWeight: '800', hSize: '30px', tap: '52px', zolaq: '6px' },
+  yetkin: { rad: '8px', radSm: '4px', hFont: "'Golos Text', sans-serif", hWeight: '600', hSize: '26px', tap: '48px', zolaq: '4px' }
+};
+const IZAH = {
+  5: '5-ci sinif: sadə dildə, hər addım ayrıca.',
+  6: '6-cı sinif: sadə dildə, nümunələrlə.',
+  7: '7-ci sinif: qaydanın adı da göstərilir.',
+  8: '8-ci sinif: kvadrat tənlik, vuruqlara ayırma.',
+  9: '9-cu sinif: buraxılış imtahanına uyğun izah.',
+  10: '10-cu sinif: funksiyalar və çevirmələr.',
+  11: '11-ci sinif: blok imtahanı formatında.'
+};
+
+class Component extends DCLogic {
+  state = { ekran: 0, dil: 'az', rol: 'sagird', sinif: 8 };
+
+  renderVals() {
+    const t = TEMA[this.props.tema === 'light' ? 'light' : 'dark'];
+    const ton = TON[this.props.ton === 'yetkin' ? 'yetkin' : 'genc'];
+    const { ekran, dil, rol, sinif } = this.state;
+    const zolaq = i => (i <= ekran ? t.acc : t.zolaqBos);
+    const set = (k, v) => () => this.setState({ [k]: v });
+    const kenar = ok => (ok ? t.acc : t.bor);
+    const fon = ok => (ok ? t.accSoft : t.sur);
+    const isaret = ok => (ok ? '●' : '○');
+    const isaretReng = ok => (ok ? t.acc : t.passiv);
+    const dilAdi = { az: 'Azərbaycan', ru: 'Русский', en: 'English', tr: 'Türkçe' };
+
+    const vals = {
+      vBg: t.bg, vSur: t.sur, vBor: t.bor, vT1: t.t1, vT2: t.t2, vT3: t.t3,
+      vAcc: t.acc, vAccSoft: t.accSoft, vAccInk: t.accInk,
+      vRad: ton.rad, vRadSm: ton.radSm, vHFont: ton.hFont, vHWeight: ton.hWeight, vHSize: ton.hSize,
+      vTap: ton.tap, vZolaq: ton.zolaq,
+      p1: zolaq(0), p2: zolaq(1), p3: zolaq(2), p4: zolaq(3),
+      e1: ekran === 0, e2: ekran === 1, e3: ekran === 2, e4: ekran === 3,
+      mAz: isaret(dil === 'az'), mRu: isaret(dil === 'ru'), mEn: isaret(dil === 'en'), mTr: isaret(dil === 'tr'),
+      dAz: isaretReng(dil === 'az'), dRu: isaretReng(dil === 'ru'), dEn: isaretReng(dil === 'en'), dTr: isaretReng(dil === 'tr'),
+      kAz: kenar(dil === 'az'), kRu: kenar(dil === 'ru'), kEn: kenar(dil === 'en'), kTr: kenar(dil === 'tr'),
+      fAz: fon(dil === 'az'), fRu: fon(dil === 'ru'), fEn: fon(dil === 'en'), fTr: fon(dil === 'tr'),
+      dilAz: set('dil', 'az'), dilRu: set('dil', 'ru'), dilEn: set('dil', 'en'), dilTr: set('dil', 'tr'),
+      mS: isaret(rol === 'sagird'), mV: isaret(rol === 'valideyn'),
+      rS: isaretReng(rol === 'sagird'), rV: isaretReng(rol === 'valideyn'),
+      kS: kenar(rol === 'sagird'), kV: kenar(rol === 'valideyn'),
+      fS: fon(rol === 'sagird'), fV: fon(rol === 'valideyn'),
+      rolSagird: set('rol', 'sagird'), rolValideyn: set('rol', 'valideyn'),
+      sinifMetni: IZAH[sinif],
+      secilenDil: dilAdi[dil],
+      secilenRol: rol === 'sagird' ? 'Şagird' : 'Valideyn',
+      secilenSinif: sinif + '-ci sinif',
+      geriVar: ekran > 0,
+      irelivar: ekran < 3,
+      basla: ekran === 3,
+      ireli: () => this.setState(s => ({ ekran: Math.min(3, s.ekran + 1) })),
+      geri: () => this.setState(s => ({ ekran: Math.max(0, s.ekran - 1) })),
+      noop: () => {}
+    };
+    [5, 6, 7, 8, 9, 10, 11].forEach(n => {
+      const ok = sinif === n;
+      vals['k' + n] = kenar(ok);
+      vals['f' + n] = fon(ok);
+      vals['y' + n] = ok ? t.acc : t.t1;
+      vals['sinif' + n] = set('sinif', n);
+    });
+    return vals;
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #101311; }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  a { color: #A6E06A; text-decoration: none; }
+  a:hover { color: #C8F095; }
+  @keyframes gir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes tik { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+  @keyframes nefes { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
+  ::-webkit-scrollbar { display: none; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</helmet>
+<div style="--bg: {{ vBg }}; --sur: {{ vSur }}; --bor: {{ vBor }}; --t1: {{ vT1 }}; --t2: {{ vT2 }}; --t3: {{ vT3 }}; --acc: {{ vAcc }}; --accsoft: {{ vAccSoft }}; --accink: {{ vAccInk }}; --warn: {{ vWarn }}; --warnsoft: {{ vWarnSoft }}; --rad: {{ vRad }}; --radsm: {{ vRadSm }}; --hfont: {{ vHFont }}; --hweight: {{ vHWeight }}; --hsize: {{ vHSize }}; --tap: {{ vTap }}; min-height: 100vh; background: var(--bg, #101311); color: var(--t1, rgba(255,255,255,0.93)); font-family: 'Golos Text', 'Noto Sans', sans-serif; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; transition: background 260ms ease, color 260ms ease;">
+
+  <div style="display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 12px; padding: 12px 20px 0;">
+    <button type="button" onClick="{{ geri }}" aria-label="Bağla" style="width: 44px; height: 44px; margin-left: -12px; border: none; background: transparent; color: var(--t2); font-size: 18px; cursor: pointer; display: flex; align-items: center;">✕</button>
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); text-align: center;">{{ basliq }}</span>
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; color: {{ kunceRengi }};">{{ kunce }}</span>
+  </div>
+
+  <div style="flex: 1; padding: 26px 20px 0; display: flex; flex-direction: column; gap: 24px;">
+
+    <sc-if value="{{ mPaywall }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 24px; animation: gir 260ms cubic-bezier(0.16,1,0.3,1) both;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.2; letter-spacing: -0.02em; max-width: 22ch; text-wrap: pretty;">Bugünkü 5 pulsuz həll bitdi</span>
+          <span style="font-size: 15px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">Abunə ilə gündəlik limit yoxdur. Sabah pulsuz həllər yenilənir.</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: baseline; gap: 12px;">
+            <span style="color: var(--acc); font-size: 14px;">✓</span>
+            <span style="font-size: 15px; line-height: 1.5;">Limitsiz həll, istənilən vaxt</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 12px;">
+            <span style="color: var(--acc); font-size: 14px;">✓</span>
+            <span style="font-size: 15px; line-height: 1.5;">Səhv xəritəsi — hansı mövzuda ilişdiyin</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 12px;">
+            <span style="color: var(--acc); font-size: 14px;">✓</span>
+            <span style="font-size: 15px; line-height: 1.5;">Valideynə həftəlik hesabat</span>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button type="button" onClick="{{ planIllik }}" style="text-align: left; padding: 16px; border: 2px solid {{ illikKenar }}; border-radius: var(--rad); background: {{ illikFon }}; color: inherit; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 14px; transition: border-color 200ms ease, background 200ms ease;">
+            <span style="display: flex; flex-direction: column; gap: 4px;">
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 16px; font-weight: 700;">İllik</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 7px; border-radius: 99px; background: var(--accsoft); color: var(--acc);">2 ay pulsuz</span>
+              </span>
+              <span style="font-size: 13px; color: var(--t2);">39.99 ₼ / il · 3.33 ₼ aya düşür</span>
+            </span>
+            <span style="width: 20px; height: 20px; flex-shrink: 0; border-radius: 50%; border: 2px solid {{ illikKenar }}; background: {{ illikNoqte }}; transition: background 200ms ease, border-color 200ms ease;"></span>
+          </button>
+          <button type="button" onClick="{{ planAyliq }}" style="text-align: left; padding: 16px; border: 2px solid {{ aylikKenar }}; border-radius: var(--rad); background: {{ aylikFon }}; color: inherit; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 14px; transition: border-color 200ms ease, background 200ms ease;">
+            <span style="display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 16px; font-weight: 700;">Aylıq</span>
+              <span style="font-size: 13px; color: var(--t2);">4.99 ₼ / ay</span>
+            </span>
+            <span style="width: 20px; height: 20px; flex-shrink: 0; border-radius: 50%; border: 2px solid {{ aylikKenar }}; background: {{ aylikNoqte }}; transition: background 200ms ease, border-color 200ms ease;"></span>
+          </button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ mLink }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 22px; animation: gir 260ms cubic-bezier(0.16,1,0.3,1) both;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.2; letter-spacing: -0.02em; max-width: 22ch; text-wrap: pretty;">Valideynin nömrəsi</span>
+          <span style="font-size: 15px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">Ödəniş linki SMS ilə gedəcək. Sənin hesabın və tapşırıqların görünmür — yalnız abunə səhifəsi açılır.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 60px; border: 1px solid var(--acc); border-radius: var(--rad); background: var(--sur);">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 17px; color: var(--t2);">+994</span>
+          <input type="tel" value="{{ nomre }}" onChange="{{ nomreYaz }}" placeholder="50 123 45 67" style="flex: 1; min-width: 0; border: none; background: transparent; color: var(--t1); font-family: 'JetBrains Mono', monospace; font-size: 17px; letter-spacing: 0.04em; outline: none; padding: 0;" />
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 10px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3);">→</span>
+          <span style="font-size: 13px; line-height: 1.6; color: var(--t3); max-width: 32ch;">{{ planXulase }}</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ mGozleyir }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 22px; animation: gir 260ms cubic-bezier(0.16,1,0.3,1) both;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--acc); animation: nefes 1600ms ease-in-out infinite both;">LİNK GÖNDƏRİLDİ</span>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.2; letter-spacing: -0.02em; max-width: 22ch; text-wrap: pretty;">{{ maskaliNomre }} nömrəsini yoxla</span>
+          <span style="font-size: 15px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">Valideyn ödəyən kimi abunə açılacaq və sənə bildiriş gələcək.</span>
+        </div>
+        <div style="padding: 16px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--warnsoft); display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 14px; line-height: 1.5; color: var(--t2);">Gözləyərkən: pulsuz həllər sabah saat 00:00-da qayıdır.</span>
+          <span style="font-size: 14px; line-height: 1.5; color: var(--t2);">Bu günün 3 addımı hesabatında saxlanıldı.</span>
+        </div>
+        <button type="button" onClick="{{ yeniden }}" style="align-self: flex-start; min-height: 44px; padding: 0; border: none; background: transparent; color: {{ yenidenRengi }}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;">{{ yenidenMetni }}</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ mKart }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 22px; animation: gir 260ms cubic-bezier(0.16,1,0.3,1) both;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.2; letter-spacing: -0.02em; max-width: 22ch; text-wrap: pretty;">Kart məlumatı</span>
+          <span style="font-size: 15px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">Kartın sənin adına olmasa, valideyndən icazə al — ödəniş onun bank bildirişində görünəcək.</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; padding: 0 16px; min-height: 60px; border: 1px solid var(--acc); border-radius: var(--rad); background: var(--sur);">
+            <input type="text" placeholder="0000 0000 0000 0000" style="flex: 1; min-width: 0; border: none; background: transparent; color: var(--t1); font-family: 'JetBrains Mono', monospace; font-size: 17px; letter-spacing: 0.04em; outline: none; padding: 0;" />
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div style="flex: 1; display: flex; align-items: center; padding: 0 16px; min-height: 60px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur);">
+              <input type="text" placeholder="AA/İL" style="width: 100%; min-width: 0; border: none; background: transparent; color: var(--t1); font-family: 'JetBrains Mono', monospace; font-size: 17px; outline: none; padding: 0;" />
+            </div>
+            <div style="flex: 1; display: flex; align-items: center; padding: 0 16px; min-height: 60px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur);">
+              <input type="text" placeholder="CVV" style="width: 100%; min-width: 0; border: none; background: transparent; color: var(--t1); font-family: 'JetBrains Mono', monospace; font-size: 17px; outline: none; padding: 0;" />
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-top: 4px; border-top: 1px solid var(--bor);">
+          <span style="font-size: 14px; color: var(--t2); padding-top: 12px;">{{ planAdi }}</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; padding-top: 12px;">{{ planQiymet }}</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ mValideyn }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 22px; animation: gir 260ms cubic-bezier(0.16,1,0.3,1) both;">
+        <div style="padding: 16px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); display: flex; align-items: center; gap: 14px;">
+          <span style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; background: var(--accsoft); color: var(--acc); font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center;">A</span>
+          <span style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="font-size: 16px; font-weight: 600;">Aysel · 8-ci sinif</span>
+            <span style="font-size: 13px; color: var(--t2);">Son 7 gündə 14 tapşırıq həll edib</span>
+          </span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.2; letter-spacing: -0.02em; max-width: 24ch; text-wrap: pretty;">Ayselin abunəsini açın</span>
+          <span style="font-size: 15px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">Gündəlik 5 həll limiti götürülür və hər həftə sizə hesabat gəlir: hansı mövzuda ilişir, nə qədər özü həll edir.</span>
+        </div>
+        <div style="padding: 18px; border: 2px solid var(--acc); border-radius: var(--rad); background: var(--accsoft); display: flex; align-items: baseline; justify-content: space-between; gap: 14px;">
+          <span style="display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 15px; font-weight: 600;">{{ planAdi }}</span>
+            <button type="button" onClick="{{ planDeyis }}" style="align-self: flex-start; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--bor);">{{ planDeyisMetni }}</button>
+          </span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: var(--acc); white-space: nowrap;">{{ planQiymet }}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-size: 13px; line-height: 1.6; color: var(--t3);">İstənilən vaxt ləğv edilir. Kart məlumatı bizdə saxlanılmır.</span>
+          <span style="font-size: 13px; line-height: 1.6; color: var(--t3);">Ödəniş uşağın telefonunda görünmür.</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ mHazir }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 20px; animation: gir 260ms cubic-bezier(0.16,1,0.3,1) both;">
+        <span style="width: 56px; height: 56px; border-radius: 50%; background: var(--accsoft); color: var(--acc); font-size: 24px; display: flex; align-items: center; justify-content: center; animation: tik 380ms cubic-bezier(0.16,1,0.3,1) both;">✓</span>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.2; letter-spacing: -0.02em; max-width: 22ch; text-wrap: pretty;">Abunə aktivdir</span>
+          <span style="font-size: 15px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty;">{{ hazirMetni }}</span>
+        </div>
+        <div style="padding: 16px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+            <span style="font-size: 14px; color: var(--t2);">Plan</span>
+            <span style="font-size: 14px; font-weight: 600;">{{ planAdi }}</span>
+          </div>
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+            <span style="font-size: 14px; color: var(--t2);">Növbəti ödəniş</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px;">{{ novbetiTarix }}</span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <div style="position: sticky; bottom: 0; background: var(--bg); padding: 12px 20px 22px; display: flex; flex-direction: column; gap: 10px; transition: background 260ms ease;">
+    <button type="button" onClick="{{ esasKlik }}" style="width: 100%; min-height: 56px; border: none; border-radius: var(--rad); background: var(--acc); color: var(--accink); font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; transition: transform 140ms ease;" style-active="transform: scale(0.985);">
+      <span>{{ esasMetni }}</span>
+      <span style="font-family: 'JetBrains Mono', monospace; display: inline-block; transition: transform 220ms cubic-bezier(0.16,1,0.3,1);" style-hover="transform: translateX(6px);">→</span>
+    </button>
+    <sc-if value="{{ ikinciVar }}" hint-placeholder-val="{{ true }}">
+      <button type="button" onClick="{{ ikinciKlik }}" style="width: 100%; min-height: 48px; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer;">{{ ikinciMetni }}</button>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;tema&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Görünüş&quot;},&quot;ton&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;genc&quot;,&quot;yetkin&quot;],&quot;default&quot;:&quot;genc&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Görünüş&quot;},&quot;merhele&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;paywall&quot;,&quot;link&quot;,&quot;gozleyir&quot;,&quot;kart&quot;,&quot;valideyn&quot;,&quot;hazir&quot;],&quot;default&quot;:&quot;paywall&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Axın&quot;},&quot;plan&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;illik&quot;,&quot;ayliq&quot;],&quot;default&quot;:&quot;illik&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Axın&quot;}}">
+const TEMA = {
+  dark: { bg: '#101311', sur: '#171B18', bor: 'rgba(255,255,255,0.09)',
+    t1: 'rgba(255,255,255,0.93)', t2: 'rgba(255,255,255,0.66)', t3: 'rgba(255,255,255,0.55)',
+    acc: '#A6E06A', accSoft: 'rgba(166,224,106,0.14)', accInk: '#12200A',
+    warn: '#F2B441', warnSoft: 'rgba(242,180,65,0.12)' },
+  light: { bg: '#FBFBF8', sur: '#FFFFFF', bor: '#E3E5DE',
+    t1: '#151814', t2: '#565B52', t3: '#878C81',
+    acc: '#4F7A16', accSoft: 'rgba(79,122,22,0.10)', accInk: '#FFFFFF',
+    warn: '#A96A00', warnSoft: 'rgba(169,106,0,0.09)' }
+};
+const TON = {
+  genc: { rad: '18px', radSm: '10px', hFont: "'Nunito', sans-serif", hWeight: '800', hSize: '28px', tap: '52px' },
+  yetkin: { rad: '8px', radSm: '5px', hFont: "'Golos Text', sans-serif", hWeight: '600', hSize: '26px', tap: '48px' }
+};
+
+class Component extends DCLogic {
+  state = { merhele: null, plan: null, nomre: '50 123 45 67', saniye: 47 };
+
+  componentWillUnmount() { clearInterval(this._i); }
+
+  saatiBaslat() {
+    clearInterval(this._i);
+    this.setState({ saniye: 47 });
+    this._i = setInterval(() => this.setState(s => {
+      if (s.saniye <= 1) { clearInterval(this._i); return { saniye: 0 }; }
+      return { saniye: s.saniye - 1 };
+    }), 1000);
+  }
+
+  git(m) { this.setState({ merhele: m }); if (m === 'gozleyir') this.saatiBaslat(); }
+
+  renderVals() {
+    const t = TEMA[this.props.tema === 'light' ? 'light' : 'dark'];
+    const ton = TON[this.props.ton === 'yetkin' ? 'yetkin' : 'genc'];
+    const m = this.state.merhele ?? (this.props.merhele ?? 'paywall');
+    const plan = this.state.plan ?? (this.props.plan === 'ayliq' ? 'ayliq' : 'illik');
+    const illik = plan === 'illik';
+    const s = this.state.saniye;
+    const nomre = this.state.nomre;
+
+    const esas = {
+      paywall: 'Valideynə göndər',
+      link: 'Linki göndər',
+      gozleyir: 'Valideyn görünüşünə keç',
+      kart: illik ? 'Ödə · 39.99 ₼' : 'Ödə · 4.99 ₼',
+      valideyn: illik ? 'Kartla ödə · 39.99 ₼' : 'Kartla ödə · 4.99 ₼',
+      hazir: 'Həllə qayıt'
+    };
+    const ikinci = {
+      paywall: 'özüm kartla ödəyim',
+      link: 'geri',
+      gozleyir: 'başqa nömrə yaz',
+      kart: 'geri',
+      valideyn: 'sonra ödəyim',
+      hazir: ''
+    };
+    const irelile = {
+      paywall: 'link', link: 'gozleyir', gozleyir: 'valideyn', kart: 'hazir', valideyn: 'hazir', hazir: 'paywall'
+    };
+    const geriye = { paywall: 'kart', link: 'paywall', gozleyir: 'link', kart: 'paywall', valideyn: 'gozleyir', hazir: 'paywall' };
+
+    return {
+      vBg: t.bg, vSur: t.sur, vBor: t.bor, vT1: t.t1, vT2: t.t2, vT3: t.t3,
+      vAcc: t.acc, vAccSoft: t.accSoft, vAccInk: t.accInk, vWarn: t.warn, vWarnSoft: t.warnSoft,
+      vRad: ton.rad, vRadSm: ton.radSm, vHFont: ton.hFont, vHWeight: ton.hWeight, vHSize: ton.hSize, vTap: ton.tap,
+      mPaywall: m === 'paywall',
+      mLink: m === 'link',
+      mGozleyir: m === 'gozleyir',
+      mKart: m === 'kart',
+      mValideyn: m === 'valideyn',
+      mHazir: m === 'hazir',
+      basliq: m === 'valideyn' || m === 'kart' ? 'Ödəniş' : m === 'hazir' ? 'Hazırdır' : 'Abunəlik',
+      kunce: m === 'paywall' ? '5/5' : m === 'valideyn' || m === 'kart' ? 'təhlükəsiz' : '',
+      kunceRengi: m === 'paywall' ? t.warn : t.t3,
+      illikKenar: illik ? t.acc : t.bor,
+      illikFon: illik ? t.accSoft : 'transparent',
+      illikNoqte: illik ? t.acc : 'transparent',
+      aylikKenar: illik ? t.bor : t.acc,
+      aylikFon: illik ? 'transparent' : t.accSoft,
+      aylikNoqte: illik ? 'transparent' : t.acc,
+      planIllik: () => this.setState({ plan: 'illik' }),
+      planAyliq: () => this.setState({ plan: 'ayliq' }),
+      planDeyis: () => this.setState({ plan: illik ? 'ayliq' : 'illik' }),
+      planDeyisMetni: illik ? 'aylıq plana keç' : 'illik plana keç — 2 ay pulsuz',
+      planAdi: illik ? 'İllik abunə' : 'Aylıq abunə',
+      planQiymet: illik ? '39.99 ₼' : '4.99 ₼',
+      planXulase: illik ? 'Seçilmiş plan: illik — 39.99 ₼' : 'Seçilmiş plan: aylıq — 4.99 ₼',
+      nomre: nomre,
+      nomreYaz: e => this.setState({ nomre: e.target.value }),
+      maskaliNomre: '+994 ' + (nomre || '').slice(0, 2) + ' *** ' + (nomre || '').slice(-5),
+      yenidenMetni: s > 0 ? 'yenidən göndər · 0:' + String(s).padStart(2, '0') : 'yenidən göndər',
+      yenidenRengi: s > 0 ? t.t3 : t.acc,
+      yeniden: () => { if (this.state.saniye === 0) this.saatiBaslat(); },
+      hazirMetni: illik
+        ? 'Ayselə bildiriş getdi. İllik plan aktivdir — limit yoxdur.'
+        : 'Ayselə bildiriş getdi. Aylıq plan aktivdir — limit yoxdur.',
+      novbetiTarix: illik ? '5 avqust 2027' : '5 sentyabr 2026',
+      esasMetni: esas[m],
+      esasKlik: () => this.git(irelile[m]),
+      ikinciVar: !!ikinci[m],
+      ikinciMetni: ikinci[m],
+      ikinciKlik: () => this.git(geriye[m]),
+      geri: () => this.git('paywall')
+    };
+  }
+}
+</script>
+</body>
+</html>

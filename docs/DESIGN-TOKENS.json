@@ -1,0 +1,99 @@
+{
+  "_comment": "Dizayn tokenlərinin TƏK MƏNBƏYİ. design/*.dc.html fayllarından çıxarılıb, drift həll edilib. Komponentdə rəng/radius hardcode etmək qadağandır — bax ADR-002.",
+  "_version": 1,
+
+  "theme": {
+    "dark": {
+      "bg":      "#101311",
+      "sur":     "#171B18",
+      "bor":     "rgba(255,255,255,0.12)",
+      "t1":      "rgba(255,255,255,0.93)",
+      "t2":      "rgba(255,255,255,0.66)",
+      "t3":      "rgba(255,255,255,0.55)",
+      "acc":     "#A6E06A",
+      "accSoft": "rgba(166,224,106,0.14)",
+      "accMid":  "rgba(166,224,106,0.34)",
+      "accInk":  "#12200A",
+      "warn":    "#F2B441",
+      "warnSoft":"rgba(242,180,65,0.12)",
+      "trackEmpty": "rgba(255,255,255,0.10)",
+      "passive":    "rgba(255,255,255,0.35)"
+    },
+    "light": {
+      "bg":      "#FBFBF8",
+      "sur":     "#FFFFFF",
+      "bor":     "#E3E5DE",
+      "t1":      "#151814",
+      "t2":      "#565B52",
+      "t3":      "#767B70",
+      "acc":     "#4F7A16",
+      "accSoft": "rgba(79,122,22,0.10)",
+      "accMid":  "rgba(79,122,22,0.26)",
+      "accInk":  "#FFFFFF",
+      "warn":    "#A96A00",
+      "warnSoft":"rgba(169,106,0,0.09)",
+      "trackEmpty": "#E3E5DE",
+      "passive":    "#9BA095"
+    }
+  },
+
+  "tone": {
+    "_comment": "Yaş qrupuna görə forma dili. Onboarding-dəki sinif seçimindən avtomatik təyin olunur: 5-8 → genc, 9-11 → yetkin. İstifadəçi profildən dəyişə bilər.",
+    "genc": {
+      "rad": "18px", "radSm": "10px",
+      "hFont": "'Nunito', sans-serif", "hWeight": "800", "hSize": "30px",
+      "tap": "52px", "track": "6px"
+    },
+    "yetkin": {
+      "rad": "8px", "radSm": "5px",
+      "hFont": "'Golos Text', sans-serif", "hWeight": "600", "hSize": "26px",
+      "tap": "48px", "track": "4px"
+    }
+  },
+
+  "font": {
+    "body": "'Golos Text', 'Noto Sans', sans-serif",
+    "mono": "'JetBrains Mono', monospace",
+    "_load": "https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+  },
+
+  "layout": {
+    "maxWidth": "480px",
+    "pagePadX": "20px",
+    "minTapTarget": "44px"
+  },
+
+  "motion": {
+    "enter":  "280ms cubic-bezier(0.16,1,0.3,1)",
+    "press":  "140ms ease",
+    "themeSwitch": "260ms ease",
+    "_note": "prefers-reduced-motion: reduce → bütün animasiya və keçidlər söndürülür."
+  },
+
+  "_fixes_applied": [
+    {
+      "token": "dark.t3",
+      "was": "0.45 (Ana ekran, Həll ekranı, Test) / 0.55 (digərləri)",
+      "now": "0.55",
+      "reason": "0.45 ilə #101311 üzərində kontrast ~4.3:1 — 12px mətn üçün WCAG AA (4.5:1) altındadır."
+    },
+    {
+      "token": "light.t3",
+      "was": "#878C81",
+      "now": "#767B70",
+      "reason": "#FBFBF8 üzərində kontrastı 4.5:1-in üstünə qaldırmaq üçün tündləşdirildi."
+    },
+    {
+      "token": "dark.accSoft / light.accSoft",
+      "was": "0.24 / 0.22 (yalnız Ana ekran) — digər 8 faylda 0.14 / 0.10",
+      "now": "0.14 / 0.10",
+      "reason": "Çoxluq dəyəri seçildi; Ana ekrandakı həftə qrafiki bu dəyərlə də oxunur."
+    },
+    {
+      "token": "dark.bor",
+      "was": "0.09 (əksər fayl) / 0.12 (Kamera)",
+      "now": "0.12",
+      "reason": "0.09 telefon ekranında OLED-də praktiki olaraq görünmür."
+    }
+  ]
+}

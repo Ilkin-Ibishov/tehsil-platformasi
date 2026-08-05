@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #0F1115; }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  a { color: inherit; text-decoration: none; }
+  @keyframes gir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes yigil { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes reqem { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes tik { 0% { transform: scale(0.4); opacity: 0; } 60% { transform: scale(1.14); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes dalga { 0%, 100% { opacity: 0.35; transform: scaleY(0.5); } 50% { opacity: 1; transform: scaleY(1); } }
+  @keyframes nefes { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.65; } }
+  .katex { font-size: 1em !important; }
+  ::-webkit-scrollbar { display: none; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</helmet>
+<div style="--bg: {{ vBg }}; --sur: {{ vSur }}; --bor: {{ vBor }}; --t1: {{ vT1 }}; --t2: {{ vT2 }}; --t3: {{ vT3 }}; --acc: {{ vAcc }}; --accsoft: {{ vAccSoft }}; --accink: {{ vAccInk }}; --warn: {{ vWarn }}; --warnsoft: {{ vWarnSoft }}; --rad: {{ vRad }}; --radsm: {{ vRadSm }}; --hfont: {{ vHFont }}; --hweight: {{ vHWeight }}; --hsize: {{ vHSize }}; --tap: {{ vTap }}; --zolaq: {{ vZolaq }}; min-height: 100vh; background: var(--bg, #0F1115); color: var(--t1, rgba(255,255,255,0.92)); font-family: 'Golos Text', 'Noto Sans', sans-serif; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; transition: background 260ms ease, color 260ms ease;">
+
+  <div style="display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 12px; padding: 12px 20px 0;">
+    <button type="button" onClick="{{ noop }}" aria-label="Geri" style="width: 44px; height: 44px; margin-left: -12px; border: none; background: transparent; color: var(--t2); font-size: 18px; cursor: pointer; display: flex; align-items: center; transition: color 200ms ease;">←</button>
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Riyaziyyat / 8 / Kvadrat tənlik</span>
+    <div style="display: flex; align-items: center; gap: 10px; white-space: nowrap;">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; color: {{ limitRengi }};">{{ limitMetni }}</span>
+      <span style="width: 1px; height: 11px; background: var(--bor);"></span>
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; color: var(--acc);">STREAK 12</span>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 4px; padding: 14px 20px 0;">
+    <span style="height: var(--zolaq, 6px); border-radius: 99px; flex: 1; transition: background 380ms cubic-bezier(0.16,1,0.3,1); background: {{ p1 }};"></span>
+    <span style="height: var(--zolaq, 6px); border-radius: 99px; flex: 1; transition: background 380ms cubic-bezier(0.16,1,0.3,1); background: {{ p2 }};"></span>
+    <span style="height: var(--zolaq, 6px); border-radius: 99px; flex: 1; transition: background 380ms cubic-bezier(0.16,1,0.3,1); background: {{ p3 }};"></span>
+    <span style="height: var(--zolaq, 6px); border-radius: 99px; flex: 1; transition: background 380ms cubic-bezier(0.16,1,0.3,1); background: {{ p4 }};"></span>
+  </div>
+
+  <div style="margin: 20px 20px 0; padding: 14px 16px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); display: flex; align-items: baseline; gap: 12px; transition: background 260ms ease, border-color 260ms ease;">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3); flex-shrink: 0;">SUAL</span>
+    <sc-if value="{{ ocrNormal }}" hint-placeholder-val="{{ true }}">
+      <div style="flex: 1; min-width: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+        <span data-tex="x^2 - 5x + 6 = 0" style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--t1);">x² − 5x + 6 = 0</span>
+        <button type="button" onClick="{{ duzelisAc }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; white-space: nowrap; border-bottom: 1px solid var(--bor);">düzəliş</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ ocrDuzelis }}" hint-placeholder-val="{{ false }}">
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+        <input type="text" defaultValue="x^2 - 5x + 6 = 0" style="width: 100%; min-height: 44px; border: none; border-bottom: 1px solid var(--acc); background: transparent; color: var(--t1); font-family: 'JetBrains Mono', monospace; font-size: 16px; padding: 0; outline: none;" />
+        <span style="font-size: 12px; line-height: 1.6; color: var(--t2);">Simvolu düzəlt, sonra yenidən həll et.</span>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="flex: 1; padding: 24px 0 24px; display: flex; flex-direction: column;">
+
+    <sc-if value="{{ yuklenir }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 18px;">
+        <div style="height: 56px; width: 44%; border-radius: var(--rad); background: var(--sur); animation: nefes 1400ms ease-in-out infinite both;"></div>
+        <div style="height: 12px; width: 86%; border-radius: 99px; background: var(--sur); animation: nefes 1400ms ease-in-out infinite both; animation-delay: 200ms;"></div>
+        <div style="height: 12px; width: 62%; border-radius: 99px; background: var(--sur); animation: nefes 1400ms ease-in-out infinite both; animation-delay: 400ms;"></div>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--t3);">HƏLL QURULUR</span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ sebekeXetasi }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 16px;">
+        <span style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.15; letter-spacing: -0.02em;">Şəkil serverə çatmadı</span>
+        <span style="font-size: 16px; line-height: 1.6; color: var(--t2); max-width: 32ch;">Bağlantı kəsildi. Şəkil telefonda saxlanıldı — internet qayıdanda bir toxunuşla göndər.</span>
+        <button type="button" onClick="{{ noop }}" style="align-self: flex-start; white-space: nowrap; min-height: 52px; padding: 0 24px; border: none; border-radius: var(--rad); background: var(--acc); color: var(--accink); font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 140ms ease;" style-active="transform: scale(0.97);">Təkrar göndər</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ addimGorunur }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+
+        <sc-if value="{{ s1 }}" hint-placeholder-val="{{ true }}">
+          <div data-oxu="1" data-oxu-dustur="a x kvadrat, artı b x, artı c, bərabərdir sıfır" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="padding: 0 20px; display: grid; row-gap: 6px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--acc); animation: reqem 340ms cubic-bezier(0.16,1,0.3,1) both;">ADDIM 01 / 04</span>
+              <span data-oxu-parca="1" style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.15; letter-spacing: -0.02em; max-width: 24ch; animation: gir 280ms cubic-bezier(0.16,1,0.3,1) 70ms both;">Əmsalları oxu</span>
+            </div>
+            <p data-oxu-parca="1" style="margin: 0; padding: 0 20px; font-size: 16px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty; animation: gir 280ms cubic-bezier(0.16,1,0.3,1) 140ms both;">Tənlik standart formadadır, deməli üç əmsalı birbaşa götürmək olar.</p>
+            <div style="margin: 0 20px; padding: 16px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 22px; overflow-x: auto; white-space: nowrap; animation: gir 300ms cubic-bezier(0.16,1,0.3,1) 210ms both;">
+              <span style="display: flex; align-items: center; color: var(--t1);"><button type="button" onClick="{{ t1a }}" style="border: none; background: transparent; font: inherit; color: var(--acc); border-bottom: 1px dashed var(--acc); padding: 2px 1px 0; cursor: pointer;">a</button>x²</span>
+              <span style="color: var(--t3);">+</span>
+              <span style="display: flex; align-items: center; color: var(--t1);"><button type="button" onClick="{{ t1b }}" style="border: none; background: transparent; font: inherit; color: var(--acc); border-bottom: 1px dashed var(--acc); padding: 2px 1px 0; cursor: pointer;">b</button>x</span>
+              <span style="color: var(--t3);">+</span>
+              <button type="button" onClick="{{ t1c }}" style="border: none; background: transparent; font: inherit; color: var(--acc); border-bottom: 1px dashed var(--acc); padding: 2px 1px 0; cursor: pointer;">c</button>
+              <span style="color: var(--t3);">=</span>
+              <span style="color: var(--t1);">0</span>
+            </div>
+            <sc-if value="{{ t1Gorunur }}" hint-placeholder-val="{{ false }}">
+              <div style="padding: 0 20px; display: flex; align-items: baseline; gap: 10px; animation: yigil 200ms ease-out both;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3);">→</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--acc);">{{ t1Metni }}</span>
+              </div>
+            </sc-if>
+            <div style="padding: 0 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px;">
+              <button type="button" onClick="{{ niyeAc }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <span style="font-family: 'JetBrains Mono', monospace; width: 22px; height: 22px; border: 1px solid var(--bor); border-radius: var(--radsm); display: flex; align-items: center; justify-content: center; font-size: 12px;">?</span>
+                <span>niyə belədir</span>
+              </button>
+              <sc-if value="{{ sesliOxu }}" hint-placeholder-val="{{ true }}">
+                <button type="button" onClick="{{ oxu1 }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                  <span style="display: flex; align-items: flex-end; gap: 2px; height: 14px;">
+                    <span style="width: 2px; height: 6px; background: currentColor; animation: dalga 900ms ease-in-out infinite both;"></span>
+                    <span style="width: 2px; height: 12px; background: currentColor; animation: dalga 900ms ease-in-out infinite both; animation-delay: 150ms;"></span>
+                    <span style="width: 2px; height: 9px; background: currentColor; animation: dalga 900ms ease-in-out infinite both; animation-delay: 300ms;"></span>
+                  </span>
+                  <span>{{ sesMetni }}</span>
+                </button>
+              </sc-if>
+            </div>
+            <sc-if value="{{ niye1 }}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 0 20px; padding: 14px 16px; border-left: 3px solid var(--acc); border-radius: var(--radsm); background: var(--accsoft); font-size: 14px; line-height: 1.6; color: var(--t2); max-width: 36ch; animation: yigil 200ms ease-out both;">Standart forma hər əmsalı öz yerinə bağlayır — buna görə tənliyi əvvəlcə bu şəklə salırlar, sonra düstur işləyir.</p>
+            </sc-if>
+            <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 12px;">
+              <sc-if value="{{ y1Sual }}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <span style="font-size: 14px; line-height: 1.6;">Sən yaz: <b style="font-weight: 600;">b</b> nəyə bərabərdir?</span>
+                  <div style="display: flex; gap: 10px; align-items: stretch;">
+                    <input type="text" placeholder="cavabın" onInput="{{ y1Yaz }}" style="flex: 1; min-width: 0; min-height: var(--tap); border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); color: var(--t1); font-family: 'JetBrains Mono', monospace; font-size: 16px; padding: 0 14px; outline: none; transition: border-color 180ms ease;" style-focus="border-color: var(--acc);" />
+                    <button type="button" onClick="{{ y1Yoxla }}" style="min-height: var(--tap); padding: 0 22px; border: 1px solid var(--acc); border-radius: var(--rad); background: var(--accsoft); color: var(--acc); font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: transform 140ms ease;" style-active="transform: scale(0.96);">yoxla</button>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ y1Dogru }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; align-items: baseline; gap: 10px; padding: 12px 16px; border-radius: var(--rad); background: var(--accsoft); animation: yigil 200ms ease-out both;">
+                  <span style="color: var(--acc); font-size: 14px; display: inline-block; animation: tik 360ms cubic-bezier(0.16,1,0.3,1) both;">✓</span>
+                  <span style="font-size: 14px; line-height: 1.6;">Doğru — işarə əmsalın hissəsidir: <span style="font-family: 'JetBrains Mono', monospace;">a = 1, b = −5, c = 6</span></span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ y1Sehv }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; border-radius: var(--rad); background: var(--warnsoft); animation: yigil 200ms ease-out both;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; padding: 4px 8px; border-radius: var(--radsm); border: 1px solid var(--warn); color: var(--warn);">{{ s1SehvAdi }}</span>
+                    <span style="font-size: 12px; color: var(--t3);">hesabatına yazıldı</span>
+                  </div>
+                  <span style="font-size: 14px; line-height: 1.6; color: var(--t2);">{{ s1SehvIpucu }}</span>
+                  <button type="button" onClick="{{ y1Tekrar }}" style="align-self: flex-start; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; border-bottom: 1px solid var(--bor);">yenidən yaz</button>
+                </div>
+              </sc-if>
+              <button type="button" onClick="{{ noop }}" style="align-self: flex-start; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer;">Bu addımı başa düşmədim →</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ s2 }}" hint-placeholder-val="{{ false }}">
+          <div data-oxu="2" data-oxu-dustur="D bərabərdir b kvadrat, mənfi dörd a c" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="padding: 0 20px; display: grid; row-gap: 6px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--acc); animation: reqem 340ms cubic-bezier(0.16,1,0.3,1) both;">ADDIM 02 / 04</span>
+              <span data-oxu-parca="1" style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.15; letter-spacing: -0.02em; max-width: 24ch; animation: gir 280ms cubic-bezier(0.16,1,0.3,1) 70ms both;">Diskriminantı hesabla</span>
+            </div>
+            <p data-oxu-parca="1" style="margin: 0; padding: 0 20px; font-size: 16px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty; animation: gir 280ms cubic-bezier(0.16,1,0.3,1) 140ms both;">Diskriminant kökün sayını verir: müsbətdirsə iki, sıfırdırsa bir kök var.</p>
+            <div style="margin: 0 20px; padding: 16px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 22px; overflow-x: auto; white-space: nowrap; animation: gir 300ms cubic-bezier(0.16,1,0.3,1) 210ms both;">
+              <button type="button" onClick="{{ t2d }}" style="border: none; background: transparent; font: inherit; color: var(--acc); border-bottom: 1px dashed var(--acc); padding: 2px 1px 0; cursor: pointer;">D</button>
+              <span style="color: var(--t3);">=</span>
+              <button type="button" onClick="{{ t2b }}" style="border: none; background: transparent; font: inherit; color: var(--acc); border-bottom: 1px dashed var(--acc); padding: 2px 1px 0; cursor: pointer;">b²</button>
+              <span style="color: var(--t3);">−</span>
+              <button type="button" onClick="{{ t2ac }}" style="border: none; background: transparent; font: inherit; color: var(--acc); border-bottom: 1px dashed var(--acc); padding: 2px 1px 0; cursor: pointer;">4ac</button>
+            </div>
+            <sc-if value="{{ t2Gorunur }}" hint-placeholder-val="{{ false }}">
+              <div style="padding: 0 20px; display: flex; align-items: baseline; gap: 10px; animation: yigil 200ms ease-out both;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3);">→</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--acc);">{{ t2Metni }}</span>
+              </div>
+            </sc-if>
+            <div style="padding: 0 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px;">
+              <button type="button" onClick="{{ niyeAc }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <span style="font-family: 'JetBrains Mono', monospace; width: 22px; height: 22px; border: 1px solid var(--bor); border-radius: var(--radsm); display: flex; align-items: center; justify-content: center; font-size: 12px;">?</span>
+                <span>niyə belədir</span>
+              </button>
+              <sc-if value="{{ sesliOxu }}" hint-placeholder-val="{{ true }}">
+                <button type="button" onClick="{{ oxu2 }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                  <span style="display: flex; align-items: flex-end; gap: 2px; height: 14px;">
+                    <span style="width: 2px; height: 6px; background: currentColor; animation: dalga 900ms ease-in-out infinite both;"></span>
+                    <span style="width: 2px; height: 12px; background: currentColor; animation: dalga 900ms ease-in-out infinite both; animation-delay: 150ms;"></span>
+                    <span style="width: 2px; height: 9px; background: currentColor; animation: dalga 900ms ease-in-out infinite both; animation-delay: 300ms;"></span>
+                  </span>
+                  <span>{{ sesMetni }}</span>
+                </button>
+              </sc-if>
+            </div>
+            <sc-if value="{{ niye2 }}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 0 20px; padding: 14px 16px; border-left: 3px solid var(--acc); border-radius: var(--radsm); background: var(--accsoft); font-size: 14px; line-height: 1.6; color: var(--t2); max-width: 36ch; animation: yigil 200ms ease-out both;">Kvadrat kökün altındaki ifadə mənfi ola bilməz — məhz buna görə D-nin işarəsi kökün sayını təyin edir.</p>
+            </sc-if>
+            <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 12px;">
+              <sc-if value="{{ y2Sual }}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <span style="font-size: 14px; line-height: 1.6;">Sən hesabla: <span style="font-family: 'JetBrains Mono', monospace;">D</span> nə çıxır?</span>
+                  <div style="display: flex; gap: 10px; align-items: stretch;">
+                    <input type="text" placeholder="cavabın" onInput="{{ y2Yaz }}" style="flex: 1; min-width: 0; min-height: var(--tap); border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); color: var(--t1); font-family: 'JetBrains Mono', monospace; font-size: 16px; padding: 0 14px; outline: none; transition: border-color 180ms ease;" style-focus="border-color: var(--acc);" />
+                    <button type="button" onClick="{{ y2Yoxla }}" style="min-height: var(--tap); padding: 0 22px; border: 1px solid var(--acc); border-radius: var(--rad); background: var(--accsoft); color: var(--acc); font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: transform 140ms ease;" style-active="transform: scale(0.96);">yoxla</button>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ y2Dogru }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; align-items: baseline; gap: 10px; padding: 12px 16px; border-radius: var(--rad); background: var(--accsoft); animation: yigil 200ms ease-out both;">
+                  <span style="color: var(--acc); font-size: 14px; display: inline-block; animation: tik 360ms cubic-bezier(0.16,1,0.3,1) both;">✓</span>
+                  <span style="font-size: 14px; line-height: 1.6;">Doğru — <span style="font-family: 'JetBrains Mono', monospace;">25 − 24 = 1</span>, müsbətdir, iki kök var.</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ y2Sehv }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; border-radius: var(--rad); background: var(--warnsoft); animation: yigil 200ms ease-out both;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; padding: 4px 8px; border-radius: var(--radsm); border: 1px solid var(--warn); color: var(--warn);">{{ s2SehvAdi }}</span>
+                    <span style="font-size: 12px; color: var(--t3);">hesabatına yazıldı</span>
+                  </div>
+                  <span style="font-size: 14px; line-height: 1.6; color: var(--t2);">{{ s2SehvIpucu }}</span>
+                  <button type="button" onClick="{{ y2Tekrar }}" style="align-self: flex-start; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; border-bottom: 1px solid var(--bor);">yenidən yaz</button>
+                </div>
+              </sc-if>
+              <button type="button" onClick="{{ noop }}" style="align-self: flex-start; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer;">Bu addımı başa düşmədim →</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ s3 }}" hint-placeholder-val="{{ false }}">
+          <div data-oxu="3" data-oxu-dustur="x bərabərdir mənfi b, plus-minus D-nin kvadrat kökü, bölünsün iki a" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="padding: 0 20px; display: grid; row-gap: 6px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--acc); animation: reqem 340ms cubic-bezier(0.16,1,0.3,1) both;">ADDIM 03 / 04</span>
+              <span data-oxu-parca="1" style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.15; letter-spacing: -0.02em; max-width: 24ch; animation: gir 280ms cubic-bezier(0.16,1,0.3,1) 70ms both;">Kök düsturunu qur</span>
+            </div>
+            <p data-oxu-parca="1" style="margin: 0; padding: 0 20px; font-size: 16px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty; animation: gir 280ms cubic-bezier(0.16,1,0.3,1) 140ms both;">İki işarəni ayrı-ayrı yoxla — plus bir kök, minus digərini verir.</p>
+            <div style="margin: 0 20px; padding: 16px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 22px; overflow-x: auto; white-space: nowrap; animation: gir 300ms cubic-bezier(0.16,1,0.3,1) 210ms both;">
+              <span style="color: var(--t1);">x</span>
+              <span style="color: var(--t3);">=</span>
+              <span style="color: var(--t3);">(−</span>
+              <button type="button" onClick="{{ t3b }}" style="border: none; background: transparent; font: inherit; color: var(--acc); border-bottom: 1px dashed var(--acc); padding: 2px 1px 0; cursor: pointer;">b</button>
+              <span style="color: var(--t3);">±</span>
+              <button type="button" onClick="{{ t3d }}" style="border: none; background: transparent; font: inherit; color: var(--acc); border-bottom: 1px dashed var(--acc); padding: 2px 1px 0; cursor: pointer;">√D</button>
+              <span style="color: var(--t3);">) /</span>
+              <button type="button" onClick="{{ t3a }}" style="border: none; background: transparent; font: inherit; color: var(--acc); border-bottom: 1px dashed var(--acc); padding: 2px 1px 0; cursor: pointer;">2a</button>
+            </div>
+            <sc-if value="{{ t3Gorunur }}" hint-placeholder-val="{{ false }}">
+              <div style="padding: 0 20px; display: flex; align-items: baseline; gap: 10px; animation: yigil 200ms ease-out both;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3);">→</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--acc);">{{ t3Metni }}</span>
+              </div>
+            </sc-if>
+            <div style="padding: 0 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px;">
+              <button type="button" onClick="{{ niyeAc }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <span style="font-family: 'JetBrains Mono', monospace; width: 22px; height: 22px; border: 1px solid var(--bor); border-radius: var(--radsm); display: flex; align-items: center; justify-content: center; font-size: 12px;">?</span>
+                <span>niyə belədir</span>
+              </button>
+              <sc-if value="{{ sesliOxu }}" hint-placeholder-val="{{ true }}">
+                <button type="button" onClick="{{ oxu3 }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                  <span style="display: flex; align-items: flex-end; gap: 2px; height: 14px;">
+                    <span style="width: 2px; height: 6px; background: currentColor; animation: dalga 900ms ease-in-out infinite both;"></span>
+                    <span style="width: 2px; height: 12px; background: currentColor; animation: dalga 900ms ease-in-out infinite both; animation-delay: 150ms;"></span>
+                    <span style="width: 2px; height: 9px; background: currentColor; animation: dalga 900ms ease-in-out infinite both; animation-delay: 300ms;"></span>
+                  </span>
+                  <span>{{ sesMetni }}</span>
+                </button>
+              </sc-if>
+            </div>
+            <sc-if value="{{ niye3 }}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 0 20px; padding: 14px 16px; border-left: 3px solid var(--acc); border-radius: var(--radsm); background: var(--accsoft); font-size: 14px; line-height: 1.6; color: var(--t2); max-width: 36ch; animation: yigil 200ms ease-out both;">Düstur parabolanın oxundan bərabər məsafədəki iki nöqtəni verir — ± işarəsi məhz o simmetriyadır.</p>
+            </sc-if>
+            <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 12px;">
+              <sc-if value="{{ y3Sual }}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <span style="font-size: 14px; line-height: 1.6;">Sən hesabla: böyük kök nə çıxır?</span>
+                  <div style="display: flex; gap: 10px; align-items: stretch;">
+                    <input type="text" placeholder="cavabın" onInput="{{ y3Yaz }}" style="flex: 1; min-width: 0; min-height: var(--tap); border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); color: var(--t1); font-family: 'JetBrains Mono', monospace; font-size: 16px; padding: 0 14px; outline: none; transition: border-color 180ms ease;" style-focus="border-color: var(--acc);" />
+                    <button type="button" onClick="{{ y3Yoxla }}" style="min-height: var(--tap); padding: 0 22px; border: 1px solid var(--acc); border-radius: var(--rad); background: var(--accsoft); color: var(--acc); font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: transform 140ms ease;" style-active="transform: scale(0.96);">yoxla</button>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ y3Dogru }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; align-items: baseline; gap: 10px; padding: 12px 16px; border-radius: var(--rad); background: var(--accsoft); animation: yigil 200ms ease-out both;">
+                  <span style="color: var(--acc); font-size: 14px; display: inline-block; animation: tik 360ms cubic-bezier(0.16,1,0.3,1) both;">✓</span>
+                  <span style="font-size: 14px; line-height: 1.6;">Doğru — plus variantı böyük kökü verir.</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ y3Sehv }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; border-radius: var(--rad); background: var(--warnsoft); animation: yigil 200ms ease-out both;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; padding: 4px 8px; border-radius: var(--radsm); border: 1px solid var(--warn); color: var(--warn);">{{ s3SehvAdi }}</span>
+                    <span style="font-size: 12px; color: var(--t3);">hesabatına yazıldı</span>
+                  </div>
+                  <span style="font-size: 14px; line-height: 1.6; color: var(--t2);">{{ s3SehvIpucu }}</span>
+                  <button type="button" onClick="{{ y3Tekrar }}" style="align-self: flex-start; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; border-bottom: 1px solid var(--bor);">yenidən yaz</button>
+                </div>
+              </sc-if>
+              <button type="button" onClick="{{ noop }}" style="align-self: flex-start; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer;">Bu addımı başa düşmədim →</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ s4 }}" hint-placeholder-val="{{ false }}">
+          <div data-oxu="4" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="padding: 0 20px; display: grid; row-gap: 6px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--acc); animation: reqem 340ms cubic-bezier(0.16,1,0.3,1) both;">ADDIM 04 / 04</span>
+              <span data-oxu-parca="1" style="font-family: var(--hfont); font-weight: var(--hweight); font-size: var(--hsize); line-height: 1.15; letter-spacing: -0.02em; max-width: 24ch; animation: gir 280ms cubic-bezier(0.16,1,0.3,1) 70ms both;">Kökləri yoxla</span>
+            </div>
+            <p data-oxu-parca="1" style="margin: 0; padding: 0 20px; font-size: 16px; line-height: 1.6; color: var(--t2); max-width: 34ch; text-wrap: pretty; animation: gir 280ms cubic-bezier(0.16,1,0.3,1) 140ms both;">Hər kökü ilkin tənlikdə yerinə qoy. Nəticə sıfır verirsə, kök doğrudur.</p>
+            <div style="padding: 0 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px;">
+              <button type="button" onClick="{{ niyeAc }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <span style="font-family: 'JetBrains Mono', monospace; width: 22px; height: 22px; border: 1px solid var(--bor); border-radius: var(--radsm); display: flex; align-items: center; justify-content: center; font-size: 12px;">?</span>
+                <span>niyə belədir</span>
+              </button>
+              <sc-if value="{{ sesliOxu }}" hint-placeholder-val="{{ true }}">
+                <button type="button" onClick="{{ oxu4 }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                  <span style="display: flex; align-items: flex-end; gap: 2px; height: 14px;">
+                    <span style="width: 2px; height: 6px; background: currentColor; animation: dalga 900ms ease-in-out infinite both;"></span>
+                    <span style="width: 2px; height: 12px; background: currentColor; animation: dalga 900ms ease-in-out infinite both; animation-delay: 150ms;"></span>
+                    <span style="width: 2px; height: 9px; background: currentColor; animation: dalga 900ms ease-in-out infinite both; animation-delay: 300ms;"></span>
+                  </span>
+                  <span>{{ sesMetni }}</span>
+                </button>
+              </sc-if>
+            </div>
+            <sc-if value="{{ niye4 }}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 0 20px; padding: 14px 16px; border-left: 3px solid var(--acc); border-radius: var(--radsm); background: var(--accsoft); font-size: 14px; line-height: 1.6; color: var(--t2); max-width: 36ch; animation: yigil 200ms ease-out both;">Yoxlama düsturun yadda saxlanmasını yox, tənliyin mənasını sınayır: kök — bərabərliyi doğru edən ədəddir.</p>
+            </sc-if>
+            <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 12px;">
+              <sc-if value="{{ y4Sual }}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <span style="font-size: 14px; line-height: 1.6;">Sən yoxla: <span style="font-family: 'JetBrains Mono', monospace;">x = 3</span> qoyanda sol tərəf nə verir?</span>
+                  <div style="display: flex; gap: 10px; align-items: stretch;">
+                    <input type="text" placeholder="cavabın" onInput="{{ y4Yaz }}" style="flex: 1; min-width: 0; min-height: var(--tap); border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); color: var(--t1); font-family: 'JetBrains Mono', monospace; font-size: 16px; padding: 0 14px; outline: none; transition: border-color 180ms ease;" style-focus="border-color: var(--acc);" />
+                    <button type="button" onClick="{{ y4Yoxla }}" style="min-height: var(--tap); padding: 0 22px; border: 1px solid var(--acc); border-radius: var(--rad); background: var(--accsoft); color: var(--acc); font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: transform 140ms ease;" style-active="transform: scale(0.96);">yoxla</button>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ y4Dogru }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; align-items: baseline; gap: 10px; padding: 12px 16px; border-radius: var(--rad); background: var(--accsoft); animation: yigil 200ms ease-out both;">
+                  <span style="color: var(--acc); font-size: 14px; display: inline-block; animation: tik 360ms cubic-bezier(0.16,1,0.3,1) both;">✓</span>
+                  <span style="font-size: 14px; line-height: 1.6;">Doğru — <span style="font-family: 'JetBrains Mono', monospace;">9 − 15 + 6 = 0</span>, kök yerində oturur.</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ y4Sehv }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; border-radius: var(--rad); background: var(--warnsoft); animation: yigil 200ms ease-out both;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; padding: 4px 8px; border-radius: var(--radsm); border: 1px solid var(--warn); color: var(--warn);">{{ s4SehvAdi }}</span>
+                    <span style="font-size: 12px; color: var(--t3);">hesabatına yazıldı</span>
+                  </div>
+                  <span style="font-size: 14px; line-height: 1.6; color: var(--t2);">{{ s4SehvIpucu }}</span>
+                  <button type="button" onClick="{{ y4Tekrar }}" style="align-self: flex-start; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; border-bottom: 1px solid var(--bor);">yenidən yaz</button>
+                </div>
+              </sc-if>
+              <button type="button" onClick="{{ noop }}" style="align-self: flex-start; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer;">Bu addımı başa düşmədim →</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ cavabAcildi }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 16px; animation: gir 240ms ease-out both;">
+            <div style="padding: 0 20px; display: flex; align-items: baseline; gap: 10px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--acc);">CAVAB</span>
+              <span style="color: var(--acc); font-size: 14px; display: inline-block; animation: tik 360ms cubic-bezier(0.16,1,0.3,1) both;">✓</span>
+            </div>
+            <div data-tex="x_1 = 3, \quad x_2 = 2" style="margin: 0 20px; padding: 18px; border: 1px solid var(--acc); border-radius: var(--rad); background: var(--accsoft); font-family: 'JetBrains Mono', monospace; font-size: 30px; line-height: 1.3; color: var(--t1); overflow-x: auto; white-space: nowrap;">x₁ = 3, x₂ = 2</div>
+            <div style="padding: 0 20px; display: flex; gap: 20px;">
+              <button type="button" onClick="{{ noop }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; border-bottom: 1px solid var(--bor);">başa düşdüm</button>
+              <button type="button" onClick="{{ noop }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; border-bottom: 1px solid var(--bor);">həll səhvdir</button>
+            </div>
+
+            <div style="margin: 12px 20px 0; padding: 18px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); display: flex; flex-direction: column; gap: 14px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--t3);">EYNİSİNİ SƏN HƏLL ET</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: {{ saatRengi }};">{{ saat }}</span>
+              </div>
+              <span data-tex="x^2 - 7x + 12 = 0" style="font-family: 'JetBrains Mono', monospace; font-size: 22px; color: var(--t1);">x² − 7x + 12 = 0</span>
+              <sc-if value="{{ oxsarSual }}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <span style="font-size: 14px; line-height: 1.6; color: var(--t2);">Kiçik kökü yaz.</span>
+                  <div style="display: flex; gap: 10px; align-items: stretch;">
+                    <input type="text" placeholder="cavabın" onInput="{{ oxsarYaz }}" style="flex: 1; min-width: 0; min-height: var(--tap); border: 1px solid var(--bor); border-radius: var(--rad); background: var(--bg); color: var(--t1); font-family: 'JetBrains Mono', monospace; font-size: 16px; padding: 0 14px; outline: none; transition: border-color 180ms ease;" style-focus="border-color: var(--acc);" />
+                    <button type="button" onClick="{{ oxsarYoxla }}" style="min-height: var(--tap); padding: 0 22px; border: none; border-radius: var(--rad); background: var(--acc); color: var(--accink); font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: transform 140ms ease;" style-active="transform: scale(0.96);">yoxla</button>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ oxsarDogru }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; align-items: baseline; gap: 10px; animation: yigil 200ms ease-out both;">
+                  <span style="color: var(--acc); font-size: 14px; display: inline-block; animation: tik 360ms cubic-bezier(0.16,1,0.3,1) both;">✓</span>
+                  <span style="font-size: 14px; line-height: 1.6;">Öz gücünlə həll etdin. <span style="font-family: 'JetBrains Mono', monospace;">x₁ = 3, x₂ = 4</span></span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ oxsarSehv }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; flex-direction: column; gap: 10px; animation: yigil 200ms ease-out both;">
+                  <span style="font-size: 14px; line-height: 1.6; color: var(--t2);">{{ oxsarIpucu }}</span>
+                  <button type="button" onClick="{{ oxsarTekrar }}" style="align-self: flex-start; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; border-bottom: 1px solid var(--bor);">yenidən cəhd et</button>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ limitXeberdarliq }}" hint-placeholder-val="{{ false }}">
+    <div style="margin: 0 20px 10px; padding: 14px 16px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--warnsoft); display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+      <span style="font-size: 14px; line-height: 1.5; color: var(--t2); max-width: 26ch; text-wrap: pretty;">{{ limitBandMetni }}</span>
+      <button type="button" onClick="{{ noop }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--warn); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; border-bottom: 1px solid var(--warnsoft); transition: border-color 180ms ease;" style-hover="border-bottom-color: var(--warn);">abunəni aç</button>
+    </div>
+  </sc-if>
+
+  <div style="position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--bor); transition: background 260ms ease;">
+    <div style="display: flex; align-items: center; gap: 14px; padding: 10px 20px; overflow-x: auto;">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--t3); flex-shrink: 0;">LENT</span>
+      <div style="display: flex; gap: 6px;">
+        <button type="button" onClick="{{ git1 }}" style="min-height: 44px; padding: 0 8px; border: none; background: transparent; font-family: 'JetBrains Mono', monospace; font-size: 14px; transition: color 280ms ease; color: {{ c1 }}; cursor: pointer;">01</button>
+        <button type="button" onClick="{{ git2 }}" style="min-height: 44px; padding: 0 8px; border: none; background: transparent; font-family: 'JetBrains Mono', monospace; font-size: 14px; transition: color 280ms ease; color: {{ c2 }}; cursor: pointer;">02</button>
+        <button type="button" onClick="{{ git3 }}" style="min-height: 44px; padding: 0 8px; border: none; background: transparent; font-family: 'JetBrains Mono', monospace; font-size: 14px; transition: color 280ms ease; color: {{ c3 }}; cursor: pointer;">03</button>
+        <button type="button" onClick="{{ git4 }}" style="min-height: 44px; padding: 0 8px; border: none; background: transparent; font-family: 'JetBrains Mono', monospace; font-size: 14px; transition: color 280ms ease; color: {{ c4 }}; cursor: pointer;">04</button>
+      </div>
+    </div>
+    <div style="padding: 0 20px 20px;">
+      <sc-if value="{{ novbetiVar }}" hint-placeholder-val="{{ true }}">
+        <button type="button" onClick="{{ novbeti }}" style="width: 100%; min-height: 56px; border: none; border-radius: var(--rad); background: var(--acc); color: var(--accink); font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; transition: transform 140ms ease;" style-active="transform: scale(0.985);">
+          <span>Növbəti addım</span>
+          <span style="font-family: 'JetBrains Mono', monospace; display: inline-block; transition: transform 220ms cubic-bezier(0.16,1,0.3,1);" style-hover="transform: translateX(6px);">→</span>
+        </button>
+      </sc-if>
+      <sc-if value="{{ cavabDuymesi }}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{ cavabiGoster }}" style="width: 100%; min-height: 56px; border: none; border-radius: var(--rad); background: var(--acc); color: var(--accink); font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; transition: transform 140ms ease;" style-active="transform: scale(0.985);">
+          <span>Cavabı göstər</span>
+          <span style="font-family: 'JetBrains Mono', monospace;">↓</span>
+        </button>
+      </sc-if>
+      <sc-if value="{{ abuneDuymesi }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button type="button" onClick="{{ noop }}" style="width: 100%; min-height: 56px; border: none; border-radius: var(--rad); background: var(--warn); color: var(--accink); font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; transition: transform 140ms ease;" style-active="transform: scale(0.985);">
+            <span>Abunə ol · 4.99 ₼/ay</span>
+            <span style="font-family: 'JetBrains Mono', monospace; display: inline-block; transition: transform 220ms cubic-bezier(0.16,1,0.3,1);" style-hover="transform: translateX(6px);">→</span>
+          </button>
+          <span style="font-size: 12px; text-align: center; color: var(--t3);">Sabah saat 00:00-da 5 pulsuz həll qayıdır</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ cavabAcildi }}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{ sifirla }}" style="width: 100%; min-height: 56px; border: 1px solid var(--bor); border-radius: var(--rad); background: transparent; color: var(--t2); font-family: inherit; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; transition: transform 140ms ease;" style-active="transform: scale(0.985);">
+          <span>Yeni sual çək</span>
+          <span style="font-family: 'JetBrains Mono', monospace;">＋</span>
+        </button>
+      </sc-if>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;tema&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Görünüş&quot;},&quot;ton&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;genc&quot;,&quot;yetkin&quot;],&quot;default&quot;:&quot;genc&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Görünüş&quot;},&quot;veziyyet&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;normal&quot;,&quot;yuklenir&quot;,&quot;ocr&quot;,&quot;xeta&quot;],&quot;default&quot;:&quot;normal&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Vəziyyət&quot;},&quot;gunlukLimit&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:3,&quot;min&quot;:0,&quot;max&quot;:5,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Vəziyyət&quot;},&quot;sesliOxu&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Funksiyalar&quot;}}">
+const ADDIMLAR = [
+  { dogru: ['-5', '−5'], sehvAdi: 'İŞARƏ İTDİ', ipucu: 'Minus işarəsi ədədin bir hissəsidir: b = −5.',
+    tokenler: { a: 'a = 1 — x² qarşısındaki əmsal', b: 'b = −5 — x qarşısındaki əmsal', c: 'c = 6 — sərbəst hədd' } },
+  { dogru: ['1'], sehvAdi: 'KVADRAT UNUDULDU', ipucu: 'Əvvəlcə (−5)² = 25, sonra 24 çıx.',
+    tokenler: { D: 'D — kökün sayını verən ədəd', b2: 'b² = 25', ac: '4ac = 24' } },
+  { dogru: ['3'], sehvAdi: 'İŞARƏ SEÇİMİ', ipucu: '± işarəsindən plus variantı böyük kökü verir.',
+    tokenler: { b: '−b = 5', D: '√D = 1', a: '2a = 2' } },
+  { dogru: ['0'], sehvAdi: 'YERİNƏQOYMA', ipucu: '9 − 15 + 6 hesabla — nəticə sıfır olmalıdır.', tokenler: {} }
+];
+
+const TEMA = {
+  dark: { bg: '#101311', sur: '#171B18', bor: 'rgba(255,255,255,0.09)',
+    t1: 'rgba(255,255,255,0.93)', t2: 'rgba(255,255,255,0.66)', t3: 'rgba(255,255,255,0.45)',
+    acc: '#A6E06A', accSoft: 'rgba(166,224,106,0.14)', accInk: '#12200A',
+    warn: '#F2B441', warnSoft: 'rgba(242,180,65,0.12)',
+    zolaqBos: 'rgba(255,255,255,0.1)', lentBos: 'rgba(255,255,255,0.28)' },
+  light: { bg: '#FBFBF8', sur: '#FFFFFF', bor: '#E3E5DE',
+    t1: '#151814', t2: '#565B52', t3: '#878C81',
+    acc: '#4F7A16', accSoft: 'rgba(79,122,22,0.10)', accInk: '#FFFFFF',
+    warn: '#A96A00', warnSoft: 'rgba(169,106,0,0.09)',
+    zolaqBos: '#E3E5DE', lentBos: '#B4B8AE' }
+};
+
+const TON = {
+  genc: { rad: '18px', radSm: '12px', hFont: "'Nunito', sans-serif", hWeight: '800', hSize: '30px', tap: '52px' },
+  yetkin: { rad: '8px', radSm: '6px', hFont: "'Golos Text', sans-serif", hWeight: '600', hSize: '26px', tap: '48px' }
+};
+
+class Component extends DCLogic {
+  state = { addim: 0, enCox: 0, cavab: false, duzelis: false, niye: null, token: null,
+    yazi: ['', '', '', ''], netice: [null, null, null, null],
+    oxsarYazi: '', oxsarNetice: null, saniye: 30, saatIsleyir: false, danisir: false };
+
+  componentDidMount() {
+    this.tex();
+    const s = window.speechSynthesis;
+    if (s) { this._ses = () => this.forceUpdate(); s.addEventListener('voiceschanged', this._ses); s.getVoices(); }
+  }
+
+  azSesi() {
+    const s = window.speechSynthesis;
+    if (!s || !s.getVoices) return null;
+    return (s.getVoices() || []).find(v => /^az(\b|[-_])/i.test(v.lang || '')) || null;
+  }
+  componentDidUpdate() { this.tex(); }
+  componentWillUnmount() {
+    clearInterval(this._i);
+    const s = window.speechSynthesis;
+    if (s) { s.cancel(); if (this._ses) s.removeEventListener('voiceschanged', this._ses); }
+  }
+
+  tex() {
+    const k = window.katex;
+    if (!k) { if (!this._t) this._t = setTimeout(() => { this._t = null; this.tex(); }, 250); return; }
+    document.querySelectorAll('[data-tex]:not([data-tex-done])').forEach(el => {
+      try {
+        el.textContent = '';
+        k.render(el.getAttribute('data-tex'), el, { throwOnError: false, displayMode: false });
+        el.setAttribute('data-tex-done', '1');
+      } catch (e) {}
+    });
+  }
+
+  oxu(i) {
+    const s = window.speechSynthesis;
+    const ses = this.azSesi();
+    if (!s || !ses) return;
+    if (s.speaking) { s.cancel(); this.setState({ danisir: false }); return; }
+    const el = document.querySelector('[data-oxu="' + i + '"]');
+    if (!el) return;
+    const parcalar = Array.from(el.querySelectorAll('[data-oxu-parca]')).map(n => n.innerText.trim());
+    const dustur = el.getAttribute('data-oxu-dustur');
+    if (dustur) parcalar.push(dustur);
+    const metn = parcalar.join('. ').replace(/\s+/g, ' ').slice(0, 400);
+    if (!metn) return;
+    const u = new SpeechSynthesisUtterance(metn);
+    u.voice = ses; u.lang = ses.lang || 'az-AZ'; u.rate = 0.95;
+    u.onend = () => this.setState({ danisir: false });
+    this.setState({ danisir: true });
+    s.speak(u);
+  }
+
+  saatiBaslat() {
+    clearInterval(this._i);
+    this._i = setInterval(() => this.setState(s => {
+      if (s.saniye <= 1) { clearInterval(this._i); return { saniye: 0, saatIsleyir: false }; }
+      return { saniye: s.saniye - 1 };
+    }), 1000);
+    this.setState({ saatIsleyir: true, saniye: 30 });
+  }
+
+  yoxla(i) {
+    const v = (this.state.yazi[i] || '').trim().replace('−', '-').replace(',', '.');
+    const ok = ADDIMLAR[i].dogru.some(d => d.replace('−', '-') === v);
+    const netice = this.state.netice.slice();
+    netice[i] = ok;
+    this.setState({ netice });
+  }
+
+  yaz(i) { return e => { const y = this.state.yazi.slice(); y[i] = e.target.value; this.setState({ yazi: y }); }; }
+  tekrar(i) { return () => { const n = this.state.netice.slice(); n[i] = null; const y = this.state.yazi.slice(); y[i] = ''; this.setState({ netice: n, yazi: y }); }; }
+  tokenAc(k) { return () => this.setState(s => ({ token: s.token === k ? null : k })); }
+
+  renderVals() {
+    const t = TEMA[this.props.tema === 'light' ? 'light' : 'dark'];
+    const ton = TON[this.props.ton === 'yetkin' ? 'yetkin' : 'genc'];
+    const veziyyet = this.props.veziyyet ?? 'normal';
+    const sesli = (this.props.sesliOxu ?? true) && typeof window !== 'undefined' && !!this.azSesi();
+    const istifade = Math.max(0, Math.min(5, this.props.gunlukLimit ?? 3));
+    const qalan = 5 - istifade;
+    const { addim, cavab, duzelis, niye, token, netice, saniye, saatIsleyir, danisir, oxsarNetice } = this.state;
+    const canli = veziyyet === 'normal';
+    const son = 3;
+    const enCox = Math.max(this.state.enCox || 0, addim, cavab ? son : 0);
+    const rengi = i => (i === addim && !cavab ? t.t1 : i <= enCox ? t.acc : t.lentBos);
+    const zolaq = i => (i <= enCox ? t.acc : t.zolaqBos);
+    const git = i => () => { if (i <= enCox) this.setState({ addim: i, cavab: false, enCox, token: null, niye: null }); };
+    const tk = ADDIMLAR[addim] ? ADDIMLAR[addim].tokenler : {};
+
+    const vals = {
+      vBg: t.bg, vSur: t.sur, vBor: t.bor, vT1: t.t1, vT2: t.t2, vT3: t.t3,
+      vAcc: t.acc, vAccSoft: t.accSoft, vAccInk: t.accInk, vWarn: t.warn, vWarnSoft: t.warnSoft,
+      vRad: ton.rad, vRadSm: ton.radSm, vHFont: ton.hFont, vHWeight: ton.hWeight, vHSize: ton.hSize,
+      vTap: this.props.ton === 'yetkin' ? '48px' : '52px',
+      vZolaq: this.props.ton === 'yetkin' ? '4px' : '6px',
+      yuklenir: veziyyet === 'yuklenir',
+      sebekeXetasi: veziyyet === 'xeta',
+      addimGorunur: canli,
+      ocrDuzelis: duzelis || veziyyet === 'ocr',
+      ocrNormal: !(duzelis || veziyyet === 'ocr'),
+      s1: canli && addim === 0 && !cavab,
+      s2: canli && addim === 1 && !cavab,
+      s3: canli && addim === 2 && !cavab,
+      s4: canli && addim === 3 && !cavab,
+      cavabAcildi: cavab && qalan > 0,
+      abuneDuymesi: cavab && qalan === 0,
+      limitMetni: istifade + '/5',
+      limitRengi: qalan === 0 ? t.warn : t.t3,
+      limitXeberdarliq: qalan <= 2,
+      limitBandMetni: qalan > 0
+        ? 'Bu gün ' + qalan + ' pulsuz həllin qalıb.'
+        : 'Bugünkü 5 pulsuz həll bitdi. Abunə ilə limit yoxdur.',
+      novbetiVar: canli && !cavab && addim < son,
+      cavabDuymesi: canli && !cavab && addim >= son,
+      p1: zolaq(0), p2: zolaq(1), p3: zolaq(2), p4: zolaq(3),
+      c1: rengi(0), c2: rengi(1), c3: rengi(2), c4: rengi(3),
+      git1: git(0), git2: git(1), git3: git(2), git4: git(3),
+      sesliOxu: sesli,
+      sesMetni: danisir ? 'dayandır' : 'dinlə',
+      niyeAc: () => this.setState(s => ({ niye: s.niye === addim ? null : addim })),
+      niye1: niye === 0, niye2: niye === 1, niye3: niye === 2, niye4: niye === 3,
+      oxu1: () => this.oxu(1), oxu2: () => this.oxu(2), oxu3: () => this.oxu(3), oxu4: () => this.oxu(4),
+      t1a: this.tokenAc('a'), t1b: this.tokenAc('b'), t1c: this.tokenAc('c'),
+      t2d: this.tokenAc('D'), t2b: this.tokenAc('b2'), t2ac: this.tokenAc('ac'),
+      t3b: this.tokenAc('b'), t3d: this.tokenAc('D'), t3a: this.tokenAc('a'),
+      t1Gorunur: addim === 0 && !!tk[token], t1Metni: tk[token] || '',
+      t2Gorunur: addim === 1 && !!tk[token], t2Metni: tk[token] || '',
+      t3Gorunur: addim === 2 && !!tk[token], t3Metni: tk[token] || '',
+      novbeti: () => this.setState(s => {
+        const n = Math.min(son, s.addim + 1);
+        return { addim: n, enCox: Math.max(s.enCox || 0, n), token: null, niye: null };
+      }),
+      cavabiGoster: () => { this.setState({ cavab: true, enCox: son, token: null, niye: null }); this.saatiBaslat(); },
+      sifirla: () => { clearInterval(this._i); this.setState({ addim: 0, enCox: 0, cavab: false, duzelis: false, niye: null, token: null, yazi: ['', '', '', ''], netice: [null, null, null, null], oxsarYazi: '', oxsarNetice: null, saniye: 30, saatIsleyir: false }); },
+      duzelisAc: () => this.setState({ duzelis: true }),
+      oxsarSual: oxsarNetice === null,
+      oxsarDogru: oxsarNetice === true,
+      oxsarSehv: oxsarNetice === false,
+      oxsarIpucu: 'Vurma cütünü tap: hansı iki ədəd 12 verir və toplananda 7 olur?',
+      oxsarYaz: e => this.setState({ oxsarYazi: e.target.value }),
+      oxsarYoxla: () => { const v = (this.state.oxsarYazi || '').trim(); clearInterval(this._i); this.setState({ oxsarNetice: v === '3', saatIsleyir: false }); },
+      oxsarTekrar: () => this.setState({ oxsarNetice: null, oxsarYazi: '' }),
+      saat: saniye > 0 ? '00:' + String(saniye).padStart(2, '0') : 'vaxt bitdi',
+      saatRengi: saniye === 0 || (saatIsleyir && saniye <= 10) ? t.warn : t.t3,
+      noop: () => {}
+    };
+    for (let i = 0; i < 4; i++) {
+      const n = i + 1;
+      vals['y' + n + 'Sual'] = netice[i] === null;
+      vals['y' + n + 'Dogru'] = netice[i] === true;
+      vals['y' + n + 'Sehv'] = netice[i] === false;
+      vals['y' + n + 'Yaz'] = this.yaz(i);
+      vals['y' + n + 'Yoxla'] = () => this.yoxla(i);
+      vals['y' + n + 'Tekrar'] = this.tekrar(i);
+      vals['s' + n + 'SehvAdi'] = ADDIMLAR[i].sehvAdi;
+      vals['s' + n + 'SehvIpucu'] = ADDIMLAR[i].ipucu;
+    }
+    return vals;
+  }
+}
+</script>
+</body>
+</html>
