@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v3)
+# Prompt — addım sxemi generasiyası (v3.1)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -13,6 +13,11 @@
 > ilə bitirdi — yoxlama addımı yox idi. Model qaydadan çox nümunəni təqlid edir.
 > v3 nümunəyə üçüncü addım (yoxlama) əlavə edir və 8–9-cu qaydaları yazır.
 > `error_codes_distinct` də 2/3 idi → qayda 9.
+>
+> **v3 → v3.1 (2026-08-05).** v3 struktur problemini həll etdi (`Son addım yoxlama` 1/3 → 2/2),
+> amma sxem validliyi 3/3 → 2/3 düşdü: model `problem_type: "word"` yazdı (`"word_problem"` yerinə).
+> Səbəb v1-lə eynidir — **promptda sadalanmayan enum uydurulur**. `problem_type`, `subject` və
+> `grade` diapazonu əlavə edildi; `verification` sahəsinin yazılmaması açıq deyildi.
 
 ---
 
@@ -92,7 +97,14 @@ yeni sahə əlavə etmə. Aşağıdakı nümunə formatın DƏQİQ təsviridir:
 Kök səviyyəsində MƏCBURİ: schema_version (həmişə 1), canonical, subject, grade,
 topic_code, final_answer, steps.
 Kök səviyyəsində icazəli əlavə: problem_type.
-Başqa sahə ƏLAVƏ ETMƏ.
+Başqa sahə ƏLAVƏ ETMƏ. Xüsusilə "verification" YAZMA — onu server doldurur.
+
+Bu üç sahənin dəyəri QAPALI SİYAHIDANDIR. Qısaltma, dəyişdirmə, uydurma:
+
+  problem_type  →  formula | word_problem | geometry | mixed
+                   DİQQƏT: mətn məsələsi üçün "word_problem" yaz, "word" YOX.
+  subject       →  riyaziyyat | fizika | kimya
+  grade         →  5-dən 11-ə qədər tam ədəd (giriş məlumatından götür)
 
 final_answer MƏCBURİ: latex (göstərilən forma), values (maşınla yoxlanacaq sadə dəyərlər massivi).
 
