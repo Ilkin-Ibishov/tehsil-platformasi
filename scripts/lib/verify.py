@@ -48,7 +48,10 @@ def _parse_value(raw):
     """Sətri sympy ifadəsinə çevirir. Parse alınmırsa None (fallback: normallaşdırılmış sətir)."""
     try:
         return parse_expr(_normalize(raw), transformations=_TRANSFORMATIONS, local_dict=_LOCAL_DICT)
-    except (sympy.SympifyError, SyntaxError, TypeError, AttributeError):
+    except Exception:
+        # QƏSDƏN geniş: model çıxışı etibarsız girişdir (LaTeX \\frac, $...$, unicode).
+        # tokenize.TokenError SyntaxError-un alt sinfi DEYİL — dar except onu buraxır və
+        # bir item bütün run-ı öldürür (2026-08-06 hadisəsi, HANDOFF 16).
         return None
 
 
@@ -95,22 +98,28 @@ def _extract_equations(canonical):
 
 
 def _parse_equation(eq_str):
+    """(lhs, rhs) qaytarır; parse alınmasa (None, None) — İSTİSNA ATMIR."""
     lhs_raw, _, rhs_raw = eq_str.partition("=")
-    lhs = parse_expr(_normalize(lhs_raw), transformations=_TRANSFORMATIONS, local_dict=_LOCAL_DICT)
-    rhs = parse_expr(_normalize(rhs_raw), transformations=_TRANSFORMATIONS, local_dict=_LOCAL_DICT)
+    try:
+        lhs = parse_expr(_normalize(lhs_raw), transformations=_TRANSFORMATIONS, local_dict=_LOCAL_DICT)
+        rhs = parse_expr(_normalize(rhs_raw), transformations=_TRANSFORMATIONS, local_dict=_LOCAL_DICT)
+    except Exception:
+        return None, None
     return lhs, rhs
 
 
 def _value_satisfies(value_str, lhs, rhs, symbol):
     try:
         value = parse_expr(_normalize(value_str), transformations=_TRANSFORMATIONS, local_dict=_LOCAL_DICT)
-    except (sympy.SympifyError, SyntaxError):
+    except Exception:
         return False
-    residual = (lhs - rhs).subs(symbol, value)
-    residual = sympy.simplify(residual)
-    if residual.is_number:
-        return abs(complex(residual)) < 1e-6
-    return residual == 0
+    try:
+        residual = sympy.simplify((lhs - rhs).subs(symbol, value))
+        if residual.is_number:
+            return abs(complex(residual)) < 1e-6
+        return residual == 0
+    except Exception:
+        return False
 
 
 def equation_cross_check(canonical, values):
@@ -125,11 +134,13 @@ def equation_cross_check(canonical, values):
 
     parsed = []
     for eq_str in equations:
-        try:
-            lhs, rhs = _parse_equation(eq_str)
-        except (sympy.SympifyError, SyntaxError, TypeError):
+        lhs, rhs = _parse_equation(eq_str)
+        if lhs is None:
             continue
-        free = (lhs - rhs).free_symbols
+        try:
+            free = (lhs - rhs).free_symbols
+        except Exception:
+            continue
         if len(free) != 1:
             continue
         parsed.append((lhs, rhs, next(iter(free))))

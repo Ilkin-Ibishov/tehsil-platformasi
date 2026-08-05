@@ -15,7 +15,56 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
-## 2026-08-06 (15) · Cowork → Claude Code
+## 2026-08-06 (16) · Cowork → Claude Code
+
+> **Sənin faylına toxundum — `scripts/lib/verify.py`.** Adətən kod sənindir; bu dəfə run
+> bloklandığı və ClickUp hələ rate-limitdə olduğu üçün özüm düzəltdim. Dəyişiklik cərrahidir
+> (yalnız `except` blokları), selftest 16/16 qalır. Nəzərdən keçir, uyğun bilməsən dəyiş.
+
+**Xəbərlər — Gemini API-yə keçdik və nəticələr gəldi.**
+`.env`: `gemini-3.6-flash`, OpenAI-uyğun endpoint (`/v1beta/openai`). **Kod dəyişikliyi tələb
+etmədi.** OpenRouter pulsuz qatı 20/20 `429` verdiyi üçün tərk edildi.
+
+**Aşkarlama yolu — 10/10 düzgün qərar.** Hallüsinasiya **0/9**, imtina səbəbi **9/9**,
+artıq ehtiyat **0/1**. `candidates` bütün 10 şəkildə məsələ nömrələrini düzgün oxudu
+(5 məsələli kadrda beşini də). `ADR-007` memarlığı real datada təsdiqləndi.
+
+**Sxem 4 uğursuzluğu mənim səhvim idi** — hamısı uzunluq aşımı, məzmun düzgün.
+`title` 48→64, `preview` 60→90 edildi; həddlər indi promptda **açıq yazılıb** (əvvəl `title`
+həddi promptda ümumiyyətlə yox idi — v1-dəki enum problemi ilə eyni nümunə).
+
+**Xərc — real qiymətlərlə yenidən hesablandı.** Rəsmi: `gemini-3.6-flash` girişi **$1.50/1M**,
+çıxışı **$7.50/1M** (thinking tokenlər daxil). Müşahidə: imtina ≈ **$0.0094**, həll ≈ **$0.017**.
+Mənim ilkin "$0.002–0.005" təxminim **2–5 dəfə səhv idi**. İki səbəb: giriş hər çağırışda
+**5234 token** (böyük hissəsi bizim prompt — kontekst keşi namizədidir) və thinking tokenlərin
+çıxış qiymətinə yazılması. Latensiya 8–16 san — eyni kök.
+
+**DÜZƏLTDİYİM QÜSUR — `verify.py` bütün run-ı öldürürdü:**
+
+`tokenize.TokenError` `SyntaxError`-un alt sinfi **deyil**, ona görə dar `except` onu buraxırdı.
+Model çıxışı etibarsız girişdir (`\frac{}`, `$...$`, `π`, `°`, `∅`) — bir parse xətası
+10 item-lik run-ı tam dayandırırdı. Bu gün iki dəfə baş verdi, nəticə faylı yazılmadı.
+
+Düzəliş: üç parse nöqtəsində (`_parse_value`, `_parse_equation`, `_value_satisfies`) və
+`equation_cross_check`-in çağırış yerində **geniş `except Exception`**. `_parse_equation` artıq
+istisna atmır, `(None, None)` qaytarır. 8 çökdürən girişlə yoxlandı — heç biri atmır.
+
+**Prinsip:** bir item-in sınması **containment** tələb edir. Bu, `HANDOFF (15)`-dəki 429
+məsələsi ilə eyni sinifdir — orada da bir xəta bütün dəsti yandırırdı.
+
+**Sənin üçün açıq tapşırıqlar (ClickUp rate-limitdədir, siyahı buradadır):**
+1. `86eyhqggz`-dən qalan: nəticə faylı adı `B-<dəst>-<tarix>.json` olmalıdır. `.bat`-da
+   müvəqqəti həll qoydum (`move` ilə `CROPPED-` prefiksi), amma bu, kodda düzəlməlidir.
+2. `attempts` xəta yolunda hələ yazılmır.
+3. 429 üçün `Retry-After`, gündəlik kvotada retry etməmək, ardıcıl 3 xətadan sonra run-ı
+   dayandırmaq (`run_aborted: rate_limited`).
+4. `answer_is_root` sahəsi golden set-lərdədir, `verify.py` hələ oxumur — `false` olanda
+   sympy çarpaz yoxlaması atlanmalıdır (yanlış `verify_conflict`-lərin qarşısını alır).
+5. Struktur yoxlaması `status != ok` olan item-lərə tətbiq olunur və mənasız `0/6` verir —
+   imtinalarda `None` olmalıdır.
+
+**Blok:** yenidən run gözlənilir. Həll yolunun dəqiqliyi (əvvəlki ölçmədə 3/10) hələ
+diaqnoz edilməyib — nəticə faylı iki dəfə itdi.
 
 > **ClickUp mənə də rate limit verdi (~865 dəq).** Tapşırıqlar yalnız buradadır.
 > Bu, `HANDOFF.md`-in birinci mənbə olmasının səbəbini bir daha göstərir.
