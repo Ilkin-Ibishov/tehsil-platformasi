@@ -1,12 +1,18 @@
-# Prompt — addım sxemi generasiyası (v2)
+# Prompt — addım sxemi generasiyası (v3)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
 
-> **v1 → v2 dəyişikliyi (2026-08-05).** v1-də sahə adları və `error_code` enum-u promptun içində
-> **yox idi** — yalnız "enum-dan seçin" yazılmışdı. DeepSeek testində 3/3 sxem validasiyasından
-> keçmədi: model `instruction`, `check: "mətn"`, `error_code: "wrong_coefficients"` kimi öz
-> adlarını uydurdu. v2 sxemi və tam nümunəni promptun içinə qoyur.
+> **v1 → v2 (2026-08-05).** v1-də sahə adları və `error_code` enum-u promptun içində **yox idi** —
+> yalnız "enum-dan seçin" yazılmışdı. DeepSeek testində 0/3 sxem validasiyasından keçdi: model
+> `instruction`, `check: "mətn"`, `error_code: "wrong_coefficients"` kimi öz adlarını uydurdu.
+> v2 sxemi və tam nümunəni promptun içinə qoydu → **3/3**.
+>
+> **v2 → v3 (2026-08-05).** Struktur yoxlamasında `ends_with_verification` **1/3** keçdi.
+> Kök səbəb qaydada deyil, **nümunədə** idi: v2-nin nümunəsi 2 addımla, "Diskriminantı hesabla"
+> ilə bitirdi — yoxlama addımı yox idi. Model qaydadan çox nümunəni təqlid edir.
+> v3 nümunəyə üçüncü addım (yoxlama) əlavə edir və 8–9-cu qaydaları yazır.
+> `error_codes_distinct` də 2/3 idi → qayda 9.
 
 ---
 
@@ -63,6 +69,20 @@ yeni sahə əlavə etmə. Aşağıdakı nümunə formatın DƏQİQ təsviridir:
       },
       "error_code": "SQUARE_FORGOTTEN",
       "hint": "Əvvəlcə (−5)² = 25, sonra 24 çıx."
+    },
+    {
+      "index": 3,
+      "title": "Kökləri yoxla",
+      "explanation": "Tapdığın kökü ilkin tənlikdə yerinə qoy. Nəticə sıfır verirsə kök doğrudur.",
+      "latex": "x^2-5x+6",
+      "why": "Yoxlama düsturun yadda saxlanmasını yox, tənliyin mənasını sınayır: kök — bərabərliyi doğru edən ədəddir.",
+      "check": {
+        "ask": "x = 3 qoyanda sol tərəf nə verir?",
+        "accept": ["0"],
+        "input_kind": "number"
+      },
+      "error_code": "SUBSTITUTION_SKIPPED",
+      "hint": "9 − 15 + 6 hesabla — nəticə sıfır olmalıdır."
     }
   ]
 }
@@ -116,6 +136,20 @@ Hər addım üçün şagirdin ORADA ən çox edəcəyi səhvi seç.
 6. final_answer.values maşınla yoxlanacaq — dəqiq və sadə formada yaz ("3", "-4", "230").
 7. topic_code BÖYÜK HƏRFLƏ, nöqtə ilə: ALG.KVADRAT_TENLIK, ALG.VURUQLARA_AYIRMA,
    ARIF.FAIZ, HEND.SAHE və s.
+
+8. SON ADDIM HƏMİŞƏ YOXLAMA ADDIMIDIR — istisnasız.
+   Nəticəni ilkin ifadəyə YERİNƏ QOY və bərabərliyin doğru olduğunu göstər.
+   Bu addımın error_code-u adətən SUBSTITUTION_SKIPPED olur.
+   Yoxlama REAL hesablama olmalıdır, təkrar deyil:
+     Pis:  "Cavab x = 3-dür."                        (heç nə yoxlamır)
+     Pis:  "Nəticəni bir daha nəzərdən keçir."       (konkret deyil)
+     Yaxşı: "x = 3 qoyanda sol tərəf nə verir?" → accept: ["0"]
+   Mətn məsələsində də yoxlama var: nəticəni şərtə qaytar
+     ("230 manat 200 manatdan neçə faiz çoxdur?" → accept: ["15"]).
+
+9. error_code-ları TƏKRARLAMA. Hər addımda şagirdin məhz ORADA edəcəyi səhvi seç.
+   Bütün addımlara eyni kod yazsan, səhv xəritəsi mənasızlaşır — məhsulun bütün dəyəri
+   həmin xəritədədir. İki addım eyni kodu paylaşa bilər, amma HAMISI eyni olmamalıdır.
 ```
 
 ## User (dəyişənlərlə)
