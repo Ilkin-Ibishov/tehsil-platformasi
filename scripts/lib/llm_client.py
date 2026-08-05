@@ -5,6 +5,8 @@ vision modellər, bu formatı dəstəkləyir və ya proxy arxasında təqdim edi
 Konfiqurasiya .env-dən:
   MODEL, API_KEY, BASE_URL           — məcburi
   PRICE_INPUT_PER_1M, PRICE_OUTPUT_PER_1M  — xərc hesablaması üçün, verilməsə xərc None qalır
+  JSON_MODE=0                        — response_format={"type":"json_object"}-i söndürür
+                                        (bəzi provayderlər dəstəkləmir, 400 qaytarır)
 """
 
 import base64
@@ -32,6 +34,7 @@ class LLMConfig:
     price_input_per_1m: Optional[float]
     price_output_per_1m: Optional[float]
     temperature: float = 0.2
+    json_mode: bool = True
 
 
 def load_config():
@@ -46,12 +49,15 @@ def load_config():
         )
     price_in = os.environ.get("PRICE_INPUT_PER_1M")
     price_out = os.environ.get("PRICE_OUTPUT_PER_1M")
+    json_mode_raw = os.environ.get("JSON_MODE", "1").strip().lower()
+    json_mode = json_mode_raw not in ("0", "false", "no")
     return LLMConfig(
         model=model,
         api_key=api_key,
         base_url=base_url.rstrip("/"),
         price_input_per_1m=float(price_in) if price_in else None,
         price_output_per_1m=float(price_out) if price_out else None,
+        json_mode=json_mode,
     )
 
 
@@ -72,12 +78,13 @@ def call_vision_llm(cfg, system_prompt, user_prompt, image_path=None):
     payload = {
         "model": cfg.model,
         "temperature": cfg.temperature,
-        "response_format": {"type": "json_object"},
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": content if image_path else user_prompt},
         ],
     }
+    if cfg.json_mode:
+        payload["response_format"] = {"type": "json_object"}
 
     started = time.perf_counter()
     with httpx.Client(timeout=60.0) as client:

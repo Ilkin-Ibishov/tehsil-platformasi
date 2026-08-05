@@ -24,7 +24,7 @@ for _stream in (sys.stdout, sys.stderr):
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from lib import leak, llm_client, report, schema_check, verify
+from lib import leak, llm_client, report, schema_check, steps_compare, verify
 from lib.pipelines import PIPELINES
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -80,7 +80,8 @@ def run(pipeline_name, set_path, today):
         print(status_marker, end="", flush=True)
     print()
 
-    metrics = report.aggregate(entries)
+    human_review = report.load_human_review(report.find_latest_human_review(RESULTS_DIR))
+    metrics = report.aggregate(entries, human_review=human_review)
     report.print_report(pipeline_name, metrics)
 
     out_path = report.write_results(pipeline_name, set_path, entries, metrics, RESULTS_DIR, today)
@@ -91,7 +92,7 @@ def run(pipeline_name, set_path, today):
 def compare():
     path_a = report.find_latest_result("A", RESULTS_DIR)
     path_b = report.find_latest_result("B", RESULTS_DIR)
-    report.print_compare(path_a, path_b)
+    report.print_compare(path_a, path_b, RESULTS_DIR)
     return 0
 
 
@@ -115,9 +116,11 @@ def selftest():
             values = raw.get("final_answer", {}).get("values", [])
             actual["verified"] = verify.verify_final_answer(case["canonical"], values)
             actual["leaked"] = leak.detect_leak(raw.get("steps", []), values)
+            actual["structural_all_pass"] = steps_compare.check_structure(raw.get("steps", []))["all_pass"]
         else:
             actual["verified"] = None
             actual["leaked"] = None
+            actual["structural_all_pass"] = None
 
         ok = all(actual[k] == expect[k] for k in expect)
         marker = "PASS" if ok else "FAIL"

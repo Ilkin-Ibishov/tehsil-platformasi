@@ -96,3 +96,11 @@ python scripts/eval.py --compare
 (məs. `2/3`) göstərir və nəticə JSON-una `"gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=…, minimum 30)"`
 yazır. Bu, kiçik nümunə üzərində görünən faizin qapı keçidi kimi yozulmasının qarşısını alır —
 Faza 0-ın bütün mənası bu rəqəmə güvənməkdir, ona görə etibarsız halda rəqəm göstərilmir.
+
+**Addım bölgüsü — pedaqoji hissə** (bax `ADR-004`) insan rəyi ilə ölçülür:
+`evals/results/human-review-<tarix>.jsonl` yarat, hər sətir `{"id": "...", "verdict": true|false, "note": "..."}`.
+Fayl yoxdursa `--pipeline` və `--compare` nəticəsində qapı **"NATAMAM"** olur — `error_codes`
+kimi bu da avtomatlaşdırılmır, ADR-004-ə bax.
+
+**`JSON_MODE=0`** — bəzi provayderlər `response_format={"type":"json_object"}`-ı dəstəkləmir və
+400 qaytarır. `.env`-də `JSON_MODE=0` bunu söndürür (bax `scripts/.env.example`).

@@ -2,6 +2,11 @@
 
 Qapı guard-ı: n < MIN_GOLDEN_SET_N olduqda faiz ÇAP EDİLMİR, yalnız xam say (m/n) göstərilir.
 Səbəb: kiçik n üzərində faiz oxumaq real qapı keçidi kimi yozula bilər (bax evals/README.md).
+
+Addım bölgüsü ADR-004-ə görə ikiyə ayrılır:
+  - step_split_structural  — avtomatik, obyektiv (steps_compare.py)
+  - step_split_pedagogical — insan rəyi (evals/results/human-review-<tarix>.jsonl), yoxdursa
+    qapı "NATAMAM" olur, heç vaxt "KEÇDİ" demir.
 """
 
 import json
@@ -13,8 +18,11 @@ from . import leak, schema_check, steps_compare, verify
 MIN_GOLDEN_SET_N = 30
 
 GATE_FINAL_ANSWER = 0.85
-GATE_STEP_SPLIT = 0.75
 GATE_SCHEMA_VALIDITY = 1.0
+GATE_STEP_SPLIT_STRUCTURAL = 1.0
+GATE_STEP_SPLIT_PEDAGOGICAL = 0.75
+
+HUMAN_REVIEW_NOTE = "insan rəyi yoxdur — qapı natamam"
 
 
 def evaluate_item(item, result, cfg):
@@ -23,22 +31,24 @@ def evaluate_item(item, result, cfg):
         "status": result["status"],
         "latency_ms": result.get("latency_ms"),
         "error": result.get("error"),
+        "raw_output": result.get("raw_output"),
+        "raw_text": result.get("raw_text"),
+        "usage": result.get("usage"),
     }
 
     if result["status"] == "not_implemented":
         return entry
 
-    usage = result.get("usage")
     if cfg.price_input_per_1m is not None and cfg.price_output_per_1m is not None:
         entry["cost_usd"] = cost_lib.compute_cost_usd(
-            usage, cfg.price_input_per_1m, cfg.price_output_per_1m
+            entry["usage"], cfg.price_input_per_1m, cfg.price_output_per_1m
         )
     else:
         entry["cost_usd"] = None
 
     if result["status"] == "error":
         entry.update(
-            {"schema_valid": False, "final_answer_correct": False, "step_split_ok": None, "leaked": None}
+            {"schema_valid": False, "final_answer_correct": False, "step_structural": None, "leaked": None}
         )
         return entry
 
@@ -48,16 +58,14 @@ def evaluate_item(item, result, cfg):
     if not schema_valid:
         entry["schema_errors"] = schema_errors
         entry["final_answer_correct"] = False
-        entry["step_split_ok"] = None
+        entry["step_structural"] = None
         entry["leaked"] = None
         return entry
 
     canonical = item.get("canonical") or raw.get("canonical", "")
     values = raw.get("final_answer", {}).get("values", [])
     entry["final_answer_correct"] = verify.verify_final_answer(canonical, values)
-    entry["step_split_ok"] = steps_compare.step_split_match(
-        raw.get("steps", []), item.get("expected_step_count"), item.get("expected_step_titles")
-    )
+    entry["step_structural"] = steps_compare.check_structure(raw.get("steps", []))
     entry["leaked"] = leak.detect_leak(raw.get("steps", []), values)
     return entry
 
@@ -70,7 +78,52 @@ def _rate(entries, key, is_match, is_denom):
     return {"rate": matched / len(denom_entries), "matched": matched, "n": len(denom_entries)}
 
 
-def aggregate(entries):
+def _structural_rate(entries, condition):
+    structs = [e["step_structural"] for e in entries if e.get("step_structural") is not None]
+    if not structs:
+        return {"rate": None, "matched": 0, "n": 0}
+    matched = sum(1 for s in structs if s[condition] is True)
+    return {"rate": matched / len(structs), "matched": matched, "n": len(structs)}
+
+
+def load_human_review(path):
+    """{"id": ..., "verdict": true|false, "note": "..."} sətirlərini {id: verdict} dict-ə çevirir."""
+    verdicts = {}
+    if path is None:
+        return verdicts
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            row = json.loads(line)
+            verdicts[row["id"]] = bool(row["verdict"])
+    return verdicts
+
+
+def find_latest_human_review(results_dir):
+    candidates = sorted(results_dir.glob("human-review-*.jsonl"))
+    return candidates[-1] if candidates else None
+
+
+def successful(entries):
+    """Yalnız faktiki çıxış verən item-lər ("ok") — "not_implemented" və "error" statuslu
+    item-lərin nə addımı var, nə də insan review edə biləcəyi məzmunu."""
+    return [e for e in entries if e.get("status") == "ok"]
+
+
+def pedagogical_summary(entries, human_review):
+    """entries — evaluate_item()-dən çıxan siyahı (və ya nəticə JSON-undakı "items")."""
+    if not human_review:
+        return {"rate": None, "matched": 0, "n": 0, "note": HUMAN_REVIEW_NOTE}
+    reviewed = [(e["id"], human_review[e["id"]]) for e in entries if e.get("id") in human_review]
+    if not reviewed:
+        return {"rate": None, "matched": 0, "n": 0, "note": HUMAN_REVIEW_NOTE}
+    matched = sum(1 for _, verdict in reviewed if verdict)
+    return {"rate": matched / len(reviewed), "matched": matched, "n": len(reviewed), "note": None}
+
+
+def aggregate(entries, human_review=None):
     attempted = [e for e in entries if e["status"] != "not_implemented"]
     n = len(attempted)
 
@@ -88,10 +141,12 @@ def aggregate(entries):
     metrics["final_answer_accuracy"] = _rate(
         attempted, "final_answer_correct", lambda v: v is True, lambda v: v is not None
     )
-    metrics["step_split_accuracy"] = _rate(
-        attempted, "step_split_ok", lambda v: v is True, lambda v: v is not None
-    )
     metrics["leak_rate"] = _rate(attempted, "leaked", lambda v: v is True, lambda v: v is not None)
+
+    metrics["step_split_structural"] = {
+        cond: _structural_rate(attempted, cond) for cond, _label in steps_compare.STRUCTURAL_CONDITIONS
+    }
+    metrics["step_split_pedagogical"] = pedagogical_summary(successful(attempted), human_review)
 
     costs = [e["cost_usd"] for e in attempted if e.get("cost_usd") is not None]
     latencies = [e["latency_ms"] for e in attempted if e.get("latency_ms") is not None]
@@ -103,12 +158,19 @@ def aggregate(entries):
         metrics["gate_status"] = f"QAPI ÖLÇÜLƏ BİLMƏZ (n={n}, minimum {MIN_GOLDEN_SET_N})"
     else:
         fa = metrics["final_answer_accuracy"]["rate"] or 0
-        ss = metrics["step_split_accuracy"]["rate"]
         sv = metrics["schema_validity"]["rate"] or 0
-        ss_ok = True if ss is None else ss >= GATE_STEP_SPLIT
-        gate_pass = fa >= GATE_FINAL_ANSWER and ss_ok and sv >= GATE_SCHEMA_VALIDITY
-        metrics["gate_pass"] = gate_pass
-        metrics["gate_status"] = "KEÇDİ" if gate_pass else "KEÇMƏDİ"
+        structural_rate = metrics["step_split_structural"]["all_pass"]["rate"] or 0
+        pedagogical = metrics["step_split_pedagogical"]
+
+        if pedagogical["n"] == 0:
+            metrics["gate_pass"] = None
+            metrics["gate_status"] = f"NATAMAM — {HUMAN_REVIEW_NOTE} (addım bölgüsünün pedaqoji hissəsi)"
+        else:
+            structural_ok = structural_rate >= GATE_STEP_SPLIT_STRUCTURAL
+            pedagogical_ok = (pedagogical["rate"] or 0) >= GATE_STEP_SPLIT_PEDAGOGICAL
+            gate_pass = fa >= GATE_FINAL_ANSWER and sv >= GATE_SCHEMA_VALIDITY and structural_ok and pedagogical_ok
+            metrics["gate_pass"] = gate_pass
+            metrics["gate_status"] = "KEÇDİ" if gate_pass else "KEÇMƏDİ"
 
     return metrics
 
@@ -153,13 +215,25 @@ def print_report(pipeline_name, metrics):
 
     _print_metric_line("Sxem validliyi", metrics["schema_validity"], gate_eligible, GATE_SCHEMA_VALIDITY)
     _print_metric_line("Son cavab dəqiqliyi", metrics["final_answer_accuracy"], gate_eligible, GATE_FINAL_ANSWER)
-    _print_metric_line("Addım bölgüsü", metrics["step_split_accuracy"], gate_eligible, GATE_STEP_SPLIT)
+
+    print("  Addım bölgüsü — struktur:")
+    structural = metrics["step_split_structural"]
+    for cond, label in steps_compare.STRUCTURAL_CONDITIONS:
+        gate_value = GATE_STEP_SPLIT_STRUCTURAL if cond == "all_pass" else None
+        _print_metric_line(f"    {label}", structural[cond], gate_eligible, gate_value)
+
+    pedagogical = metrics["step_split_pedagogical"]
+    if pedagogical["n"] == 0:
+        print(f"  Addım bölgüsü — pedaqoji: {pedagogical['note']}")
+    else:
+        _print_metric_line("Addım bölgüsü — pedaqoji", pedagogical, gate_eligible, GATE_STEP_SPLIT_PEDAGOGICAL)
+
     _print_metric_line("Cavab sızması", metrics["leak_rate"], gate_eligible)
 
     if metrics.get("avg_cost_usd") is not None:
         print(f"  Orta xərc/həll: ${metrics['avg_cost_usd']:.5f}")
     else:
-        print("  Orta xərc/həll: ölçülmədi (PRICE_INPUT_PER_1M/PRICE_OUTPUT_PER_1M .env-də yoxdur)")
+        print("  Orta xərc/həll: ölçülmədi (PRICE_INPUT_PER_1M/PRICE_OUTPUT_PER_1M .env-də yoxdur, ya da usage boşdur)")
     if metrics.get("avg_latency_ms") is not None:
         print(f"  Orta latensiya: {metrics['avg_latency_ms']:.0f} ms")
 
@@ -172,7 +246,7 @@ def find_latest_result(pipeline_name, out_dir):
     return candidates[-1] if candidates else None
 
 
-def print_compare(path_a, path_b):
+def print_compare(path_a, path_b, results_dir):
     print("\n=== Müqayisə: A vs B ===")
     for label, path in (("A", path_a), ("B", path_b)):
         if path is None:
@@ -189,7 +263,6 @@ def print_compare(path_a, path_b):
     for key, label in (
         ("schema_validity", "Sxem validliyi"),
         ("final_answer_accuracy", "Son cavab dəqiqliyi"),
-        ("step_split_accuracy", "Addım bölgüsü"),
         ("leak_rate", "Cavab sızması"),
     ):
         ma = data_a["metrics"].get(key, {})
@@ -200,6 +273,26 @@ def print_compare(path_a, path_b):
         vb = f"{mb['rate']*100:.1f}%" if eligible_b and mb.get("rate") is not None else f"{mb.get('matched', 0)}/{mb.get('n', 0)}"
         print(f"  {label}: A={va}  B={vb}")
 
+    print("  Addım bölgüsü — struktur (all_pass):")
+    for label_pipeline, data, eligible in (("A", data_a, data_a["metrics"].get("gate_eligible")), ("B", data_b, data_b["metrics"].get("gate_eligible"))):
+        struct = data["metrics"].get("step_split_structural", {}).get("all_pass", {"rate": None, "matched": 0, "n": 0})
+        v = f"{struct['rate']*100:.1f}%" if eligible and struct.get("rate") is not None else f"{struct.get('matched', 0)}/{struct.get('n', 0)}"
+        print(f"    {label_pipeline}={v}")
+
+    # Pedaqoji hissə: --compare vaxtı ƏN SON human-review faylı ilə TƏZƏDƏN hesablanır
+    # (run vaxtından sonra insan rəyi əlavə olunmuş ola bilər).
+    hr_path = find_latest_human_review(results_dir)
+    human_review = load_human_review(hr_path)
+    ped_a = pedagogical_summary(successful(data_a.get("items", [])), human_review)
+    ped_b = pedagogical_summary(successful(data_b.get("items", [])), human_review)
+    if hr_path is None:
+        print(f"  Addım bölgüsü — pedaqoji: {HUMAN_REVIEW_NOTE}")
+    else:
+        print(f"  Addım bölgüsü — pedaqoji ({hr_path.name}):")
+        for label_pipeline, ped in (("A", ped_a), ("B", ped_b)):
+            v = f"{ped['rate']*100:.1f}% ({ped['matched']}/{ped['n']})" if ped["n"] else "insan rəyi yoxdur"
+            print(f"    {label_pipeline}={v}")
+
     for key, label in (("avg_cost_usd", "Orta xərc"), ("avg_latency_ms", "Orta latensiya")):
         va = data_a["metrics"].get(key)
         vb = data_b["metrics"].get(key)
@@ -207,3 +300,5 @@ def print_compare(path_a, path_b):
 
     if not (data_a["metrics"].get("gate_eligible") and data_b["metrics"].get("gate_eligible")):
         print(f"\n⚠ Ən azı bir tərəf qapı üçün kifayət qədər nümunəyə malik deyil (minimum {MIN_GOLDEN_SET_N}). Qapı hökmü verilmir.")
+    elif hr_path is None:
+        print(f"\n⚠ {HUMAN_REVIEW_NOTE} — ümumi qapı NATAMAM sayılır, insan rəyi olmadan KEÇDİ elan edilmir.")
