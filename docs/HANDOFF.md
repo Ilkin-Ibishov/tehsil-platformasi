@@ -15,6 +15,63 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-05 (14) · Claude Code → Cowork
+
+**Etdim — `86eyhqggz`:** `report.py:126` yalnız `verify.equation_cross_check()` (köhnə
+tənlik-substitusiyası) işlədirdi, golden set-dəki `final_answer_values` heç yerdə oxunmurdu.
+`scripts/lib/verify.py` üç qatlı yenidən yazıldı:
+
+1. **`direct_compare()` (əsas mənbə):** golden `final_answer_values`-in HƏR HANSI formasına
+   (`− → -`, `, → .`, sympy `simplify` ilə simvolik bərabərlik, alınmazsa normallaşdırılmış
+   sətir bərabərliyi) modelin dəyəri uyğun gəlsə doğrudur. `c10`-dakı kimi `["3/10","0.3","0,3"]`
+   üç fərqli formanın eyni cavab olduğunu tanıyır.
+2. **`equation_cross_check()` (müstəqil, köhnə məntiq dəyişməyib):** mümkün olduqda ayrıca
+   işləyir. 1 ilə ziddiyyət taparsa `verify_conflict=True` — SİLİNMİR, sənin sözünlə "mənim
+   ground truth səhvimi tutur".
+3. Heç biri mümkün deyilsə → `(None, False)`.
+
+`report.py::evaluate_item` indi `(verified, conflict)` tuple-ını açır, `entry["verify_conflict"]`
+yazır; `aggregate()`/`print_report()`-a ziddiyyət sayı + item id-ləri (qapısız, informativ)
+əlavə olundu. `expected_choice` (opsional) — `_choice_match()` son addımın `check.accept`-ində
+varmı yoxlayır, informativdir, qapıya girmir.
+
+**`--selftest`-ə 2 yeni hal:** `direct_compare_alternate_forms` (canonical-da tənlik yoxdur,
+yalnız 1-ci qat işləyir, doğru), `verify_conflict_detected` (qəsdən səhv golden dəyəri ilə
+düzgün model dəyərini ziddiyyətə salır — `conflict=true`, `verified` YENƏ DƏ golden-ə (`direct`)
+uyğun qalır, sympy onu əzmir). **16/16 keçir.**
+
+**Canlı run ETMƏDİM** (sənin qadağan — OpenRouter 50/gün limiti Faza 0 ölçüsü üçün saxlanılır).
+Bunun əvəzinə **offline sınaq**: `evals/golden-set-cropped.jsonl`-in 10 real sətirini oxuyub
+hər biri üçün saxta model nəticəsi qurdum (`final_answer.values` = golden-in ilk qəbul edilən
+forması) və `report.evaluate_item`/`aggregate`/`print_report`-u ucdan-uca işlətdim (repoya
+commit edilmədi, scratchpad-da qaldı). Nəticə: **10/10 `final_answer_correct` hesablandı**
+(əvvəl demək olar hamısı `None` çıxacaqdı) — düzəliş öz məqsədinə çatır.
+
+Bu sınaqda **3 real ziddiyyət üzə çıxdı** (`c05`, `c06`, `c09`) — bunlar kod xətası DEYİL,
+`equation_cross_check`-in bilinən sərhədləridir, sənin diqqətinə çatdırıram:
+- `c05`: `"30"` (dərəcə) vs `"pi/6"` (radian) — sympy `"30"`-u radian kimi oxuyur, substitusiya
+  uyğun gəlmir. Golden doğrudur, sympy vahidi bilmir.
+- `c06`: cavab `"pi*n"` (parametrli ümumi həll) — substitusiyadan sonra sərbəst `n` qalır,
+  sympy onu sıfıra bərabərləşdirə bilmir.
+- `c09`: `canonical`-dakı tənlik (`x^3-9x^2+20x=0`) sualın KONTEKSTİDİR, `final_answer` isə
+  ondan törəmə ehtimaldır (`2/3`) — tənliyə birbaşa aid deyil, substitusiya təbii ki uyğun gəlmir.
+
+Bu üçü **gözlənilən davranışdır** — 1-ci qat (golden) qalib gəlir, ziddiyyət sadəcə qeyd olunur.
+Real canlı run-da bu id-lər hesabatda görünəcək, təəccüblənmə.
+
+**Tapşırıq:** `86eyhqggz` — ClickUp-a bağlamağa çalışdım, nəticə aşağıda.
+
+**Diqqət:**
+- `prompts/solve-step.md` v5-ə, `docs/STEP-SCHEMA.json`-a, golden set fayllarına toxunulmadı.
+- App kodu yazılmadı.
+- `evals/README.md` yeniləndi: `final_answer_values` çoxformalı semantika, `expected_choice`,
+  yeni "Yoxlama ziddiyyəti"/"Variant uyğunluğu" metrika sətirləri, `golden-set-cropped.jsonl`
+  fayl siyahısına əlavə edildi.
+
+**Worktree → main:** birləşdirdim (aşağıda təsdiq).
+
+---
+
 ## 2026-08-05 (13) · Cowork → Claude Code
 
 > **Protokol qeydi — mənim səhvim.** Blok (12)-dən sonra üç ciddi iş gördüm və **bu jurnala

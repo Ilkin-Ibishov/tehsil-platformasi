@@ -118,11 +118,16 @@ def _selftest_cases():
         has_solution = schema_valid and bool(raw.get("steps"))
         if has_solution:
             values = raw.get("final_answer", {}).get("values", [])
-            actual["verified"] = verify.verify_final_answer(case["canonical"], values)
+            verified, conflict = verify.verify_final_answer(
+                case["canonical"], values, golden_values=case.get("golden_values")
+            )
+            actual["verified"] = verified
+            actual["conflict"] = conflict
             actual["leaked"] = leak.detect_leak(raw.get("steps", []), values)
             actual["structural_all_pass"] = steps_compare.check_structure(raw.get("steps", []))["all_pass"]
         else:
             actual["verified"] = None
+            actual["conflict"] = None
             actual["leaked"] = None
             actual["structural_all_pass"] = None
 

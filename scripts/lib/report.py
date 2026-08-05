@@ -14,6 +14,12 @@ metrikalardan vacibdir, çünki uydurma həll uydurma error_code-a, o da zəhər
 xəritəsinə aparır (bax CLAUDE.md qızıl qayda). Artıq ehtiyat (false refusal) — əks hal, simmetrik
 ölçülür, qapısı yoxdur. `status_match` yalnız informativdir: imtina səbəbinin (`unreadable` vs
 `cut_off` və s.) dəqiq uyğunluğunu göstərir, hallüsinasiya hökmünə təsir etmir.
+
+86eyhqggz: `final_answer_correct` `verify.verify_final_answer()`-in üç qatından gəlir (golden
+set-in `final_answer_values`-i ilə birbaşa müqayisə əsasdır, sympy tənlik-yoxlaması müstəqil
+çarpaz yoxlamadır). `verify_conflict=True` — iki qat ziddiyyətlidir, bu GOLDEN SET-in özündəki
+səhvi tutan siqnaldır, gizlədilmir, hesabatda ayrıca sayılır. `choice_match` isə yalnız
+informativdir (`expected_choice` son addımın `check.accept`-ində varmı), qapıya girmir.
 """
 
 import json
@@ -107,7 +113,14 @@ def evaluate_item(item, result, cfg):
 
     if result["status"] == "error":
         entry.update(
-            {"schema_valid": False, "final_answer_correct": False, "step_structural": None, "leaked": None}
+            {
+                "schema_valid": False,
+                "final_answer_correct": False,
+                "verify_conflict": None,
+                "choice_match": None,
+                "step_structural": None,
+                "leaked": None,
+            }
         )
         return entry
 
@@ -117,16 +130,36 @@ def evaluate_item(item, result, cfg):
     if not schema_valid:
         entry["schema_errors"] = schema_errors
         entry["final_answer_correct"] = False
+        entry["verify_conflict"] = None
+        entry["choice_match"] = None
         entry["step_structural"] = None
         entry["leaked"] = None
         return entry
 
     canonical = item.get("canonical") or raw.get("canonical", "")
     values = raw.get("final_answer", {}).get("values", [])
-    entry["final_answer_correct"] = verify.verify_final_answer(canonical, values)
+    golden_values = item.get("final_answer_values")
+    verified, conflict = verify.verify_final_answer(canonical, values, golden_values=golden_values)
+    entry["final_answer_correct"] = verified
+    entry["verify_conflict"] = conflict
+    entry["choice_match"] = _choice_match(item.get("expected_choice"), raw)
     entry["step_structural"] = steps_compare.check_structure(raw.get("steps", []))
     entry["leaked"] = leak.detect_leak(raw.get("steps", []), values)
     return entry
+
+
+def _choice_match(expected_choice, raw):
+    """İnformativ: `expected_choice` (golden set-də, variantlı məsələdə düzgün hərf) son addımın
+    `check.accept`-ində varmı. Qapıya girmir — prompt qaydası (ADR-008) `accept`-ə həm hərfi
+    həm dəyəri yazmağı tələb edir, bu ona görə mümkündür."""
+    if not expected_choice or not isinstance(raw, dict):
+        return None
+    steps = raw.get("steps") or []
+    if not steps:
+        return None
+    accept = (steps[-1].get("check") or {}).get("accept") or []
+    normalized_accept = {str(a).strip().upper() for a in accept}
+    return str(expected_choice).strip().upper() in normalized_accept
 
 
 def _rate(entries, key, is_match, is_denom):
@@ -201,6 +234,12 @@ def aggregate(entries, human_review=None):
         attempted, "final_answer_correct", lambda v: v is True, lambda v: v is not None
     )
     metrics["leak_rate"] = _rate(attempted, "leaked", lambda v: v is True, lambda v: v is not None)
+
+    metrics["verify_conflict"] = _rate(attempted, "verify_conflict", lambda v: v is True, lambda v: v is not None)
+    metrics["verify_conflict_ids"] = [
+        e["id"] for e in attempted if e.get("verify_conflict") is True
+    ]
+    metrics["choice_match_rate"] = _rate(attempted, "choice_match", lambda v: v is True, lambda v: v is not None)
 
     metrics["hallucination_rate"] = _rate(attempted, "hallucination", lambda v: v is True, lambda v: v is not None)
     metrics["false_refusal_rate"] = _rate(attempted, "false_refusal", lambda v: v is True, lambda v: v is not None)
@@ -288,6 +327,12 @@ def print_report(pipeline_name, metrics):
 
     _print_metric_line("Sxem validliyi", metrics["schema_validity"], gate_eligible, GATE_SCHEMA_VALIDITY)
     _print_metric_line("Son cavab dəqiqliyi", metrics["final_answer_accuracy"], gate_eligible, GATE_FINAL_ANSWER)
+    if metrics["verify_conflict_ids"]:
+        print(
+            f"  ⚠ Yoxlama ziddiyyəti (golden vs sympy): {metrics['verify_conflict']['matched']} item — "
+            f"{', '.join(metrics['verify_conflict_ids'])} — golden set-i əl ilə yoxla (86eyhqggz mexanizmi)."
+        )
+    _print_metric_line("Variant uyğunluğu (informativ)", metrics["choice_match_rate"], gate_eligible)
 
     print("  Addım bölgüsü — struktur:")
     structural = metrics["step_split_structural"]
@@ -375,6 +420,12 @@ def print_compare(path_a, path_b, results_dir):
         va = data_a["metrics"].get(key)
         vb = data_b["metrics"].get(key)
         print(f"  {label}: A={va}  B={vb}")
+
+    conflict_ids = sorted(
+        set(data_a["metrics"].get("verify_conflict_ids", [])) | set(data_b["metrics"].get("verify_conflict_ids", []))
+    )
+    if conflict_ids:
+        print(f"  ⚠ Yoxlama ziddiyyəti (golden vs sympy): {', '.join(conflict_ids)} — golden set-i əl ilə yoxla.")
 
     if not (data_a["metrics"].get("gate_eligible") and data_b["metrics"].get("gate_eligible")):
         print(f"\n⚠ Ən azı bir tərəf qapı üçün kifayət qədər nümunəyə malik deyil (minimum {MIN_GOLDEN_SET_N}). Qapı hökmü verilmir.")

@@ -26,14 +26,16 @@ Bir şəkildə **bir məsələ** olsun (Kamera ekranı onsuz da çərçivə ilə
 evals/
 ├── images/               # şəkillər (git-ə getmir, .gitignore-dadır)
 │   └── 001.jpg ...
-├── golden-set.jsonl      # ground truth — real DİM şəkilləri çəkilənə qədər BOŞDUR
+├── golden-set.jsonl         # xam şəkillər — aşkarlama yolu (çoxsuallı kadr, multiple_problems)
+├── golden-set-cropped.jsonl # əl ilə kəsilmiş şəkillər — həll yolu (hamısı "ok")
 ├── fixtures.jsonl        # sintetik, şəkilsiz nümunələr — golden-set boş olanda da harness işə düşsün deyə
 ├── selftest-cases.jsonl  # harness-in öz məntiqini (schema/verify/leak) yoxlayan mock nümunələr
 └── results/              # eval nəticələri (git-ə getmir)
 ```
 
-`golden-set.jsonl` boş olduğu müddətcə `--set evals/fixtures.jsonl` istifadə et. Fixture nəticələri
-qapı hökmü vermir (aşağıya bax) — yalnız harness-in canlı LLM çağırışı ilə uçdan-uca işlədiyini yoxlayır.
+İkisinin də `n < 30`-dur (Faza 0-lite, bax `HANDOFF (13)`) — nəticələr qapı hökmü vermir, yalnız
+boru xəttinin real şəkillərlə işlədiyini yoxlayır. `fixtures.jsonl` isə şəkilsiz, LLM açarı
+işləməyəndə/limitli olanda belə harness-in mənasız qırılmadığını sınamaq üçündür.
 
 ## `golden-set.jsonl` formatı
 
@@ -49,8 +51,11 @@ Hər sətir bir JSON obyekti:
   "subject": "riyaziyyat",
   "problem_type": "formula",
   "canonical": "x^2-5x+6=0",             // insanın yazdığı doğru forma
-  "topic_code": "ALG.KVADRAT_TENLIK",
-  "final_answer_values": ["3", "2"],     // maşınla yoxlanılan həqiqət
+  "topic_code": "ALG.QUADRATIC_EQUATION",
+  "final_answer_values": ["3", "2"],     // insan ground truth-u — 86eyhqggz: modelin dəyəri bunlardan
+                                          // HƏR HANSI biri ilə üst-üstə düşsə doğrudur (alternativ
+                                          // formalar da ola bilər, məs. ["3/10","0.3","0,3"])
+  "expected_choice": "B",                // opsional, variantlı məsələdə düzgün hərf — informativdir, qapıya girmir
   "expected_status": "ok",               // ADR-006: ok | unreadable | not_a_problem | multiple_problems | cut_off | unsupported. Yoxdursa "ok" sayılır.
   "expected_step_count": 4,
   "expected_step_titles": [              // müəllim rəyi — addım bölgüsü müqayisəsi üçün
@@ -64,7 +69,9 @@ Hər sətir bir JSON obyekti:
 | metrika | necə | qapı |
 |---|---|---|
 | **OCR dəqiqliyi** | `canonical` sympy ilə normallaşdırılıb müqayisə | ≥90% (çap) |
-| **Son cavab dəqiqliyi** | `final_answer_values` sympy yoxlanışı | **≥85%** |
+| **Son cavab dəqiqliyi** | üç qat (86eyhqggz): (1) golden `final_answer_values` ilə birbaşa müqayisə — əsas mənbə, (2) sympy `canonical`-a qarşı müstəqil çarpaz yoxlama, (3) heç biri mümkün deyilsə `None` | **≥85%** |
+| **Yoxlama ziddiyyəti** | (1) və (2) fərqli nəticə verib — golden set-in özündə səhv ola bilər, əl ilə yoxlanmalıdır | qapısız, item id-ləri ilə çap olunur |
+| **Variant uyğunluğu** | `expected_choice` son addımın `check.accept`-ində varmı | informativ, qapısız |
 | **Addım bölgüsü — struktur** | say 2–6, hər addımda `check`, `index` ardıcıl, son addım yoxlama, `error_code`-lar fərqli | **100%** |
 | **Addım bölgüsü — pedaqoji** | insan rəyi: "bu bölgü ilə şagird özü həll edə bilərmi?" (bax `ADR-004`) | **≥75%** |
 | **Sxem validliyi** | `STEP-SCHEMA.json`-a uyğunluq | 100% |
