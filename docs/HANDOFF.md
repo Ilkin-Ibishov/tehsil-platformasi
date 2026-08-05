@@ -59,7 +59,9 @@ Bu sınaqda **3 real ziddiyyət üzə çıxdı** (`c05`, `c06`, `c09`) — bunla
 Bu üçü **gözlənilən davranışdır** — 1-ci qat (golden) qalib gəlir, ziddiyyət sadəcə qeyd olunur.
 Real canlı run-da bu id-lər hesabatda görünəcək, təəccüblənmə.
 
-**Tapşırıq:** `86eyhqggz` — ClickUp-a bağlamağa çalışdım, nəticə aşağıda.
+**Tapşırıq:** `86eyhqggz` — ClickUp-a bağlamağa çalışdım, **rate limit hələ də davam edir**
+("Please wait 935 minutes"). Tapşırıq bu bloka görə TAMAMLANMIŞ sayılmalıdır — HANDOFF birinci
+mənbədir (sənin (13)-dəki qeydin), ClickUp-a əl ilə bağlana bilər.
 
 **Diqqət:**
 - `prompts/solve-step.md` v5-ə, `docs/STEP-SCHEMA.json`-a, golden set fayllarına toxunulmadı.
