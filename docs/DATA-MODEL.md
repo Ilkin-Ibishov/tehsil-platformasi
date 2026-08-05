@@ -23,7 +23,7 @@ Birincisi paylaşılan aktivdir, ikincisi şəxsi datadır. RLS siyasətləri bu
 | `numeric_fingerprint` | text | mətndəki bütün ədədlər sıra ilə: `"60,2,3"` — ikinci dərəcəli açar |
 | `embedding` | vector(768) | üçüncü dərəcəli açar, pgvector |
 | `problem_type` | text | `formula` / `word_problem` / `geometry` / `mixed` |
-| `subject` | text | |
+| `subject` | text | **dil-neytral kod**: `math`/`physics`/`chemistry` (ADR-008). UI etiketi i18n-dədir. |
 | `grade` | int | |
 | `topic_code` | text | DİM proqramından |
 | `source` | text | `dim_import` / `user_photo` / `textbook` |

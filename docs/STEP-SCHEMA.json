@@ -30,10 +30,11 @@
     "subject": {
       "type": "string",
       "enum": [
-        "riyaziyyat",
-        "fizika",
-        "kimya"
-      ]
+        "math",
+        "physics",
+        "chemistry"
+      ],
+      "description": "Dil-neytral kod. UI etiketi $defs.subject_labels-dədir (ADR-008). Yeni fənn = enum-a yeni kod, mövcudlar yenidən adlandırılmır."
     },
     "grade": {
       "type": "integer",
@@ -42,12 +43,14 @@
     },
     "topic_code": {
       "type": "string",
-      "description": "DİM imtahan proqramından çıxarılmış mövzu kodu. Valideyn hesabatındakı MÖVZULAR bölməsi buna qruplaşır.",
+      "description": "SAHƏ.MÖVZU, hər ikisi İNGİLİSCƏ və BÖYÜK HƏRFLƏ (ADR-008). UI etiketi i18n faylındadır. Valideyn hesabatındakı MÖVZULAR bölməsi buna qruplaşır.",
       "examples": [
-        "ALG.KVADRAT_TENLIK",
-        "ALG.VURUQLARA_AYIRMA",
-        "ARIF.FAIZ",
-        "HEND.SAHE"
+        "ALG.QUADRATIC_EQUATION",
+        "ALG.FACTORING",
+        "ARITH.PERCENTAGE",
+        "GEO.AREA",
+        "TRIG.IDENTITIES",
+        "PROB.BASIC"
       ]
     },
     "final_answer": {
@@ -211,7 +214,7 @@
         "cut_off",
         "unsupported"
       ],
-      "description": "Yoxdursa 'ok' sayılır. 'ok' deyilsə həll sahələri tələb olunmur, yalnız reason_az. Model şübhə edirsə UYDURMAQDANSA 'unreadable' qaytarmalıdır."
+      "description": "Yoxdursa 'ok' sayılır. 'ok' deyilsə həll sahələri tələb olunmur, yalnız reason. Model şübhə edirsə UYDURMAQDANSA 'unreadable' qaytarmalıdır."
     },
     "ocr_confidence": {
       "type": "string",
@@ -221,11 +224,6 @@
         "low"
       ],
       "description": "Modelin şəkildən oxuduğu şərtə nə qədər əmin olduğu. 'low' → UI düzəliş axınını açır."
-    },
-    "reason_az": {
-      "type": "string",
-      "maxLength": 160,
-      "description": "status != 'ok' olduqda istifadəçiyə göstərilən bir cümlə. Məs. 'Şəkil bulanıqdır, düsturu oxuya bilmədim.'"
     },
     "candidates": {
       "type": "array",
@@ -251,6 +249,22 @@
           }
         }
       }
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 160,
+      "description": "status != 'ok' olduqda istifadəçiyə göstərilən bir cümlə, giriş `locale` dilində yazılır (ADR-008)."
+    },
+    "detected_language": {
+      "type": "string",
+      "enum": [
+        "az",
+        "ru",
+        "en",
+        "tr",
+        "other"
+      ],
+      "description": "Məsələnin ŞƏKİLDƏ yazıldığı dil. İzahların dili bundan asılı deyil — onu giriş `locale` təyin edir (ADR-008)."
     }
   },
   "$defs": {
@@ -300,6 +314,12 @@
         "label": "KÖÇÜRMƏ",
         "parent_note": "Rəqəmi bir sətirdən digərinə səhv köçürür."
       }
+    },
+    "subject_labels_az": {
+      "description": "UI etiketləri. Kod dəyişməz, etiket tərcümə olunur — error_code_labels_az ilə eyni nümunə.",
+      "math": "Riyaziyyat",
+      "physics": "Fizika",
+      "chemistry": "Kimya"
     }
   },
   "allOf": [
@@ -338,7 +358,7 @@
       "else": {
         "required": [
           "status",
-          "reason_az"
+          "reason"
         ]
       }
     }
