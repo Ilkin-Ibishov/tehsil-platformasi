@@ -15,7 +15,62 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
-## 2026-08-05 (12) · Cowork → Claude Code
+## 2026-08-05 (13) · Cowork → Claude Code
+
+> **Protokol qeydi — mənim səhvim.** Blok (12)-dən sonra üç ciddi iş gördüm və **bu jurnala
+> yazmadım**. Sən ClickUp-a düşdün, o da rate limit verdi (~16 saat), nəticədə əlində heç nə
+> qalmadı. Kanalı özüm qurub özüm işlətməmişəm. `HANDOFF.md` **birinci mənbədir**, ClickUp
+> ikincidir — məhz ona görə ki, ClickUp sınır. Bundan sonra hər iş blokla bitir.
+
+**1. Şəkillər gəldi — 10 ədəd, `evals/images/`.** Hamısı Telegram-dan keçib (960×1280, ~100 KB),
+yəni orijinal kamera şəkli deyil, sıxılmış. Bu, **pis hala yaxın** testdir — işləyirsə,
+orijinallarda daha yaxşı işləyəcək.
+
+**Ən vacib tapıntı: 10 şəklin 10-u da çoxsualldır.** Bir dənə də tək məsələli kadr yoxdur.
+Kadr başına 1–5 məsələ. `ADR-007`-dəki `candidates` axını **istisna deyil, əsas axındır**;
+kəsmə ekranı olmadan tətbiq işləməyəcək. Kitab **10–11 sinif** səviyyəsindədir (triqonometriya,
+loqarifm, üstlü tənliklər, kompleks ədədlər, ehtimal, statistika).
+
+**2. `ADR-008` yazıldı — format və dil neytrallığı.** İki səhvimi düzəldir:
+- Prompt DİM formatına sürüşmüşdü ("A/B/C/D", "çap olunmuş nömrəni mütləq axtar").
+  İndi variantların sayı/etiketi sərbəstdir (və ya heç yoxdur), identifikator yoxdursa sıra nömrəsi.
+- Dil sahə adlarında və enum dəyərlərində sərtləşdirilmişdi. `subject` → `math|physics|chemistry`,
+  `reason_az` → `reason`, `topic_code` ingiliscə, yeni `detected_language`.
+  `error_code`-un nümunəsi (ingiliscə kod + `$defs`-də etiket) hər yerə tətbiq edildi.
+- Prompt **v5**. `--selftest` **14/14** qalır.
+
+**3. İki golden set yazıldı** (ground truth əl ilə çıxarıldı və iki dəfə yoxlandı):
+- `evals/golden-set.jsonl` — xam şəkillər, 9× `multiple_problems` + 1× `ok` → **aşkarlama yolu**
+- `evals/golden-set-cropped.jsonl` — `evals/images-cropped/`, hamısı `ok` → **həll yolu**.
+  Hər şəkli proqramla kəsdim, onunu da gözlə yoxladım: tam bir məsələ, kəsilmiş variant yoxdur.
+
+**Tapşırıq — [86eyhqggz](https://app.clickup.com/t/86eyhqggz) · URGENT · bu olmadan hökm verilə bilməz:**
+
+`report.py:126` — `final_answer_correct` **yalnız** `verify.verify_final_answer(canonical, values)`
+ilə hesablanır. Golden set-dəki `final_answer_values` (insan cavabı) **heç yerdə oxunmur**.
+Real dəstdə 10 məsələdən 9-u sympy ilə yoxlanıla bilmir: ifadə qiyməti, triqonometrik ümumi həll
+(`x = πn`), ehtimal (`2/3`), parametr məsələsi, törəmə kəmiyyət. Metrika demək olar bütünlüklə
+`None` çıxacaq.
+
+Tələb olunan məntiq:
+1. Golden set-də `final_answer_values` varsa → modelin `final_answer.values`-i ilə **birbaşa
+   müqayisə** (normallaşdırma: `−`→`-`, `,`→`.`, `2/3` ≡ `0.666…` sympy `Rational` ilə,
+   çoxluq kimi, sıra əhəmiyyətsiz). Golden bir neçə qəbul edilən forma saxlaya bilər — **biri
+   uyğun gəlsə doğrudur**.
+2. sympy `canonical`-a qarşı yoxlaya bilirsə → **müstəqil çarpaz yoxlama**. Ziddiyyət varsa
+   `verify_conflict: true` yaz — bu, **mənim ground truth səhvimi tutan mexanizmdir**.
+3. Heç biri mümkün deyilsə → `None`.
+
+`expected_choice` (yeni, opsional) — variantlı məsələdə düzgün variantın hərfi. İnformativ, qapıya girmir.
+
+**Diqqət:**
+- `.env` artıq OpenRouter-dədir: `google/gemma-4-31b-it:free` — **multimodaldır** (yoxladım,
+  mətn + şəkil girişi). Pulsuz limit 50 sorğu/gün; iki dəst = 20 sorğu, sığır.
+- `prompts/solve-step.md` v5-ə və `docs/STEP-SCHEMA.json`-a **toxunma** — ikisi də yenicə dəyişdi,
+  selftest 14/14 keçir.
+- `evals/images-cropped/` `.gitignore`-dadır.
+
+**Blok:** `86eyhqggz` bitməyincə Faza 0-lite hökmü verilə bilməz.
 
 **Etdim:** Dörd tapşırığın hamısı yoxlandı — **qəbul edilir**. `--selftest` 14/14, sızma 0/3
 (`ADR-005` təsdiqləndi), invariant testi keçir, worktree birləşdirilib. Latensiyanın retry
