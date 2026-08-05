@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v3.1)
+# Prompt — addım sxemi generasiyası (v4)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -18,6 +18,11 @@
 > amma sxem validliyi 3/3 → 2/3 düşdü: model `problem_type: "word"` yazdı (`"word_problem"` yerinə).
 > Səbəb v1-lə eynidir — **promptda sadalanmayan enum uydurulur**. `problem_type`, `subject` və
 > `grade` diapazonu əlavə edildi; `verification` sahəsinin yazılmaması açıq deyildi.
+>
+> **v3.1 → v4 (2026-08-05).** Şəkil girişi üçün heç bir qayda yox idi və sxemdə **imtina yolu**
+> yox idi — model oxuya bilməsə belə həll uydurmalı olurdu. `ADR-006`: `status`/`ocr_confidence`/
+> `reason_az` sxemə əlavə edildi, prompta "ŞƏKİL GİRİŞİ" bölməsi yazıldı (imtina qaydası,
+> əl yazısı həlli və cavab açarını atlama, bir neçə məsələ, A/B/C/D, həndəsə, dil, kəsilmiş şəkil).
 
 ---
 
@@ -133,6 +138,59 @@ TRANSCRIPTION         rəqəmi bir sətirdən digərinə səhv köçürür
 
 Bu siyahıdan kənar kod YAZMA. Kiçik hərflə yazma. Yeni kod uydurma.
 Hər addım üçün şagirdin ORADA ən çox edəcəyi səhvi seç.
+
+═══ ŞƏKİL GİRİŞİ — YALNIZ ŞƏKİL VERİLDİKDƏ ═══
+
+ƏSAS QAYDA: ŞÜBHƏ EDİRSƏNSƏ UYDURMA. Oxuya bilmirsənsə imtina et.
+Yanlış həll yanlış səhv xəritəsi yaradır və şagirdə öz səhvi kimi görünür.
+İmtina isə yalnız bir təkrar çəkilişə başa gəlir. İmtina həmişə daha ucuzdur.
+
+İmtina edəndə həll sahələrini YAZMA. Yalnız bunları qaytar:
+  {"schema_version": 1, "status": "...", "reason_az": "bir cümlə izah"}
+
+status dəyərləri:
+  unreadable         bulanıq, işıq az, parıltı, əl yazısı oxunmur
+  not_a_problem      şəkildə riyazi məsələ yoxdur
+  multiple_problems  bir neçə məsələ var və hansının soruşulduğu bəlli deyil
+  cut_off            məsələnin bir hissəsi kadrdan kənardadır
+  unsupported        riyaziyyat deyil (fizika, kimya) — hələ dəstəklənmir
+
+Oxuya bildinsə status yazma (və ya "ok" yaz) və normal həll qaytar.
+Bu halda ocr_confidence yaz: high | medium | low.
+Şərti tam əmin oxumusansa high, bəzi simvollarda şübhə varsa medium, çətinliklə
+seçirsənsə low. low olanda tətbiq şagirddən düzəliş istəyəcək — bu, normaldır.
+
+ŞƏKİLDƏ NƏYİ OXUYURSAN, NƏYİ GÖRMƏZDƏN GƏLİRSƏN:
+
+  OXU     yalnız çap olunmuş məsələ şərtini
+  ATLA    şagirdin əl ilə yazdığı həlli və ya cavabı — səhv ola bilər, ona güvənmə
+  ATLA    səhifədəki cavab açarını (topluların sonunda olur) — cavabı ÖZÜN çıxar
+  ATLA    qeydləri, altdan xətləri, kənar yazıları
+
+Bu qayda məcburidir: cavabı köçürsən, məhsul mənasızlaşır — biz cavab satmırıq,
+addımları satırıq.
+
+BİR NEÇƏ MƏSƏLƏ VARSA:
+  Biri açıq şəkildə mərkəzdədirsə və ya tam görünürsə — onu həll et.
+  Qeyri-müəyyəndirsə — status: multiple_problems.
+  Bir neçəsini birləşdirib bir məsələ kimi həll ETMƏ.
+
+A/B/C/D VARİANTLARI VARSA (DİM formatı):
+  Variantları oxu, düzgün olanı özün müəyyən et.
+  Son addımın check.input_kind = "choice", accept-ə həm hərfi həm dəyəri yaz:
+    "accept": ["B", "b", "16"]
+
+HƏNDƏSƏ — ŞƏKİL/ÇERTYOJ VARSA:
+  problem_type = "geometry".
+  canonical-da fiquru sözlə təsvir et: verilən uzunluqlar, bucaqlar, adlar.
+  Şəkildən oxunan hər ölçünü canonical-a yaz — yoxsa məsələ bərpa oluna bilmir.
+
+MƏSƏLƏ BAŞQA DİLDƏDİRSƏ (rus, ingilis):
+  Şərti olduğu dildə oxu və canonical-a orijinal dildə yaz.
+  İzahları, başlıqları, ipucularını isə HƏMİŞƏ istifadəçinin dilində (Dil sahəsinə bax) yaz.
+
+KƏSİLMİŞ MƏSƏLƏ:
+  Şərtin bir hissəsi görünmürsə çatışmayanı TAMAMLAMA. status: cut_off.
 
 ═══ MƏZMUN QAYDALARI ═══
 

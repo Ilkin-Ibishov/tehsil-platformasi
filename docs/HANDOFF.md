@@ -15,6 +15,47 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-05 (10) · Cowork → Claude Code
+
+**Kontekst dəyişikliyi:** Ilkin-in əlində DİM toplusu yoxdur. Şəkilləri qohum şagird çəkib
+göndərəcək. Faza 0 **8–10 şəkillik "lite" versiyaya** endirilir (30 yerinə) — məqsəd qapı hökmü
+deyil, **vision boru xəttinin ümumiyyətlə işlədiyini** bilmək. Real n≥30 qapısı Faza 1-də
+şagird istifadəsindən avtomatik toplanacaq.
+
+**Etdim — sistemin soyuq nəzərdən keçirilməsi. İki struktur boşluğu tapıldı:**
+
+1. **Sistemdə imtina yolu YOX İDİ.** `STEP-SCHEMA.json` `steps` və `final_answer`-i məcburi
+   edirdi (`minItems: 2`) — yəni model şəkli oxuya bilməsə belə **həll uydurmalı** idi.
+   Bu, məhsulun ən təhlükəli səhv rejimidir: uydurma həll → uydurma `error_code` →
+   **səhv xəritəsi zəhərlənir**, yəni `CLAUDE.md`-dəki qızıl qayda pozulur.
+2. **Etibarlılıq siqnalı yox idi.** Dizaynda `düzəliş` axını var, amma nə vaxt açılacağını
+   bilmirdik — model heç bir confidence qaytarmırdı.
+
+**`ADR-006` yazıldı.** Dəyişiklikər:
+- `STEP-SCHEMA.json` → `status`, `ocr_confidence`, `reason_az` (hamısı opsional, `if/then` ilə
+  şərti `required`). **Geriyə uyğunluq yoxlandı:** 6 haldan 6-sı düzgün, selftest 8/8.
+- `prompts/solve-step.md` → **v4**, yeni "ŞƏKİL GİRİŞİ" bölməsi: imtina qaydası, əl yazısı
+  həllini və cavab açarını atlama, bir neçə məsələ, A/B/C/D, həndəsə, dil, kəsilmiş şəkil.
+
+**Tapşırıqlar (prioritet sırası ilə):**
+1. [86eyhp5h5](https://app.clickup.com/t/86eyhp5h5) — **şəkil ön emalı: HEIC, kiçiltmə, EXIF,
+   MIME, retry.** URGENT: şəkillər gəlməzdən əvvəl bitməlidir, yoxsa smoke test format
+   xətaları ilə sınacaq (iPhone HEIC göndərəcək, `.jpg` → `image/jpg` yanlış MIME verir).
+2. [86eyhp5jn](https://app.clickup.com/t/86eyhp5jn) — `expected_status` + **hallüsinasiya
+   metrikası (qapı 0%)**.
+3. [86eyhnxxr](https://app.clickup.com/t/86eyhnxxr) — `leak.py` `ADR-005` (hələ açıq)
+4. [86eyhnv2r](https://app.clickup.com/t/86eyhnv2r) — prompt↔sxem invariant testi (hələ açıq)
+
+**Diqqət:**
+- Hallüsinasiya metrikası **digər bütün metrikalardan vacibdir**. Yanlış həll heç bir həlldən pisdir.
+- Kiçiltmə yalnız eval/server tərəfdədir. Klient resize Faza 1 məsələsidir.
+- `prompts/solve-step.md` v4 mətn girişində reqressiya yaratmamalıdır — şəkil bölməsi
+  "YALNIZ ŞƏKİL VERİLDİKDƏ" başlığı altındadır.
+
+**Blok:** Faza 0-lite şəkilləri gözlənilir.
+
+---
+
 ## 2026-08-05 (9) · Cowork → Claude Code
 
 **Etdim:** Prompt v3 və v3.1 ilə iki canlı run. **Addım 2 (fixture testi) faktiki olaraq bitdi.**
