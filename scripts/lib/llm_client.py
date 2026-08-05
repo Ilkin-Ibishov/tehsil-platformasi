@@ -7,9 +7,13 @@ Konfiqurasiya .env-dən:
   PRICE_INPUT_PER_1M, PRICE_OUTPUT_PER_1M  — xərc hesablaması üçün, verilməsə xərc None qalır
   JSON_MODE=0                        — response_format={"type":"json_object"}-i söndürür
                                         (bəzi provayderlər dəstəkləmir, 400 qaytarır)
+  IMAGE_MAX_PX                       — şəkil kiçiltmə hədəfi (default 1600), --image-max-px ilə üstələnir
+
+ADR-006: real telefon şəkilləri (HEIC, EXIF döndərilmiş, 4-8MB) üçün ön emal burada olur.
 """
 
 import base64
+import io
 import os
 import time
 from dataclasses import dataclass
@@ -20,6 +24,10 @@ import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
+
+RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
+MAX_ATTEMPTS = 3
+RETRY_BASE_DELAY_S = 1.0
 
 
 class ConfigError(RuntimeError):
@@ -35,6 +43,7 @@ class LLMConfig:
     price_output_per_1m: Optional[float]
     temperature: float = 0.2
     json_mode: bool = True
+    image_max_px: int = 1600
 
 
 def load_config():
@@ -51,6 +60,7 @@ def load_config():
     price_out = os.environ.get("PRICE_OUTPUT_PER_1M")
     json_mode_raw = os.environ.get("JSON_MODE", "1").strip().lower()
     json_mode = json_mode_raw not in ("0", "false", "no")
+    image_max_px = int(os.environ.get("IMAGE_MAX_PX", "1600"))
     return LLMConfig(
         model=model,
         api_key=api_key,
@@ -58,22 +68,81 @@ def load_config():
         price_input_per_1m=float(price_in) if price_in else None,
         price_output_per_1m=float(price_out) if price_out else None,
         json_mode=json_mode,
+        image_max_px=image_max_px,
     )
 
 
-def _image_content(image_path):
-    data = Path(image_path).read_bytes()
-    encoded = base64.b64encode(data).decode("ascii")
-    suffix = Path(image_path).suffix.lstrip(".").lower() or "jpeg"
-    return {"type": "image_url", "image_url": {"url": f"data:image/{suffix};base64,{encoded}"}}
+def _ensure_heif_support(path):
+    if path.suffix.lstrip(".").lower() not in ("heic", "heif"):
+        return
+    try:
+        import pillow_heif
+
+        pillow_heif.register_heif_opener()
+    except ImportError as exc:
+        raise RuntimeError(
+            f"{path.name} HEIC/HEIF formatındadır, amma pillow-heif quraşdırılmayıb "
+            "(`pip install -r scripts/requirements.txt`). Səssiz uğursuzluq yoxdur — bu xətanı düzəlt."
+        ) from exc
+
+
+def _image_content(image_path, max_px=1600, jpeg_quality=85):
+    """Şəkli açır, EXIF-ə görə döndərir, RGB-yə çevirir (alfa-kanallı PNG/GIF JPEG kimi
+    saxlanıla bilməz), ən uzun tərəfi max_px-ə kiçildir və HƏMİŞƏ JPEG kimi yenidən kodlayır.
+    Bu, giriş formatından (HEIC/PNG/WEBP/JPG) asılı olmayaraq çıxış MIME-ni "image/jpeg"
+    kimi sabitləyir — ayrıca uzantı→MIME xəritəsinə ehtiyac qalmır.
+
+    (content_dict, meta) qaytarır. meta = {"image_px": "WxH", "image_bytes": N}.
+    """
+    try:
+        from PIL import Image, ImageOps
+    except ImportError as exc:
+        raise RuntimeError(
+            "Pillow quraşdırılmayıb (`pip install -r scripts/requirements.txt`)."
+        ) from exc
+
+    path = Path(image_path)
+    _ensure_heif_support(path)
+
+    try:
+        image = Image.open(path)
+        image.load()
+    except Exception as exc:  # noqa: BLE001 — PIL onlarla fərqli xəta növü ata bilər, hamısı aydın mesaja çevrilir
+        raise RuntimeError(f"{path.name} şəkil kimi açıla bilmədi: {exc}") from exc
+
+    image = ImageOps.exif_transpose(image)
+    if image.mode != "RGB":
+        image = image.convert("RGB")
+
+    longest_side = max(image.size)
+    if longest_side > max_px:
+        scale = max_px / longest_side
+        new_size = (max(1, round(image.width * scale)), max(1, round(image.height * scale)))
+        image = image.resize(new_size, Image.LANCZOS)
+
+    buf = io.BytesIO()
+    image.save(buf, format="JPEG", quality=jpeg_quality)
+    jpeg_bytes = buf.getvalue()
+    encoded = base64.b64encode(jpeg_bytes).decode("ascii")
+
+    content = {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded}"}}
+    meta = {"image_px": f"{image.width}x{image.height}", "image_bytes": len(jpeg_bytes)}
+    return content, meta
 
 
 def call_vision_llm(cfg, system_prompt, user_prompt, image_path=None):
-    """Bir çağırış edir, (parsed_json, usage, latency_ms, raw_text) qaytarır.
-    parsed_json None-dursa cavab JSON kimi parse edilə bilmədi (raw_text-ə bax)."""
+    """Bir çağırış edir (429/5xx-də 3 cəhdə qədər eksponensial gözləməli retry),
+    (parsed_json, usage, latency_ms, raw_text, attempts, image_meta) qaytarır.
+
+    latency_ms YALNIZ son (uğurlu, ya da son uğursuz) cəhdin müddətidir — retry-lar
+    arasındakı gözləmə DAXİL DEYİL, əks halda bir rate-limit bütün orta latensiya
+    ölçüsünü korlayardı. Cəhd sayı `attempts`-də ayrıca görünür.
+    """
+    image_meta = None
     content = [{"type": "text", "text": user_prompt}]
     if image_path:
-        content.append(_image_content(image_path))
+        image_content, image_meta = _image_content(image_path, max_px=cfg.image_max_px)
+        content.append(image_content)
 
     payload = {
         "model": cfg.model,
@@ -86,14 +155,23 @@ def call_vision_llm(cfg, system_prompt, user_prompt, image_path=None):
     if cfg.json_mode:
         payload["response_format"] = {"type": "json_object"}
 
-    started = time.perf_counter()
+    url = f"{cfg.base_url}/chat/completions"
+    headers = {"Authorization": f"Bearer {cfg.api_key}", "Content-Type": "application/json"}
+
+    resp = None
+    latency_ms = None
+    attempts = 0
     with httpx.Client(timeout=60.0) as client:
-        resp = client.post(
-            f"{cfg.base_url}/chat/completions",
-            headers={"Authorization": f"Bearer {cfg.api_key}", "Content-Type": "application/json"},
-            json=payload,
-        )
-    latency_ms = (time.perf_counter() - started) * 1000
+        for attempt in range(1, MAX_ATTEMPTS + 1):
+            attempts = attempt
+            started = time.perf_counter()
+            resp = client.post(url, headers=headers, json=payload)
+            latency_ms = (time.perf_counter() - started) * 1000
+
+            if resp.status_code in RETRYABLE_STATUS_CODES and attempt < MAX_ATTEMPTS:
+                time.sleep(RETRY_BASE_DELAY_S * (2 ** (attempt - 1)))
+                continue
+            break
 
     resp.raise_for_status()
     body = resp.json()
@@ -107,4 +185,4 @@ def call_vision_llm(cfg, system_prompt, user_prompt, image_path=None):
     except (ValueError, TypeError):
         parsed = None
 
-    return parsed, usage, latency_ms, raw_text
+    return parsed, usage, latency_ms, raw_text, attempts, image_meta

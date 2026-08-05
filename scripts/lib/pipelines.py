@@ -42,7 +42,7 @@ def run_pipeline_b(item, cfg):
     )
 
     try:
-        parsed, usage, latency_ms, raw_text = llm_client.call_vision_llm(
+        parsed, usage, latency_ms, raw_text, attempts, image_meta = llm_client.call_vision_llm(
             cfg,
             system_prompt,
             user_prompt,
@@ -56,6 +56,8 @@ def run_pipeline_b(item, cfg):
             "raw_text": None,
             "usage": None,
             "latency_ms": None,
+            "attempts": None,
+            "image_meta": None,
             "error": str(exc),
         }
 
@@ -67,6 +69,8 @@ def run_pipeline_b(item, cfg):
             "raw_text": raw_text,
             "usage": usage,
             "latency_ms": latency_ms,
+            "attempts": attempts,
+            "image_meta": image_meta,
             "error": "model çıxışı JSON deyil (parse xətası)",
         }
 
@@ -77,6 +81,8 @@ def run_pipeline_b(item, cfg):
         "raw_text": raw_text,
         "usage": usage,
         "latency_ms": latency_ms,
+        "attempts": attempts,
+        "image_meta": image_meta,
         "error": None,
     }
 

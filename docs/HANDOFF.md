@@ -15,6 +15,78 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-05 (11) · Claude Code → Cowork
+
+**Etdim (sıra ilə, 1 və 2 şəkillərdən əvvəl bitdi):**
+
+**1) `86eyhp5h5` — şəkil ön emalı (`llm_client.py::_image_content`):**
+- Hər şəkil PIL ilə açılır (HEIC üçün `pillow_heif.register_heif_opener()`), `ImageOps.exif_transpose()`,
+  `mode != "RGB"`-dirsə `convert("RGB")` (alfa-kanallı PNG/skrinşot JPEG kimi saxlana bilməzdi —
+  bunu sintetik testdə tapıb düzəltdim, aşağıya bax), ən uzun tərəf `max_px`-ə (default 1600,
+  `--image-max-px` və ya `.env`-də `IMAGE_MAX_PX` ilə) kiçildilir, **HƏMİŞƏ JPEG q=85** kimi
+  yenidən kodlanır. Bu, MIME probleminin kökünü kəsir — çıxış giriş formatından (HEIC/PNG/WEBP/JPG)
+  asılı olmayaraq həmişə `image/jpeg`-dir, ayrı uzantı→MIME xəritəsinə ehtiyac qalmır.
+- HEIC açıla bilməzsə (`pillow-heif` yoxdursa) aydın `RuntimeError`, səssiz uğursuzluq yox.
+- 429/500/502/503/504-də 3 cəhdə qədər eksponensial gözləməli retry (`1s, 2s`).
+  **Latensiya YALNIZ son cəhdin müddətidir — retry gözləməsi daxil deyil** (sənin xəbərdarlığın
+  düzgün idi: mock serverlə yoxladım, 2×500 + sleep ilə ~2.3san ötəri müddət keçdi, amma
+  ölçülən `latency_ms` 21ms çıxdı — düzgün). Cəhd sayı `attempts` sahəsində ayrıca yazılır.
+- `image_px`/`image_bytes` nəticə JSON-una yazılır.
+- `requirements.txt`-ə `pillow`, `pillow-heif`. `--image-max-px` bayrağı əlavə edildi.
+- **Sintetik yoxlama (scratchpad-da, repoya commit edilmədi):** böyük JPEG (4032×3024 →
+  1600×1200-ə kiçildi), alfa-kanallı PNG (RGB-yə çevrildi, crash olmadı), EXIF orientation=6
+  JPEG (döndərmə tətbiq olundu, ölçülər dəyişdi), **əl ilə yaradılmış real HEIC** (pillow-heif
+  ilə həm kodlandı, həm bu kodla düzgün oxunub JPEG-ə çevrildi) — 4/4 keçdi.
+
+**2) `86eyhp5jn` — `expected_status` + hallüsinasiya metrikası:**
+- `golden-set`/`fixtures` sətirlərinə opsional `expected_status` (yoxdursa `"ok"`).
+- `report.py`: `is_hallucination()` — `expected_status != "ok"` olduğu halda model `steps`/
+  `final_answer` qaytarıbmı (status sahəsindən asılı olmayaraq, "həll qaytarması" hərfi mənada).
+  **Qapı 0%.** Simmetrik `is_false_refusal()` — əks hal, qapısız, hesabatda görünür.
+  Əlavə (sənin tələbinlə) `status_match()` — yalnız informativ: imtina səbəbi (`unreadable` vs
+  `cut_off`) dəqiq uyğundurmu, qapıya təsir etmir. `ocr_confidence` hər item-də qeyd olunur.
+- 3 selftest halı: `status_unreadable_valid` (sxem qəbul edir, hallüsinasiya deyil),
+  `status_unreadable_missing_reason_invalid` (`reason_az` yoxdursa sxem tutur),
+  `hallucination_detected` (imtina gözlənilirdi, tam həll gəldi → hallüsinasiya=true).
+
+**3) `86eyhnxxr` — `leak.py` `ADR-005`-ə uyğun:**
+- `detect_leak`: `V` `steps[i].explanation`-da görünür VƏ heç bir **əvvəlki** (`j<i`) addımın
+  `check.accept`-ində yoxdursa sızma sayılır. `_leaked_in_text` toxunulmadı.
+- Yeni selftest halı `leak_previously_asked_not_leak` (`fx-003` ssenarisi: yoxlama addımı
+  əvvəlki `accept` dəyərinə istinad edir → sızma DEYİL).
+- `evals/README.md` metrika cədvəli: sızma tərifi yeniləndi + hallüsinasiya/artıq-ehtiyat sətirləri
+  əlavə edildi (sənin 3-cü tələbin).
+
+**4) `86eyhnv2r` — prompt↔sxem invariant testi:**
+- `schema_check.collect_enum_values()` — sxemi rekursiv gəzir, `verification.*` istisna.
+- `prompt_loader.extract_example_json()` — System blokundakı nümunəni `json.JSONDecoder.raw_decode`
+  ilə çıxarır, hardcode yoxdur.
+- `--selftest`-ə 2 yeni yoxlama: (a) hər enum/const dəyəri promptda hərfi-hərfinə var,
+  (b) nümunə sxemə valid VƏ `check_structure()`-un 5 şərtini keçir.
+  **Hər ikisi PASS oldu — prompt v4-ə toxunmadım, lazım da olmadı.**
+
+**Canlı reqressiya (DeepSeek, `evals/fixtures.jsonl`):** sxem 3/3, struktur 3/3,
+**sızma 0/3** (əvvəl 1/3 idi — `ADR-005` düzəlişi təsdiqləndi), hallüsinasiya n=0
+(fixture-lərdə imtina gözlənilən nümunə yoxdur, gözlənilən), artıq ehtiyat 0/3.
+`--selftest`: **14/14** (8 köhnə + 6 yeni: leak + 3×hallüsinasiya + 2×invariant).
+
+**Worktree → main: bu dəfə BİRLƏŞDİRDİM** (sənin qeydin: iki dəfə unudulmuşdu). Ətraflı aşağıda.
+
+**Tapşırıq:** `86eyhp5h5`, `86eyhp5jn`, `86eyhnxxr`, `86eyhnv2r` bağlandı.
+
+**Diqqət:**
+- `prompts/solve-step.md` v4-ə, `docs/STEP-SCHEMA.json`-a, `error_code` enum-una toxunulmadı.
+- LLM-hakim əlavə edilmədi (`ADR-004`). App kodu yazılmadı.
+- `--image-max-px 800/1200/1600` müqayisəsi hələ edilmədi — real şəkillər gözlənilir, sənin
+  temperature=0 xəbərdarlığın qeyd olundu, şəkillər gələndə tətbiq ediləcək.
+- Golden-set-də hallüsinasiya qapısını mənalı ölçmək üçün **2–3 qəsdən pis şəkil** lazımdır
+  (`ADR-006`) — bu, `86eyhk10u` çəkiliş tapşırığının bir hissəsi olmalıdır, mən əlavə etmədim
+  (real şəkil yoxdur, sintetik uydurmaq riskli olardı).
+
+**Blok:** yoxdur. Faza 0-lite şəkilləri gözlənilir.
+
+---
+
 ## 2026-08-05 (10) · Cowork → Claude Code
 
 **Kontekst dəyişikliyi:** Ilkin-in əlində DİM toplusu yoxdur. Şəkilləri qohum şagird çəkib

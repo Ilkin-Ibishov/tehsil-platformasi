@@ -51,6 +51,7 @@ Hər sətir bir JSON obyekti:
   "canonical": "x^2-5x+6=0",             // insanın yazdığı doğru forma
   "topic_code": "ALG.KVADRAT_TENLIK",
   "final_answer_values": ["3", "2"],     // maşınla yoxlanılan həqiqət
+  "expected_status": "ok",               // ADR-006: ok | unreadable | not_a_problem | multiple_problems | cut_off | unsupported. Yoxdursa "ok" sayılır.
   "expected_step_count": 4,
   "expected_step_titles": [              // müəllim rəyi — addım bölgüsü müqayisəsi üçün
     "Əmsalları oxu", "Diskriminantı hesabla", "Kök düsturunu qur", "Kökləri yoxla"
@@ -67,9 +68,11 @@ Hər sətir bir JSON obyekti:
 | **Addım bölgüsü — struktur** | say 2–6, hər addımda `check`, `index` ardıcıl, son addım yoxlama, `error_code`-lar fərqli | **100%** |
 | **Addım bölgüsü — pedaqoji** | insan rəyi: "bu bölgü ilə şagird özü həll edə bilərmi?" (bax `ADR-004`) | **≥75%** |
 | **Sxem validliyi** | `STEP-SCHEMA.json`-a uyğunluq | 100% |
-| **Cavab sızması** | `explanation` içində nəticə varmı | ≤10% |
+| **Cavab sızması** | `V` dəyəri `steps[i].explanation`-da görünür VƏ heç bir **əvvəlki** (`j<i`) addımın `check.accept`-ində yoxdur (`ADR-005`) | ≤10% |
+| **Hallüsinasiya** | `expected_status != ok` olduğu halda model yenə `steps`/`final_answer` qaytarır (`ADR-006`) | **0%** |
+| **Artıq ehtiyat** | `expected_status == ok` olduğu halda model imtina edir (simmetrik, qapısız) | ölçülüb qeyd edilir |
 | **Xərc / həll** | token sayı × qiymət | ölçülüb qeyd edilir |
-| **Latensiya** | uçdan-uca | ölçülüb qeyd edilir |
+| **Latensiya** | uçdan-uca, YALNIZ son cəhd (retry gözləməsi daxil deyil) | ölçülüb qeyd edilir |
 
 ## Müqayisə ediləcək boru xətləri
 
@@ -104,3 +107,10 @@ kimi bu da avtomatlaşdırılmır, ADR-004-ə bax.
 
 **`JSON_MODE=0`** — bəzi provayderlər `response_format={"type":"json_object"}`-ı dəstəkləmir və
 400 qaytarır. `.env`-də `JSON_MODE=0` bunu söndürür (bax `scripts/.env.example`).
+
+**Şəkil ön emalı** (`ADR-006`) — `llm_client.py` hər şəkli açır, EXIF-ə görə döndərir, RGB-yə
+çevirir, ən uzun tərəfi kiçildir və HƏMİŞƏ JPEG kimi yenidən kodlayır (giriş HEIC/PNG/WEBP olsa
+belə) — bu, MIME səhvlərinin qarşısını kökündən alır. Kiçiltmə hədəfi: `.env`-də `IMAGE_MAX_PX`
+(default 1600) və ya `--image-max-px 800` bayrağı (ölçü müqayisəsi üçün). 429/5xx-də 3 cəhdə qədər
+eksponensial gözləməli retry — `attempts` sahəsi nəticə faylında görünür. **Kiçiltmə yalnız
+eval/server tərəfindədir**, klient (Faza 1) resize etmir.

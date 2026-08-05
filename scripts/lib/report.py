@@ -7,6 +7,13 @@ Addım bölgüsü ADR-004-ə görə ikiyə ayrılır:
   - step_split_structural  — avtomatik, obyektiv (steps_compare.py)
   - step_split_pedagogical — insan rəyi (evals/results/human-review-<tarix>.jsonl), yoxdursa
     qapı "NATAMAM" olur, heç vaxt "KEÇDİ" demir.
+
+ADR-006: hallüsinasiya = golden set `expected_status != "ok"` olduğu halda model YENƏ DƏ
+`steps`/`final_answer` qaytarır (yəni imtina etmək əvəzinə uydurur). Qapı **0%** — digər bütün
+metrikalardan vacibdir, çünki uydurma həll uydurma error_code-a, o da zəhərlənmiş səhv
+xəritəsinə aparır (bax CLAUDE.md qızıl qayda). Artıq ehtiyat (false refusal) — əks hal, simmetrik
+ölçülür, qapısı yoxdur. `status_match` yalnız informativdir: imtina səbəbinin (`unreadable` vs
+`cut_off` və s.) dəqiq uyğunluğunu göstərir, hallüsinasiya hökmünə təsir etmir.
 """
 
 import json
@@ -21,19 +28,71 @@ GATE_FINAL_ANSWER = 0.85
 GATE_SCHEMA_VALIDITY = 1.0
 GATE_STEP_SPLIT_STRUCTURAL = 1.0
 GATE_STEP_SPLIT_PEDAGOGICAL = 0.75
+GATE_HALLUCINATION = 0.0
 
 HUMAN_REVIEW_NOTE = "insan rəyi yoxdur — qapı natamam"
 
 
+def actual_status(raw_output):
+    """Modelin qaytardığı `status` — yoxdursa (və ya boşdursa) sxemə görə 'ok' sayılır.
+    raw_output dict deyilsə (məs. JSON parse alınmadı) None — bilinmir."""
+    if not isinstance(raw_output, dict):
+        return None
+    return raw_output.get("status") or "ok"
+
+
+def is_hallucination(expected_status, raw_output):
+    """ADR-006: golden set imtina gözləyirdi (`expected_status != "ok"`), model isə HƏLL
+    qaytardı (`steps`/`final_answer` var) — status sahəsindən asılı olmayaraq. `expected_status`
+    "ok"/None-dursa tətbiq olunmur → None. Heç bir çıxış yoxdursa (parse xətası) hallüsinasiya
+    DEYİL — bu ayrı, artıq schema_valid=False kimi qeyd olunan uğursuzluqdur."""
+    if expected_status in (None, "ok"):
+        return None
+    if not isinstance(raw_output, dict):
+        return False
+    return bool(raw_output.get("steps")) or bool(raw_output.get("final_answer"))
+
+
+def is_false_refusal(expected_status, raw_output):
+    """Simmetrik ehtiyat metrikası: golden set `ok` gözləyirdi, model imtina etdi. Qapısı yoxdur."""
+    if expected_status not in (None, "ok"):
+        return None
+    if not isinstance(raw_output, dict):
+        return None
+    return actual_status(raw_output) != "ok"
+
+
+def status_match(expected_status, raw_output):
+    """Yalnız informativ: imtina gözlənilən halda modelin dediyi SƏBƏB (status dəyəri) dəqiq
+    uyğundurmu (məs. gözlənilən 'unreadable', model 'cut_off' deyibsə uyğun deyil, amma bu
+    hallüsinasiya deyil — imtina edib, sadəcə səbəb fərqlidir). Qapıya girmir."""
+    if expected_status in (None, "ok"):
+        return None
+    if not isinstance(raw_output, dict):
+        return None
+    return actual_status(raw_output) == expected_status
+
+
 def evaluate_item(item, result, cfg):
+    raw_output = result.get("raw_output")
+    expected_status = item.get("expected_status") or "ok"
+
     entry = {
         "id": item.get("id") or result.get("id"),
         "status": result["status"],
         "latency_ms": result.get("latency_ms"),
+        "attempts": result.get("attempts"),
+        "image_meta": result.get("image_meta"),
         "error": result.get("error"),
-        "raw_output": result.get("raw_output"),
+        "raw_output": raw_output,
         "raw_text": result.get("raw_text"),
         "usage": result.get("usage"),
+        "expected_status": expected_status,
+        "actual_status": actual_status(raw_output),
+        "ocr_confidence": raw_output.get("ocr_confidence") if isinstance(raw_output, dict) else None,
+        "hallucination": is_hallucination(expected_status, raw_output),
+        "false_refusal": is_false_refusal(expected_status, raw_output),
+        "status_match": status_match(expected_status, raw_output),
     }
 
     if result["status"] == "not_implemented":
@@ -143,6 +202,10 @@ def aggregate(entries, human_review=None):
     )
     metrics["leak_rate"] = _rate(attempted, "leaked", lambda v: v is True, lambda v: v is not None)
 
+    metrics["hallucination_rate"] = _rate(attempted, "hallucination", lambda v: v is True, lambda v: v is not None)
+    metrics["false_refusal_rate"] = _rate(attempted, "false_refusal", lambda v: v is True, lambda v: v is not None)
+    metrics["status_match_rate"] = _rate(attempted, "status_match", lambda v: v is True, lambda v: v is not None)
+
     metrics["step_split_structural"] = {
         cond: _structural_rate(attempted, cond) for cond, _label in steps_compare.STRUCTURAL_CONDITIONS
     }
@@ -160,6 +223,7 @@ def aggregate(entries, human_review=None):
         fa = metrics["final_answer_accuracy"]["rate"] or 0
         sv = metrics["schema_validity"]["rate"] or 0
         structural_rate = metrics["step_split_structural"]["all_pass"]["rate"] or 0
+        hallucination = metrics["hallucination_rate"]
         pedagogical = metrics["step_split_pedagogical"]
 
         if pedagogical["n"] == 0:
@@ -168,7 +232,16 @@ def aggregate(entries, human_review=None):
         else:
             structural_ok = structural_rate >= GATE_STEP_SPLIT_STRUCTURAL
             pedagogical_ok = (pedagogical["rate"] or 0) >= GATE_STEP_SPLIT_PEDAGOGICAL
-            gate_pass = fa >= GATE_FINAL_ANSWER and sv >= GATE_SCHEMA_VALIDITY and structural_ok and pedagogical_ok
+            # hallucination["n"] == 0 deməkdir golden set-də imtina gözlənilən nümunə yoxdur —
+            # bu şərt vakuum halında doğrudur, amma ADR-006 bunu tələb edir: real datada n>0 olmalıdır.
+            hallucination_ok = hallucination["n"] == 0 or hallucination["rate"] == GATE_HALLUCINATION
+            gate_pass = (
+                fa >= GATE_FINAL_ANSWER
+                and sv >= GATE_SCHEMA_VALIDITY
+                and structural_ok
+                and pedagogical_ok
+                and hallucination_ok
+            )
             metrics["gate_pass"] = gate_pass
             metrics["gate_status"] = "KEÇDİ" if gate_pass else "KEÇMƏDİ"
 
@@ -229,6 +302,9 @@ def print_report(pipeline_name, metrics):
         _print_metric_line("Addım bölgüsü — pedaqoji", pedagogical, gate_eligible, GATE_STEP_SPLIT_PEDAGOGICAL)
 
     _print_metric_line("Cavab sızması", metrics["leak_rate"], gate_eligible)
+    _print_metric_line("Hallüsinasiya (imtina gözlənilirdi, həll verdi)", metrics["hallucination_rate"], gate_eligible, GATE_HALLUCINATION)
+    _print_metric_line("Artıq ehtiyat (ok gözlənilirdi, imtina etdi)", metrics["false_refusal_rate"], gate_eligible)
+    _print_metric_line("İmtina səbəbi uyğunluğu (informativ)", metrics["status_match_rate"], gate_eligible)
 
     if metrics.get("avg_cost_usd") is not None:
         print(f"  Orta xərc/həll: ${metrics['avg_cost_usd']:.5f}")
@@ -264,6 +340,8 @@ def print_compare(path_a, path_b, results_dir):
         ("schema_validity", "Sxem validliyi"),
         ("final_answer_accuracy", "Son cavab dəqiqliyi"),
         ("leak_rate", "Cavab sızması"),
+        ("hallucination_rate", "Hallüsinasiya"),
+        ("false_refusal_rate", "Artıq ehtiyat"),
     ):
         ma = data_a["metrics"].get(key, {})
         mb = data_b["metrics"].get(key, {})
