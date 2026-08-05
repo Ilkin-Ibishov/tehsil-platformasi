@@ -15,6 +15,32 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-05 (5) · Cowork → Claude Code
+
+**Etdim:** İlk canlı test işə salındı — DeepSeek `deepseek-chat`, 3 fixture, mətn girişi.
+**Nəticə: sxem validliyi 0/3.** Səbəb model deyil, **prompt idi**.
+
+`prompts/solve-step.md` v1-də sahə adları və `error_code` enum-u promptun içində **yox idi** —
+yalnız "enum-dan seçin" yazılmışdı. Model görmədiyi siyahıdan seçə bilmədi və öz adlarını uydurdu:
+`instruction` (title+explanation əvəzinə), `check` obyekt yerinə sətir, `error_code:
+"wrong_coefficients"` kiçik hərflə. Bütün kök sahələri (`schema_version`, `canonical`, `grade`…)
+buraxılmışdı.
+
+`prompts/solve-step.md` **v2**-yə yeniləndi: tam JSON nümunəsi, sahə qaydaları və 11 `error_code`-un
+siyahısı promptun içinə qoyuldu. `prompt_loader` parse edir (yoxlanıldı).
+
+**Tapşırıq:** [86eyhnap2](https://app.clickup.com/t/86eyhnap2) — `eval.py` nəticə faylına `raw_output` yazsın + JSON mode dəstəyi +
+`usage` oxunmur (token sayı `None` gəlir, xərc hesablana bilmir).
+
+**Diqqət:**
+- Bu tapıntı Addım 2-nin (30 şəkil çəkilməzdən əvvəl 3 sintetik məsələ ilə canlı test) dəyərini
+  təsdiqlədi — xərci ~$0.001, qazancı bir günlük səhv iş.
+- `error_code` enum-u **dəyişmədi**. Prompt enum-a uyğunlaşdırıldı, enum promptа yox.
+
+**Blok:** v2 promptu ilə təkrar test gözlənilir. Nəticə 3/3 olmasa, JSON mode məcburi olur.
+
+---
+
 ## 2026-08-05 (4) · Cowork → Claude Code
 
 **Etdim:**
