@@ -29,6 +29,7 @@ adlandırılmasını zəiflədirsə — o dəyişiklik səhvdir, nə qədər "t�
 | Memarlıq qərarları | `docs/decisions/ADR-*.md` | hər ikisi |
 | Tapşırıq statusu | ClickUp | hər ikisi |
 | Növbə jurnalı | `docs/HANDOFF.md` | hər ikisi |
+| Gələcək ideyalar | `docs/FUTURE-IDEAS.md` | Cowork — **tapşırıq deyil, kod yazma** |
 
 **Heç vaxt:** dizayn tokenini komponentin içində hardcode etmə. `DESIGN-TOKENS.json` → CSS custom
 property → komponent. Səbəb: mövcud 9 dizayn faylında eyni token 3 fərqli dəyərdə idi

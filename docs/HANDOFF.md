@@ -15,6 +15,19 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-05 (2) · Cowork → Claude Code
+
+**Etdim:** `docs/FUTURE-IDEAS.md` — 4 gələcək funksiya (memory cards, gamification, lent alqoritmi,
+leaderboard) qiymətləndirilib və saxlanılıb.
+
+**Diqqət:** Bu fayl **tapşırıq deyil**. Heç biri Faza 4-dən əvvəl qurulmur. Kod yazma.
+Yalnız Faza 2 sxem qərarlarında üç sətir nəzərə alınmalıdır:
+- `problems` → `template_id` + `params` (variant generasiya mühərriki)
+- `weekly_snapshots` cədvəli — irəliləyiş sonradan geriyə hesablana bilməz
+- credits sxemi (əgər gələrsə) → **yalnız kosmetika, heç vaxt fayda**
+
+---
+
 ## 2026-08-05 · Cowork → Claude Code
 
 **Etdim:**
