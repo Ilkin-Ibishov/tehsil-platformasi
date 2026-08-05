@@ -52,9 +52,14 @@ Hər sətir bir JSON obyekti:
   "problem_type": "formula",
   "canonical": "x^2-5x+6=0",             // insanın yazdığı doğru forma
   "topic_code": "ALG.QUADRATIC_EQUATION",
-  "final_answer_values": ["3", "2"],     // insan ground truth-u — 86eyhqggz: modelin dəyəri bunlardan
-                                          // HƏR HANSI biri ilə üst-üstə düşsə doğrudur (alternativ
-                                          // formalar da ola bilər, məs. ["3/10","0.3","0,3"])
+  "final_answer_values": ["3", "2"],     // insan ground truth-u
+  "answer_values_are": "components",     // ADR-009: "alternate_forms" (defolt, kəsişmə — hər hansı
+                                          // golden dəyəri hər hansı model dəyəri ilə üst-üstə düşsə
+                                          // doğrudur, məs. ["3/10","0.3","0,3"]) | "components" (tam
+                                          // əhatə — HƏR golden komponentinin (iki kök və s.) modelin
+                                          // dəyərləri arasında ekvivalenti olmalıdır)
+  "answer_is_root": true,                // ADR-009: false-dursa sympy çarpaz yoxlama (2-ci qat) keçilir —
+                                          // cavab tənliyin kökü DEYİL (məs. kontekstual tənlikdən törəmə ehtimal)
   "expected_choice": "B",                // opsional, variantlı məsələdə düzgün hərf — informativdir, qapıya girmir
   "expected_status": "ok",               // ADR-006: ok | unreadable | not_a_problem | multiple_problems | cut_off | unsupported. Yoxdursa "ok" sayılır.
   "expected_step_count": 4,
@@ -69,9 +74,9 @@ Hər sətir bir JSON obyekti:
 | metrika | necə | qapı |
 |---|---|---|
 | **OCR dəqiqliyi** | `canonical` sympy ilə normallaşdırılıb müqayisə | ≥90% (çap) |
-| **Son cavab dəqiqliyi** | üç qat (86eyhqggz): (1) golden `final_answer_values` ilə birbaşa müqayisə — əsas mənbə, (2) sympy `canonical`-a qarşı müstəqil çarpaz yoxlama, (3) heç biri mümkün deyilsə `None` | **≥85%** |
+| **Son cavab dəqiqliyi** | üç qat (86eyhqggz, ADR-009): (1) golden `final_answer_values` ilə **kəsişmə** əsaslı müqayisə (`answer_values_are`-ə görə), (2) sympy `canonical`-a qarşı müstəqil çarpaz yoxlama (`answer_is_root=false`-da keçilir), (3) heç biri mümkün deyilsə `None` | **≥85%** |
 | **Yoxlama ziddiyyəti** | (1) və (2) fərqli nəticə verib — golden set-in özündə səhv ola bilər, əl ilə yoxlanmalıdır | qapısız, item id-ləri ilə çap olunur |
-| **Variant uyğunluğu** | `expected_choice` son addımın `check.accept`-ində varmı | informativ, qapısız |
+| **Variant uyğunluğu** | `final_answer.choice` (yoxdursa son addımın `check.accept`-i) `expected_choice`-a uyğundurmu | informativ, qapısız |
 | **Addım bölgüsü — struktur** | say 2–6, hər addımda `check`, `index` ardıcıl, son addım yoxlama, `error_code`-lar fərqli | **100%** |
 | **Addım bölgüsü — pedaqoji** | insan rəyi: "bu bölgü ilə şagird özü həll edə bilərmi?" (bax `ADR-004`) | **≥75%** |
 | **Sxem validliyi** | `STEP-SCHEMA.json`-a uyğunluq | 100% |

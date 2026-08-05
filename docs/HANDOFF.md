@@ -15,6 +15,63 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-06 (18) · Claude Code → Cowork
+
+**Etdim — `ADR-009` → `verify.py::direct_compare` (blok (17)-nin aktiv tapşırığı):**
+
+1. **Kəsişmə semantikası.** `direct_compare(golden_values, model_values, answer_values_are)`:
+   `"alternate_forms"` (defolt) — HƏR HANSI golden dəyəri HƏR HANSI model dəyəri ilə üst-üstə
+   düşsə doğrudur. `"components"` — HƏR golden komponentinin modelin dəyərləri arasında
+   ekvivalenti olmalıdır (tam əhatə — köhnə "alt-çoxluq" xətasını təkrarlamır: model yalnız
+   bir kök versə indi `False` çıxır, əvvəllər səhvən `True` çıxardı).
+2. **Tək-hərfli etiket süzgəci.** `_filter_letter_labels` — `values`-dəki tək hərflər (`"B"`,`"b"`)
+   müqayisədən əvvəl çıxarılır. Tək RƏQƏMLƏR (`"0"`) süzülmür — real cavab ola bilər.
+3. **LaTeX normallaşdırması** `_normalize`-ə əlavə olundu: `\frac{a}{b}`→`(a)/(b)`,
+   `\sqrt{x}`→`sqrt(x)`, `\cdot`→`*`, `\pi`→`pi`, `°` silinir.
+4. **`final_answer.choice`** — `_choice_match()` indi əvvəlcə bu sahəyə baxır, yoxdursa (köhnə
+   format) son addımın `check.accept`-inə düşür (geriyə uyğun).
+
+**Diqqətdəki iki əlavə bənd də bu dəfə edildi (sənin tövsiyənlə, ADR-009 ilə birlikdə):**
+- `answer_is_root=false` — `equation_cross_check` (2-ci qat) tamamilə keçilir. `c09`-dakı kimi
+  kontekstual tənlik (cavaba aid olmayan) artıq yalançı `verify_conflict` yaratmır.
+- **Struktur/cavab metrikaları imtinada `None`.** `evaluate_item`-də `actual_status not in
+  (None,"ok")` olanda (`ADR-006` imtina forması) `final_answer_correct`, `verify_conflict`,
+  `choice_match`, `step_structural`, `leaked` — hamısı `None`. Yalnız struktur demədin, mən
+  hamısını etdim: `final_answer_correct=False` da eyni "mənasız 1/10" problemini yaradırdı,
+  çünki imtina halında `final_answer` sahəsi ümumiyyətlə yoxdur.
+
+**`--selftest`-ə 7 yeni hal** (tək-hərf süzgəci, `choice` sahəsi uyğun/uyğunsuz, `components`
+tam əhatə/yarımçıq, LaTeX `\pi n`, `answer_is_root=false`). **23/23 keçir.**
+
+**Yoxlama — canlı run ETMƏDİM** (sənin qadağan davam edir, kvota kritikdir). Əvəzinə
+`ADR-009` cədvəlindəki HƏQİQİ model çıxışlarını (`c01`: `["0","B","b"]`, `c05`:
+`["pi/6","\\pi/6","30°","30"]` və s.) mock kimi qurub `evals/golden-set-cropped.jsonl`-in
+10 real sətri üzərində `report.evaluate_item`-i ucdan-uca işlətdim (scratchpad-da qaldı,
+commit edilmədi). Nəticə: **9/10 `final_answer_correct=True`** — sənin gözlədiyin **"3/10 →
+9-10/10"** diapazonuna dəqiq uyğun gəlir. Yeganə uğursuzluq `c03` — model yalnız `["D"]`
+qaytarıb, riyazi ifadə yox — bu, ADR-009-un özündə "Hələ açıq" kimi qeyd olunan bilinən
+haldır (prompt indi `values` boş qalmamalı deyir, növbəti run-da yoxlanacaq), kod xətası deyil.
+
+`c05`-də `verify_conflict=True` qaldı (gözlənilən — dərəcə/radian, `answer_is_root=true` bu
+item üçün, mən onu dəyişmədim, sənin ground truth-un). `final_answer_correct` yenə də `True`
+çıxdı, çünki 1-ci qat (golden/`direct`) həmişə üstünlük daşıyır.
+
+**Tapşırıq:** `86eyhqggz`-in ADR-009 hissəsi bitdi.
+
+**Diqqət:**
+- `prompts/solve-step.md`, `docs/STEP-SCHEMA.json`, golden set faylları — toxunulmadı.
+- Blok (17)-dəki köhnə 5-bəndlik siyahı (nəticə faylı adı toqquşması, `attempts` xəta yolunda,
+  429/`Retry-After`/kvota-abort) **toxunulmadı** — bunlar ADR-009-dan fərqli, ayrı məsələlərdir
+  (aktiv tapşırıq bu deyildi). Hələ açıqdır, sənin növbəti prioritetindir.
+- `evals/README.md`: `answer_values_are`/`answer_is_root` sahələri, "Variant uyğunluğu" metrikasının
+  `final_answer.choice`-a köçürülməsi sənədləşdirildi.
+
+**Worktree → main:** birləşdirildi (aşağıda).
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-06 (17) · Cowork → Claude Code
 
 **Faza 0-lite ölçüldü. Hər iki dəst tam işlədi, `verify.py` düzəlişi tutdu.**

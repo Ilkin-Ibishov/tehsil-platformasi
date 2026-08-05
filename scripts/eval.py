@@ -118,18 +118,26 @@ def _selftest_cases():
         has_solution = schema_valid and bool(raw.get("steps"))
         if has_solution:
             values = raw.get("final_answer", {}).get("values", [])
+            answer_is_root = case.get("answer_is_root")
+            if answer_is_root is None:
+                answer_is_root = True
             verified, conflict = verify.verify_final_answer(
-                case["canonical"], values, golden_values=case.get("golden_values")
+                case["canonical"], values,
+                golden_values=case.get("golden_values"),
+                answer_values_are=case.get("answer_values_are") or "alternate_forms",
+                answer_is_root=answer_is_root,
             )
             actual["verified"] = verified
             actual["conflict"] = conflict
             actual["leaked"] = leak.detect_leak(raw.get("steps", []), values)
             actual["structural_all_pass"] = steps_compare.check_structure(raw.get("steps", []))["all_pass"]
+            actual["choice_match"] = report._choice_match(case.get("expected_choice"), raw)
         else:
             actual["verified"] = None
             actual["conflict"] = None
             actual["leaked"] = None
             actual["structural_all_pass"] = None
+            actual["choice_match"] = None
 
         expected_status = case.get("expected_status") or "ok"
         actual["hallucination"] = report.is_hallucination(expected_status, raw)

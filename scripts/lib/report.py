@@ -136,10 +136,29 @@ def evaluate_item(item, result, cfg):
         entry["leaked"] = None
         return entry
 
+    if entry["actual_status"] not in (None, "ok"):
+        # ADR-006 imtina forması (sxem valid, amma yalnız status+reason var): steps/final_answer
+        # yoxdur, ona görə cavab/struktur/sızma metrikaları MƏNASIZDIR — HANDOFF (17):
+        # "Struktur yoxlaması imtinalarda mənasız 0/6-1/10 verir, None olmalıdır." Eyni səbəbdən
+        # final_answer_correct/verify_conflict/choice_match də None (hamısı final_answer-ə bağlıdır).
+        entry["final_answer_correct"] = None
+        entry["verify_conflict"] = None
+        entry["choice_match"] = None
+        entry["step_structural"] = None
+        entry["leaked"] = None
+        return entry
+
     canonical = item.get("canonical") or raw.get("canonical", "")
     values = raw.get("final_answer", {}).get("values", [])
     golden_values = item.get("final_answer_values")
-    verified, conflict = verify.verify_final_answer(canonical, values, golden_values=golden_values)
+    answer_values_are = item.get("answer_values_are") or "alternate_forms"
+    answer_is_root = item.get("answer_is_root")
+    if answer_is_root is None:
+        answer_is_root = True
+    verified, conflict = verify.verify_final_answer(
+        canonical, values, golden_values=golden_values,
+        answer_values_are=answer_values_are, answer_is_root=answer_is_root,
+    )
     entry["final_answer_correct"] = verified
     entry["verify_conflict"] = conflict
     entry["choice_match"] = _choice_match(item.get("expected_choice"), raw)
@@ -149,17 +168,23 @@ def evaluate_item(item, result, cfg):
 
 
 def _choice_match(expected_choice, raw):
-    """İnformativ: `expected_choice` (golden set-də, variantlı məsələdə düzgün hərf) son addımın
-    `check.accept`-ində varmı. Qapıya girmir — prompt qaydası (ADR-008) `accept`-ə həm hərfi
-    həm dəyəri yazmağı tələb edir, bu ona görə mümkündür."""
+    """İnformativ, qapıya girmir. ADR-009: əsas mənbə `final_answer.choice` (sxemdə ayrıca
+    sahə). Yoxdursa (köhnə formatlı çıxış, geriyə uyğunluq) son addımın `check.accept`-inə
+    baxılır — ADR-008 qaydası `accept`-ə həm hərfi həm dəyəri yazmağı tələb edir."""
     if not expected_choice or not isinstance(raw, dict):
         return None
+    expected = str(expected_choice).strip().upper()
+
+    model_choice = (raw.get("final_answer") or {}).get("choice")
+    if model_choice:
+        return str(model_choice).strip().upper() == expected
+
     steps = raw.get("steps") or []
     if not steps:
         return None
     accept = (steps[-1].get("check") or {}).get("accept") or []
     normalized_accept = {str(a).strip().upper() for a in accept}
-    return str(expected_choice).strip().upper() in normalized_accept
+    return expected in normalized_accept
 
 
 def _rate(entries, key, is_match, is_denom):
