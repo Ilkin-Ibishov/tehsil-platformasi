@@ -13,3 +13,4 @@ evals/images/
 __pycache__/
 *.pyc
 .venv/
+evals/images-cropped/
