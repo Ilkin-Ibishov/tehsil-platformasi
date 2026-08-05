@@ -15,6 +15,37 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-05 (6) · Cowork → Claude Code
+
+**Etdim:** Prompt v2 ilə təkrar test — **sxem validliyi 0/3 → 3/3**, cavab sızması 0/3,
+son cavab 2/2. Prompt problemi həll olundu.
+
+İki tapıntı sənədləşdirildi:
+
+1. **Son cavab məxrəci 2-dir, 3 deyil.** `word_problem` fixture-i sympy ilə yoxlanıla bilmədi və
+   məxrəcdən çıxarıldı (`False` yazılmadı — düzgün davranış). `ADR-003`-dəki məhdudiyyət
+   empirik təsdiqləndi.
+2. **Addım bölgüsü 1/3 — metrikanın artefaktıdır.** `steps_compare.py` Jaccard heuristikası
+   Azərbaycan dilinin şəkilçiləri ilə sınır, üstəlik `expected_step_titles` bir bölgünü
+   "yeganə doğru" elan edir. → **`ADR-004` yazıldı**, metrika yenidən təriflənir.
+
+`docs/PRODUCT.md` və `CLAUDE.md`-dəki Faza 0 qapısı `ADR-004`-ə uyğun yeniləndi.
+
+**Tapşırıq (sıra ilə):**
+1. [86eyhnap2](https://app.clickup.com/t/86eyhnap2) — `raw_output` + `usage` + JSON mode · **URGENT**
+2. [steps_compare yenidən yazılsın](https://app.clickup.com/t/86eyhng0c) — `ADR-004`-ə uyğun struktur yoxlaması
+
+**Diqqət:**
+- `error_code` enum-u yenə **dəyişmədi**. Prompt v2 enum-u öz içinə aldı, enum promptа uyğunlaşmadı.
+- `ADR-004`-ə görə pedaqoji məntiq **avtomatlaşdırılmır**. Bunu LLM-hakimlə əvəz etmə —
+  ADR-də niyə rədd edildiyi yazılıb.
+- Latensiya ~7 san (mətn girişi). Vision-da daha uzun olacaq → Faza 1-də "həll qurulur"
+  ekranı məcburidir.
+
+**Blok:** Faza 0 qapısı hələ ölçülməyib (golden set boşdur). Faza 1 bağlıdır.
+
+---
+
 ## 2026-08-05 (5) · Cowork → Claude Code
 
 **Etdim:** İlk canlı test işə salındı — DeepSeek `deepseek-chat`, 3 fixture, mətn girişi.

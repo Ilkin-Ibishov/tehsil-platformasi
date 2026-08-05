@@ -77,7 +77,8 @@ Detallar: `docs/ARCHITECTURE.md`
 ## Cari faza
 
 **Faza 0 — Eval.** Kod yazmadan əvvəl OCR/sxem boru xəttinin dəqiqliyi ölçülür.
-Qapı: son cavab ≥85%, addım bölgüsü ≥75%. Keçmirsə Faza 1-ə keçmə.
+Qapı: son cavab ≥85% · sxem validliyi 100% · addım bölgüsü struktur 100% + insan rəyi ≥75%
+(bax `docs/decisions/ADR-004-step-split-metric.md`). Keçmirsə Faza 1-ə keçmə.
 Bax: `docs/PRODUCT.md` → "Fazalar və qapılar".
 
 ## Referans

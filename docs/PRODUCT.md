@@ -65,7 +65,12 @@ Girişin əksəriyyəti **çap olunmuş DİM test toplusu** olduğu üçün bu q
    - Vision LLM tək çağırış → sxem
 4. `scripts/eval.py` dəqiqlik və xərci hesablayır
 
-**Qapı:** son cavab ≥85% · addım bölgüsü ≥75% · orta xərc/həll ölçülüb
+**Qapı:**
+- son cavab dəqiqliyi **≥85%** (sympy ilə; `word_problem`-lər məxrəcdən çıxır — bax `ADR-003`)
+- sxem validliyi **100%**
+- addım bölgüsü — **struktur 100%** (avtomatik) **+ pedaqoji məntiq ≥75%** (insan rəyi, bax `ADR-004`)
+- orta xərc/həll ölçülüb
+
 **Nəticə:** `docs/decisions/ADR-001-ocr-pipeline.md` yenilənir
 
 ## Faza 1 — Şaquli dilim (2–3 həftə)

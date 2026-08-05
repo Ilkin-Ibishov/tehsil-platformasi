@@ -64,7 +64,8 @@ Hər sətir bir JSON obyekti:
 |---|---|---|
 | **OCR dəqiqliyi** | `canonical` sympy ilə normallaşdırılıb müqayisə | ≥90% (çap) |
 | **Son cavab dəqiqliyi** | `final_answer_values` sympy yoxlanışı | **≥85%** |
-| **Addım bölgüsü** | sayı ±1 və başlıqların semantik uyğunluğu | **≥75%** |
+| **Addım bölgüsü — struktur** | say 2–6, hər addımda `check`, `index` ardıcıl, son addım yoxlama, `error_code`-lar fərqli | **100%** |
+| **Addım bölgüsü — pedaqoji** | insan rəyi: "bu bölgü ilə şagird özü həll edə bilərmi?" (bax `ADR-004`) | **≥75%** |
 | **Sxem validliyi** | `STEP-SCHEMA.json`-a uyğunluq | 100% |
 | **Cavab sızması** | `explanation` içində nəticə varmı | ≤10% |
 | **Xərc / həll** | token sayı × qiymət | ölçülüb qeyd edilir |
