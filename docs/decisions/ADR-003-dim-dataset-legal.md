@@ -45,6 +45,34 @@ Ayrım:
 - Import skripti mətni **yalnız hash/fingerprint/embedding çıxarmaq üçün** oxuyur, sonra atır
 - Test ekranındakı suallar **öz formulasiyamız** olmalıdır (eyni mövzu, fərqli ifadə)
 
+## Əlavə 2026-08-05 — mətn məsələləri maşınla təsdiqlənə bilmir
+
+`scripts/eval.py` yazılarkən üzə çıxdı: `verify.py` `final_answer.values`-i yalnız `canonical`-da
+tənlik olduqda yoxlaya bilir. `word_problem` tipində tənlik yoxdursa `None` (yoxlanıla bilmədi)
+qaytarır.
+
+**Eval üçün problem deyil** — golden set-də insanın yazdığı `final_answer_values` var, müqayisə ona
+görə aparılır.
+
+**DİM import üçün problemdir.** Orada insan ground truth-u yoxdur. Yəni:
+
+| məsələ tipi | əvvəlcədən hesablanmış həll | mövqe |
+|---|---|---|
+| `formula` | sympy təsdiqləyir | `verified=true` → göstərilir |
+| `word_problem` | **maşınla təsdiqlənə bilmir** | `verified=false` → göstərilmir, canlı LLM-ə gedir |
+
+Nəticələr:
+
+1. DİM toplusunun mətn məsələləri hissəsi **avtomatik import edilə bilməz** — ya nümunə əsasında
+   insan yoxlamasından keçməli, ya da keşə düşməməlidir. Bu, import işinin həcmini dəyişir.
+2. Alternativ: import zamanı mətn məsələsindən **tənlik çıxarmaq** (LLM ilə), onu `canonical`-a
+   `$...$` içində əlavə etmək — onda sympy yoxlaya bilir. Amma tənliyin özü LLM çıxışıdır, yəni
+   yoxlama dairəvi olur. **Bu variant seçilərsə, ayrıca ADR tələb edir.**
+3. Faza 2-də `solutions.verification_method` sahəsi `sympy` / `human` / `none` ayrımını onsuz da
+   saxlayır — sxem hazırdır, qərar yoxdur.
+
+**Qərar verilməyib.** DİM import işinə başlamazdan əvvəl həll edilməlidir.
+
 ## Açıq məsələlər
 
 - [ ] Miqyaslanmadan əvvəl 1 saatlıq hüquqşünas rəyi (ucuzdur, gecikdirmə)

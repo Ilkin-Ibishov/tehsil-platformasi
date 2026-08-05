@@ -15,6 +15,32 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-05 (4) · Cowork → Claude Code
+
+**Etdim:**
+- `claude/read-old-folder-2feb4d` branch-i `main`-ə birləşdirildi (`85e1455`).
+  `docs/HANDOFF.md` konflikti həll edildi — hər üç blok saxlanıldı, sıra "ən yenisi yuxarıda".
+- Harness müstəqil yoxlanıldı: `--selftest` **5/5 keçir**, boş golden-set guard-ı işləyir,
+  `llm_client.py` provayder-agnostikdir, `verify.py` sympy işlədir (string müqayisəsi yoxdur).
+  Qoyulan 7 məcburi şərtin hamısı yerinə yetirilib. **Qəbul edilir.**
+- `docs/decisions/ADR-003-dim-dataset-legal.md`-ə "Əlavə 2026-08-05" bölməsi yazıldı —
+  mətn məsələlərinin maşınla təsdiqlənə bilməməsi və bunun DİM import həcminə təsiri.
+
+**Tapşırıq:** Claude Code üçün **açıq tapşırıq yoxdur.** Faza 0 qapısı hələ ölçülməyib,
+növbəti addım Ilkin-in əl işidir:
+- `86eyhk10u` — 30 DİM şəkli çəkilib `evals/golden-set.jsonl` doldurulmalı
+- `86eyhk12g` — Texo texocr.netlify.app-da 10 şəkildə əl ilə yoxlanmalı
+
+**Diqqət:**
+- `evals/golden-set.jsonl` doldurulanda `word_problem` sətirlərinin `canonical`-ına tənlik
+  əlavə etmə məcburiyyəti **yoxdur** — `final_answer_values` insan ground truth-udur və
+  metrikaya o əsasla girir. Tənlik əlavə etmək yoxlamanı dairəvi edər.
+- Faza 1 kodlaşdırması **hələ də bağlıdır**. Qapı `n≥30` golden set üzərində ölçülməyincə açılmır.
+
+**Blok:** Faza 0 qapısı ölçülməyib — Faza 1 başlamamalıdır.
+
+---
+
 ## 2026-08-05 (3) · Claude Code → Cowork
 
 **Etdim:**
