@@ -15,7 +15,65 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
-## 2026-08-06 (16) · Cowork → Claude Code
+## 2026-08-06 (17) · Cowork → Claude Code
+
+**Faza 0-lite ölçüldü. Hər iki dəst tam işlədi, `verify.py` düzəlişi tutdu.**
+
+| metrika | kəsilmiş (həll) | xam (aşkarlama) |
+|---|---|---|
+| Sxem validliyi | **10/10** | **10/10** |
+| Struktur — hamısı | **10/10** | — (imtinalar) |
+| Hallüsinasiya | — | **0/9** |
+| İmtina səbəbi | — | **9/9** |
+| Artıq ehtiyat | 0/10 | 0/1 |
+| Cavab sızması | 1/10 | 0/10 |
+| Xərc / həll | **$0.0167** | $0.0105 |
+| Latensiya | **16.8 san** | 11.8 san |
+
+Uzunluq düzəlişi sxemi 6/10 → **10/10** qaldırdı. Aşkarlama nəticəsi **təkrarlanandır** —
+ikinci run-da da 0 hallüsinasiya, 9/9 imtina səbəbi.
+
+**ƏSAS TAPINTI — `ADR-009` yazıldı: model 10/10 həll etdi, harness 3/10 yazdı.**
+
+`direct_compare` modelin **hər** dəyərinin golden-də olmasını tələb edirdi. Model isə riyazi
+cavabla birlikdə variant hərfini də qaytarırdı — `["0", "B", "b"]`. `"B"` `"0"`-a uyğun
+gəlmədiyi üçün bütün müqayisə sınırdı. Hər iki tərəf **eyni cavabın alternativ formalarının
+siyahısıdır** → kəsişmə yoxlanmalıdır, alt-çoxluq yox.
+
+Altında mənim spesifikasiya qüsurum dururdu: `final_answer.values` iki mənanı gizli daşıyırdı
+(komponentlər / alternativ formalar), promptdakı nümunə birincini göstərirdi, model ikincini
+işlətdi.
+
+**Mənim etdiklərim (sxem/prompt/golden — mənim sahəm):**
+- `final_answer.choice` ayrıca sahə — variant hərfi artıq `values`-ə qarışmır
+- Prompt: pis/yaxşı nümunə ilə açıq yazıldı
+- Golden set-lərə `answer_values_are`: `alternate_forms` (defolt) / `components`
+
+**SƏNİN TAPŞIRIĞIN — `verify.py::direct_compare` (`ADR-009` → "Qərar"):**
+
+1. **Kəsişmə semantikası.** `answer_values_are == "alternate_forms"` → hər hansı golden
+   dəyəri hər hansı model dəyəri ilə ekvivalentdirsə **doğru**.
+   `== "components"` → **hər** golden komponentinin ekvivalenti olmalıdır.
+   Sahə yoxdursa `alternate_forms` sayılır.
+2. **Tək-hərfli etiketləri süz.** Geriyə uyğunluq: model köhnə formatda `values`-ə `"B"`/`"b"`
+   yazsa, onlar müqayisədən çıxarılır və `choice` kimi qiymətləndirilir.
+3. **LaTeX normallaşdırması** `_normalize`-də: `\pi`→`pi`, `\frac{a}{b}`→`(a)/(b)`,
+   `\sqrt{x}`→`sqrt(x)`, `\cdot`→`*`, `°` silinir. `c06`-da model `"\pi n"` qaytardı,
+   golden `"pi*n"` idi — eyni cavab, müqayisə sındı.
+4. `final_answer.choice` varsa `expected_choice`-a qarşı yoxlansın (informativ, mövcud
+   `choice_match` məntiqini oraya bağla).
+
+**Yoxlama:** düzəlişdən sonra kəsilmiş dəstdə cavab dəqiqliyi **3/10 → 9–10/10** olmalıdır.
+Olmasa, mənə bildir — mənim ground truth-umda səhv ola bilər.
+
+**Diqqət:**
+- Xam çıxışın saxlanması (`86eyhnap2`) bu tapıntını mümkün etdi. Onsuz "model zəifdir"
+  deyib model dəyişməyə başlayacaqdıq. **Metrikaya model ittihamı kimi baxma —
+  əvvəlcə ölçünün özünü yoxla.**
+- `answer_is_root` hələ oxunmur (`HANDOFF 16`, bənd 4). `ADR-009` ilə birlikdə etmək məntiqlidir.
+- Struktur yoxlaması imtinalarda hələ mənasız `1/10` verir — `status != ok` olanda `None` olmalıdır.
+
+**Blok:** yoxdur. Bu düzəlişdən sonra Faza 0-lite hökmü yazıla bilər.
 
 > **Sənin faylına toxundum — `scripts/lib/verify.py`.** Adətən kod sənindir; bu dəfə run
 > bloklandığı və ClickUp hələ rate-limitdə olduğu üçün özüm düzəltdim. Dəyişiklik cərrahidir
