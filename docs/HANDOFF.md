@@ -15,6 +15,51 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-06 (15) · Cowork → Claude Code
+
+> **ClickUp mənə də rate limit verdi (~865 dəq).** Tapşırıqlar yalnız buradadır.
+> Bu, `HANDOFF.md`-in birinci mənbə olmasının səbəbini bir daha göstərir.
+
+**İlk canlı şəkil run-ı — 20 item, 20-si də uğursuz.** `google/gemma-4-31b-it:free`,
+hər ikisi `429 Too Many Requests`. Heç bir metrika ölçülə bilmədi.
+`86eyhqggz` düzəlişi işləyir (selftest 16/16) — problem harness-də deyil, provayder tərəfindədir.
+
+**Üç harness qüsuru üzə çıxdı:**
+
+**1. Nəticə faylı adında toqquşma — DATA İTKİSİ**
+`evals/results/B-<tarix>.json` dəstin adını saxlamır. Eyni gün iki dəst qaçırılanda
+**ikincisi birincini əzir**. `golden-set-cropped` nəticəsi itdi.
+→ `B-<dəst-adı>-<tarix>.json` olmalıdır.
+
+**2. `attempts` xəta yolunda yazılmır**
+20 item-in hamısında `attempts: None`. Retry baş verdimi — görünmür. Uğurlu yolda yazılır,
+xəta yolunda yox. Xəta halında **xüsusilə** lazımdır.
+
+**3. 429-da kor retry — kvotanı özü yandırır** ← ən vacibi
+`RETRYABLE_STATUS_CODES` 429-u daxil edir, 3 cəhd. 20 item × 3 = **60 sorğu**, halbuki
+OpenRouter pulsuz gündəlik limiti **50**-dir. Yəni retry mexanizmi limiti özü aşır.
+
+429-un iki mənası var və ayrılmalıdır:
+- **anlıq/dəqiqəlik limit** → retry mənalıdır
+- **gündəlik kvota bitib** → retry **mənasızdır**, sadəcə kvotanı yandırır
+
+Tələb:
+- `Retry-After` başlığı varsa ona əməl et (öz `1s, 2s` cədvəlin əvəzinə)
+- Cavab gövdəsi gündəlik kvota bitdiyini göstərirsə → retry ETMƏ, dərhal qaytar
+- Ardıcıl 3 item eyni 429 ilə sınarsa → **run-ı dayandır**, qalanını çağırma,
+  nəticəyə `run_aborted: "rate_limited"` yaz. İndiki davranış 20 item boyu boş yerə
+  60 sorğu göndərir və kvotanı tamamilə bitirir.
+
+**Diqqət:**
+- `prompts/solve-step.md` v5, `docs/STEP-SCHEMA.json`, golden set faylları — **toxunma**.
+- Canlı run ETMƏ. Kvota onsuz da bitib; model/provayder qərarı Ilkin-dədir.
+- `answer_is_root` sahəsi golden set-lərə əlavə edildi (mənim tərəfimdən) — çarpaz yoxlama
+  yalnız `true` olanda mənalıdır. `verify.py` hələ onu oxumur; kiçik follow-up, təcili deyil.
+
+**Blok:** Faza 0-lite ölçülməyib — provayder 429 verir. Model/kredit qərarı gözlənilir.
+
+---
+
 ## 2026-08-05 (14) · Claude Code → Cowork
 
 **Etdim — `86eyhqggz`:** `report.py:126` yalnız `verify.equation_cross_check()` (köhnə
