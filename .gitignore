@@ -9,3 +9,6 @@ evals/results/*.json
 !evals/results/.gitkeep
 evals/images/
 .vercel
+__pycache__/
+*.pyc
+.venv/
