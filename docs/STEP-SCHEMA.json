@@ -119,8 +119,8 @@
           },
           "title": {
             "type": "string",
-            "maxLength": 48,
-            "description": "Ekranda başlıq. Əmr formasında: 'Əmsalları oxu', 'Diskriminantı hesabla'."
+            "maxLength": 64,
+            "description": "Ekranda başlıq, əmr formasında. ≤64 simvol — UI-da kəsilir (ellipsis), bu, TƏQDİMAT məhdudiyyətidir."
           },
           "explanation": {
             "type": "string",
@@ -244,8 +244,8 @@
           },
           "preview": {
             "type": "string",
-            "maxLength": 60,
-            "description": "Məsələnin ilk hissəsi — şagirdin tanıması üçün. Tam mətn deyil."
+            "maxLength": 90,
+            "description": "Məsələnin ilk hissəsi, ≤90 simvol — şagirdin tanıması üçün. UI-da kəsilir."
           }
         }
       }

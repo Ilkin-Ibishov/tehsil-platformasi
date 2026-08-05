@@ -129,6 +129,8 @@ Bu üç sahənin dəyəri QAPALI SİYAHIDANDIR. Qısaltma, dəyişdirmə, uydurm
 final_answer MƏCBURİ: latex (göstərilən forma), values (maşınla yoxlanacaq sadə dəyərlər massivi).
 
 Hər addımda MƏCBURİ: index, title, explanation, check, error_code, hint.
+UZUNLUQ HƏDDLƏRİ — aşılsa cavab tamamilə rədd edilir:
+  title 64 simvol · explanation 220 · why 260 · hint 140 · check.ask 90
 Hər addımda icazəli əlavə: latex, why, tokens.
 Başqa sahə ƏLAVƏ ETMƏ. Xüsusilə "instruction" adlı sahə YOXDUR.
 
@@ -208,7 +210,8 @@ BİR NEÇƏ MƏSƏLƏ VARSA — ƏN ÇOX RAST GƏLƏN HAL:
              HEÇ BİR identifikator yoxdursa (dərslik mətni, iş vərəqi) —
              kadrda yuxarıdan aşağıya sıra nömrəsi: "1", "2", "3".
              Uydurma nömrə YAZMA.
-  preview  → məsələnin ilk hissəsi, 60 simvoldan qısa. Tam mətn YOX.
+  preview  → məsələnin ilk hissəsi, 90 SİMVOLDAN QISA. Tam mətn YOX — kəs.
+             Uzun olsa bütün cavab rədd edilir.
   Ən çox 5 namizəd. Daha çoxdursa candidates yazma, yalnız status + reason.
 
   Bir neçəsini birləşdirib bir məsələ kimi həll ETMƏ.

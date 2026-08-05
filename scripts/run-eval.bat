@@ -20,6 +20,8 @@ echo === B / golden-set-cropped.jsonl  --  HELL YOLU           === >> "%LOG%"
 echo === her sekilde tek mesele, hamisi "ok" gozlenilir        === >> "%LOG%"
 echo ============================================================ >> "%LOG%"
 python scripts\eval.py --pipeline B --set evals/golden-set-cropped.jsonl >> "%LOG%" 2>&1
+rem --- fayl adi toqqusmasinin muveqqeti helli: neticeni adlandir ki, ikinci run ezmesin
+for %%F in (evals\results\B-*.json) do move /Y "%%F" "evals\results\CROPPED-%%~nxF" >nul
 echo. >> "%LOG%"
 
 echo     30 saniye gozleyirem (pulsuz limit: 20 sorgu/deqiqe) ...
