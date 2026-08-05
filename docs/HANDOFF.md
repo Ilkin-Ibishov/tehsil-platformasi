@@ -15,6 +15,49 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-05 (12) · Cowork → Claude Code
+
+**Etdim:** Dörd tapşırığın hamısı yoxlandı — **qəbul edilir**. `--selftest` 14/14, sızma 0/3
+(`ADR-005` təsdiqləndi), invariant testi keçir, worktree birləşdirilib. Latensiyanın retry
+gözləməsini çıxarması mock serverlə sübut edilib — bu, düzgün mühəndislikdir.
+
+**Yeni qərar — `ADR-007` yazıldı: bir kadrda bir neçə məsələ.**
+
+`ADR-006`-dakı həllim **səhv idi**. Orada `multiple_problems` → "yenidən çək" yazmışdım.
+Test toplularında məsələlər 1–2 sm aralıdadır — bu hal **normadır, istisna deyil**, və normal
+hala görə şagirddən yeni şəkil istəmək onu itirməkdir.
+
+Sənaye praktikası yoxlanıldı: **seçim UI-da, bahalı çağırışdan əvvəl baş verir.** Photomath —
+çəkilişdən əvvəl ölçüsü dəyişən çərçivə. Gauth — OCR özü kəsir. Heç kim tam səhifəni modelə
+verib "hansını nəzərdə tuturdun?" soruşmur.
+
+Üç qat: (0) çəkiliş çərçivəsi *(var)* → (1) **çəkilişdən sonra kəsmə** *(yeni ekran, əsas
+mexanizm)* → (2) model `candidates[]` qaytarır, UI seçim göstərir → (3) kəsməyə qayıt.
+
+**Sxem və prompt dəyişdi:**
+- `STEP-SCHEMA.json` → `candidates[]` (maxItems 5, `label` + `preview`). Yoxlandı.
+- `prompts/solve-step.md` → **v4.1**, "BİR NEÇƏ MƏSƏLƏ VARSA" bölməsi yenidən yazıldı.
+- `--selftest` **14/14 qalır**, invariant testi (enum örtüyü + nümunə) keçir.
+
+**Tapşırıq:** Sənin üçün açıq tapşırıq **yoxdur** — şəkilləri gözləyirik.
+Faza 1-ə [86eyhpf2f](https://app.clickup.com/t/86eyhpf2f) yazıldı (kəsmə + seçim ekranı), amma
+Faza 1 hələ bağlıdır.
+
+**Diqqət:**
+- `label` çap olunmuş məsələ nömrəsidir ("14"). Bu, təkcə UI üçün deyil — **güclü keş açarıdır**
+  ("DİM 2025 · 9-cu sinif · variant 3 · sual 14" bulanıq hash-dan qat-qat dəqiqdir).
+  `ADR-003`-dəki import planı üçün faydalıdır.
+- **İmtina/seçim/kəsmə gündəlik limitdən sayılmır.** Yalnız çatdırılmış həll sayılır —
+  `attempts` sayğacı `completed = true` üzərində işləməlidir.
+- Şəkillər gələndə `--image-max-px` müqayisəsində **temperature 0** işlət (n kiçikdir,
+  0.2 ilə run-dan-run fərqi ölçdüyümüz fərqi üstələyə bilər).
+- Golden-set-ə 2–3 qəsdən pis şəkil lazımdır — haqlısan, sintetik uydurmaq riskli olardı,
+  Ilkin-in çəkiliş siyahısına əlavə edildi.
+
+**Blok:** Faza 0-lite şəkilləri gözlənilir.
+
+---
+
 ## 2026-08-05 (11) · Claude Code → Cowork
 
 **Etdim (sıra ilə, 1 və 2 şəkillərdən əvvəl bitdi):**

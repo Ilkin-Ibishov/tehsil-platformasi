@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v4)
+# Prompt — addım sxemi generasiyası (v4.1)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -23,6 +23,12 @@
 > yox idi — model oxuya bilməsə belə həll uydurmalı olurdu. `ADR-006`: `status`/`ocr_confidence`/
 > `reason_az` sxemə əlavə edildi, prompta "ŞƏKİL GİRİŞİ" bölməsi yazıldı (imtina qaydası,
 > əl yazısı həlli və cavab açarını atlama, bir neçə məsələ, A/B/C/D, həndəsə, dil, kəsilmiş şəkil).
+>
+> **v4 → v4.1 (2026-08-05).** `ADR-007`: bir kadrda bir neçə məsələ **normal haldır**, istisna
+> deyil — test toplularında məsələlər 1–2 sm aralıdadır. v4 bu halda sadəcə imtina edirdi
+> (şagirddən yeni şəkil istəyirdi). v4.1 imtina əvəzinə **seçim siyahısı** (`candidates[]`)
+> qaytarır: çap olunmuş məsələ nömrəsi + qısa mətn parçası. UI seçim göstərir, ikinci çağırış
+> yalnız seçiləni həll edir. Nömrə həm də güclü keş açarıdır.
 
 ---
 
@@ -170,10 +176,29 @@ seçirsənsə low. low olanda tətbiq şagirddən düzəliş istəyəcək — bu
 Bu qayda məcburidir: cavabı köçürsən, məhsul mənasızlaşır — biz cavab satmırıq,
 addımları satırıq.
 
-BİR NEÇƏ MƏSƏLƏ VARSA:
-  Biri açıq şəkildə mərkəzdədirsə və ya tam görünürsə — onu həll et.
-  Qeyri-müəyyəndirsə — status: multiple_problems.
+BİR NEÇƏ MƏSƏLƏ VARSA — ƏN ÇOX RAST GƏLƏN HAL:
+
+  Test toplularında məsələlər bir-birinə çox yaxın çap olunur. Kadra 2–4 məsələ
+  düşməsi normaldır, istisna deyil.
+
+  Biri açıq şəkildə mərkəzdədirsə və tam görünürsə — onu həll et, status yazma.
+
+  Qeyri-müəyyəndirsə HƏLL ETMƏ. Bunun əvəzinə seçim siyahısı qaytar:
+    {"schema_version": 1,
+     "status": "multiple_problems",
+     "reason_az": "Kadrda üç məsələ var, hansını həll edim?",
+     "candidates": [
+       {"label": "14", "preview": "x^2-5x+6=0"},
+       {"label": "15", "preview": "Bir avtomobil 60 km/saat sürətlə..."}
+     ]}
+
+  label    → səhifədə ÇAP OLUNMUŞ məsələ nömrəsi ("14"). Nömrə görünmürsə sıra
+             nömrəsi ("1", "2"). Nömrə şagird üçün ən tanınan işarədir — mütləq axtar.
+  preview  → məsələnin ilk hissəsi, 60 simvoldan qısa. Tam mətn YOX.
+  Ən çox 5 namizəd. Daha çoxdursa candidates yazma, yalnız status + reason_az.
+
   Bir neçəsini birləşdirib bir məsələ kimi həll ETMƏ.
+  Hamısını birdən həll ETMƏ.
 
 A/B/C/D VARİANTLARI VARSA (DİM formatı):
   Variantları oxu, düzgün olanı özün müəyyən et.

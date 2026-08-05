@@ -226,6 +226,31 @@
       "type": "string",
       "maxLength": 160,
       "description": "status != 'ok' olduqda istifadəçiyə göstərilən bir cümlə. Məs. 'Şəkil bulanıqdır, düsturu oxuya bilmədim.'"
+    },
+    "candidates": {
+      "type": "array",
+      "maxItems": 5,
+      "description": "YALNIZ status='multiple_problems' olduqda. Kadrda görünən məsələlərin qısa siyahısı — UI seçim ekranı göstərir, şagird toxunur, ikinci çağırış yalnız seçiləni həll edir. Bax ADR-007.",
+      "items": {
+        "type": "object",
+        "required": [
+          "label",
+          "preview"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 12,
+            "description": "Səhifədə çap olunmuş məsələ nömrəsi ('14'). Görünmürsə sıra nömrəsi ('1','2'). Keş açarı üçün də işlədilir — ADR-007."
+          },
+          "preview": {
+            "type": "string",
+            "maxLength": 60,
+            "description": "Məsələnin ilk hissəsi — şagirdin tanıması üçün. Tam mətn deyil."
+          }
+        }
+      }
     }
   },
   "$defs": {
