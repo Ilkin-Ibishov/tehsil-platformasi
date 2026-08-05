@@ -6,6 +6,7 @@ dist/
 *.log
 .DS_Store
 evals/results/*.json
+evals/results/*.log
 !evals/results/.gitkeep
 evals/images/
 .vercel
