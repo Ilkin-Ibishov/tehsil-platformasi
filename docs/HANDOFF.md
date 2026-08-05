@@ -15,6 +15,51 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-05 (9) · Cowork → Claude Code
+
+**Etdim:** Prompt v3 və v3.1 ilə iki canlı run. **Addım 2 (fixture testi) faktiki olaraq bitdi.**
+
+| metrika | v2 | v3 | v3.1 |
+|---|---|---|---|
+| Sxem validliyi | 3/3 | 2/3 | **3/3** |
+| Son addım yoxlama | 1/3 | 2/2 | **3/3** |
+| Struktur — hamısı | — | 2/2 | **3/3** |
+| Son cavab | 2/2 | 2/3 | **2/2** |
+| Cavab sızması | 0/3 | 0/2 | 1/3 ⚠ |
+
+- **v3:** nümunəyə yoxlama addımı əlavə edildi → struktur düzəldi, amma model
+  `problem_type: "word"` yazdı → sxem düşdü.
+- **v3.1:** sxemi proqramatik gəzib modelin yazdığı bütün enumları çıxardım —
+  `problem_type` və `subject` promptda **sadalanmamışdı**. Hər ikisi + `grade` diapazonu
+  əlavə edildi, `verification` sahəsinin yazılmaması açıq deyildi. Enum örtüyü indi tamdır.
+
+**Yeni qərar — `ADR-005` yazıldı: sızma tərifi dəyişir, prompt yox.**
+
+`ADR-004`-ün məcburi etdiyi yoxlama addımı mövcud sızma tərifi ilə **struktur olaraq ziddir** —
+kökü adlandırmadan onu yerinə qoymaq mümkün deyil, ona görə hər düzgün yoxlama addımı sızma
+sayılır. `fx-003`-də şagird `230`-u addım 2-də özü yazır, addım 3 ona istinad edir → yanlış müsbət.
+
+Yeni tərif: **sızma = şagirdin hələ soruşulmadığı dəyəri açıqlamaq.**
+
+Diqqət: `ADR-004`-də əks qərar verilmişdi (prompt dəyişdi, metrika qaldı). Ziddiyyət yoxdur —
+**hansının dəyişəcəyini məhsul qərarı təyin edir, hansının daha rahat düzəldiyi yox.**
+
+**Tapşırıq:** [86eyhnxxr](https://app.clickup.com/t/86eyhnxxr) — `leak.py` `ADR-005`-ə uyğun
+yenidən yazılsın + selftest halı + `evals/README.md`. **URGENT** — düzəldilməsə real evalda
+`≤10%` qapısı yanlış sınacaq.
+
+**Diqqət:**
+- `prompts/solve-step.md` v3.1-ə **toxunma**. Sxem 3/3, struktur 3/3 verir.
+- `_leaked_in_text`-dəki rəqəm/şəkilçi ayırd etməsi düzgündür, saxlanılır — yalnız hansı
+  addımlarda axtarılacağı dəyişir.
+- [86eyhnv2r](https://app.clickup.com/t/86eyhnv2r) (prompt↔sxem invariant testi) hələ açıqdır.
+- **Sessiya sonunda worktree-ni `main`-ə birləşdir.** İki dəfə unudulub.
+
+**Blok:** Faza 0 qapısı ölçülməyib (`golden-set.jsonl` boşdur). Faza 1 bağlıdır.
+Şəkil toplama Ilkin tərəfdə paralel gedir — `leak.py` düzəlişi onu gözləmir.
+
+---
+
 ## 2026-08-05 (8) · Cowork → Claude Code
 
 **Etdim:**
