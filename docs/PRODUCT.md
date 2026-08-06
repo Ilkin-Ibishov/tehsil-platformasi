@@ -46,7 +46,10 @@ Bu ayrım paywall dizaynını təyin edir: şagird "Valideynə göndər" düymə
 | Aylıq abunə | $2.94 (4.99 ₼) |
 | Break-even | keş hit-i olmadan belə ~600 həll/ay |
 
-Marja problem deyil. Keş **xərc üçün yox, keyfiyyət və latensiya üçün** qurulur.
+⚠️ **BU HESABLAMA SƏHV İDİ — `ADR-001` hökmü (2026-08-06) onu ləğv etdi.**
+Real ölçmə: **$0.0167/həll** (`gemini-3.6-flash`, giriş 5234 token, çıxış thinking daxil).
+Abunə 200 həlldən sonra zərərə keçir. Keş **xərc üçün də lazımdır** — keyfiyyət və
+latensiya üçün olduğu qədər. Detallar və azaldıcılar: `ADR-001` → "İki açıq risk".
 
 ---
 
