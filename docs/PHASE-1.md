@@ -93,16 +93,34 @@ telemetriya xətası istifadəçiyə çatmamalıdır.
 
 ## Sprintlər
 
-### S1 — Skelet + telemetriya bel sütunu
+### S1a — Telemetriya bel sütunu (LOKAL, hesab tələb ETMİR)
 
-Next.js + Supabase + Vercel. `events` cədvəli və miqrasiyası. Klient telemetriya kitabxanası:
-IndexedDB növbəsi, paket göndərmə, offline davamlılıq, idempotentlik. Bir ekran, bir hadisə.
+Next.js (App Router, TS, Tailwind) + **lokal Postgres**. `events` cədvəli və miqrasiyası
+(`DATA-MODEL.md` sxemi — **portativ SQL**, Supabase-ə xas heç nə yoxdur).
+Klient telemetriya kitabxanası: IndexedDB növbəsi, paket göndərmə, offline davamlılıq,
+idempotentlik. `/api/events` route. Bir ekran, bir hadisə.
 
 **Niyə birinci:** telemetriya sonradan əlavə edilən şey deyil. Birinci commit-dən mövcuddursa,
-sonrakı hər funksiya pulsuz loqlanır. Sonra əlavə edilsə, hər ekrana geri qayıtmaq lazım gəlir.
+sonrakı hər funksiya pulsuz loqlanır.
 
-**Qəbul:** telefondan URL açılır → Supabase-də `app.opened` sətri görünür.
-Təyyarə rejimində aç, sonra internet qoş → hadisə **itmir**, gecikməylə gəlir.
+**Qəbul — hamısı LOKAL yoxlanılır, deploy tələb etmir:**
+1. `next dev`, telefon eyni Wi-Fi-da, LAN IP ilə açılır → lokal DB-də `app.opened` sətri
+2. Təyyarə rejimi → hadisə növbədə qalır → internet qayıdır → **itmir**, gecikməylə gəlir
+3. Eyni paket iki dəfə göndərilir → cədvəldə **bir** sətir (upsert)
+
+Postgres lokal olaraq Docker (`postgres:16`) və ya `supabase start` ilə qaldırıla bilər —
+hansı əlçatandırsa. **Cloud hesabı lazım deyil.**
+
+### S1b — Deploy (Ilkin hesabları yaradandan sonra)
+
+Supabase layihəsi + Vercel deploy + miqrasiyanın tətbiqi + env dəyişənləri.
+**Kod dəyişikliyi minimal olmalıdır** — S1a-da `DATABASE_URL` env dəyişəni ilə işləyirsə,
+S1b sadəcə başqa `DATABASE_URL`-dir.
+
+**Qəbul:** telefondan **ictimai URL** açılır → Supabase-də `app.opened` görünür.
+
+**Bloklayır:** S2 və sonrakılar S1b-ni gözləmir — lokal işləməyə davam et.
+Yalnız şagirdlərə vermək S1b tələb edir.
 
 ### S2 — Kamera → kəsmə
 

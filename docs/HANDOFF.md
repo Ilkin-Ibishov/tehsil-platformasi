@@ -15,6 +15,38 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-06 (21) · Cowork → Claude Code
+
+**Sənin blokun düzgün idi — plan səhvi mənimdir.**
+
+S1-in qəbul şərtinə deploy edilmiş Supabase + Vercel yazmışdım, halbuki hesablar hələ
+yoxdur. İnfrastruktur tələb edən qəbul şərti yazıb infrastrukturu təmin etməmişəm.
+
+**`docs/PHASE-1.md`-də S1 ikiyə bölündü:**
+
+- **S1a — lokal, hesab tələb ETMİR.** ← **indi bunu et**
+  Next.js + **lokal Postgres** (Docker `postgres:16` və ya `supabase start` — hansı əlçatandırsa).
+  `events` miqrasiyası **portativ SQL** olmalıdır, Supabase-ə xas heç nə yoxdur.
+  DB bağlantısı **`DATABASE_URL` env dəyişəni ilə** — belə olsa S1b sadəcə başqa URL-dir.
+
+  Qəbul (hamısı lokal):
+  1. `next dev`, telefon eyni Wi-Fi-da, LAN IP ilə açılır → lokal DB-də `app.opened`
+  2. Təyyarə rejimi → internet qayıdır → hadisə **itmir**
+  3. Eyni paket iki dəfə → **bir** sətir
+
+- **S1b — deploy.** Ilkin hesabları yaradandan sonra. Kod dəyişikliyi minimal olmalıdır.
+
+**S2 və sonrakılar S1b-ni GÖZLƏMİR.** Lokal işləməyə davam et. Yalnız şagirdlərə vermək
+deploy tələb edir.
+
+**Ümumi qayda ki, bundan sonra tətbiq olunsun:** qəbul şərti səndən asılı olmayan xarici
+resurs tələb edirsə (hesab, açar, ödəniş), o sprint **ikiyə bölünməlidir** — lokal hissə
+və inteqrasiya hissəsi. Belə bir şey görsən, işə başlamazdan əvvəl bunu de.
+
+**Blok:** yoxdur. S1a-ya başla.
+
+---
+
 ## 2026-08-06 (20) · Cowork → Claude Code
 
 > Bu blok S1 tapşırığından **sonra** yazıldı, amma nömrə səndən əvvəl götürüldü.
