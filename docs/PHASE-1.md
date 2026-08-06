@@ -161,8 +161,19 @@ eyni prompt işləməlidir). Sxem validasiyası, sympy yoxlaması, `problems`/`s
 Python serverless funksiya kimi saxla — **amma iki fərqli implementasiya olmasın**.
 İki nüsxə olarsa, eval və istehsalat fərqli nəticə verməyə başlayacaq.
 
+**S3-ün İÇİNDƏ, sonraya qoyulmadan:**
+
+1. **Dəvət kodu və `device_id` üzrə gündəlik limit (30).** S3 ödənişli açarı ictimai
+   HTTPS URL-in arxasına qoyan sprintdir. Tunel ünvanı paylaşıla bilir; qorumasız
+   `/api/solve` bir gecədə büdcəni yandırır. Bu, «təhlükəsizlik bölməsi»ndə asılı
+   qalmamalıdır — **qəbul şərtidir.**
+2. **Prompt v6 eval-i.** `ADR-010`-dan sonra v6 heç vaxt sınanmayıb. `scripts/run-eval.bat`,
+   10 kəsilmiş şəkil, ~$0.17. Hədəf: pedaqoji ox **≥8/10** (əvvəlki 6/10).
+   Nəticəni `docs/HANDOFF.md`-ə yaz — v6 keçmirsə prompt Cowork-un işidir, S3 kodu gözləmir.
+
 **Qəbul:** kəsilmiş şəkil → valid həll JSON-u DB-də. `solve.response` hadisəsində
-`latency_ms`, `cost_usd`, `tokens_in/out`.
+`latency_ms`, `cost_usd`, `tokens_in/out`. Dəvət kodusuz sorğu **rədd edilir**.
+31-ci sorğu `limit.blocked` verir.
 
 ### S4 — Həll ekranı
 
