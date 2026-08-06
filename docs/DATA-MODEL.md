@@ -71,6 +71,28 @@ Bir məsələnin bir neçə həlli ola bilər (fərqli sinif dərinliyi). Seçim
 | `transfer_correct` | bool null | "eynisini sən həll et" nəticəsi |
 | `created_at` | timestamptz | |
 
+## `events` — xam telemetriya axını (Faza 1-dən)
+
+**Append-only. Silinmir, yenilənmir.** `docs/TELEMETRY.md` bu cədvəlin müqaviləsidir.
+
+| sütun | qeyd |
+|---|---|
+| `event_id` | uuid pk — **klientdə** yaradılır, upsert ilə idempotentlik |
+| `device_id` | təsadüfi uuid, auth-suz retensiya ölçüsü |
+| `session_id` / `attempt_id` | uuid, zəncirləmə üçün |
+| `name` | `domen.hərəkət` — dəyişməz taksonomiya, `error_code` kimi |
+| `ts_client` / `ts_server` | **`ts_server` həqiqi mənbədir**, klient saatı etibarsızdır |
+| `props` | jsonb — **şəkil, məsələ mətni, şəxsi data QADAĞANDIR** |
+| `app_version` | commit sha |
+
+**İndekslər:** `(device_id, ts_server)`, `(attempt_id)`, `(name, ts_server)`.
+
+> Aşağıdakı `attempts` və `step_events` **törəmədir** — `events`-dən qurulur.
+> Xam axın həmişə bərpa oluna bilir, aqreqasiya yox. Faza 1-də görünüş (view) kimi,
+> həcm artanda materiallaşdırılmış cədvəl kimi saxlanılır.
+
+---
+
 ## `step_events` — addım səviyyəsində davranış
 
 Səhv xəritəsinin və valideyn hesabatının **yeganə** mənbəyi.
