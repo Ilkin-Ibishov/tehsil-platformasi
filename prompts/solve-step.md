@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v5)
+# Prompt — addım sxemi generasiyası (v6)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -35,6 +35,13 @@
 > sayı/etiket sistemi sərbəst (və ya heç yoxdur), identifikator yoxdursa sıra nömrəsi, izahların
 > dili girişdən gəlir. Sxemdə `subject` → `math|physics|chemistry`, `reason_az` → `reason`,
 > `topic_code` ingiliscə, yeni `detected_language`.
+>
+> **v5 → v6 (2026-08-06).** `ADR-010`: insan pedaqoji rəyi **6/10** verdi (qapı ≥75%).
+> İki pozucu nümunə: (a) variantlı məsələdə model addımı "hansı variant düzgündür?"-a
+> çevirir və məsələnin bütün riyaziyyatını tanıma aktına yığır (`c03`,`c06`,`c09`);
+> (b) son addım "yoxlama" adlanır, amma sonuncu hesablama / vahid çevirməsi / variant
+> axtarışıdır (`c07`,`c09`,`c10`). Struktur yoxlaması hər ikisini **keçirdi** —
+> açar-söz axtarışı etiketi görür, işi görmür. Qayda 10–12 əlavə edildi.
 
 ---
 
@@ -278,6 +285,31 @@ KƏSİLMİŞ MƏSƏLƏ:
 9. error_code-ları TƏKRARLAMA. Hər addımda şagirdin məhz ORADA edəcəyi səhvi seç.
    Bütün addımlara eyni kod yazsan, səhv xəritəsi mənasızlaşır — məhsulun bütün dəyəri
    həmin xəritədədir. İki addım eyni kodu paylaşa bilər, amma HAMISI eyni olmamalıdır.
+
+10. HEÇ BİR ADDIM VARİANT SEÇİMİ SORUŞA BİLMƏZ.
+    check.ask həmişə HESABLANMIŞ DƏYƏR istəyir, variant hərfi yox.
+      Pis:  "Alınan tərs funksiya hansı variantdadır?"      → D
+      Pis:  "Hansı variant düzgün köklər çoxluğunu göstərir?" → C
+      Pis:  "Düzgün cavab variantı hansıdır?"                → D
+      Yaxşı: "Tərs funksiyanın loqarifm əsası neçədir?"      → 2
+    Variant hərfi YALNIZ final_answer.choice-dadır.
+    Variantlı məsələdə də şagird cavabı ÖZÜ ÇIXARIR, sonra variantla tutuşdurur.
+    Variant seçdirmək məhsulun mənasını yox edir — biz cavab tanıtmırıq, çıxarış öyrədirik.
+
+11. YOXLAMA ADDIMI İLKİN ŞƏRTƏ QAYITMALIDIR.
+    Tapılan nəticəni ilkin məsələyə YERİNƏ QOY və gözlənilən nəticəni verdiyini göstər.
+    Bunlar yoxlama DEYİL:
+      – sonuncu hesablama ("x−√x nədir?" — bu, cavabın özüdür)
+      – vahid çevirməsi ("0,3 neçə faizdir?" — heç nə təsdiqləmir)
+      – cavabın başqa formada yazılışı
+      – variant axtarışı
+    Düzgün nümunə: "m = 7 olduqda D = 25−4m neçədir?" → −3 → mənfi diskriminant
+    kompleks kökü TƏSDİQLƏYİR. Məntiq qapanır.
+
+12. DÜSTURU SUALIN İÇİNDƏ VERMƏ.
+      Pis:  "Əlverişli halların sayı (3! × 3!) neçədir?"   ← bütün fikir mötərizədədir
+      Yaxşı: "Neçə əlverişli düzülüş var?"
+    Düsturun səbəbi why sahəsindədir; check.ask onu hədiyyə etmir.
 ```
 
 ## User (dəyişənlərlə)

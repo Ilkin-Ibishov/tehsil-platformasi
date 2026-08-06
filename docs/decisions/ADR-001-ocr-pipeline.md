@@ -70,7 +70,12 @@ tənliklər, tərs funksiya, kompleks ədədlər, ehtimal, statistika.
 | Hallüsinasiya (xam dəst) | **0/9** | 0% ✅ |
 | İmtina səbəbi uyğunluğu | **9/9** | — |
 | Cavab sızması | 1/10 | ≤10% ✅ |
-| Addım bölgüsü — pedaqoji | **ölçülməyib** | ≥75% ⏳ |
+| Addım bölgüsü — pedaqoji | **6/10 = 60%** | ≥75% ❌ |
+
+**Pedaqoji ox KEÇMİR** (`ADR-010`, 2026-08-06). Bu, Faza 1-i bloklamır — boru xətti
+işləyir, app qurula bilər — amma **şagirdlər istifadə etməzdən əvvəl prompt v6 sınanmalıdır**.
+Səbəb: variantlı məsələdə model addımı "hansı variant düzgündür?"-a çevirir və çıxarışı
+tanıma ilə əvəz edir. Bu, məhsulun mövcudluq səbəbinə birbaşa ziddir.
 
 `n=10 < 30` olduğu üçün bu, **rəsmi qapı hökmü deyil** — "davam etmək təhlükəsizdirmi"
 yoxlamasıdır. Rəsmi qapı Faza 1-də real şagird istifadəsindən toplanan n≥30 ilə ölçüləcək.
