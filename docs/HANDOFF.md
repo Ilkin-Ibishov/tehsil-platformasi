@@ -72,6 +72,70 @@ item üçün, mən onu dəyişmədim, sənin ground truth-un). `final_answer_cor
 
 ---
 
+## 2026-08-06 (19) · Cowork → Claude Code
+
+**FAZA 0 BAĞLANDI. FAZA 1 AÇILDI.**
+
+`direct_compare` düzəlişini yoxladım: saxlanmış model çıxışlarını yeni məntiqlə yenidən
+qiymətləndirdim — **3/10 → 9/10**, bir dənə də API çağırışı olmadan. Qalan tək uğursuzluq
+`c03` (model yalnız hərf qaytardı) — `ADR-009`-da açıq qeyd olunub, yeni prompt onu tələb edir.
+
+**Təsdiq run-ı edilmədi** — Ilkin qərar verdi ki, cavab onsuz da məlumdur və run kəşf yox,
+sənədləşdirmədir. Razıyam.
+
+**`ADR-001`-ə HÖKM yazıldı:**
+- Boru xətti işləyir: 9/10 dəqiqlik, sxem 10/10, struktur 10/10, hallüsinasiya 0/9
+- **Texo (pipeline A) silindi** — ADR-in öz şərtinə görə. Latensiyanın səbəbi OCR deyil,
+  modelin thinking rejimidir; Texo onu həll etmir.
+- `n=10 < 30` → rəsmi qapı deyil. Rəsmi qapı Faza 1-də real istifadədən gələcək.
+- **Ölçülməyən:** pedaqoji bölgü (`ADR-004` B), `unreadable`/`not_a_problem` yolları
+  (dəstdə qəsdən pis şəkil yoxdur), əl yazısı.
+
+**`PRODUCT.md`-dəki marja iddiası ləğv edildi.** Real: **$0.0167/həll**, abunə 200 həlldən
+sonra zərərdə. Keş və Flash-Lite artıq optimallaşdırma deyil, **biznes modelinin şərtidir**.
+
+---
+
+### SƏNİN ÜÇÜN: **`docs/PHASE-1.md`** — əsas sənəd
+
+Sprintlər, API müqaviləsi, hər addımın qəbul şərti oradadır. Burada təkrarlamıram.
+`docs/TELEMETRY.md` — hadisə taksonomiyası, `error_code` kimi **dəyişməz müqavilə**.
+
+**Başla: S1 — skelet + telemetriya bel sütunu.**
+Next.js + Supabase + Vercel, `events` cədvəli, klient telemetriya kitabxanası
+(IndexedDB növbəsi, paket göndərmə, offline, idempotent), bir ekran, bir hadisə.
+
+**Qəbul:** telefondan URL açılır → Supabase-də `app.opened` görünür. Təyyarə rejimində aç,
+sonra internet qoş → hadisə **itmir**.
+
+**Niyə telemetriya birincidir:** sonradan əlavə edilə bilməyən yeganə şeydir. Birinci
+commit-dən varsa, sonrakı hər funksiya pulsuz loqlanır.
+
+**Dörd şey ki, vibe coding zamanı asanlıqla buraxılır:**
+
+1. **`API_KEY` yalnız serverdə.** `NEXT_PUBLIC_` prefiksi olmamalı, client komponentə
+   düşməməli. Açıq Vercel URL-i + ödənişli açar = bir gecədə yanmış büdcə.
+2. **Gündəlik limit serverdə.** Klient yoxlaması qoruma deyil. Test qrupu üçün dəvət kodu.
+3. **sympy/sxem məntiqi TƏK nüsxə.** Eval harness və istehsalat eyni kodu işlətməlidir.
+   İki nüsxə olarsa, ölçdüyümüzlə buraxdığımız ayrılır.
+4. **Tərk etmə hadisələri.** Yalnız uğuru loqlamaq ən çox rast gələn telemetriya səhvidir.
+   `capture.cancelled`, `crop.cancelled`, `step.abandoned` və xüsusilə
+   **`solve.waiting_abandoned`** (16.8 saniyəlik gözləmədə çıxanlar).
+
+**Diqqət:**
+- Kəsmə ekranı **ixtisar edilə bilməz** — real şəkillərin 10/10-u çoxsualldır.
+- `HƏLL QURULUR` boş spinner olmamalıdır (ölçülmüş 16.8 san).
+- Faza 1-də keş YOXDUR (`match_path` həmişə `llm`), amma sahə yazılır ki, Faza 2-də
+  müqayisə mümkün olsun.
+- Sahə böyüdü: `PRODUCT.md` "2–3 həftə" deyirdi, realistik **4–5 həftə**. `PHASE-1.md`-də yazılıb.
+
+**`HANDOFF (16)`-dakı 5 bənd (nəticə faylı adı, `attempts` xəta yolu, 429 idarəsi) hələ
+açıqdır** — Faza 1-i bloklamır, eval harness-ə qayıdanda edilər.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-06 (17) · Cowork → Claude Code
 
 **Faza 0-lite ölçüldü. Hər iki dəst tam işlədi, `verify.py` düzəlişi tutdu.**
