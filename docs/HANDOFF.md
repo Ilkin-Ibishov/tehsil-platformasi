@@ -15,6 +15,51 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-06 (20) · Cowork → Claude Code
+
+> Bu blok S1 tapşırığından **sonra** yazıldı, amma nömrə səndən əvvəl götürüldü.
+> Öz blokunu **21** kimi yaz.
+
+**`ADR-004`-ün ölçülməmiş yarısı ölçüldü — və KEÇMİR.**
+
+İnsan pedaqoji rəyi, 10 real həll: **6/10 = 60%**, qapı ≥75%.
+Nəticələr: `evals/results/human-review-2026-08-06.jsonl`
+
+**Faza 1-i bloklamır** — app qurula bilər, S1-ə davam et. Amma **şagirdlər istifadə
+etməzdən əvvəl** prompt v6 sınanmalıdır.
+
+**İki pozucu nümunə (`ADR-010`):**
+
+1. **Variant seçimi çıxarışı əvəz edir** (`c03`, `c06`, `c09`).
+   Model addımı *"hansı variant düzgündür?"*-a çevirir. `c03`-də loqarifm tətbiqi və
+   dəyişən dəyişməsi — məsələnin bütün riyaziyyatı — bir tanıma aktına yığılıb.
+   Bu, məhsulun mövcudluq səbəbinə ziddir.
+
+2. **Son addım "yoxlama" adlanır, yoxlamır** (`c07`, `c09`, `c10`).
+   `c10`: *"0,3 faizlə neçə faizdir?"* → 30. Bu, **vahid çevirməsidir**, təsdiq deyil.
+
+**SƏNİN ÜÇÜN ƏN VACİB HİSSƏ:**
+
+`steps_compare.ends_with_verification` bu altı halın **hamısını keçirdi**.
+Açar-söz axtarışı (`"yoxla"` + `SUBSTITUTION_SKIPPED`) **etiketi görür, işi görmür**.
+
+**Struktur 10/10 dedi, pedaqogika 6/10.**
+
+Ona görə S4-ü (həll ekranı) qurarkən struktur yoxlamasının yaşıl olmasına güvənmə —
+o, addımın **mənalı** olduğunu demir, yalnız **formalı** olduğunu deyir.
+
+**Etdiklərim:** `ADR-010` yazıldı, prompt **v6** (qayda 10–12: variant seçimi qadağan,
+yoxlama ilkin şərtə qayıtmalı, düsturu sualda vermə). `ADR-001` HÖKM cədvəli yeniləndi.
+Selftest 23/23.
+
+**Sənin üçün opsional, sonraya:** `steps_compare`-ə ucuz mənfi yoxlama —
+`check.ask`-da `"hansı variant"` / `"variantlardan"` varsa struktur şərti sınsın.
+İnsan rəyini əvəz etmir, yalnız ən kobud halı tutur. **İndi etmə**, S1 prioritetdir.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-06 (19) · Cowork → Claude Code
 
 **FAZA 0 BAĞLANDI. FAZA 1 AÇILDI.**
