@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry";
 
@@ -8,6 +9,7 @@ const DEVICE_ID_KEY = "th_device_id";
 
 export default function HomePage() {
   const t = useTranslations("home");
+  const router = useRouter();
   const fired = useRef(false);
 
   useEffect(() => {
@@ -45,8 +47,7 @@ export default function HomePage() {
 
       <button
         type="button"
-        disabled
-        title={t("comingSoon")}
+        onClick={() => router.push("/kamera")}
         style={{
           width: "100%",
           minHeight: "84px",
@@ -55,8 +56,7 @@ export default function HomePage() {
           background: "var(--acc)",
           color: "var(--accink)",
           fontFamily: "inherit",
-          cursor: "not-allowed",
-          opacity: 0.55,
+          cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",

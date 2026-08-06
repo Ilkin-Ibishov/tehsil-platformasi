@@ -2,7 +2,35 @@
   "home": {
     "greeting": "Salam! Bugün hansı məsələ ilə ilişdin?",
     "cta": "Tapşırığı çək",
-    "ctaSub": "şəkil çək, addım-addım izah al",
-    "comingSoon": "Kamera S2 sprintində gəlir"
+    "ctaSub": "şəkil çək, addım-addım izah al"
+  },
+  "kamera": {
+    "close": "Bağla",
+    "label": "TAPŞIRIĞI ÇƏK",
+    "hint": "Bir tənliyi çərçivənin içinə sal. Bütün səhifəni çəkməyə ehtiyac yoxdur.",
+    "gallery": "qalereya",
+    "shutterLabel": "Şəkil çək",
+    "torchOn": "fənər açıq",
+    "torchOff": "fənər",
+    "permissionTitle": "Kameraya icazə lazımdır",
+    "permissionBody": "Şəkil telefonda qalır, yalnız tənliyin mətni serverə gedir.",
+    "permissionGrant": "İcazə ver",
+    "permissionDeniedTitle": "Kameraya icazə verilmədi",
+    "permissionDeniedBody": "Şəkil çəkmək üçün brauzer ayarlarından kameraya icazə verməlisən.",
+    "permissionDeniedRetry": "Yenidən cəhd et",
+    "notSupportedTitle": "Bu brauzerdə kamera dəstəklənmir",
+    "notSupportedBody": "Zəhmət olmasa başqa brauzerdən (Chrome, Safari) cəhd et."
+  },
+  "crop": {
+    "label": "KƏSMƏ",
+    "hint": "Çərçivəni məsələnin üstünə sürüşdür",
+    "retake": "yenidən çək",
+    "confirm": "Təsdiqlə"
+  },
+  "solve": {
+    "sendingTitle": "Göndərilir…",
+    "doneTitle": "Şəkil serverə çatdı",
+    "doneBody": "Həll ekranı S3/S4 sprintlərində gələcək — bu, S2-nin son addımıdır.",
+    "doneHome": "Ana ekrana qayıt"
   }
 }

@@ -15,6 +15,67 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-06 (23) · Claude Code → Cowork
+
+**Etdim — S2: kamera → kəsmə.**
+
+- `cloudflared` (portativ `.tools/cloudflared.exe`, `.gitignore`-da) — HTTPS ön şərtini həll
+  etdi. Winget MSI admin tələb edib rədd olundu, portativ exe-yə keçdim. Tunel işə düşdü,
+  `isSecureContext: true` təsdiqlədim (brauzer alətimlə).
+- `web/lib/image.ts` — **kəsmə faiz-əsaslıdır** (`0..1`, şəklin təbii ölçüsünə nisbətən), CSS
+  piksel heç yerdə görünmür. Bu, sənin xəbərdarlıq etdiyin miqyaslama sinfi xətanı **struktur
+  olaraq mümkünsüz** edir — çevirmə addımı yoxdur ki, unudulsun. Sıra sabit: `cropAndResize()`
+  əvvəl tam mənbə həllediciliyi ilə kəsir, SONRA (yalnız lazımdırsa) ≤1600px-ə kiçildir.
+- `web/components/kamera/CaptureView.tsx` — `getUserMedia`, icazə/dəstək halları,
+  fənər (dəstəklənirsə). `web/components/kamera/CropView.tsx` — sürüşdürülən/böyüdülə bilən
+  kəsmə qutusu (pointer events, 4 künc handle).
+  `web/app/kamera/page.tsx` — çəkiliş → kəsmə → `/api/solve` axını.
+- `web/app/api/solve/route.ts` — S2 stub (`status: unreadable`, S3-ə qədər).
+- `docs/TELEMETRY.md`-yə **`capture.permission_denied`** əlavə etdim (sənin tapşırığın —
+  bilirəm bu fayl sənin sahibliyindədir, HANDOFF-dakı açıq təlimatınla etdim). `crop.adjusted`
+  da bağladım.
+
+**Real bug tapıb düzəltdim (canlı brauzer testində, kod rəyi ilə deyil):**
+`CaptureView`-də dəstək yoxlamasını (`navigator.mediaDevices`) `useState`-in lazy
+initializer-ində aparmışdım. Next.js-in server-render keçidində `navigator` yoxdur → server
+HTML-də həmişə "dəstəklənmir" bişirdi → hidratasiyadan sonra client-də TƏKRAR yoxlanmırdı —
+real kameralı brauzerdə belə əbədi "Bu brauzerdə kamera dəstəklənmir" göstərəcəkdi. Tunel
+üzərindən canlı yoxlayanda tapdım (`isSecureContext:true` idi, amma "dəstəklənmir" yazırdı —
+uyğunsuzluq məni bura apardı). Düzəliş: yoxlama indi tamamilə effektdədir (client-only).
+
+**Yoxlama — qismən, dürüst deyim:**
+- ✅ `npm run build` + `npm run lint` təmiz.
+- ✅ Tunel HTTPS-i təsdiqlədim (`isSecureContext: true`), "dəstək yoxdur" halı çökmür (əvvəlki
+  bug bunu maskalayırdı, düzəlişdən sonra təzədən yoxladım).
+- ⚠️ **Canlı kamera axınını (icazə → çəkiliş → kəsmə → göndərmə) uc-uca yoxlaya bilmədim.**
+  Bu mühitin brauzer aləti `getUserMedia`-nı dəstəkləmir/simulyasiya etmir və pulsuz
+  `trycloudflare.com` tuneli test zamanı ara-sıra `403` verdi (JS chunk-ları, HMR) — bu, Cloudflare-in
+  özünün "no uptime guarantee" dediyi bilinən davranışdır, kod problemi deyil. Saxta
+  `MediaStream` (canvas.captureStream) ilə sınadım, amma tunelin qeyri-sabitliyi ardıcıl bir
+  tam axın almağa mane oldu.
+- `lib/image.ts`-in kəsmə riyaziyyatını kod səviyyəsində diqqətlə yoxladım (faiz-əsaslı olduğu
+  üçün miqyas xətası sinfi artıq mümkün deyil), amma **real telefon kamerası ilə uc-uca test
+  hələ sənin/Ilkin-in tərəfindədir.**
+
+**Server hələ işləyir, tunel açıqdır** — `web/README.md`-də URL və addımlar. Telefonu eyni
+şəbəkəyə qoşmağa ehtiyac YOXDUR (tunel ictimaidir) — birbaşa HTTPS URL-i aç.
+
+**Tapşırıq:** ClickUp-a S2 tapşırığı yaratmağa çalışdım — **rate limit** ("Please wait 75
+minutes"). HANDOFF birinci mənbədir.
+
+**Diqqət:**
+- `design/Kamera.dc.html` istinad kimi işlədildi (kadr künclər, düymə düzülüşü, "icazə lazımdır"
+  mətni) — özü kəsmə ekranını göstərmir (`ADR-007`-dən əvvəlki maketdir), kəsmə UI-ı yeni yazıldı.
+- Torch/fənər yalnız dəstəkləyən brauzerlərdə (əsasən Android Chrome) görünür — iOS Safari
+  dəstəkləmir, düymə gizlədilir (çökmür).
+- `prompts/solve-step.md`, `docs/STEP-SCHEMA.json`, golden set, `scripts/` — toxunulmadı.
+- S1b hələ edilmədi (hesab yoxdur) — S2 onu gözləmədi, PHASE-1.md-ə uyğun.
+
+**Blok:** yoxdur, amma **canlı kamera axınının real telefonda təsdiqi açıq qalır** — mən
+onu tam yoxlaya bilmədim, S2-ni "tam qəbul edilib" elan etməzdən əvvəl bunu bil.
+
+---
+
 ## 2026-08-06 (22) · Claude Code → Cowork
 
 **Etdim — S1a bitdi, üç qəbul şərti də lokal yoxlanıldı (avtomatlaşdırılmış, əl ilə deyil).**

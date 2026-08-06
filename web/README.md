@@ -27,16 +27,41 @@ Telefon eyni Wi-Fi-dadırsa: `http://<kompüterin LAN IP-si>:3000` (məs. `ipcon
 2. Təyyarə rejimi → internet qayıdır → hadisə itmir, gecikməylə gəlir
 3. Eyni paket iki dəfə göndərilir → cədvəldə bir sətir
 
+## S2 — kamera → kəsmə (HTTPS ön şərti ilə)
+
+`getUserMedia` təhlükəsiz kontekst tələb edir — `http://<LAN IP>:3000` işləməyəcək.
+Hesabsız, dərhal HTTPS URL üçün `cloudflared` (portativ, quraşdırma tələb etmir):
+
+```bash
+# .tools/cloudflared.exe — https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe
+.tools/cloudflared.exe tunnel --url http://localhost:3000
+# konsolda çıxan https://xxx.trycloudflare.com telefondan açılır
+```
+
+**Qəbul (docs/PHASE-1.md → S2):** telefonda şəkil çəkilir, kəsilir (tam ölçülü kadr üzərində,
+faiz-əsaslı — CSS/mənbə piksel qarışıqlığı struktur olaraq mümkün deyil, bax `lib/image.ts`),
+əvvəl kəsilir SONRA ≤1600px-ə kiçildilir, `/api/solve`-ə çatır (S3-ə qədər stub cavab qaytarır).
+`capture.*`/`crop.*` hadisələri, o cümlədən `capture.permission_denied` (icazə rədd edilsə app
+çökmür, bax `TELEMETRY.md`).
+
+**Diqqət:** pulsuz `trycloudflare.com` tuneli hesabsızdır və ara-sıra `403`/bağlantı kəsilməsi
+verə bilər (Cloudflare-in özü xəbərdarlıq edir — "no uptime guarantee"). İstehsalat üçün deyil,
+yalnız dev dövrü üçündür.
+
 ## Struktur
 
 ```
 app/
   layout.tsx        kök: tema/tone CSS dəyişənləri, i18n provider, telemetriya init
   page.tsx           Ana ekran (S1) — app.opened atəşləyir
+  kamera/page.tsx    S2: çəkiliş → kəsmə → /api/solve axını
   api/events/         POST — telemetriya upsert (event_id üzrə, həmişə 200)
+  api/solve/           POST — S2 stub (S3-də real Gemini inteqrasiyası)
+components/kamera/    CaptureView (getUserMedia, icazə/dəstək halları), CropView (faiz-əsaslı kəsmə)
 lib/
   db.ts               pg Pool, DATABASE_URL-dən (S1a lokal, S1b Supabase — kod dəyişmir)
   design-tokens.ts   ../docs/DESIGN-TOKENS.json → CSS custom property (ADR-002, tək mənbə)
+  image.ts            kəs → (yalnız lazımdırsa) ≤1600px kiçilt — sıra sabitdir
   telemetry/          klient kitabxanası: IndexedDB növbə, offline-a davamlı flush, idempotent
 i18n/request.ts       next-intl konfiqurasiyası (yalnız `az` aktiv, struktur hazırdır)
 messages/az.json      UI mətnləri (hardcode qadağandır — CLAUDE.md)
