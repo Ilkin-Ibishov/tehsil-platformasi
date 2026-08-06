@@ -129,8 +129,28 @@ mərkəzdə), klientdə resize ≤1600px, JPEG q=85. Server hələ stub qaytarı
 
 `design/Kamera.dc.html` struktur və mətn üçün, stillər `DESIGN-TOKENS.json`-dan.
 
+**ÖN ŞƏRT — HTTPS.** `getUserMedia` təhlükəsiz kontekst tələb edir. `http://192.168.x.x:3000`
+təhlükəsiz **deyil** — telefonda kamera ümumiyyətlə açılmayacaq (`crypto.randomUUID` ilə eyni
+kök səbəb, daha böyük nəticə ilə). Həlli **koda toxunmur**, mühit məsələsidir:
+
+| yol | qiymət |
+|---|---|
+| `cloudflared tunnel --url http://localhost:3000` | hesabsız, dərhal həqiqi HTTPS URL — **tövsiyə** |
+| `next dev --experimental-https` | öz-imzalı sertifikat; iOS-da profil quraşdırmaq lazımdır |
+| S1b (Vercel) | həqiqi HTTPS, amma hər dəyişiklik üçün deploy — inkişaf dövrü yavaşlayır |
+
+**Kəsmə keyfiyyəti — dəqiqliyə birbaşa təsir edir.** `ADR-001`-dəki 9/10 nəticə **əl ilə
+kəsilmiş tam ölçülü** şəkillərlə alınıb. İki qayda:
+
+1. Kəsmə **dondurulmuş tam ölçülü kadr** üzərində aparılır. Ekranda göstərilən kiçildilmiş
+   şəklin üzərində kəsmə → çərçivə koordinatları CSS piksellərindədir, mənbə piksellərinə
+   **miqyaslanmalıdır**. Bu miqyaslama unudulsa, şəkil səssizcə yanlış yerdən kəsilir.
+2. Ardıcıllıq: **əvvəl kəs, sonra ≤1600px-ə kiçilt.** Əksi çıxarışın həllediciliyini atır —
+   yəni dəqiqlik düşəndə model günahlandırılacaq, halbuki səbəb boru xəttidir.
+
 **Qəbul:** telefonda şəkil çəkilir, kəsilir, serverə çatır.
-`capture.*` və `crop.*` hadisələri, o cümlədən **`capture.cancelled` / `crop.cancelled`**.
+`capture.*` və `crop.*` hadisələri, o cümlədən **`capture.cancelled` / `crop.cancelled`**
+və **`capture.permission_denied`** (kamera icazəsi rədd edilirsə app çökmür, ekran göstərir).
 
 ### S3 — Həll API
 
