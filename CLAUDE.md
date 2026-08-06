@@ -30,6 +30,8 @@ adlandırılmasını zəiflədirsə — o dəyişiklik səhvdir, nə qədər "t�
 | Tapşırıq statusu | ClickUp | hər ikisi |
 | Növbə jurnalı | `docs/HANDOFF.md` | hər ikisi |
 | Gələcək ideyalar | `docs/FUTURE-IDEAS.md` | Cowork — **tapşırıq deyil, kod yazma** |
+| Faza 1 planı və API müqaviləsi | `docs/PHASE-1.md` | Cowork |
+| Telemetriya hadisələri | `docs/TELEMETRY.md` | Cowork — **dəyişməz taksonomiya** |
 
 **Heç vaxt:** dizayn tokenini komponentin içində hardcode etmə. `DESIGN-TOKENS.json` → CSS custom
 property → komponent. Səbəb: mövcud 9 dizayn faylında eyni token 3 fərqli dəyərdə idi
@@ -61,9 +63,11 @@ Folder: `901815897469` · Space: `901810230629` · Workspace: `90182536078`
 - **Next.js (App Router) + TypeScript + Tailwind** — PWA, mobile-first, `max-width: 480px`
 - **Supabase** — Postgres + Auth + Storage
 - **Vercel** — deploy
-- **sympy** (Python, serverless funksiya və ya ayrıca servis) — cavab yoxlanışı
-- **Texo (ONNX / transformers.js)** — klientdə düstur→LaTeX, *Faza 0 nəticəsindən sonra təsdiqlənəcək*
-- Vision LLM — addım sxemi generasiyası (ucuz Flash sinifli model)
+- **sympy** — cavab yoxlanışı. **Eval və istehsalat eyni məntiqi işlətməlidir** —
+  iki nüsxə olarsa, ölçdüyümüz şeylə buraxdığımız şey ayrılır.
+- **Vision LLM** — `gemini-3.6-flash`, OpenAI-uyğun endpoint. Açar **YALNIZ serverdə**.
+- ~~Texo (ONNX)~~ — **silindi**, `ADR-001` HÖKM. B tək çağırışda OCR+həll edir; latensiyanın
+  səbəbi OCR deyil, modelin thinking rejimidir, Texo onu həll etmir.
 
 Detallar: `docs/ARCHITECTURE.md`
 
@@ -76,10 +80,18 @@ Detallar: `docs/ARCHITECTURE.md`
 
 ## Cari faza
 
-**Faza 0 — Eval.** Kod yazmadan əvvəl OCR/sxem boru xəttinin dəqiqliyi ölçülür.
-Qapı: son cavab ≥85% · sxem validliyi 100% · addım bölgüsü struktur 100% + insan rəyi ≥75%
-(bax `docs/decisions/ADR-004-step-split-metric.md`). Keçmirsə Faza 1-ə keçmə.
-Bax: `docs/PRODUCT.md` → "Fazalar və qapılar".
+**Faza 1 — Şaquli dilim.** Faza 0-lite keçdi (`ADR-001` → "HÖKM", 2026-08-06):
+vision boru xətti işləyir, 9/10 dəqiqlik, 0 hallüsinasiya. Texo (pipeline A) silindi.
+
+**Əsas sənəd: `docs/PHASE-1.md`** — sprintlər, API müqaviləsi, qəbul şərtləri.
+Telemetriya müqaviləsi: `docs/TELEMETRY.md`.
+
+İki açıq risk dəqiqlik deyil:
+- **Xərc** — $0.0167/həll, abunə 200 həlldən sonra zərərdə. Keş və ucuz model
+  optimallaşdırma deyil, biznes modelinin şərtidir.
+- **Latensiya** — 16.8 san. `HƏLL QURULUR` ekranı boş spinner olmamalıdır.
+
+Qapı: 15–20 şagird · 100+ real həll · 20 şagirddən ≥8-i 7 gündə ≥3 dəfə qayıdır.
 
 ## Referans
 
