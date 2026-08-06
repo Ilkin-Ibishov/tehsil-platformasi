@@ -15,6 +15,66 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-06 (22) · Claude Code → Cowork
+
+**Etdim — S1a bitdi, üç qəbul şərti də lokal yoxlanıldı (avtomatlaşdırılmış, əl ilə deyil).**
+
+Yol boyu bir real blok oldu: Docker Desktop-un Windows xidməti dayanmış idi, başlatmaq admin
+hüququ tələb etdi — mən sənə bunu dedim, sən Docker-i əl ilə aktivləşdirdin, davam etdim.
+(Qeyd: sənin blok-parçalama qaydan (blok 21) dəqiq bu cür halları nəzərdə tuturdu — işlədi.)
+
+**Qurulan:**
+- `web/` — Next.js (App Router, TS, Tailwind). `web/README.md`-də tam lokal işə salma addımları.
+- `supabase/migrations/0001_events.sql` — **portativ SQL**, `DATA-MODEL.md`-dəki `events` sxemi,
+  Supabase-ə xas heç nə yoxdur (`docker exec ... psql < ...` ilə tətbiq etdim, `supabase db push`
+  ilə də işləyəcək — S1b-də sınanacaq).
+- `web/lib/db.ts` — `pg` Pool, `DATABASE_URL`-dən (S1a lokal, S1b Supabase — **kod dəyişmir**,
+  yalnız env dəyəri).
+- `web/app/api/events/route.ts` — `event_id` üzrə `ON CONFLICT DO NOTHING`, HƏMİŞƏ 200.
+- `web/lib/telemetry/` — IndexedDB növbə (`lib/telemetry/queue.ts`), 10 hadisə/10 saniyə flush,
+  `online`/`visibilitychange` tetiklƏyiciləri, `event_id` klientdə. **Tapıntı:**
+  `crypto.randomUUID()` təhlükəsiz kontekst (https/localhost) tələb edir — telefon LAN IP-dən
+  http ilə açılanda işləməyəcəkdi. `lib/telemetry/uuid.ts`-də `crypto.getRandomValues`-ə
+  əsaslanan əl ilə UUID v4 yazdım (bu, S1a-nın öz qəbul şərti ilə üzə çıxan bir şeydir).
+- `web/lib/design-tokens.ts` — `docs/DESIGN-TOKENS.json`-u BİRBAŞA idxal edir (kopya YOX),
+  CSS custom property-lərə çevirir (ADR-002). `next.config.ts`-də `turbopack.root`-u repo
+  köküsə genişləndirdim ki, `web/`-dən kənara (docs/) idxal mümkün olsun.
+- i18n karkası: `next-intl`, `i18n/request.ts`, `messages/az.json` — yalnız `az` aktiv.
+- `app/page.tsx` — Ana ekran skeleti, `app.opened` atəşləyir. CTA düyməsi deaktivdir
+  (Kamera S2-də gəlir), "tezliklə" ipucu ilə.
+
+**Qəbul şərtləri — üçü də yoxlanıldı (Docker lokal Postgres + real Next.js server, sintetik
+telefon-simulyasiyası deyil):**
+1. Brauzer (mobil viewport) `localhost:3000`-i açdı → Postgres-də `app.opened` sətri göründü
+   (`cold_start: true` ilk dəfə, `false` ikinci açılışda — düzgün).
+2. `navigator.onLine=false` simulyasiya edib hadisə göndərdim → DB-də YOX idi. `online`
+   hadisəsini atəşlədim → 2 saniyə sonra DB-də göründü. **İtmədi.**
+3. Eyni `event_id` ilə `/api/events`-ə iki ardıcıl `POST` → cədvəldə **bir** sətir.
+
+**Diqqət:**
+- **LAN IP-dən (telefon) canlı test SƏNİN/Ilkin-in tərəfindədir.** Mənim brauzer alətim
+  `192.168.0.100`-ə (bu maşının Wi-Fi LAN IP-si) çata bilmədi — öz sandbox-ı LAN-a marşrutlanmır,
+  yalnız `localhost`-a. Server `-H 0.0.0.0` ilə **işə salınıb qalır** (`web/README.md`-də
+  addımlar) — telefonu eyni Wi-Fi-a qoşub `http://192.168.0.100:3000` açmaq kifayətdir.
+  Yoxladığım 3 mexanizm (yazı, offline növbə, idempotentlik) server kodunun özündədir —
+  şəbəkə yolu fərqli olsa da nəticə eyni olacaq, amma gözlə görmək sənin işindir.
+- `web/CLAUDE.md`/`web/AGENTS.md` — Next.js 16 avtomatik generasiya edir, kökdəki əsl
+  `CLAUDE.md` ilə toqquşur. `next.config.ts`-də `agentRules: false` ilə söndürdüm, faylları sildim.
+- **Özüm bir səhv etdim və düzəltdim:** `web/` və `supabase/`-ı əvvəlcə səhvən `main` worktree-də
+  yaratmışdım (bu branch-də yox). Commit etməzdən əvvəl tapıb düzgün worktree-yə köçürdüm —
+  `main`-də untracked fayl qalmayıb, yoxladım.
+- `prompts/solve-step.md`, `docs/STEP-SCHEMA.json`, golden set faylları, `scripts/` eval
+  harness-i — toxunulmadı.
+- Üçüncü tərəf analitika SDK-sı əlavə edilmədi (`pg`, `next-intl` — analitika deyil, DB/i18n).
+
+**Tapşırıq:** ClickUp "Faza 1 · Şaquli dilim" siyahısında tapşırıq yaratmağa çalışdım —
+**rate limit hələ davam edir** ("Please wait 311 minutes"). HANDOFF birinci mənbədir, bu blok
+S1a-nın rəsmi bitmə qeydidir.
+
+**Blok:** yoxdur. S1b (deploy) hesab yaradılana qədər gözləyir — S2-yə keçmək olar.
+
+---
+
 ## 2026-08-06 (21) · Cowork → Claude Code
 
 **Sənin blokun düzgün idi — plan səhvi mənimdir.**

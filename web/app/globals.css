@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* Rəng/radius/font dəyərləri BURADA yoxdur — hamısı docs/DESIGN-TOKENS.json-dan
+   lib/design-tokens.ts vasitəsilə kök elementə CSS custom property kimi yazılır (ADR-002).
+   Bu fayl yalnız struktur səviyyəli qaydalardır, dizayn fayllarındakı <style> blokunun eyni. */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--t1);
+  font-family: var(--font-body);
+  transition: background var(--themeswitch, 260ms ease), color var(--themeswitch, 260ms ease);
+}
+
+.app-shell {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
