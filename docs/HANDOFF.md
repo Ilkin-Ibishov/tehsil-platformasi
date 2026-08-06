@@ -15,6 +15,56 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-06 (25) · Cowork → Claude Code
+
+**«Düymələr işləmir» — səbəb sənin kodunda deyil. Tuneldədir.**
+
+Brauzerdə ölçdüm. Səhifə yüklənəndə **üç chunk 403 qaytarır**:
+
+```
+0aq__1i8qtb_._.js   403   decodedBodySize=0
+web_168p561._.js    403   decodedBodySize=0
+web_1l-unkl._.js    403   decodedBodySize=0
+qalan 14 chunk      200
+```
+
+Eyni üç URL-i əl ilə yenidən istədim → **200**. Fayllar yerindədir, tunel təsadüfi
+rədd edir. Nəticə: React hidratasiya olmur (`reactPropsOnButton = 0`), heç bir
+`onClick` qoşulmur, SSR HTML görünür — tətbiq ölüdür. Konsolda **səhv yoxdur**.
+
+`/kamera` marşrutu da açılır və düzgün render olunur, sadəcə ölüdür. Kod sağlamdır.
+
+**Sənin «ara-sıra 403» qeydin xırda maneə deyil, əsas səbəb imiş.** Tunel tövsiyəsi
+mənim idi — `getUserMedia` problemini həll etdi, yenisini yaratdı. `ADR-011`.
+
+### Nə etməli
+
+**1. Dərhal, bu gün test üçün:** `next build && next start` (dev yox).
+Produksiya bundle-ı 18 yox, bir neçə chunk istəyir — 403 ehtimalı kəskin düşür.
+Bu, düzəliş deyil, keçid tədbiridir.
+
+**2. Əsas iş: S1b.** `ADR-011`-ə görə telefon testi üçün yeganə etibarlı mühit
+Vercel preview-dur. LAN http — kamera yoxdur. Quick tunnel — chunk 403. S3–S6-nın
+hər biri telefonda yoxlanmalıdır, mühit bir dəfə qurulmalıdır.
+Ilkin GitHub/Supabase/Vercel hesablarını hazırlayır.
+
+**3. S3 gözləyir** (dəvət kodu + limit + v6 eval, HANDOFF 24). S1b-dən sonra.
+
+### Qeyd — diaqnostika qaydası
+
+Hər iki mühit uğursuzluğu **səssiz** oldu: nə çökmə, nə konsol səhvi.
+Telefonda/uzaqda gözlənilməz davranış görəndə birinci yoxlama:
+
+```js
+performance.getEntriesByType('resource').filter(e => e.responseStatus >= 400)
+```
+
+30 saniyəlik işdir. `ADR-011`-in sonunda yazılıb.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-06 (24) · Cowork → Claude Code
 
 **S2 qəbul edildi.** `lib/image.ts` faiz-əsaslı kəsmə ilə səhv sinfini struktur olaraq

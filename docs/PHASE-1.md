@@ -111,7 +111,7 @@ sonrakı hər funksiya pulsuz loqlanır.
 Postgres lokal olaraq Docker (`postgres:16`) və ya `supabase start` ilə qaldırıla bilər —
 hansı əlçatandırsa. **Cloud hesabı lazım deyil.**
 
-### S1b — Deploy (Ilkin hesabları yaradandan sonra)
+### S1b — Deploy (**təcili** — telefon testi bundan asılıdır)
 
 Supabase layihəsi + Vercel deploy + miqrasiyanın tətbiqi + env dəyişənləri.
 **Kod dəyişikliyi minimal olmalıdır** — S1a-da `DATABASE_URL` env dəyişəni ilə işləyirsə,
@@ -119,8 +119,12 @@ S1b sadəcə başqa `DATABASE_URL`-dir.
 
 **Qəbul:** telefondan **ictimai URL** açılır → Supabase-də `app.opened` görünür.
 
-**Bloklayır:** S2 və sonrakılar S1b-ni gözləmir — lokal işləməyə davam et.
-Yalnız şagirdlərə vermək S1b tələb edir.
+**Prioritet dəyişdi (`ADR-011`).** Əvvəl «sonra» yazılmışdı; ölçüldü ki, telefonda test
+üçün başqa işləyən yol yoxdur — LAN http-də kamera açılmır, Cloudflare quick tunnel
+chunk-ları təsadüfi 403-lə rədd edir və tətbiq səssizcə hidratasiya olmur.
+S3–S6-nın hər biri telefonda yoxlanmalıdır, ona görə bu mühit bir dəfə qurulmalıdır.
+
+**Asılılıq (Ilkin):** GitHub private repo · Supabase · Vercel.
 
 ### S2 — Kamera → kəsmə
 
