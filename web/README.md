@@ -45,8 +45,9 @@ faiz-əsaslı — CSS/mənbə piksel qarışıqlığı struktur olaraq mümkün 
 çökmür, bax `TELEMETRY.md`).
 
 **Diqqət:** pulsuz `trycloudflare.com` tuneli hesabsızdır və ara-sıra `403`/bağlantı kəsilməsi
-verə bilər (Cloudflare-in özü xəbərdarlıq edir — "no uptime guarantee"). İstehsalat üçün deyil,
-yalnız dev dövrü üçündür.
+verə bilər (Cloudflare-in özü xəbərdarlıq edir — "no uptime guarantee"). **`ADR-011`-ə görə
+telefon testi üçün istifadə edilmir** — bax aşağıda S1b. Tunel yalnız S1b-dən əvvəlki bir
+günlük keçid idi, tarixi qeyd üçün saxlanılır.
 
 ## Struktur
 
@@ -67,7 +68,30 @@ i18n/request.ts       next-intl konfiqurasiyası (yalnız `az` aktiv, struktur h
 messages/az.json      UI mətnləri (hardcode qadağandır — CLAUDE.md)
 ```
 
-## S1b (deploy) üçün
+## S1b — deploy (`ADR-011`: telefon testi üçün YEGANƏ etibarlı mühit)
 
-`DATABASE_URL`-i Supabase-in connection string-i ilə əvəz et, Vercel-ə deploy et,
-`supabase/migrations/0001_events.sql`-i Supabase-də tətbiq et. Kod dəyişmir.
+**Qurulub, işləyir.** GitHub (`Ilkin-Ibishov/tehsil-platformasi`, private) ↔ Vercel
+(`ilkin-ibishovs-projects/web`) ↔ Supabase (`tehsil-platformasi`, `eu-central-1`) qoşulu.
+
+| Nə | URL |
+|---|---|
+| **Production** (`main` push edəndə avtomatik) | `https://web-ilkin-ibishovs-projects.vercel.app` |
+| **Preview** (hər digər branch push edəndə avtomatik) | `web-git-<branch>-ilkin-ibishovs-projects.vercel.app` |
+| Supabase layihəsi | `oxjzehxnbumgyoqjonju` (dashboard: supabase.com/dashboard/project/oxjzehxnbumgyoqjonju) |
+
+**Vercel Project Settings:**
+- Root Directory: `web` (repo kökü klonlanır, `../docs/DESIGN-TOKENS.json` idxalı buna görə işləyir)
+- Env: `DATABASE_URL`, `NEXT_PUBLIC_APP_VERSION` — `production`/`preview`/`development` hər üçündə
+- **SSO Deployment Protection SÖNDÜRÜLÜB** (istifadəçi təsdiqi ilə) — söndürülməsəydi telefon/
+  brauzer heç bir URL-i aça bilməzdi (Vercel login-ə yönləndirirdi). `/api/solve` hələ stub
+  olduğu üçün risk yoxdur; S3-də real API qoşulanda `PHASE-1.md`-dəki dəvət kodu qoruyacaq.
+
+**Miqrasiya tətbiq etmək üçün** (yeni miqrasiya yazılanda):
+```bash
+docker run --rm postgres:16 psql "postgresql://postgres.oxjzehxnbumgyoqjonju:<DB_PASS>@aws-0-eu-central-1.pooler.supabase.com:5432/postgres" -f - < ../supabase/migrations/000X_xxx.sql
+```
+DB şifrəsi Vercel env-də (`DATABASE_URL` daxilində) və Supabase dashboard-dadır, ayrıca saxlanmır.
+
+**Növbəti sprintlər üçün axın:** kodu dəyiş → `git push` (feature branch → Preview URL avtomatik
+gəlir, telefon üçün) → `main`-ə merge → Production yenilənir. Kod DƏYİŞMİR, S1a-dakı eyni
+`DATABASE_URL` mexanizmi.
