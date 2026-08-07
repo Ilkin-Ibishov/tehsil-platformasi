@@ -8,8 +8,9 @@ Next.js (App Router, TS, Tailwind). Bax `../docs/PHASE-1.md` — sprintlər, API
 # 1) lokal Postgres (Docker) — supabase start da olar, hər hansı əlçatandırsa
 docker run --name th-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=tehsil -p 5432:5432 -d postgres:16
 
-# 2) miqrasiya (portativ SQL, Supabase-ə xas heç nə yoxdur)
+# 2) miqrasiyalar (portativ SQL, Supabase-ə xas heç nə yoxdur)
 docker exec -i th-postgres psql -U postgres -d tehsil < ../supabase/migrations/0001_events.sql
+docker exec -i th-postgres psql -U postgres -d tehsil < ../supabase/migrations/0002_problems_solutions_attempts.sql
 
 # 3) env
 cp .env.example .env.local   # DATABASE_URL defolt dəyəri yuxarıdakı konteynerə uyğundur
@@ -49,20 +50,48 @@ verə bilər (Cloudflare-in özü xəbərdarlıq edir — "no uptime guarantee")
 telefon testi üçün istifadə edilmir** — bax aşağıda S1b. Tunel yalnız S1b-dən əvvəlki bir
 günlük keçid idi, tarixi qeyd üçün saxlanılır.
 
+## S3 — Həll API (`/api/solve` real inteqrasiya)
+
+```bash
+cp .env.example .env.local
+# INVITE_CODE — özün seç (sınaq qrupuna şifahi/mesajla ötürüləcək)
+# GEMINI_API_KEY — Vercel-də artıq var, lokal test üçün ayrıca əlavə et
+```
+
+Axın: dəvət kodu (yalnız bir dəfə, `localStorage`-da saxlanılır) → kamera → kəsmə →
+`/api/solve` (Gemini, `prompts/solve-step.md` fayldan oxunur — eval harness ilə TƏK MƏNBƏ) →
+sxem yoxlanışı (1 retry) → ədədi yoxlama (`lib/verify/`, `ADR-012`) → `problems`/`solutions`/
+`attempts`-a yazı. `verified=false` və ya sxem etibarsızdırsa → `status: "unreadable"`.
+
+Gündəlik limit 30 (`device_id` üzrə, yalnız çatdırılmış həllər sayılır) — 429 + `events`-ə
+`limit.blocked`. Yanlış dəvət kodu → 403, klient kodu silir və yenidən soruşur.
+
+**Bu sessiyada canlı Gemini açarı və işlək Postgres olmadığı üçün uc-uca (kamera → real
+Gemini cavabı → DB sətri) YOXLANILMADI.** Yoxlanılan: `next build`/`lint` təmiz, `lib/verify/
+answer.ts`-in ədədi yoxlama məntiqi (`x²-5x+6=0` → kök 3/2 doğru, 5 səhv, `sqrt(2)` işləyir)
+ayrıca skriptlə sınandı, `outputFileTracingIncludes` ilə `prompts/solve-step.md`-in funksiya
+bundle-ına düşdüyü `.next/server/app/api/solve/route.js.nft.json`-dan təsdiqləndi. **Real
+API açarı əlavə olunandan sonra bir dəfə tam axın (kamera → cavab → DB sətri) əl ilə
+yoxlanılmalıdır** — `ADR-012`-dəki mathjs portu ilə bağlı bilinən risk buna görə əvvəlcədən
+yazılıb, ilk 30 canlı həllin `unreadable` nisbəti izlənməlidir.
+
 ## Struktur
 
 ```
 app/
   layout.tsx        kök: tema/tone CSS dəyişənləri, i18n provider, telemetriya init
   page.tsx           Ana ekran (S1) — app.opened atəşləyir
-  kamera/page.tsx    S2: çəkiliş → kəsmə → /api/solve axını
+  kamera/page.tsx    S2/S3: dəvət kodu → çəkiliş → kəsmə → /api/solve axını
   api/events/         POST — telemetriya upsert (event_id üzrə, həmişə 200)
-  api/solve/           POST — S2 stub (S3-də real Gemini inteqrasiyası)
-components/kamera/    CaptureView (getUserMedia, icazə/dəstək halları), CropView (faiz-əsaslı kəsmə)
+  api/solve/           POST — S3: Gemini + sxem/ədədi yoxlama + problems/solutions/attempts yazısı
+components/kamera/    CaptureView, CropView, InviteGate (dəvət kodu, ADR-012)
 lib/
   db.ts               pg Pool, DATABASE_URL-dən (S1a lokal, S1b Supabase — kod dəyişmir)
   design-tokens.ts   ../docs/DESIGN-TOKENS.json → CSS custom property (ADR-002, tək mənbə)
   image.ts            kəs → (yalnız lazımdırsa) ≤1600px kiçilt — sıra sabitdir
+  prompt.ts            ../prompts/solve-step.md-dən System/User oxuyur (eval ilə TƏK MƏNBƏ)
+  llm.ts / cost.ts     Gemini (OpenAI-uyğun) çağırışı, xərc hesablaması
+  verify/               schema.ts (ajv), answer.ts (mathjs, ADR-012), leak.ts — scripts/lib portu
   telemetry/          klient kitabxanası: IndexedDB növbə, offline-a davamlı flush, idempotent
 i18n/request.ts       next-intl konfiqurasiyası (yalnız `az` aktiv, struktur hazırdır)
 messages/az.json      UI mətnləri (hardcode qadağandır — CLAUDE.md)

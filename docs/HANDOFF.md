@@ -15,6 +15,66 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-07 (28) · Claude Code → Cowork
+
+**Etdim — A) tema bug-ı artıq düzəlmişdi, B) S3 kodu yazıldı, eval BLOKDADIR (açar yoxdur).**
+
+**A) Tema bug-ı (blok 27-nin təsviri).** Yoxladım — bu worktree-də artıq düzəlmişdi
+(`19e784c`, əvvəlki sessiya): `layout.tsx`-də `themeVars`/`data-theme` artıq `<html>`-dədir,
+`.app-shell`-də deyil. Əlavə iş lazım olmadı. `main`-dəki HANDOFF nömrələmə düzəlişini
+(`a90b4cd`, 26→27) bu branch-ə merge etdim ki, iki tərəf sinxron qalsın.
+
+**B) S3 — `/api/solve` real inteqrasiya yazıldı, amma UC-UCA YOXLANILMADI:**
+
+- `web/lib/prompt.ts` — `prompts/solve-step.md`-i **fayldan** oxuyur, `scripts/lib/
+  prompt_loader.py` ilə eyni çıxarma məntiqi (regex ilə `## System`/`## User` blokları).
+  `next.config.ts`-ə `outputFileTracingIncludes` əlavə etdim ki, bu fayl funksiya bundle-ına
+  düşsün — `.next/server/app/api/solve/route.js.nft.json`-da təsdiqlədim.
+- `web/lib/llm.ts`, `cost.ts` — Gemini (OpenAI-uyğun `/chat/completions`), retry (429/5xx, 3 cəhd).
+- `web/lib/verify/{schema,answer,leak}.ts` — `scripts/lib/{schema_check,verify,leak}.py`-ın
+  TS portu. **Memarlıq qərarı `ADR-012`-də:** Python serverless funksiya seçilmədi (Vercel-in
+  Root Directory-dən kənar faylları bundle-a salıb-salmayacağı bu sessiyada yoxlanıla bilmirdi,
+  cross-runtime çağırış `next dev`-i də pozardı). Bunun əvəzinə tapdım ki, istehsalat yoxlaması
+  həmişə ədədidir (sympy simplify sadəcə ədədə endirmək üçün idi) — `mathjs` ilə eyni nəticəni
+  verir. `x²-5x+6=0` üçün kök 3/2 doğru, 5 səhv, `sqrt(2)` işləyir — ayrıca skriptlə sınadım
+  (`ADR-012`-də detallar). **`scripts/lib/*.py` TOXUNULMADI** — eval və istehsalat artıq iki
+  müstəqil implementasiyadır, divergensiya riski `ADR-012`-də açıq yazılıb.
+- Miqrasiya `0002_problems_solutions_attempts.sql` — `attempts.device_id` əlavə etdim
+  (`user_id` nullable qaldı, Faza 1-də auth yoxdur, `ADR-012`).
+- Dəvət kodu: `INVITE_CODE` env (tək paylaşılan sirr, 20 nəfərlik qrup üçün overengineering
+  olmasın deyə cədvəl yox). `web/components/kamera/InviteGate.tsx` — kameradan əvvəl bir dəfə
+  soruşur, `localStorage`-da saxlayır, server 403 versə silinir və yenidən soruşulur.
+- Gündəlik limit 30, `device_id` üzrə, YALNIZ `completed=true` sətirlər sayılır (S5 invariantı).
+  Limitə çatanda `events`-ə server özü `limit.blocked` yazır (`daily_count` ilə).
+- `kamera/page.tsx` — `device_id`/`invite_code`/`subject` əlavə etdim, cavaba görə
+  `solve.response`/`refusal.shown`/`limit.blocked` telemetriyasını indi doğru göndərir
+  (əvvəl yalnız `solve.failed` var idi, S2 stub-ın qalığı).
+- `web/.env.example` yaratdım — README-də istinad edilirdi, amma HEÇ VAXT mövcud olmayıb
+  (`.gitignore`-da `.env*` onu da tutub saxlamışdı, `!.env.example` əlavə etdim).
+
+**Yoxlama — dürüst deyim, uc-uca YOXDUR:**
+- ✅ `npm run build` və `npm run lint` təmiz (dummy env dəyərləri ilə).
+- ✅ `lib/verify/answer.ts`-in ədədi məntiqi ayrıca skriptlə sınandı (yuxarıda).
+- ❌ **Real Gemini açarı bu worktree-də yoxdur** (`.env` heç yerdə tapılmadı, mühit
+  dəyişənlərində də yoxdur) — nə `/api/solve`-i real şəkillə sınaya bildim, nə də
+  **v6 eval-i işə sala bildim** (`scripts/run-eval.bat`, ~$0.17). `docs/PHASE-1.md` S3-ün
+  ilk şərti "eval S3-ün ƏVVƏLİNDƏ işə salınsın" idi — bunu ATLAMADIM, İCRA EDƏ BİLMƏDİM.
+- ❌ Lokal Postgres da qurulu deyil bu worktree-də — DB yazı yolu (`problems`/`solutions`/
+  `attempts` insert-ləri) yalnız kod səviyyəsində nəzərdən keçirilib, icra edilməyib.
+
+**Blok:** İKİ AÇIQ ŞEY, ikisi də canlı test tələb edir:
+1. **v6 eval-i sənin/Ilkin-in tərəfindən işə salınmalıdır** (`scripts/.env`-ə real `API_KEY`
+   lazımdır, mənim girişimdə yoxdur) — nəticə `docs/HANDOFF.md`-ə yazılmalıdır ki, S4-ə keçməzdən
+   əvvəl pedaqoji ox ≥8/10 olduğu bilinsin. Keçmirsə, `PHASE-1.md`-in özünün dediyi kimi bu
+   prompt işidir, S3 kodu bundan asılı deyil.
+2. **`/api/solve`-in uc-uca canlı testi** — real Postgres (S1b-dəki Supabase artıq var) +
+   `GEMINI_API_KEY` + real telefon şəkli ilə. Xüsusilə `ADR-012`-dəki mathjs portunun bilinən
+   məhdudiyyəti (implicit multiplication yalnız rəqəm-əsaslı hallarda həll olunub) canlı
+   nümunələrlə yoxlanmalıdır — gözlənilməzdən yüksək `unreadable`/`verify` uğursuzluğu görsən,
+   səbəb ilk növbədə bu port ola bilər, model deyil.
+
+---
+
 ## 2026-08-07 (27) · Claude Code → Cowork
 
 **Etdim — S1b tam qurulub, canlı işləyir.**

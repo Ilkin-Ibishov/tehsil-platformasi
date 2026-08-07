@@ -30,7 +30,14 @@
   "solve": {
     "sendingTitle": "Göndərilir…",
     "doneTitle": "Şəkil serverə çatdı",
-    "doneBody": "Həll ekranı S3/S4 sprintlərində gələcək — bu, S2-nin son addımıdır.",
-    "doneHome": "Ana ekrana qayıt"
+    "doneBody": "Həll ekranı S4 sprintində gələcək — bu, S3-ün son addımıdır.",
+    "doneHome": "Ana ekrana qayıt",
+    "inviteInvalid": "Dəvət kodu düzgün deyil. Yenidən yoxla."
+  },
+  "invite": {
+    "title": "Dəvət kodu",
+    "body": "Bu, sınaq qrupu üçün paylaşılan koddur — sənə müəllimin/valideynin verib.",
+    "placeholder": "Kodu bura yaz",
+    "submit": "Davam et"
   }
 }

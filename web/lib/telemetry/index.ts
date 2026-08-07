@@ -12,7 +12,7 @@ const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
 const DEVICE_ID_KEY = "th_device_id";
 const SESSION_ID_KEY = "th_session_id";
 
-function getDeviceId(): string {
+export function getDeviceId(): string {
   try {
     let id = localStorage.getItem(DEVICE_ID_KEY);
     if (!id) {

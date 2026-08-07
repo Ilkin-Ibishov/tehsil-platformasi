@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
     root: path.join(__dirname, ".."),
   },
   outputFileTracingRoot: path.join(__dirname, ".."),
+  // lib/prompt.ts prompts/solve-step.md-i (repo kökündə) runtime-da fs ilə oxuyur (ADR-012:
+  // eval harness ilə TƏK MƏNBƏ). Statik idxal deyil (markdown, JSON kimi bundle olunmur),
+  // ona görə tracer-ə açıq şəkildə deyilir ki, faylı funksiya bundle-ına daxil etsin.
+  outputFileTracingIncludes: {
+    "/api/solve": ["../prompts/solve-step.md"],
+  },
   // Repo kökündə artıq öz CLAUDE.md-imiz var (Cowork sahibliyindədir, fayl sahibliyi cədvəli).
   // Next.js-in avtomatik web/CLAUDE.md + web/AGENTS.md generasiyası onunla toqquşur.
   agentRules: false,
