@@ -45,24 +45,36 @@ export function CropView({
     return Math.min(hi, Math.max(lo, v));
   }
 
-  function onPointerDown(handle: Handle, e: React.PointerEvent) {
-    e.preventDefault();
-    drag.current = { handle, startX: e.clientX, startY: e.clientY, startBox: box };
+  // Pointer Events YOX — Mouse+Touch ayrı-ayrı (HANDOFF: window-a bağlanan pointermove/pointerup
+  // da telefonda çərçivəni düzəltmədi). Səbəb ehtimalı: brauzer toxunuşu səhifə sürüşdürməsi kimi
+  // "ələ alanda" aktiv Pointer Event ardıcıllığına `pointercancel` göndərir (touch-action:none
+  // olsa belə, bəzi mobil brauzerlərdə/in-app webview-lərdə Pointer Events dəstəyi qeyri-tam və ya
+  // gecikmiş qərar verir) — sürüşdürmə İLK toxunuşdan sonra kəsilir. `react-easy-crop` və bənzər
+  // açıq mənbəli kəsmə kitabxanaları məhz bu səbəbdən Pointer Events-ə güvənmir, ayrıca
+  // `touchstart`/`touchmove`/`touchend` (və desktop üçün `mousedown`/`mousemove`/`mouseup`)
+  // işlədir — daha köhnə, daha universal dəstəklənən API. Bunu təkrarlayırıq.
+  function pointFromEvent(e: MouseEvent | TouchEvent): { x: number; y: number } {
+    if ("touches" in e && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if ("changedTouches" in e && e.changedTouches.length > 0) {
+      return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    }
+    return { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY };
   }
 
-  // window-ə bağlanır, konkret elementə YOX (HANDOFF: telefonda çərçivə statik idi).
-  // Səbəb: `setPointerCapture` real toxunuşda bəzi mobil brauzerlərdə etibarlı işləmir —
-  // barmaq 28px handle-dan cüzi kənara çıxan kimi (demək olar həmişə, kiçik ekranda) sonrakı
-  // `pointermove` başqa elementin üzərində "tutulur" və artıq wrapper-ə bubble etmir, sürüşdürmə
-  // ilk hərəkətdən sonra dərhal dayanır — "statik" kimi görünür. `window`-a bağlamaq barmaq
-  // haradan keçirsə keçsin hadisəni tutur, konkret DOM elementindən asılı deyil.
+  function onDragStart(handle: Handle, e: React.MouseEvent | React.TouchEvent) {
+    e.preventDefault();
+    const p = pointFromEvent(e.nativeEvent);
+    drag.current = { handle, startX: p.x, startY: p.y, startBox: box };
+  }
+
   useEffect(() => {
-    function handleMove(e: PointerEvent) {
+    function handleMove(e: MouseEvent | TouchEvent) {
       if (!drag.current || !imgWrapRef.current) return;
       e.preventDefault();
+      const p = pointFromEvent(e);
       const rect = imgWrapRef.current.getBoundingClientRect();
-      const dxPct = (e.clientX - drag.current.startX) / rect.width;
-      const dyPct = (e.clientY - drag.current.startY) / rect.height;
+      const dxPct = (p.x - drag.current.startX) / rect.width;
+      const dyPct = (p.y - drag.current.startY) / rect.height;
       const s = drag.current.startBox;
 
       let next: CropRectPct = s;
@@ -108,13 +120,17 @@ export function CropView({
       }
     }
 
-    window.addEventListener("pointermove", handleMove, { passive: false });
-    window.addEventListener("pointerup", handleUp);
-    window.addEventListener("pointercancel", handleUp);
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleUp);
+    window.addEventListener("touchmove", handleMove, { passive: false });
+    window.addEventListener("touchend", handleUp);
+    window.addEventListener("touchcancel", handleUp);
     return () => {
-      window.removeEventListener("pointermove", handleMove);
-      window.removeEventListener("pointerup", handleUp);
-      window.removeEventListener("pointercancel", handleUp);
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleUp);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleUp);
+      window.removeEventListener("touchcancel", handleUp);
     };
   }, []);
 
@@ -138,14 +154,24 @@ export function CropView({
     onCancel();
   }
 
+  // Toxunuş hədəfi 44×44 (Apple/Google minimumu) — görünən yaşıl nöqtə kiçikdir (22px),
+  // amma barmaqla dəqiq həmin 22px-ə düşmək tələb olunmur, bütöv 44px sahə tutulur.
   const handleStyle: React.CSSProperties = {
     position: "absolute",
-    width: 28,
-    height: 28,
+    width: 44,
+    height: 44,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    touchAction: "none",
+  };
+  const handleDotStyle: React.CSSProperties = {
+    width: 22,
+    height: 22,
     borderRadius: "50%",
     background: "var(--acc)",
     border: "3px solid var(--bg)",
-    touchAction: "none",
+    pointerEvents: "none",
   };
 
   return (
@@ -170,7 +196,8 @@ export function CropView({
 
           {/* Qutunun öz box-shadow-u (aşağıda) kənarları qaraldır — ayrıca overlay lazım deyil. */}
           <div
-            onPointerDown={(e) => onPointerDown("move", e)}
+            onMouseDown={(e) => onDragStart("move", e)}
+            onTouchStart={(e) => onDragStart("move", e)}
             style={{
               position: "absolute",
               left: `${box.x * 100}%`,
@@ -184,10 +211,18 @@ export function CropView({
               touchAction: "none",
             }}
           >
-            <div onPointerDown={(e) => onPointerDown("nw", e)} style={{ ...handleStyle, left: -14, top: -14, cursor: "nwse-resize" }} />
-            <div onPointerDown={(e) => onPointerDown("ne", e)} style={{ ...handleStyle, right: -14, top: -14, cursor: "nesw-resize" }} />
-            <div onPointerDown={(e) => onPointerDown("sw", e)} style={{ ...handleStyle, left: -14, bottom: -14, cursor: "nesw-resize" }} />
-            <div onPointerDown={(e) => onPointerDown("se", e)} style={{ ...handleStyle, right: -14, bottom: -14, cursor: "nwse-resize" }} />
+            <div onMouseDown={(e) => onDragStart("nw", e)} onTouchStart={(e) => onDragStart("nw", e)} style={{ ...handleStyle, left: -22, top: -22, cursor: "nwse-resize" }}>
+              <span style={handleDotStyle} />
+            </div>
+            <div onMouseDown={(e) => onDragStart("ne", e)} onTouchStart={(e) => onDragStart("ne", e)} style={{ ...handleStyle, right: -22, top: -22, cursor: "nesw-resize" }}>
+              <span style={handleDotStyle} />
+            </div>
+            <div onMouseDown={(e) => onDragStart("sw", e)} onTouchStart={(e) => onDragStart("sw", e)} style={{ ...handleStyle, left: -22, bottom: -22, cursor: "nesw-resize" }}>
+              <span style={handleDotStyle} />
+            </div>
+            <div onMouseDown={(e) => onDragStart("se", e)} onTouchStart={(e) => onDragStart("se", e)} style={{ ...handleStyle, right: -22, bottom: -22, cursor: "nwse-resize" }}>
+              <span style={handleDotStyle} />
+            </div>
           </div>
         </div>
 

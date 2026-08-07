@@ -15,6 +15,53 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-07 (32) · Claude Code → Cowork
+
+**Etdim — blok 31-in düzəlişi telefonda İŞLƏMƏDİ (Ilkin bildirdi). İkinci, fərqli kök səbəblə düzəldim, xarici mənbələrə əsaslanaraq.**
+
+Blok 31-də `pointermove`/`pointerup`-ı `window`-a köçürdüm (element-target asılılığını sildim),
+amma çərçivə YENƏ statik qaldı. Bu, ilk fərziyyəmin (yalnız bubble/capture yolu) YANLIŞ
+olduğunu göstərdi — kök səbəb elementin özündə deyil, **Pointer Events API-nin özündə** imiş.
+
+**Xarici araşdırma (Ilkin-in tövsiyəsi ilə):** axtardım — məlum, geniş sənədləşdirilmiş
+problem: brauzer toxunuşu səhifə sürüşdürməsi/gest kimi "ələ alanda" aktiv Pointer Event
+ardıcıllığına `pointercancel` göndərir, `touch-action:none` olsa belə bəzi mobil brauzerlərdə/
+in-app webview-lərdə (WhatsApp/Instagram/Telegram-ın öz daxili brauzeri kimi) Pointer Events
+dəstəyi qismən və ya gecikmişdir. Bu, real developer-lərin dəfələrlə rast gəldiyi sinifdəndir
+(mənbə: javascript.info/pointer-events, MDN `touch-action`). **`react-easy-crop` kimi məşhur
+açıq mənbəli kəsmə kitabxanaları məhz bu səbəbdən Pointer Events-ə güvənmir** — ayrı-ayrı
+`touchstart`/`touchmove`/`touchend` (toxunuş üçün) və `mousedown`/`mousemove`/`mouseup`
+(siçan üçün) işlədirlər, daha köhnə amma universal dəstəklənən API.
+
+**Düzəliş — `CropView.tsx` tam yenidən yazıldı bu naxışla:**
+- `onPointerDown` → `onDragStart`, `React.MouseEvent | React.TouchEvent` qəbul edir.
+- `pointFromEvent()` — `TouchEvent`-dən (`touches[0].clientX/Y`) və ya `MouseEvent`-dən
+  (`clientX/Y`) koordinatı çıxarır, hər iki halı vahid məntiqə gətirir.
+- `window`-a **beş** dinləyici: `mousemove`/`mouseup` (siçan) + `touchmove`/`touchend`/
+  `touchcancel` (toxunuş). `touchmove` `{passive:false}` ilə (əks halda `preventDefault`
+  Chrome-da xəbərdarlıqla məhv edilir).
+- **Toxunuş hədəfi böyüdüldü:** handle-lar 28px → **44px** (Apple/Google minimum tövsiyəsi),
+  görünən yaşıl nöqtə 22px qalır, daxilində mərkəzləşib (`pointerEvents:"none"`, klikləri
+  valideynə keçirir). Bu, ayrıca simptom idi — kiçik dairəyə dəqiq barmaqla düşmək çətindir.
+
+**Yoxlama:** `npm run build`/`lint` təmiz. **YENƏ real toxunuşla sına bilmədim** — bu mühitin
+brauzer aləti kameranı bloklayır (istehsalat linkinin ÖZÜNDƏ də sınadım, eyni nəticə — bu,
+localhost-a məxsus deyil, alətin öz məhdudiyyətidir), kameraszı kəsmə ekranına çatmaq mümkün
+deyil. `getUserMedia`-nı saxta `MediaStream` ilə əvəz etməyi düşündüm (HANDOFF 23-də bir dəfə
+cəhd edilib) — brauzer alətimdə səhifə YÜKLƏNMƏZDƏN ƏVVƏL skript inyeksiyası (Playwright-ın
+`addInitScript`-i kimi) mexanizmi yoxdur, React effekti mənim JS-imdən əvvəl işə düşür, ona
+görə bu yol da bağlıdır.
+
+**Etibar səviyyəsi fərqlidir bu dəfə:** blok 31 öz məntiqi ilə (yalnız target dəyişdirmək)
+əsassız nikbin idi. Bu düzəliş konkret, adlandırılmış, sənədləşdirilmiş problemi (Pointer
+Events-in mobil brauzerlərdə `pointercancel`/qismən dəstək riski) real açıq mənbəli
+kitabxananın öz seçimi ilə üst-üstə salır — amma **yenə də son söz telefonda sənindir.**
+
+**Blok:** yoxdur. Əgər BU da işləməzsə, növbəti addım Playwright/real-device MCP alətindən
+istifadə edərək canlı toxunuş sınağı aparmaq olardı (bu sessiyanın alətləri kifayət etmir).
+
+---
+
 ## 2026-08-07 (31) · Claude Code → Cowork
 
 **Etdim — telefonda kəsmə çərçivəsi statik idi (Ilkin bildirdi, blok 30-un düzəlişindən dərhal sonra).**
