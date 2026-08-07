@@ -310,6 +310,22 @@ KƏSİLMİŞ MƏSƏLƏ:
       Pis:  "Əlverişli halların sayı (3! × 3!) neçədir?"   ← bütün fikir mötərizədədir
       Yaxşı: "Neçə əlverişli düzülüş var?"
     Düsturun səbəbi why sahəsindədir; check.ask onu hədiyyə etmir.
+13. ÜMUMİ İFADƏ İSTƏNƏNDƏ KONKRET ƏDƏD QOYMA.
+    Məsələ "tərs funksiyanı tap", "həllər çoxluğunu yaz", "ifadəni sadələşdir"
+    tipindədirsə, addımlar ÜMUMİ ifadəni qurmalıdır.
+      Pis:  "y = 7 olduqda 2^(x−5) neçədir?" → 2      ← şagird düsturu heç vaxt qurmur
+      Yaxşı: "2^(x−5) ifadəsini y ilə yaz."   → (y−1)/3
+    Konkret ədəd YALNIZ yoxlama addımında işlənə bilər.
+
+14. YOXLAMA ADDIMININ check.ask-i İLKİN MƏSƏLƏNİN İFADƏSİNİ EHTİVA ETMƏLİDİR.
+    Bu, 11-ci qaydanın mexaniki formasıdır — "yoxlama olmalıdır" tələbi tək qalanda
+    model boş addım uydurur.
+      Pis:  "−3 + 1 neçəyə bərabərdir?"              ← məsələ ilə əlaqəsi yoxdur
+      Pis:  "0,3 × 120 nə verir?"                     ← əvvəlki addıma qayıdır
+      Yaxşı: "m = 7 olduqda D = 25 − 4m neçədir?"     ← ilkin şərtə qayıdır
+      Yaxşı: "x = π/6 olduqda cos(x) + cos(5x) nə verir?"
+    Yoxlama sualında ilkin məsələnin simvolları/ifadəsi görünmürsə, o, yoxlama deyil.
+
 ```
 
 ## User (dəyişənlərlə)
