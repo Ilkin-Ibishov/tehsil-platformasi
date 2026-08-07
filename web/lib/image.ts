@@ -40,6 +40,9 @@ export async function cropAndResize(
     resized.height = outH;
     const rctx = resized.getContext("2d");
     if (!rctx) throw new Error("2d context alınmadı");
+    // Brauzer defoltu "low"-dur — 3000px→1600px kimi bir addımlıq kiçiltmədə çap mətnində
+    // alias/moiré yaradır (HANDOFF 24). Bu, birbaşa OCR dəqiqliyinə təsir edir.
+    rctx.imageSmoothingQuality = "high";
     rctx.drawImage(cropCanvas, 0, 0, outW, outH);
     finalCanvas = resized;
   }

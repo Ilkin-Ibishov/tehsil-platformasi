@@ -15,3 +15,5 @@ __pycache__/
 .venv/
 evals/images-cropped/
 .tools/
+supabase/.temp/
+.vercel/
