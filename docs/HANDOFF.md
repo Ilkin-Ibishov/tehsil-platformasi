@@ -15,6 +15,92 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-07 (29) · Cowork → Claude Code
+
+**Telefonda kamera sınandı. Real bug var, yeri dəqiq məlumdur.**
+
+Ilkinin hesabatı: görüntü yoxdur, **yumru yaşıl düymə işləmir**, amma **fənər düyməsi
+işləyir** (telefonun fənərini yandırıb-söndürür).
+
+Fənərin işləməsi diaqnozun açarıdır: `torch` yalnız **aktiv track** üzərində işləyir,
+yəni `getUserMedia` uğurludur və axın sağdır. Problem axının `<video>`-ya çatmamasındadır.
+
+### Səbəb — `CaptureView.tsx`, mount sırası
+
+```tsx
+{stage === "live" && (
+  <video ref={videoRef} autoPlay playsInline muted … />
+)}
+```
+
+`<video>` YALNIZ `stage === "live"` olanda render olunur. Effektdə isə:
+
+```ts
+streamRef.current = stream;
+if (videoRef.current) {          // ← bu anda stage hələ "requesting"
+  videoRef.current.srcObject = stream;   // ← video DOM-da YOXDUR, ref null → sətir keçilir
+}
+…
+setStage("live");                // ← video İNDİ mount olunur, srcObject-siz
+```
+
+`srcObject` təyin ediləndə element hələ mövcud deyil; `if` guard-ı sətri **səssizcə**
+buraxır. Sonra mount olunan `<video>` mənbəsiz qalır və heç vaxt doldurulmur.
+
+**Hər üç simptom bundan çıxır:**
+
+| simptom | səbəb |
+|---|---|
+| görüntü yoxdur | `<video>`-nun `srcObject`-i yoxdur |
+| yaşıl düymə işləmir | `shoot()` `if (!video \|\| video.videoWidth === 0) return;` ilə başlayır — `videoWidth` 0-dır, **səssiz return** |
+| fənər işləyir | `streamRef.current`-i birbaşa işlədir, `<video>`-ya toxunmur |
+
+Düymə `disabled` deyil (`stage === "live"`), ona görə basılan kimi görünür, amma heç nə etmir.
+
+### Düzəliş — struktur olaraq təkrarlanmasın
+
+`stage`-ə bağlı ikinci `useEffect` işləyər, amma yenə sıradan asılıdır.
+**Callback ref sıra asılılığını tamamilə aradan qaldırır** (`lib/image.ts`-dəki
+faiz-əsaslı kəsmə ilə eyni məntiq — səhvi mümkünsüz et, xatırlamağa güvənmə):
+
+```tsx
+const setVideoEl = useCallback((el: HTMLVideoElement | null) => {
+  videoRef.current = el;
+  if (el && streamRef.current) el.srcObject = streamRef.current;
+}, []);
+
+<video ref={setVideoEl} autoPlay playsInline muted … />
+```
+
+Element nə vaxt mount olursa-olsun, axın varsa dərhal qoşulur.
+
+### İki səssiz guard — əsl problem budur
+
+Bug bir sətirdir, amma **görünməz** olmasının səbəbi iki ayrı yerdə səssiz keçidin
+üst-üstə düşməsidir:
+
+1. `if (videoRef.current)` — ref null-dursa heç nə etmir, xəbər vermir
+2. `if (… videoWidth === 0) return` — hazır deyilsə səssizcə çıxır
+
+Nəticə: nə çökmə, nə konsol səhvi, nə telemetriya. `ADR-011`-dəki eyni nümunə.
+
+**Telemetriya əlavə et:** `capture.shutter_noop` (`{ reason: "video_not_ready" }`) —
+`shoot()`-un erkən return-ünə. Bu hadisə olsaydı, bug ilk sınaqda datada görünərdi.
+`TELEMETRY.md`-yə də yaz.
+
+### Etiraf — S2-ni yanlış qəbul etmişəm
+
+`PHASE-1.md` → S2 qəbul şərti: *«telefonda şəkil çəkilir, kəsilir, serverə çatır»*.
+Bu şərt **heç vaxt yoxlanmadı** — sən yoxlaya bilmədiyini açıq yazdın, mən isə buna
+baxmayaraq S2-ni qəbul etdim və S3-ə keçdik. Səhv mənimdir.
+
+**Bundan sonra:** qəbul şərti insan yoxlaması tələb edirsə, sprint həmin yoxlama
+gələnə qədər «qəbul edilib» sayılmır. Kod hazır ola bilər, sprint yox.
+
+**Blok:** yoxdur. Düzəlişdən sonra Ilkin telefonda yenidən sınayır.
+
+---
+
 ## 2026-08-07 (28) · Cowork → Claude Code
 
 **v6 pedaqoji rəyi bitdi — açıq maddə bağlandı.** `ADR-013`,
