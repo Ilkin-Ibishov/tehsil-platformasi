@@ -15,6 +15,54 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-07 (33) · Claude Code → Cowork
+
+**Etdim — ƏSL SƏBƏB TAPILDI VƏ DÜZƏLDİLDİ, bu dəfə koda baxaraq DEYİL, canlı DOM sınağı ilə sübut edərək.**
+
+Ilkin bloklar 31/32-nin işləmədiyini bildirdi və haqlı sual verdi: "həqiqətən push etdinmi,
+tapşırığı düzgün başa düşdünmü?" İkisini də CANLI yoxladım (əvvəl fərz etmək əvəzinə):
+
+**1) Push/deploy təsdiqi:** istehsalat bundle-ını (`web-ilkin-ibishovs-projects.vercel.app`)
+endirib blok 32-nin unikal işarəsini (`left:-22,top:-22`, 44px handle-lər) axtardım —
+**tapıldı, canlıdır.** Push/deploy problemi YOX İDİ.
+
+**2) Əsl bug — canlı DOM-a sintetik hadisə göndərərək tapıldı:** istehsalat səhifəsində
+`getUserMedia`-nı saxta `canvas.captureStream()` ilə əvəz etdim (brauzer aləti kameranı
+bloklayır, amma bu, JS səviyyəsində problemi keçir), kameradan KƏSMƏ ekranına qədər əl ilə
+gəzdim, sonra "se" (sağ-alt) handle-ə həqiqi `MouseEvent`/`TouchEvent` göndərib qutunun
+`style.left/top/width/height`-ni ÖLÇDÜM:
+
+Nəticə: **width/height HEÇ VAXT dəyişmədi, yalnız left/top dəyişdi** — hər resize cəhdi
+səssizcə "move"-a çevrilirdi. Bloklar 31/32 (Pointer→Touch/Mouse keçidi, `window`-a bağlama,
+44px hədəf) hamısı **doğru, amma yanlış problemi həll edirdi.**
+
+**Həqiqi səbəb:** 4 künc handle-i "move" qutusunun İÇİNDƏ (DOM övladı) yerləşir.
+`stopPropagation()` çağırılmadığı üçün handle-in öz down-hadisəsi valideynə **bubble edir**,
+qutunun öz "move" down-handler-i DƏ işə düşür və `drag.current.handle`-i handle-in adından
+("se"/"nw"/...) **"move"-un üzərinə yazır** — nəticədə hansı handle-ə toxunsan da, YALNIZ
+mövqe (x/y) dəyişir, ölçü (w/h) HEÇ VAXT dəyişmir. Bu, Pointer/Touch API-dən TAMAMİLƏ
+asılı olmayan, sadə DOM event-bubbling bugudur — kod YAZILDIĞI GÜNDƏN (S2, blok 23) var idi,
+desktop siçanla təsadüfən "move" işlədiyi üçün heç vaxt tutulmayıb.
+
+**Düzəliş:** `onDragStart`-a bir sətir — `e.stopPropagation()`.
+
+**Yoxlama — bu dəfə FƏRZ ETMİRƏM, ÖLÇDÜM:** lokal `next dev`-də eyni sintetik-hadisə testini
+düzəlişdən SONRA təkrarladım:
+- `se` handle sürüşdürüldü → `width: 80%→90%, height: 44%→71.27%, left/top DƏYİŞMƏDİ` (düzgün resize).
+- Qutunun özü (touch ilə) sürüşdürüldü → `left/top dəyişdi, width/height DƏYİŞMƏDİ` (düzgün move).
+
+İkisi də DƏQİQ gözlənilən davranışı verdi. `npm run build`/`lint` təmiz.
+
+**Diqqət:** bu, hələ də REAL barmaqla telefonda sınanmayıb (yenə eyni mühit məhdudiyyəti —
+kamera bloklanır), AMMA bu dəfə fərq keyfiyyətcədir: əvvəlki iki cəhd yalnız NƏZƏRİ əsaslanırdı
+("bu, doğru naxışdır"), bu dəfə DOM-un özündə ÖLÇÜLMÜŞ, TƏKRARLANA BİLƏN sübut var (`resized:
+true, moved:false` və əksi) — problem koddadır, mühit fərqindən deyil, ona görə telefonda da
+eyni nəticəni gözləyirəm.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-07 (32) · Claude Code → Cowork
 
 **Etdim — blok 31-in düzəlişi telefonda İŞLƏMƏDİ (Ilkin bildirdi). İkinci, fərqli kök səbəblə düzəldim, xarici mənbələrə əsaslanaraq.**

@@ -61,8 +61,15 @@ export function CropView({
     return { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY };
   }
 
+  // ƏSAS SƏBƏB TAPILDI (canlı DOM sınağı ilə, koda baxmaqla YOX): 4 künc handle-i "move"
+  // qutusunun İÇİNDƏ yerləşir. `stopPropagation` olmadan handle-in öz down-hadisəsi valideynə
+  // bubble edir, qutunun "move" down-handler-i də işə düşür və `drag.current.handle`-i "se"/"nw"/...
+  // -dən "move"-a ÜZƏRİNƏ YAZIR — nəticədə HƏR SÜRÜŞDÜRMƏ (harada başlasa da) yalnız x/y
+  // dəyişdirir, w/h HEÇ VAXT dəyişmir. Bax HANDOFF: bu, blok 31/32-nin düzəltmədiyi əsl səbəbdir —
+  // Pointer/Touch API YOX idi, sadə event bubbling idi.
   function onDragStart(handle: Handle, e: React.MouseEvent | React.TouchEvent) {
     e.preventDefault();
+    e.stopPropagation();
     const p = pointFromEvent(e.nativeEvent);
     drag.current = { handle, startX: p.x, startY: p.y, startBox: box };
   }
