@@ -47,59 +47,76 @@ export function CropView({
 
   function onPointerDown(handle: Handle, e: React.PointerEvent) {
     e.preventDefault();
-    (e.target as Element).setPointerCapture(e.pointerId);
     drag.current = { handle, startX: e.clientX, startY: e.clientY, startBox: box };
   }
 
-  function onPointerMove(e: React.PointerEvent) {
-    if (!drag.current || !imgWrapRef.current) return;
-    const rect = imgWrapRef.current.getBoundingClientRect();
-    const dxPct = (e.clientX - drag.current.startX) / rect.width;
-    const dyPct = (e.clientY - drag.current.startY) / rect.height;
-    const s = drag.current.startBox;
+  // window-ə bağlanır, konkret elementə YOX (HANDOFF: telefonda çərçivə statik idi).
+  // Səbəb: `setPointerCapture` real toxunuşda bəzi mobil brauzerlərdə etibarlı işləmir —
+  // barmaq 28px handle-dan cüzi kənara çıxan kimi (demək olar həmişə, kiçik ekranda) sonrakı
+  // `pointermove` başqa elementin üzərində "tutulur" və artıq wrapper-ə bubble etmir, sürüşdürmə
+  // ilk hərəkətdən sonra dərhal dayanır — "statik" kimi görünür. `window`-a bağlamaq barmaq
+  // haradan keçirsə keçsin hadisəni tutur, konkret DOM elementindən asılı deyil.
+  useEffect(() => {
+    function handleMove(e: PointerEvent) {
+      if (!drag.current || !imgWrapRef.current) return;
+      e.preventDefault();
+      const rect = imgWrapRef.current.getBoundingClientRect();
+      const dxPct = (e.clientX - drag.current.startX) / rect.width;
+      const dyPct = (e.clientY - drag.current.startY) / rect.height;
+      const s = drag.current.startBox;
 
-    let next: CropRectPct = s;
-    if (drag.current.handle === "move") {
-      next = {
-        ...s,
-        x: clamp(s.x + dxPct, 0, 1 - s.w),
-        y: clamp(s.y + dyPct, 0, 1 - s.h),
-      };
-    } else {
-      let { x, y, w, h } = s;
-      if (drag.current.handle === "se") {
-        w = clamp(s.w + dxPct, MIN_SIZE, 1 - s.x);
-        h = clamp(s.h + dyPct, MIN_SIZE, 1 - s.y);
-      } else if (drag.current.handle === "nw") {
-        const newX = clamp(s.x + dxPct, 0, s.x + s.w - MIN_SIZE);
-        const newY = clamp(s.y + dyPct, 0, s.y + s.h - MIN_SIZE);
-        w = s.x + s.w - newX;
-        h = s.y + s.h - newY;
-        x = newX;
-        y = newY;
-      } else if (drag.current.handle === "ne") {
-        const newY = clamp(s.y + dyPct, 0, s.y + s.h - MIN_SIZE);
-        w = clamp(s.w + dxPct, MIN_SIZE, 1 - s.x);
-        h = s.y + s.h - newY;
-        y = newY;
-      } else if (drag.current.handle === "sw") {
-        const newX = clamp(s.x + dxPct, 0, s.x + s.w - MIN_SIZE);
-        w = s.x + s.w - newX;
-        h = clamp(s.h + dyPct, MIN_SIZE, 1 - s.y);
-        x = newX;
+      let next: CropRectPct = s;
+      if (drag.current.handle === "move") {
+        next = {
+          ...s,
+          x: clamp(s.x + dxPct, 0, 1 - s.w),
+          y: clamp(s.y + dyPct, 0, 1 - s.h),
+        };
+      } else {
+        let { x, y, w, h } = s;
+        if (drag.current.handle === "se") {
+          w = clamp(s.w + dxPct, MIN_SIZE, 1 - s.x);
+          h = clamp(s.h + dyPct, MIN_SIZE, 1 - s.y);
+        } else if (drag.current.handle === "nw") {
+          const newX = clamp(s.x + dxPct, 0, s.x + s.w - MIN_SIZE);
+          const newY = clamp(s.y + dyPct, 0, s.y + s.h - MIN_SIZE);
+          w = s.x + s.w - newX;
+          h = s.y + s.h - newY;
+          x = newX;
+          y = newY;
+        } else if (drag.current.handle === "ne") {
+          const newY = clamp(s.y + dyPct, 0, s.y + s.h - MIN_SIZE);
+          w = clamp(s.w + dxPct, MIN_SIZE, 1 - s.x);
+          h = s.y + s.h - newY;
+          y = newY;
+        } else if (drag.current.handle === "sw") {
+          const newX = clamp(s.x + dxPct, 0, s.x + s.w - MIN_SIZE);
+          w = s.x + s.w - newX;
+          h = clamp(s.h + dyPct, MIN_SIZE, 1 - s.y);
+          x = newX;
+        }
+        next = { x, y, w, h };
       }
-      next = { x, y, w, h };
+      setBox(next);
     }
-    setBox(next);
-  }
 
-  function onPointerUp() {
-    if (drag.current) {
-      adjustCount.current += 1;
-      trackEvent("crop.adjusted", { adjust_count: adjustCount.current });
-      drag.current = null;
+    function handleUp() {
+      if (drag.current) {
+        adjustCount.current += 1;
+        trackEvent("crop.adjusted", { adjust_count: adjustCount.current });
+        drag.current = null;
+      }
     }
-  }
+
+    window.addEventListener("pointermove", handleMove, { passive: false });
+    window.addEventListener("pointerup", handleUp);
+    window.addEventListener("pointercancel", handleUp);
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+      window.removeEventListener("pointercancel", handleUp);
+    };
+  }, []);
 
   async function confirm() {
     setBusy(true);
@@ -144,8 +161,6 @@ export function CropView({
       <div style={{ flex: 1, padding: "18px 20px 0", display: "flex", flexDirection: "column", gap: 16 }}>
         <div
           ref={imgWrapRef}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
           style={{ position: "relative", width: "100%", borderRadius: "var(--rad)", overflow: "hidden", background: "var(--sur)", touchAction: "none" }}
         >
           {imgUrl && (

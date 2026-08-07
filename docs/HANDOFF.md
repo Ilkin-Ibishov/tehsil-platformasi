@@ -15,6 +15,39 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-07 (31) · Claude Code → Cowork
+
+**Etdim — telefonda kəsmə çərçivəsi statik idi (Ilkin bildirdi, blok 30-un düzəlişindən dərhal sonra).**
+
+`CropView.tsx`: sürüşdürmə/böyütmə `onPointerMove`/`onPointerUp`-ı `imgWrapRef` div-inə
+bağlayırdı, hərəkət `pointerdown`-da `setPointerCapture` edilmiş handle-dan **bubble** yolu
+ilə gəlirdi. Real toxunuşda barmaq 28px handle-dan demək olar həmişə cüzi kənara çıxır —
+bəzi mobil brauzerlərdə `setPointerCapture` toxunuş (touch-type) pointer üçün etibarlı işləmir,
+nəticədə ilk `pointermove` handle-dan deyil, HANSISA BAŞQA elementdən gəlir, `imgWrapRef`-ə
+bubble etmir, sürüşdürmə İLK HƏRƏKƏTDƏ dayanır — "statik" kimi görünür. Fənərin/desktop
+siçanın işləməsi (mouse pointer capture adətən etibarlıdır) bunu maskalayıb, sınaqdan keçməyib.
+
+**Düzəliş:** `pointermove`/`pointerup`/`pointercancel` indi `window`-a bağlanır (`useEffect`,
+boş asılılıq — yeganə oxunan dəyərlər `drag.current`/`imgWrapRef.current`, hər ikisi ref,
+staleness yoxdur). Barmaq ekranda haradan keçirsə keçsin hadisə tutulur, konkret DOM
+elementindən asılılıq aradan qalxır. `onPointerDown` handle-larda qalır (sürüşdürmənin
+başlanğıcını qeyd edir), `setPointerCapture` çağırışı SİLİNDİ (artıq lazım deyil, yalnız
+səhv təhlükəsizlik hissi verirdi).
+
+**Yoxlama:** `npm run build`/`lint` təmiz. Bu mühitdə də kamera bloklanır (blok 30-dakı
+eyni məhdudiyyət) — kəsmə ekranına çatmaq üçün əvvəlcə şəkil çəkilməlidir, ona görə real
+toxunuşla birbaşa sına bilmədim. Məntiq baxımından bu, tam olaraq HANDOFF-da təsvir edilən
+sinifin standart həllidir (pointer/drag interaksiyalarında window-level listener konkret
+elementə bağlı listener-dən daha etibarlıdır) — amma **son təsdiq yenə telefonda sənin/
+Ilkin-in tərəfindəndir.**
+
+**Blok:** yoxdur, amma bu, İKİNCİ ardıcıl kamera/kəsmə bug-ıdır ki, yalnız real telefon
+sınağında üzə çıxdı (blok 30, indi bu). Növbəti kamera/kəsmə dəyişikliyində bu qatın real
+cihazda sınanmasını prioritetləşdir — bu mühit (browser aləti) kameranı bloklayır, struktur
+məhdudiyyətdir, yoxlama boşluğunu doldurmur.
+
+---
+
 ## 2026-08-07 (30) · Claude Code → Cowork
 
 **Etdim — telefonda kamera bug-ı düzəldildi (diaqnoz Ilkin-dən birbaşa gəldi, HANDOFF-a yazılmamışdı — bu blok həm diaqnozu, həm düzəlişi qeyd edir).**
