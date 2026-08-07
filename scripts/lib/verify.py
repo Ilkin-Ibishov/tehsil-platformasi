@@ -13,17 +13,28 @@ ADR-009-a görə düzəldilib:
        bütün müqayisəni sındırırdı).
    Modelin `values`-ində qalan tək-hərfli etiketlər (`"B"`, `"b"` — köhnə format, geriyə uyğunluq)
    müqayisədən ƏVVƏL süzülür.
-2. **sympy çarpaz yoxlama** (müstəqil, `answer_is_root` golden-də `false` deyilsə) — `canonical`-ı
+2. **Ədədi çarpaz yoxlama** (müstəqil, `answer_is_root` golden-də `false` deyilsə) — `canonical`-ı
    tənlik kimi parse edib modelin dəyərlərini yerinə qoyur. `answer_is_root=false` olanda
    (cavab tənliyin kökü DEYİL — məs. kontekstual tənlikdən törəmə ehtimal) bu qat keçilir, əks
    halda yanlış `conflict` yaranır (ADR-009, `c09`). 1-ci qatla ZİDDİYYƏT taparsa `conflict=True`
    qaytarır — GOLDEN SET-in özündəki səhvi tutan mexanizmdir, silinmir.
+
+   **2026-08-07 (ADR-012, Qərar 4-ün yenilənməsi):** bu qat artıq Python-da sympy ilə YENİDƏN
+   yazılmır — `web/lib/verify/answer.ts`-i (`web/lib/verify/cli.mts` üzərindən, Node.js
+   alt-prosesi ilə) çağırır. Səbəb: bu, məhz istehsalatın (`/api/solve`) işlətdiyi kodun
+   ÖZÜDÜR. Əvvəllər (2026-08-07-ə qədər) burada AYRI bir sympy implementasiyası var idi —
+   `PHASE-1.md`-in S3 tələbini ("iki fərqli implementasiya olmasın") pozurdu. İndi TƏK
+   MƏNBƏ TS-dir, `direct_compare` (aşağıda, YALNIZ eval-a aiddir, istehsalatda ekvivalenti
+   yoxdur) sympy ilə qalır — divergensiya riski onda YOXDUR.
 3. Heç biri mümkün deyilsə → `(None, False)`.
 
 `golden_values` verilməzsə (məs. selftest mock halları) davranış köhnə ilə eynidir — yalnız 2-ci qat işləyir.
 """
 
+import json
 import re
+import subprocess
+from pathlib import Path
 
 import sympy
 from sympy.parsing.sympy_parser import (
@@ -38,10 +49,11 @@ _LOCAL_DICT = {
     "ln": sympy.log,
 }
 
-_LATEX_SEGMENT_RE = re.compile(r"\$(.+?)\$")
 _LATEX_FRAC_RE = re.compile(r"\\frac\{([^{}]*)\}\{([^{}]*)\}")
 _LATEX_SQRT_RE = re.compile(r"\\sqrt\{([^{}]*)\}")
 _LETTER_LABEL_RE = re.compile(r"^[A-Za-z]$")
+
+_VERIFY_CLI_PATH = Path(__file__).resolve().parents[2] / "web" / "lib" / "verify" / "cli.mts"
 
 
 def _normalize(raw):
@@ -120,69 +132,35 @@ def direct_compare(golden_values, model_values, answer_values_are="alternate_for
     return any(_values_equivalent(gv, mv) for gv in golden_values for mv in filtered)
 
 
-def _extract_equations(canonical):
-    """canonical-dan '=' işarəli ifadə(lər) çıxarır. Tapılmazsa boş siyahı qaytarır."""
-    segments = _LATEX_SEGMENT_RE.findall(canonical)
-    candidates = segments if segments else [canonical]
-    equations = [c for c in candidates if "=" in c]
-    return equations
-
-
-def _parse_equation(eq_str):
-    """(lhs, rhs) qaytarır; parse alınmasa (None, None) — İSTİSNA ATMIR."""
-    lhs_raw, _, rhs_raw = eq_str.partition("=")
-    try:
-        lhs = parse_expr(_normalize(lhs_raw), transformations=_TRANSFORMATIONS, local_dict=_LOCAL_DICT)
-        rhs = parse_expr(_normalize(rhs_raw), transformations=_TRANSFORMATIONS, local_dict=_LOCAL_DICT)
-    except Exception:
-        return None, None
-    return lhs, rhs
-
-
-def _value_satisfies(value_str, lhs, rhs, symbol):
-    try:
-        value = parse_expr(_normalize(value_str), transformations=_TRANSFORMATIONS, local_dict=_LOCAL_DICT)
-    except Exception:
-        return False
-    try:
-        residual = sympy.simplify((lhs - rhs).subs(symbol, value))
-        if residual.is_number:
-            return abs(complex(residual)) < 1e-6
-        return residual == 0
-    except Exception:
-        return False
-
-
 def equation_cross_check(canonical, values):
-    """2-ci qat (köhnə məntiq, dəyişməyib). True/False/None qaytarır.
-    None = canonical-dan yoxlanıla bilən tənlik çıxarıla bilmədi."""
+    """2-ci qat. TƏK MƏNBƏ `web/lib/verify/answer.ts` (ADR-012, Qərar 4-ün yenilənməsi) —
+    burada AYRI sympy implementasiyası YOXDUR, Node.js alt-prosesi ilə həmin TS kodu
+    çağırılır. True/False/None qaytarır. None = canonical-dan yoxlanıla bilən tək-dəyişənli
+    tənlik çıxarıla bilmədi (söz/parametr/ehtimal məsələləri — istehsalatda bu, `unreadable`
+    YOX, `verification.method="none"` ilə çatdırılır, bax `ADR-012`).
+
+    Node.js tələb olunur (repo `web/` üçün onsuz da tələb edir). Node tapılmasa və ya CLI
+    çökərsə, RuntimeError atılır — səssiz `None` qaytarmaq "yoxlanıla bilmədi" ilə
+    "alət qurulu deyil"-i qarışdırardı, ADR-009-un xəbərdarlıq etdiyi ölçmə-qüsuru sinfi."""
     if not values:
         return False
 
-    equations = _extract_equations(canonical)
-    if not equations:
-        return None
-
-    parsed = []
-    for eq_str in equations:
-        lhs, rhs = _parse_equation(eq_str)
-        if lhs is None:
-            continue
-        try:
-            free = (lhs - rhs).free_symbols
-        except Exception:
-            continue
-        if len(free) != 1:
-            continue
-        parsed.append((lhs, rhs, next(iter(free))))
-
-    if not parsed:
-        return None
-
-    for value_str in values:
-        if not any(_value_satisfies(value_str, lhs, rhs, symbol) for lhs, rhs, symbol in parsed):
-            return False
-    return True
+    payload = json.dumps({"canonical": canonical, "values": values})
+    try:
+        result = subprocess.run(
+            ["node", "--no-warnings", str(_VERIFY_CLI_PATH)],
+            input=payload,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(
+            f"web/lib/verify/cli.mts çağırışı uğursuz oldu (Node.js quraşdırılıbmı, "
+            f"`npm install` web/-də işlədilibmi?): {exc}"
+        ) from exc
+    return json.loads(result.stdout)["verified"]
 
 
 def verify_final_answer(canonical, values, golden_values=None, answer_values_are="alternate_forms", answer_is_root=True):

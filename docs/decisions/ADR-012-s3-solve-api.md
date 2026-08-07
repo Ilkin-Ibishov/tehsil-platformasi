@@ -48,6 +48,41 @@ indi rəsmən mövcuddur (TS istehsalat, Python eval). Divergensiya riski qəbul
 alternativ (cross-runtime Python funksiya çağırışı) bu sessiyada yoxlanıla bilməyən daha
 böyük risk idi.
 
+**2026-08-07 yenilənməsi — bu qəbul edilmiş risk BAĞLANDI, "sürətli" yox "doğru" seçimlə.**
+Cowork (`HANDOFF 28`) düzgün olaraq qeyd etdi: yuxarıdakı qərar `scripts/lib/verify.py`-i
+TOXUNULMAZ saxlamışdı, yəni `PHASE-1.md` S3-ün "iki fərqli implementasiya olmasın" tələbi
+əslində POZULMUŞDU — sadəcə ADR-də açıq yazılıb "qəbul edilmiş risk" adlandırılmışdı.
+İki seçim var idi:
+1. **Sürətli:** `verify.py`-də sympy-ni EYNİ semantika ilə (`null` vs `false` fərqi) əl ilə
+   yeniləmək — iki implementasiya QALIR, sadəcə davranışları indi UYĞUNLAŞDIRILIR (gələcək
+   dəyişiklik yenə ayrıla bilər).
+2. **Doğru:** eval-ın ÖZÜ istehsalat kodunu çağırması — TƏK MƏNBƏ həqiqətən TƏK olur.
+
+**Seçim: 2 (doğru).** Səbəb dəyişdi: əvvəlki sessiyada Python→TS cross-runtime çağırışı
+(Vercel-in Root Directory-dən kənar faylları necə bundle etdiyi qeyri-müəyyən, `next dev`-i
+poza bilər) rədd edilmişdi — bu, İSTEHSALAT SORĞU YOLU üçün həqiqi risk idi (istifadəçi
+gözləyir, latensiya/etibarlılıq vacibdir). Əksinə — **eval-ın Python-dan Node çağırması** —
+tamam fərqli risk profilinə malikdir: yalnız YERLİ İNKİŞAF ALƏTİDİR, istifadəçiyə görünmür,
+uğursuz olsa yalnız bir eval run-ı pozular. Node.js v22+ `.ts` fayllarını BİRBAŞA (tip
+strip etməklə) işə sala bilir — sınandı, işləyir, əlavə build addımı lazım deyil.
+
+**İcra:** `web/lib/verify/cli.mts` — stdin-dən `{canonical, values}` JSON oxuyur,
+`answer.ts::equationCrossCheck`-i çağırır, stdout-a `{verified}` JSON yazır.
+`scripts/lib/verify.py::equation_cross_check` indi bu CLI-ı `subprocess.run(["node",
+"--no-warnings", ...])` ilə çağırır — **sympy-based həndəsi/tənlik-yoxlama kodu tamamilə
+silindi** (`_extract_equations`, `_parse_equation`, `_value_satisfies`). `direct_compare`
+(golden-əsaslı, YALNIZ eval-a aiddir, istehsalatda ekvivalenti yoxdur) sympy ilə **qalır** —
+divergensiya narahatlığı ora aid deyil (müqayisə ediləcək ikinci implementasiya yoxdur).
+
+**Yoxlama:** `scripts/eval.py --selftest` 23/23 (əvvəlki kimi — CLI eyni nəticələri verir).
+`evals/results/B-2026-08-07.json`-un saxlanılmış çıxışları üzərində (YENİ API çağırışı YOX,
+`ADR-009`-dakı metodla) `final_answer_accuracy` yenidən hesablandı: **7/10, DƏYİŞMƏDİ**.
+Səbəb aydındır: bu golden set-in bütün 10 sualında `final_answer_values` mövcuddur, ona görə
+`direct_compare` (1-ci qat) HƏR ZAMAN qəti nəticə verir və `equation_cross_check`-in
+`null`/`false` fərqi bu run üçün heç vaxt qərar vermə nöqtəsinə çatmayıb — divergensiya
+riski REAL idi (memarlıq səviyyəsində), amma BU KONKRET nəticəyə təsir etməmişdi. Fərq yalnız
+golden-siz (istehsalat-bənzər) hallarda üzə çıxardı — məhz bunun üçün bağlanmalı idi.
+
 ## Qərar 2 — `attempts.device_id`, `user_id` yox
 
 `docs/DATA-MODEL.md`-dəki `attempts` cədvəli `user_id fk` göstərir, amma **auth Faza 1-in
