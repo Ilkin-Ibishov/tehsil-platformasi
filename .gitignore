@@ -17,3 +17,7 @@ evals/images-cropped/
 .tools/
 supabase/.temp/
 .vercel/
+
+# Kütləvi eval korpusu — DİM mətni ehtiva edir (ADR-003), git-ə getmir
+evals/text-set.jsonl
+evals/text-set*.jsonl
