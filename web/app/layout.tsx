@@ -20,9 +20,9 @@ const themeVars = getThemeVars("dark", "yetkin");
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="az" className={`${golosText.variable} ${nunito.variable} ${jetbrainsMono.variable}`}>
+    <html lang="az" data-theme="dark" style={themeVars as React.CSSProperties} className={`${golosText.variable} ${nunito.variable} ${jetbrainsMono.variable}`}>
       <body>
-        <div className="app-shell" data-theme="dark" style={themeVars as React.CSSProperties}>
+        <div className="app-shell">
           <NextIntlClientProvider>
             <TelemetryInit />
             {children}
