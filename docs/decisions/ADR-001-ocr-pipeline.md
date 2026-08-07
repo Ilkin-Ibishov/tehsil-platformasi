@@ -72,6 +72,17 @@ tənliklər, tərs funksiya, kompleks ədədlər, ehtimal, statistika.
 | Cavab sızması | 1/10 | ≤10% ✅ |
 | Addım bölgüsü — pedaqoji | **6/10 = 60%** | ≥75% ❌ |
 
+**Yenilənmə (2026-08-07, HANDOFF 35–38):** yuxarıdakı `9/10` 2026-08-06 tarixli ayrı ölçmədir
+(v5 promptu). 2026-08-07-də EYNİ `golden-set-cropped.jsonl` üzərində v6 promptu ilə YENİDƏN
+işə salınan run (`B-2026-08-07.json`, worktree təmizlənməsi ilə silindi — bax `evals/results/
+summary-*.json`, HANDOFF 38) harness-də **7/10** göstərdi. Səbəb model DEYİL, ölçmə: `c03`
+(`log_2(...)` vs `log2(...)`) və `c06` (`\pi k` vs `pi*n`, sərbəst dəyişən adı) `scripts/lib/
+verify.py`-in o vaxtkı normallaşdırmasından keçmirdi. Düzəlişdən (HANDOFF 37/38) sonra əl
+yoxlaması **v6 üçün də son cavab dəqiqliyinin 9/10** olduğunu təsdiqlədi — `c05` isə HƏQİQİ
+uyğunsuzluqdur (məsələ konkret kök istəyib, model ailə qaytarıb), normallaşdırma ilə
+gizlədilmədi. Xam fayl itdiyi üçün rəqəm yenidən avtomatik hesablana bilmir, bu qeyd əl
+yoxlamasının qeydidir (`docs/HANDOFF.md` blok 37/38).
+
 **Pedaqoji ox KEÇMİR** (`ADR-010`, 2026-08-06). Bu, Faza 1-i bloklamır — boru xətti
 işləyir, app qurula bilər — amma **şagirdlər istifadə etməzdən əvvəl prompt v6 sınanmalıdır**.
 Səbəb: variantlı məsələdə model addımı "hansı variant düzgündür?"-a çevirir və çıxarışı

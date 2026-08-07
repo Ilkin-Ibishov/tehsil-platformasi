@@ -29,15 +29,43 @@
   },
   "solve": {
     "sendingTitle": "Göndərilir…",
-    "doneTitle": "Şəkil serverə çatdı",
-    "doneBody": "Həll ekranı S4 sprintində gələcək — bu, S3-ün son addımıdır.",
+    "doneTitle": "Bir şey alınmadı",
+    "doneBody": "Bağlantıda problem oldu. Yenidən cəhd et.",
     "doneHome": "Ana ekrana qayıt",
-    "inviteInvalid": "Dəvət kodu düzgün deyil. Yenidən yoxla."
+    "inviteInvalid": "Dəvət kodu düzgün deyil. Yenidən yoxla.",
+    "refusedTitle": "Bu şəkli oxuya bilmədim",
+    "refusedBody": "Şəkli yenidən çək, tənlik aydın görünsün.",
+    "refusedRetake": "Yenidən çək"
   },
   "invite": {
     "title": "Dəvət kodu",
     "body": "Bu, sınaq qrupu üçün paylaşılan koddur — sənə müəllimin/valideynin verib.",
     "placeholder": "Kodu bura yaz",
     "submit": "Davam et"
+  },
+  "hell": {
+    "loading": {
+      "stage1": "şəkil göndərilir",
+      "stage2": "şəkil oxunur",
+      "stage3": "addımlar qurulur",
+      "stage4": "az qaldı"
+    },
+    "step": {
+      "counter": "ADDIM {index} / {total}",
+      "inputPlaceholder": "cavabın",
+      "check": "yoxla",
+      "correct": "Doğru.",
+      "errorRecorded": "hesabatına yazıldı",
+      "retry": "yenidən yaz",
+      "abandon": "Bu addımı başa düşmədim →",
+      "next": "Növbəti addım",
+      "showAnswer": "Cavabı göstər"
+    },
+    "answer": {
+      "label": "CAVAB",
+      "reportWrong": "həll səhvdir",
+      "reportWrongDone": "Qeyd olundu, təşəkkür edirik.",
+      "newProblem": "Yeni sual çək"
+    }
   }
 }

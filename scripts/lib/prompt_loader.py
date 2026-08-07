@@ -8,6 +8,7 @@ from pathlib import Path
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / "solve-step.md"
 
 _SECTION_RE = "## {name}\\s*```\\s*(.*?)```"
+_VERSION_RE = re.compile(r"^#.*\(v([\w.]+)\)", re.MULTILINE)
 
 
 def _extract_block(text, heading):
@@ -22,6 +23,15 @@ def load_prompt_templates():
     system = _extract_block(text, "System")
     user_template = _extract_block(text, "User (dəyişənlərlə)")
     return system, user_template
+
+
+def load_prompt_version():
+    """`prompts/solve-step.md`-in başlığındakı `(v6)` kimi versiya işarəsini oxuyur — HANDOFF
+    (38): nəticə faylına yazılmayanda "hansı rəy hansı promptaydı" qarışır (HANDOFF 27-dəki
+    "köhnə rəy v6-ya aid edildi" səhvi). Tapılmasa `"unknown"` — səssiz boş qalmır."""
+    text = PROMPT_PATH.read_text(encoding="utf-8")
+    match = _VERSION_RE.search(text)
+    return f"v{match.group(1)}" if match else "unknown"
 
 
 def extract_example_json(system_text):

@@ -20,6 +20,15 @@ və 12-ni normativ edəndə həmin tolerans qanuni olmaqdan çıxdı. Tək rəq�
 **Bunu ayrıca yazıram, çünki bir dəfə əks səhvi etmişik:** `ADR-009`-da 3/10 dəqiqlik
 əslində ölçmə qüsuru idi. Pis metrika modelə qarşı ittiham kimi oxunur.
 
+**Qeyd (2026-08-07, HANDOFF 38) — bu ADR-dakı `7/10` BAŞQA metrikadır, QARIŞDIRMA.**
+Yuxarıdakı cədvəldəki `7/10` **pedaqoji rəydir** (v5 standartı ilə, insan qiymətləndirməsi).
+`docs/decisions/ADR-001-ocr-pipeline.md`-in "Yenilənmə (2026-08-07)" qeydindəki `7/10` isə
+**son cavab dəqiqliyidir** (`final_answer_accuracy`, `scripts/lib/verify.py`) — TAMAMİLƏ
+FƏRQLİ ölçü, təsadüfən eyni gündə eyni rəqəmə düşüb. İkincisi ölçmə qüsuru idi (normallaşdırma,
+düzəldi, əsl nəticə 9/10 — `HANDOFF 37/38`), BİRİNCİSİ (bu ADR-dakı pedaqoji 7/10) ölçmə qüsuru
+DEYİL, real insan rəyidir, dəyişmir. Bu qeyd məhz HANDOFF (27)-dəki "köhnə rəy səhvən v6-ya aid
+edildi" sinfindən bir qarışıqlığın qarşısını almaq üçündür.
+
 ## Qayda-qayda hesabat
 
 ### Qayda 10 (variant seçimi qadağan) — **tam işlədi, 10/10**

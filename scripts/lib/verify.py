@@ -52,14 +52,47 @@ _LOCAL_DICT = {
 _LATEX_FRAC_RE = re.compile(r"\\frac\{([^{}]*)\}\{([^{}]*)\}")
 _LATEX_SQRT_RE = re.compile(r"\\sqrt\{([^{}]*)\}")
 _LETTER_LABEL_RE = re.compile(r"^[A-Za-z]$")
+_LOG_BASE_RE = re.compile(r"log_?(\d+)\(")
+_FAMILY_SYMBOL = sympy.Symbol("_k")
 
 _VERIFY_CLI_PATH = Path(__file__).resolve().parents[2] / "web" / "lib" / "verify" / "cli.mts"
+
+
+def _convert_log_base(text):
+    """`log_2(...)` / `log2(...)` → `log(...,2)`, ixtiyari əsas üçün — sympy-nin öz
+    ikiarqumentli `log(x, base)`-inə uyğunlaşdırır. Arqument daxilində mötərizələr iç-içə ola
+    bilər (məs. `log_2((x-1)/3)`), ona görə regex əvəzinə balanslaşdırılmış mötərizə sayğacı
+    işlədilir (HANDOFF 37, c03)."""
+    result = []
+    i = 0
+    while i < len(text):
+        m = _LOG_BASE_RE.match(text, i)
+        if not m:
+            result.append(text[i])
+            i += 1
+            continue
+        base = m.group(1)
+        j = m.end()
+        depth = 1
+        while j < len(text) and depth > 0:
+            if text[j] == "(":
+                depth += 1
+            elif text[j] == ")":
+                depth -= 1
+            j += 1
+        arg = text[m.end():j - 1]
+        result.append(f"log({arg},{base})")
+        i = j
+    return "".join(result)
 
 
 def _normalize(raw):
     """ADR-009 D: LaTeX komandaları riyazi mətnə çevrilir ki `"\\pi n"` ilə `"pi*n"` eyni
     ifadə kimi parse olunsun. `°` (dərəcə işarəsi) tamamilə silinir — vahid məsələsi
-    `answer_is_root`/golden set-in özü ilə həll olunur, burada YOX."""
+    `answer_is_root`/golden set-in özü ilə həll olunur, burada YOX.
+
+    HANDOFF 37: `log_b(x)` → `log(x,b)` (ixtiyari əsas), sonra qalan `\\`/`_` LaTeX artefaktları
+    (məs. `\\left`, `\\right`, `x_1` altxətti) ümumi şəkildə silinir."""
     text = raw.strip()
     text = text.replace("−", "-")  # unicode minus -> ascii
     text = _LATEX_FRAC_RE.sub(r"(\1)/(\2)", text)
@@ -68,9 +101,25 @@ def _normalize(raw):
     text = text.replace("\\pi", "pi")
     text = text.replace("°", "")
     text = text.replace(",", ".")  # ondalık vergül -> nöqtə (golden dəyərlərdə görünür)
-    text = text.replace("\\ ", " ")
+    text = _convert_log_base(text)
+    text = text.replace("\\left", "").replace("\\right", "")
+    text = text.replace("\\", "")
+    text = text.replace("_", "")
     text = text.replace("^", "**")
     return text.strip()
+
+
+def _canonicalize_free_symbol(expr):
+    """HANDOFF 37 (c06): həll ailələrində sərbəst tam dəyişənin ADI (`k`, `n`, `m`, ...)
+    əhəmiyyətsizdir — `{pi*k : k ∈ Z}` və `{pi*n : n ∈ Z}` eyni çoxluqdur. İfadədə DƏQİQ bir
+    sərbəst simvol varsa, onu kanonik `_k`-ya çevirir ki müqayisə simvol adından asılı olmasın.
+    Sıfır və ya birdən çox sərbəst simvol olduqda toxunmur (ADı əhəmiyyətli ola bilər, məs.
+    `x`-dən asılı ifadələr)."""
+    symbols = expr.free_symbols
+    if len(symbols) == 1:
+        (sym,) = tuple(symbols)
+        return expr.subs(sym, _FAMILY_SYMBOL)
+    return expr
 
 
 def _filter_letter_labels(values):
@@ -98,6 +147,8 @@ def _values_equivalent(a_raw, b_raw):
     a_expr = _parse_value(a_raw)
     b_expr = _parse_value(b_raw)
     if a_expr is not None and b_expr is not None:
+        a_expr = _canonicalize_free_symbol(a_expr)
+        b_expr = _canonicalize_free_symbol(b_expr)
         try:
             diff = sympy.simplify(a_expr - b_expr)
         except (TypeError, ValueError):
