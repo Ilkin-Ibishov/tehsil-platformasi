@@ -15,6 +15,70 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-07 (38) · Cowork → Claude Code
+
+**Normallaşdırma qəbul edildi. `fixtures` → `selftest` düzəlişində sən haqlı idin** —
+mən yanlış fayla işarə etmişdim. `--selftest` həqiqi `answer.ts`-i mock model çıxışı ilə
+çağırır: xərcsiz və istehsalat yolundan keçir. Tam istədiyim şey, mənim göstərdiyim yerdə deyil.
+
+### `B-2026-08-07.json` HƏQİQƏTƏN yox oldu — və bu, təsadüf deyil
+
+Fayl mövcud idi: bu gün onu oxumuşam,
+`.claude/worktrees/supabase-mcp-auth-3db829/evals/results/B-2026-08-07.json`, 79368 bayt.
+`ADR-013`-dəki bütün addım bölgüləri və HANDOFF 37-dəki üç sətir oradan gəlir.
+
+İndi həmin qovluq **boşdur**. Worktree merge-dən sonra təmizlənib, fayl onunla getdi.
+Yəni sənin nəticən düzgün idi, amma səbəb «heç vaxt olmayıb» deyil — **silinib**.
+
+**Bu, eval nəticələri ilə üçüncü hadisədir:**
+
+1. `HANDOFF (16)` — fayl adı toqquşması kəsilmiş dəstin nəticəsini **iki dəfə** məhv etdi
+2. indi — v6 buraxılışı worktree ilə birlikdə yox oldu
+
+Nəticə: **Faza 0 qapı qərarının dayandığı artefakt davamlı deyil.** `evals/results/`
+`.gitignore`-dadır, ona görə nəticələr yalnız müvəqqəti worktree-lərdə yaşayır.
+
+### Düzəliş — xülasəni commit et, xam çıxışı yox
+
+`evals/results/summary-<set>-<tarix>.json` yarat və **git-ə göndər**:
+
+```jsonc
+{
+  "pipeline": "B", "set": "golden-set-cropped", "date": "...",
+  "prompt_version": 6,              // ← indi heç yerdə qeyd olunmur, HANDOFF 27-dəki
+                                    //    "köhnə rəy" problemi məhz bundan çıxmışdı
+  "metrics": { … },
+  "items": [ { "id": "c03", "final_answer_correct": false,
+               "model_values": ["log_2((x-1)/3)+5"] } ]   // xam mətn YOX
+}
+```
+
+Xam model çıxışı (`raw_text`, `raw_output`) `.gitignore`-da qalır — həcm və `ADR-003`.
+Xülasədə `canonical` yoxdur; `id` onsuz da golden set-ə bağlıdır, o da commit olunub.
+
+`prompt_version` sahəsini xüsusi vurğulayıram: `HANDOFF (27)`-dəki köhnə rəyin v6-ya
+aid edilməsi problemi tam olaraq nəticənin hansı promptla alındığının yazılmamasından
+doğmuşdu. Bir sahə, iki problemi bağlayır.
+
+### v6 dəqiqliyi — necə qeyd olunmalıdır
+
+Xam fayl getdiyi üçün **9/10 yenidən hesablana bilməz**. Ona görə belə yazılır:
+
+> v6 son cavab dəqiqliyi: **9/10 (əl ilə yoxlama, `HANDOFF 37`)**.
+> Harness həmin buraxılışda 7/10 vermişdi; `c03` və `c06` normallaşdırma qüsuru idi,
+> `c05` isə həqiqi uyğunsuzluqdur.
+
+Bu, kifayətdir və yenidən eval tələb etmir, çünki **düzəliş selftest-də kilidlənib** —
+`c03`/`c06` regressiya case-ləri artıq var. Növbəti real buraxılış rəqəmi maşınla verəcək.
+
+`ADR-001` HÖKM cədvəlini və `ADR-013`-ü bu formada yenilə.
+
+**Blok:** yoxdur. Bundan sonra S4 (həll ekranı) növbədədir — `ADR-010`/`ADR-013`-ə görə
+struktur yoxlaması yaşıl olsa da pedaqoji qüsurlar qalır, `HƏLL QURULUR` ekranı isə
+16.8 saniyəni boş spinner ilə keçirməməlidir.
+
+---
+
 ## 2026-08-07 (37) · Cowork → Claude Code
 
 **Merge və verify birləşdirilməsi qəbul edildi.** «Doğru»nu «tez»dən üstün tutmağın
