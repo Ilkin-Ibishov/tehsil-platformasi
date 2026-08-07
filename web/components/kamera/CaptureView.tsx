@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry";
 
@@ -27,6 +27,16 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
   const [torchSupported, setTorchSupported] = useState(false);
   const torchUsedRef = useRef(false);
 
+  // <video> yalnız stage==="live"-da render olunur (aşağıda), amma stream stage "live"-a
+  // keçmədən ƏVVƏL hazır olur (aşağıdakı effektdə) — o anda video hələ mount olmayıb,
+  // videoRef.current null-dur. Callback ref sıra asılılığını aradan qaldırır: video
+  // mount olanda (element artıq varsa) VƏ ya stream artıq hazırdırsa (callback sonra
+  // çağırılsa), srcObject hər iki tərəfdən təyin oluna bilər.
+  const setVideoEl = useCallback((el: HTMLVideoElement | null) => {
+    videoRef.current = el;
+    if (el && streamRef.current) el.srcObject = streamRef.current;
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -42,9 +52,6 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
           return;
         }
         streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
         const track = stream.getVideoTracks()[0];
         const caps = track.getCapabilities?.();
         // @ts-expect-error — torch MediaTrackCapabilities-in standart tipində yoxdur, amma dəstəkləyən brauzerlər qaytarır
@@ -88,7 +95,12 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
 
   function shoot() {
     const video = videoRef.current;
-    if (!video || video.videoWidth === 0) return;
+    if (!video || video.videoWidth === 0) {
+      // Səssiz uğursuzluq (HANDOFF 29-da tapıldı: video mount/srcObject sıra asılılığı,
+      // callback ref ilə düzəldilib) — telemetriyasız görünməz idi. `TELEMETRY.md`.
+      trackEvent("capture.shutter_noop", { reason: "video_not_ready" });
+      return;
+    }
 
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
@@ -140,7 +152,7 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
       <div style={{ flex: 1, padding: "18px 20px 0", display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ position: "relative", width: "100%", flex: 1, minHeight: 310, borderRadius: "var(--rad)", background: "var(--sur)", border: "1px solid var(--bor)", overflow: "hidden" }}>
           {stage === "live" && (
-            <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <video ref={setVideoEl} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           )}
 
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>

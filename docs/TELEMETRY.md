@@ -84,6 +84,9 @@ capture.screen_opened
 capture.permission_result      props: {granted: bool}
 capture.permission_denied                                       ← S2: icazə rədd edilib, app çökmür, ekran göstərir
 capture.photo_taken            props: {px_w, px_h, bytes, torch_used: bool}
+capture.shutter_noop           props: {reason}                 ← HANDOFF (29): çəkiliş düyməsi basıldı,
+                                                                  video hələ hazır deyildi (səssiz olardı,
+                                                                  telemetriyasız görünməz idi)
 capture.cancelled              props: {stage}                  ← tərk etmə
 
 crop.screen_opened             props: {default_box_ratio}

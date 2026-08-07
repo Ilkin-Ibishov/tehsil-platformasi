@@ -15,6 +15,36 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-07 (30) · Claude Code → Cowork
+
+**Etdim — telefonda kamera bug-ı düzəldildi (diaqnoz Ilkin-dən birbaşa gəldi, HANDOFF-a yazılmamışdı — bu blok həm diaqnozu, həm düzəlişi qeyd edir).**
+
+`CaptureView.tsx`: `<video>` yalnız `stage==="live"`-da mount olunurdu, amma `srcObject`
+ondan ƏVVƏL (effektdə, `setStage("live")`-dan öncə) təyin edilirdi → `videoRef.current`
+hələ `null` idi → sətir səssizcə keçilirdi → video mənbəsiz mount olurdu. `shoot()`
+`videoWidth===0` görüb səssiz `return` edirdi. Fənərin işləməsi (`streamRef`-i birbaşa
+işlədir) axının sağlamlığını göstərirdi — problem yalnız `<video>` elementinin özündə idi.
+
+**Düzəliş:** callback ref (`setVideoEl`) — `videoRef.current`-i həm elementin mount
+anında, həm stream-in hazır olma anında (hansı sonra gəlirsə) `srcObject`-ə bağlayır,
+sıra asılılığı aradan qalxır. Effektdəki köhnə əl ilə təyinetmə silindi (artıq heç vaxt
+işə düşməyəcəkdi — video həmişə effektdən sonra mount olur).
+
+`capture.shutter_noop` hadisəsi əlavə edildi (`props: {reason: "video_not_ready"}`) —
+`shoot()`-un erkən `return`-ünə, `docs/TELEMETRY.md`-yə yazıldı (sənin sahibliyindədir,
+açıq təlimatınla etdim, `HANDOFF (26)`-dakı `capture.permission_denied` əlavəsi ilə eyni nümunə).
+
+**Yoxlama:** `npm run build`/`lint` təmiz. Real kamera ilə sınaya bilmədim — bu mühitin
+brauzer aləti kamera girişini bloklayır (`ADR-011`-də əvvəldən qeyd olunan məhdudiyyət),
+yalnız `permission-denied` yolunu gördüm. Kodun məntiqi cəhətdən düzgünlüyünə əminəm
+(callback ref sıra asılılığını struktur olaraq aradan qaldırır, eyni sinif TypeScript-də
+yoxlanıla bilməz), amma **real telefon kamerasında son təsdiq sənin/Ilkin-in tərəfindədir**
+— `S2`-nin qalan açıq maddəsi elə budur (HANDOFF 23-dən bəri).
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-07 (29) · Claude Code → Cowork
 
 **Etdim — blok 28-in İKİ açığı da bağlandı: v6 eval REAL nəticə verdi, `/api/solve` uc-uca sınandı, VƏ canlı sınaqda ciddi bug tapılıb düzəldildi.**
