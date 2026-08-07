@@ -67,6 +67,66 @@ Vercel-də yeniləyərəm.
 
 ---
 
+## 2026-08-06 (26) · Cowork → Claude Code
+
+**S1b qəbul edildi.** Produksiyanı özüm yoxladım: `reactPropsOnButton = 2` (hidratasiya
+işləyir), 10 chunk, **sıfır 4xx**, `/kamera`-ya klient keçidi işləyir. `ADR-011` təsdiqləndi —
+tunel 18 chunk-dan 3-nü itirirdi, Vercel 10 chunk-ın hamısını verir.
+
+### Tapılan bug — tema tətbiq olunmur (dizayn tokenləri yarımçıq bağlıdır)
+
+Tətbiq **ağ fonda qara mətnlə** açılır, halbuki `data-theme="dark"`.
+
+Səbəb dəqiqdir. `layout.tsx` token dəyişənlərini **`.app-shell` div-inə** yazır,
+`globals.css` isə onları **`body`-də** oxuyur:
+
+```css
+body { background: var(--bg); color: var(--t1); }   /* body = .app-shell-in VALİDEYNİ */
+```
+
+CSS custom property **yalnız aşağı** miras qalır. Ölçdüm:
+
+```
+.app-shell:  --bg=#101311            --t1=rgba(255,255,255,0.93)   --sur=#171B18
+body:        --bg=(unset)            --t1=(unset)
+body hesablanmış:  background=transparent   color=rgb(0,0,0)
+```
+
+Yəni tokenlər **doğrudur və düzgün hesablanır** — sadəcə səhv elementə qoyulub.
+
+**Düzəliş:** `themeVars`-ı `<html>`-ə ver (`layout.tsx`-də `<html style={themeVars}>`),
+`data-theme` da orada olsun. Onda həm `body`, həm `.app-shell` görür.
+`.app-shell`-də saxlayıb `background`-u ora köçürmək də işləyir, amma masaüstündə
+480px shell-in arxası ağ qalır — `<html>` daha düzgündür.
+
+**Niyə xırda deyil:** `ADR-002` tam olaraq bunun üçün yazılıb. Hazırda `var(--t1)` heç nəyə
+həll olunmur; belə qalsa S4-də komponentlər mətn rəngini **hardcode etməyə** başlayacaq —
+yəni ADR-002-nin qarşısını almaq istədiyi hal. Tokenlərin işlədiyi indi təsdiqlənməlidir,
+9 ekran qurulandan sonra yox.
+
+Bu, S3-ü bloklamır — kiçik düzəlişdir, S3-lə paralel gedə bilər.
+
+### Etimadnamələr — S3-dən əvvəl
+
+S3 ödənişli açarı ictimai URL-in arxasına qoyur. Ondan əvvəl **ikisi də fırladılmalıdır**:
+
+1. **Supabase DB şifrəsi** — sənin qeyd etdiyin CLI xəta mesajı.
+2. **Gemini `API_KEY`** — `.env`-dəki açar bu söhbətdə **açıq mətnlə** görünüb
+   (Faza 0-da qeyd etmişdim). İndiyə qədər yalnız lokal eval işlədirdi; S3-dən sonra
+   pullu istehsalat açarı olur.
+
+Fırlatmanı Ilkin edir (dashboard), sən `DATABASE_URL` və `API_KEY`-i Vercel env-də
+yeniləyirsən. **Heç bir açar HANDOFF-a, ADR-ə və ya commit mesajına yazılmır.**
+
+### Növbəti: S3 (HANDOFF 24)
+
+Dəyişməyib. İki qəbul şərti: **dəvət kodu + serverdə gündəlik limit (30)**, və
+**prompt v6 eval-i S3-ün əvvəlində** (~$0.17, hədəf pedaqoji ox ≥8/10).
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-06 (25) · Cowork → Claude Code
 
 **«Düymələr işləmir» — səbəb sənin kodunda deyil. Tuneldədir.**
