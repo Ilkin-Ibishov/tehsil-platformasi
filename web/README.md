@@ -61,19 +61,21 @@ cp .env.example .env.local
 Axın: dəvət kodu (yalnız bir dəfə, `localStorage`-da saxlanılır) → kamera → kəsmə →
 `/api/solve` (Gemini, `prompts/solve-step.md` fayldan oxunur — eval harness ilə TƏK MƏNBƏ) →
 sxem yoxlanışı (1 retry) → ədədi yoxlama (`lib/verify/`, `ADR-012`) → `problems`/`solutions`/
-`attempts`-a yazı. `verified=false` və ya sxem etibarsızdırsa → `status: "unreadable"`.
+`attempts`-a yazı. `verified===false` (QƏTİ ZİDDİYYƏT) olarsa → `status: "unreadable"`.
+`verified===null` (yoxlanıla bilmədi — söz/parametr/ehtimal məsələləri, `ADR-012` Qərar 4)
+olarsa həll YENƏ DƏ çatdırılır, `verification.method="none"` ilə.
 
 Gündəlik limit 30 (`device_id` üzrə, yalnız çatdırılmış həllər sayılır) — 429 + `events`-ə
 `limit.blocked`. Yanlış dəvət kodu → 403, klient kodu silir və yenidən soruşur.
 
-**Bu sessiyada canlı Gemini açarı və işlək Postgres olmadığı üçün uc-uca (kamera → real
-Gemini cavabı → DB sətri) YOXLANILMADI.** Yoxlanılan: `next build`/`lint` təmiz, `lib/verify/
-answer.ts`-in ədədi yoxlama məntiqi (`x²-5x+6=0` → kök 3/2 doğru, 5 səhv, `sqrt(2)` işləyir)
-ayrıca skriptlə sınandı, `outputFileTracingIncludes` ilə `prompts/solve-step.md`-in funksiya
-bundle-ına düşdüyü `.next/server/app/api/solve/route.js.nft.json`-dan təsdiqləndi. **Real
-API açarı əlavə olunandan sonra bir dəfə tam axın (kamera → cavab → DB sətri) əl ilə
-yoxlanılmalıdır** — `ADR-012`-dəki mathjs portu ilə bağlı bilinən risk buna görə əvvəlcədən
-yazılıb, ilk 30 canlı həllin `unreadable` nisbəti izlənməlidir.
+**Real Gemini açarı və lokal Postgres (`th-postgres` konteyneri, S1a-dan) ilə UC-UCA
+SINANDI** (2026-08-07): dəvət kodu rədd, gündəlik limit, tam həll axını (DB yazısı daxil)
+— hamısı `curl` ilə. Bu sınaqda iki real bug tapılıb düzəldildi (`docs/HANDOFF.md` (29),
+`ADR-012` Qərar 4) — ən vacibi: `verified=null` səhvən `false` kimi rədd edilirdi, yəni
+BÜTÜN söz/parametr/ehtimal məsələləri (canonical tək tənliyə düşməyən hər şey) istehsalatda
+həmişə "unreadable" qaytaracaqdı. `ADR-012`-dəki mathjs implicit-multiplication məhdudiyyəti
+hələ də qalır (rəqəm-əsaslı hallar həll olunub, hərf-hərf bitişiklik yox) — canlı trafikdə
+izlənməlidir.
 
 ## Struktur
 

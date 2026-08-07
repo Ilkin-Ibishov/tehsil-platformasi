@@ -152,14 +152,22 @@ export async function POST(req: NextRequest) {
   const { verified } = verifyFinalAnswer(parsed.canonical, finalAnswer.values);
   const leaked = detectLeak(parsed.steps ?? [], finalAnswer.values);
 
-  // Server qaydası 1 (PHASE-1): verified=false göstərilmir.
-  if (!verified) {
+  // Server qaydası 1 (PHASE-1): verified=false göstərilmir. AMMA `verified` üç haldır
+  // (true/false/null) — `null` "TƏKZİB EDİLMƏDİ, sadəcə yoxlanıla bilmədi" deməkdir (canonical
+  // tək-dəyişənli tənlik deyil — söz məsələsi, parametr, ehtimal və s.). Bunu `false` kimi
+  // rədd etmək canlı sınaqda tapıldı (ADR-012 yeniləməsi): `equationCrossCheck` YALNIZ tək
+  // dəyişənli tənliklər üçün işləyir, bu, `scripts/lib/verify.py`-ın öz production yolunda da
+  // eynidir (yoxlandı) — TS portunun yaratdığı bug deyil. Yalnız QƏTİ ZİDDİYYƏT (`false`) gizlədilir.
+  if (verified === false) {
     return NextResponse.json(
       { schema_version: 1, status: "unreadable", reason: "Həll yoxlanışdan keçmədi." },
       { status: 200 }
     );
   }
 
+  // verified === true → sympy təsdiqlədi. verified === null → yoxlanıla bilmədi, model
+  // çıxışına etibar edilir (STEP-SCHEMA verification.method="none" məhz bunun üçündür).
+  const verificationMethod = verified === true ? "sympy" : "none";
   const costUsd = computeCostUsd(usage);
   const solutionId = randomUUID();
   const attemptRowId = randomUUID();
@@ -194,8 +202,8 @@ export async function POST(req: NextRequest) {
 
     await client.query(
       `insert into solutions (id, problem_id, schema_version, payload, verified, verification_method, model, cost_usd)
-       values ($1,$2,1,$3,true,'sympy',$4,$5)`,
-      [solutionId, problemId, JSON.stringify(parsed), process.env.GEMINI_MODEL ?? null, costUsd]
+       values ($1,$2,1,$3,true,$4,$5,$6)`,
+      [solutionId, problemId, JSON.stringify(parsed), verificationMethod, process.env.GEMINI_MODEL ?? null, costUsd]
     );
 
     await client.query(
@@ -221,7 +229,7 @@ export async function POST(req: NextRequest) {
       ...parsed,
       solution_id: solutionId,
       match_path: "llm",
-      verification: { verified: true, method: "sympy", verified_at: new Date().toISOString() },
+      verification: { verified: true, method: verificationMethod, verified_at: new Date().toISOString() },
       meta: {
         latency_ms: Math.round(latencyMs),
         cost_usd: costUsd,

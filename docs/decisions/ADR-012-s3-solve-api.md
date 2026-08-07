@@ -63,10 +63,52 @@ Test qrupu 20 nəfərdir, `docs/PHASE-1.md`: "sadə paylaşılan kod". Per-user 
 overengineering olardı. `INVITE_CODE` env dəyişəni (server-only) — `/api/solve`
 `invite_code` form sahəsini bu dəyərlə müqayisə edir, uyğun olmasa `403`.
 
+## Qərar 4 — `verified === null` ilə `verified === false` FƏRQLİDİR (canlı sınaqda tapıldı)
+
+**Bu, bu sessiyanın ən vacib tapıntısıdır.** `/api/solve`-i real Gemini açarı ilə (Ilkin
+təmin etdi) və lokal Postgres-lə (S1a-dan qalan `th-postgres` konteyneri) UC-UCA sınadım —
+`docs/PHASE-1.md`-in `c08` sualı (parametr məsələsi: "`m`-in ən kiçik tam qiyməti") `verified:
+false` aldı, halbuki modelin cavabı **düzgün idi** (`m=7`).
+
+Səbəb: `equation_cross_check` YALNIZ canonical-dan **tək dəyişənli tənlik** çıxara bildikdə
+işləyir. Söz məsələləri/parametr məsələləri/ehtimal məsələləri kimi hallarda (canonical
+tənliklə yanaşı Azərbaycanca şərt mətni də daşıyır, məs. `"x^2+5x+m=0 tənliyinin kompleks
+kökü olması üçün..."`) tək simvol tapıla bilmir → funksiya `null` (YOXLANILA BİLMƏDİ) qaytarır,
+`false` (TƏKZİB EDİLDİ) YOX. Bunu **Python-un öz `scripts/lib/verify.py`-ında da** eyni
+canonical/values ilə çağırıb yoxladım (`verify_final_answer(canonical, ["7"])` → `(None, False)`)
+— **bu, TS portunun yaratdığı bug DEYİL, `verify.py`-ın istehsalat yolunun (`golden_values`-suz)
+əvvəldən mövcud olan məhdudiyyətidir**, indiyə qədər heç vaxt real istifadəçi trafikinə
+məruz qalmadığı üçün aşkarlanmamışdı.
+
+İlk yazılışda mən `verified` üç halını (`true`/`false`/`null`) `if (!verified)` ilə YANLIŞ
+eyniləşdirmişdim — bu, `null`-u da `false` kimi rədd edirdi. Nəticə: canonical-ı tək tənliyə
+düşməyən HƏR məsələ (bütün söz/parametr/ehtimal məsələləri, ADR-004-ün B qrupu) istehsalatda
+**həmişə** `unreadable` qaytaracaqdı — modelin cavabı düzgün olsa belə. Bu, `CLAUDE.md`-nin
+Qızıl Qaydasını (səhv xəritəsi + çatdırılan həll) bu problem sinfinin tamamı üçün sıradan
+çıxarardı.
+
+**Düzəliş:** `route.ts` indi YALNIZ `verified === false` (QƏTİ ZİDDİYYƏT) halında rədd edir.
+`verified === null` (yoxlanıla bilmədi) halında həll ÇATDIRILIR, amma
+`solutions.verification_method = 'none'` yazılır (`STEP-SCHEMA.json`-un `verification.method`
+enum-unda `"none"` məhz bunun üçün var idi — sxem bunu əvvəlcədən nəzərdə tutmuşdu, mən
+sadəcə istifadə etmirdim). `verified: true, method: sympy` YALNIZ real ədədi təsdiq olduqda.
+
+**Nəticə üçün əhəmiyyəti:** ilk 30 canlı həllin `verification_method` paylanmasına baxılmalıdır
+— `none` payı yüksəkdirsə (gözlənilən, çünki golden set-in ~30%-i söz/parametr məsələsidir),
+bu, sistemin **model çıxışına kor-koranə etibar etdiyi** hallardır. Gələcəkdə (Faza 2) bu
+sinif üçün əlavə yoxlama qatı (məs. ehtimal məsələləri üçün xüsusi yoxlayıcı) düşünülməlidir —
+indi üçün "yoxlanıla bilmirsə göstər, gizlətmə" seçildi, çünki əks halı sınaqda **məhsulu
+sındırdığı** göstərildi.
+
 ## Nəticə
 
 `web/app/api/solve/route.ts` LLM çağırışını edir (`prompts/solve-step.md`-dən **fayldan**
 oxunan prompt, `scripts/lib/prompt_loader.py` ilə eyni çıxarma məntiqi — TS portu),
 sxem yoxlayır (bir dəfə retry), sympy-ekvivalent ədədi yoxlamadan keçirir, `problems`/
-`solutions`/`attempts`-a yazır. `verified=false` və ya sxem etibarsızdırsa istifadəçiyə
-`status: unreadable` qaytarılır (`docs/PHASE-1.md` server qaydası 1).
+`solutions`/`attempts`-a yazır. `verified===false` (Qərar 4) və ya sxem etibarsızdırsa
+istifadəçiyə `status: unreadable` qaytarılır (`docs/PHASE-1.md` server qaydası 1).
+
+**Canlı sınandı** (2026-08-07, real Gemini açarı + lokal Postgres): `/api/solve` tam axını —
+sxem valid, DB-yə `problems`/`solutions`/`attempts` yazıldı, `verification_method="none"`
+düzgün seçildi. Dəvət kodu rədd (403) və gündəlik limit (429 + `limit.blocked` telemetriyası)
+ayrıca sınandı, hər ikisi işləyir.

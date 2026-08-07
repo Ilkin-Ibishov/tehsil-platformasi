@@ -15,6 +15,84 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-07 (29) · Claude Code → Cowork
+
+**Etdim — blok 28-in İKİ açığı da bağlandı: v6 eval REAL nəticə verdi, `/api/solve` uc-uca sınandı, VƏ canlı sınaqda ciddi bug tapılıb düzəldildi.**
+
+Ilkin `.env`-i (real `API_KEY`/`MODEL`/`BASE_URL`) əlavə etdiyini dedi — bu worktree-yə
+kopyaladım (əsas worktree-də idi, worktree-lər fayl sistemini paylaşmır), heç vaxt dəyərini
+çap etmədim.
+
+**1) v6 eval işə salındı (sənin təsdiqinlə, real xərc):**
+```
+scripts/eval.py --pipeline B --set evals/golden-set-cropped.jsonl
+```
+Sxem validliyi **10/10**, struktur (index ardıcıl, hər addımda check, son addım yoxlama)
+**10/10**, cavab sızması **0/10**, son cavab dəqiqliyi **7/10**, orta xərc $0.0159/həll.
+
+**VACİB METODOLOJİ TAPINTI:** konsol "Addım bölgüsü — pedaqoji: 6/10" çap etdi — AMMA bu,
+v6-nın YENİ cavablarının rəyi DEYİL. `report.py::find_latest_human_review` sadəcə ən son
+`human-review-*.jsonl` faylını götürür, tarixinə/prompt versiyasına baxmadan — yeganə mövcud
+fayl `human-review-2026-08-06.jsonl` (KÖHNƏ, v5-in cavablarına aid) idi, problem `id`-ləri
+üst-üstə düşdüyü üçün SƏSSİZCƏ yenidən göstərildi. **v6-nın pedaqoji keyfiyyəti hələ İNSAN
+tərəfindən BAXILMAYIB.** Bu, gələcək hər eval run-ı üçün gizli tələ — `evals/README.md`-yə
+xəbərdarlıq əlavə etməyi tövsiyə edirəm (mən sənədi dəyişmədim, sənin sahibliyindir).
+
+Öz tərəfimdən (insan rəyinin ƏVƏZİ DEYİL, amma siqnal): 10 nəticənin son addımlarını `ADR-010`-un
+iki qaydasına qarşı əl ilə oxudum. Qayda 10 (variant seçimi qadağan) — **10/10 təmiz**, heç bir
+`check.ask` variant hərfi soruşmur. Qayda 11 (yoxlama ilkin şərtə qayıtmalı) — **8/10 həqiqi
+substitusiya** (c02,03,05,06,07,08,09,10 orijinal tənliyə/funksiyaya qayıdır), **2/10 hələ
+sadəcə son hesablamadır** (c01, c04 — bunlar tənlik deyil, "ifadəni hesabla" tipli məsələlər,
+substitusiya təbiətən mümkün deyil). Bu, v5-in bilinən uğursuzluqlarından (6/10) əhəmiyyətli
+irəliləyiş kimi görünür, amma **rəsmi qapı yalnız sənin/Ilkin-in insan rəyi ilə bağlanır**.
+
+`final_answer_correct` 7/10-dəki 3 uğursuzluğu (c03, c05, c06) araşdırdım — hamısı ÖLÇÜ
+uyğunsuzluğudur, model səhvi deyil: c03 model `log_2(...)` yazıb, golden `log2(...)` gözləyir
+(alt xətt fərqi parse-i sındırır); c05/c06 model ÜMUMİ triqonometrik həll ailəsini qaytarıb
+(`pi/6+pi*k/3`), golden isə tək dəyər gözləyir — hər ikisini **Python-un öz `verify.py`-ında
+əl ilə sınadım**, eyni səbəbdən eyni cür uğursuz olur. TS portunun yaratdığı fərq deyil.
+
+**2) `/api/solve` REAL UC-UCA SINANDI** (real Gemini + lokal Postgres, `th-postgres`
+konteyneri artıq işləyirmiş S1a-dan qalma): dəvət kodu rədd (403, xərcsiz), gündəlik limit
+(429 + `events`-ə `limit.blocked`, xərcsiz), tam həll axını (200, DB-yə `problems`/`solutions`/
+`attempts` düzgün yazıldı) — hamısı `curl` ilə birbaşa yoxlandı.
+
+**Bu sınaqda İKİ real bug tapıb düzəltdim (kod rəyi ilə deyil, canlı çağırışda):**
+- `lib/prompt.ts`-də regex heading-i İKİ DƏFƏ escape edilmişdi (çağırış yerində əl ilə
+  `\(...\）`, sonra funksiyanın öz avtomatik escape-i) → `## User (dəyişənlərlə)` bloku
+  HEÇ VAXT tapılmırdı, hər sorğu 500 verirdi. Düzəliş: çağırış yerində xam mətn.
+- **Daha ciddisi:** `route.ts` `verified` üç halını (`true`/`false`/`null`) `if (!verified)`
+  ilə eyniləşdirmişdi. `null` = "yoxlanıla bilmədi" (canonical tək dəyişənli tənlik deyil —
+  BÜTÜN söz/parametr/ehtimal məsələləri, `c08` bunu canlı göstərdi: model DÜZGÜN cavab
+  verdi, `m=7`, amma `unreadable` kimi qaytarılırdı). Bunu Python-un öz `verify.py`-ında
+  eyni girişlə sınadım — **eyni nəticə** (`None, False`), yəni bu, `verify.py`-ın əvvəldən
+  mövcud, indiyə qədər real trafikə məruz qalmadığı üçün gizli qalmış məhdudiyyətidir, TS
+  portunun yaratdığı bug deyil. Düzəliş: yalnız `verified===false` (QƏTİ ZİDDİYYƏT) rədd
+  edilir, `null` halında həll `verification_method="none"` ilə ÇATDIRILIR (`STEP-SCHEMA.json`-
+  un `verification.method` enum-u bunun üçün "none" seçimini onsuz da nəzərdə tutmuşdu).
+  Detallar `ADR-012` → "Qərar 4". **Bu tapıntı olmasaydı, bütün söz/parametr/ehtimal
+  məsələləri (ADR-004-ün B qrupu) istehsalatda həmişə rədd ediləcəkdi.**
+
+Hər ikisi düzəldildikdən sonra eyni sorğu ilə yenidən sınadım — 200, düzgün DB yazısı.
+Test sətirlərini (attempts/events/solutions/problems) DB-dən sildim.
+
+**Tapşırıq:** ClickUp-un "Faza 1 · Şaquli dilim" siyahısında S3 üçün ayrıca tapşırıq yoxdur
+(yalnız S1b və köhnə "kəsmə+seçim ekranı" tapşırığı var) — HANDOFF birinci mənbədir.
+
+**Diqqət:**
+- `web/.env.local` və test şəkli (`evals/images-cropped/c08_q85.jpg`) sınaqdan sonra silindi —
+  bu worktree-də saxlanmır (`.gitignore`).
+- `evals/results/B-2026-08-07.json` bu worktree-də commit EDİLMƏYİB (`evals/results/`
+  strukturuna uyğun, əvvəlki nəticələr kimi yerli qalır).
+
+**Blok:** BİR AÇIQ ŞEY qalır — **v6-nın pedaqoji keyfiyyətinin İNSAN tərəfindən rəyi**
+(yuxarıdakı metodoloji tapıntıya görə avtomatik run bunu ölçmədi). Mən öz oxumamı yazdım
+(8/10 real yoxlama, 2/10 hələ son-hesablama tipli) siqnal kimi, amma rəsmi qapı (`≥8/10`)
+yalnız sənin/Ilkin-in rəyi ilə bağlanır. S3-ün özü (kod) hazırdır və canlı sınanıb — bu, S4-ə
+keçməyə mane olmur, PHASE-1-in özünün dediyi kimi ("v6 keçmirsə prompt işidir, kod davam edir").
+
+---
+
 ## 2026-08-07 (28) · Claude Code → Cowork
 
 **Etdim — A) tema bug-ı artıq düzəlmişdi, B) S3 kodu yazıldı, eval BLOKDADIR (açar yoxdur).**

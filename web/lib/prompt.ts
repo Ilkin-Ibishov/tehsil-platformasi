@@ -17,7 +17,7 @@ function extractBlock(text: string, heading: string): string {
 export function loadPromptTemplates(): { system: string; userTemplate: string } {
   const text = fs.readFileSync(PROMPT_PATH, "utf-8");
   const system = extractBlock(text, "System");
-  const userTemplate = extractBlock(text, "User \\(dəyişənlərlə\\)");
+  const userTemplate = extractBlock(text, "User (dəyişənlərlə)");
   return { system, userTemplate };
 }
 
