@@ -15,6 +15,85 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (43) · Claude Code → Cowork
+
+**Etdim — SYSTEM-REVIEW `(41)`-dəki "S4-dən əvvəl" siyahısının 1 və 2-ci maddələri: §B1 (şagird
+cavabının normallaşdırılması) və §A1 (`delivered`/`completed` ayrılması). S4 artıq mövcud idi
+(`(40)`) — HANDOFF `(42)`-də qeyd olunduğu kimi, bu iki maddə S4-ün TİKİLMƏSİNDƏN SONRA, amma
+şagirdlərə açılmazdan ƏVVƏL tətbiq edildi.**
+
+### 1. §B1 — `web/lib/verify/answer.ts`-ə `studentAnswerMatches` əlavə edildi
+
+`SolveView.tsx`-in `isCorrect`-i əvvəllər `trim().toLowerCase()` edib sətir bərabərliyinə
+baxırdı — `check.accept`-də `"0.5"` var, şagird `"0,5"` və ya `".5"` yazsa SƏHV sayılırdı,
+saxta `error_code` valideyn hesabatına düşürdü. İndi `studentAnswerMatches` (a) EYNİ
+`normalize()`-dən keçir (server-in `equationCrossCheck`-i işlətdiyi funksiya — vergül/nöqtə,
+unicode minus, `\frac`/`\sqrt`, `log_b(x)` → `log(x,b)`, gizli vurma), (b) sətir bərabərliyi
+uyğun gəlmirsə mathjs ilə ƏDƏDİ ekvivalentlik yoxlayır (`|a-b| < 1e-6`).
+
+**`normalize()`-də iki əlavə düzəliş, mövcud imzanı POZMADAN:**
+- **Boşluqlar indi TAMAMİLƏ silinir** (əvvəllər toxunulmurdu) — səbəb SIRA idi: gizli-vurma
+  qaydası (`insertImplicitMultiplication`) boşluq VARLIĞINDAN asılıdır, ona görə "2x+1" ilə
+  "2 x + 1" fərqli nəticə verirdi (birincidə `*` əlavə olunur, ikincidə yox — lookahead boşluğa
+  düşür). LaTeX-in `\ ` (boşluq əmri) STRIP-dən ƏVVƏL həqiqi boşluğa çevrilir, əks halda tək
+  `\` qalıb sonrakı mathjs parse-ini sındırardı — sıra `web/lib/verify/answer.ts:64-65`-də
+  şərh edilib.
+- **`log_b(x)` → `log(x,b)` çevrilməsi indi balanslaşdırılmış mötərizə sayğacı ilədir**
+  (`convertLogBase`, `scripts/lib/verify.py::_convert_log_base`-un TS portu) — ilk cəhdim
+  regex-lə idi (`log(base, arg)` sırası ilə), AMMA mathjs-in `log(x, base)` imzası TƏRSDİR,
+  regex arqument sərhədini (iç-içə mötərizə, `log_2((x-1)/3)`) tapa bilmirdi. Öz-özümə
+  yoxlayarkən (`log_2((x-1)/3)+5=7` → `x=13` sympy-də doğru olmalı idi, amma ilk versiya
+  yanlış nəticə verirdi) tapdım, kodu yazandan sonra, commitdən əvvəl.
+
+**Yoxlama:** node ilə (`--experimental-strip-types`) 11 əl-yazma nümunəsi (`0.5`/`1/2`/`0,5`,
+`x=8`/`x = 8`, `2x+1`/`2 x + 1`, unicode minus, boş sətir) — hamısı gözlənilən nəticəni verdi.
+`python scripts/eval.py --selftest` → **27/27** (dəyişməz — `equationCrossCheck` eyni
+`normalize`-dən keçir, regressiya yoxdur). `npx tsc --noEmit` və `npx eslint .` təmiz.
+
+### 2. §A1 — `attempts.delivered` (server) / `attempts.completed` (klient) ayrıldı
+
+`supabase/migrations/0003_attempts_delivered_completed.sql`: `delivered` sütunu əlavə edildi
+(defolt `true`), `completed`-in defoltu `false`-a dəyişdi, mövcud sətirlərdə `delivered =
+completed, completed = false` (real şagird datası yoxdur, köhnə sətirlər yalnız çatdırılmanı
+bildirirdi — bax HANDOFF `(41)`).
+
+`web/app/api/solve/route.ts`: gündəlik limit sorğusu `completed = true` YERİNƏ `delivered =
+true` oxuyur; INSERT `delivered` yazır, `completed`-ə TOXUNMUR (defolt `false` qalır).
+Klientin göndərdiyi `attempt_id` (əgər UUID formatındadırsa) sətrin PK-sı kimi işlədilir —
+bunu `/api/solve` cavabında da (`attempt_id` sahəsi) geri qaytarır ki, klient sonradan HƏMİN
+sətri tapa bilsin, əlavə round-trip data saxlamadan.
+
+**Yeni:** `web/app/api/attempts/progress/route.ts` — `/api/events`-in eyni naxışı (həmişə
+200, server logu, klient bloklanmır). `completed=true` VƏ `abandoned_at_step` ikisini də
+qəbul edir (`completed = completed OR $yeni` — bir dəfə `true` olandan geriyə düşmür).
+
+`web/lib/attempts.ts` (`reportAttemptProgress`) + `SolveView.tsx`: `reveal()`-də
+`completed=true, duration_sec` göndərilir; YENİ unmount-cleanup (`HANDOFF (40)`-dakı
+component-level unmount dərsini təkrarlayır — `revealed`/`stepIndex` ref-lərlə
+sinxronlaşdırılır ki, unmount anında köhnəlməsinlər) `!revealed` olduqda `abandoned_at_step =
+stepIndex` göndərir. `kamera/page.tsx`: `attempt_id`-ni kamera ekranı açılanda (mövcud
+telemetriya ID-si, `setAttemptId`) yaradır, formda `/api/solve`-ə ötürür, cavabdan
+`solutionAttemptId`-ni saxlayıb `SolveView`-ə prop kimi verir.
+
+`docs/DATA-MODEL.md` `attempts` cədvəli yeniləndi (`delivered` sətri əlavə, `completed`-in
+tərifi aydınlaşdırıldı).
+
+**Yoxlama:** `npx tsc --noEmit`, `npx eslint .` təmiz. `next build`-in TypeScript mərhələsi
+KEÇDİ (`HANDOFF 40`-dakı eyni səbəbdən `DATABASE_URL` yoxluğunda sonrakı mərhələdə dayanır —
+bu worktree-də `.env.local` yoxdur, mənim dəyişikliyimlə əlaqəsiz). **Telefonda/brauzerdə
+canlı sınanmadı** — DB/env konfiqurasiyası bu worktree-də yoxdur.
+
+**Bilərəkdən BURAXILAN:** `transfer_correct` doldurulmur (S6-nın əhatəsindədir, SYSTEM-REVIEW
+bunu tələb etmirdi). `abandoned_at_step` YALNIZ S4 (addım) mərhələsini izləyir — kamera/kəsmə/
+yükləmə mərhələsində tərk etmə artıq AYRICA `solve.waiting_abandoned` telemetriya hadisəsi ilə
+tutulur (`HANDOFF (39)`), bu, `attempts.abandoned_at_step`-ə DAXİL EDİLMİR (fərqli sahə,
+fərqli sual — "hansı addımda" YALNIZ həll göstərildikdən sonra mənalıdır).
+
+**Blok:** yoxdur. SYSTEM-REVIEW `(41)`-in "ŞAGİRDLƏRDƏN ƏVVƏL" bölməsi (3–5: timeout/
+`maxDuration`, qlobal xərc tavanı, `student_ref`) növbədədir.
+
+---
+
 ## 2026-08-07 (42) · Claude Code → Cowork
 
 **Merge — `main` və bu branch `(37)`-dən sonra paralel yazmışdı, əl ilə barışdırıldı.**

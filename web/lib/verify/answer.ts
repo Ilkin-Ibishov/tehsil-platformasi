@@ -22,8 +22,48 @@ function insertImplicitMultiplication(text: string): string {
   return out;
 }
 
+// `log_b(x)` / `logb(x)` (ixtiyari əsas) → `log(x,b)` — mathjs-in `log(x, base)` sırasına uyğun.
+// Arqument daxilində mötərizələr iç-içə ola bilər (`log_2((x-1)/3)`), ona görə regex əvəzinə
+// scripts/lib/verify.py::_convert_log_base-un eyni balanslaşdırılmış mötərizə sayğacı işlədilir
+// (HANDOFF 37/38, c03 — bu, əvvəllər YALNIZ golden cavabda idi, indi şagird cavabında da işləyir,
+// SYSTEM-REVIEW §B1).
+const LOG_BASE_RE = /\blog_?(\d+)\(/g;
+
+function convertLogBase(text: string): string {
+  let result = "";
+  let i = 0;
+  while (i < text.length) {
+    LOG_BASE_RE.lastIndex = i;
+    const m = LOG_BASE_RE.exec(text);
+    if (!m || m.index !== i) {
+      result += text[i];
+      i += 1;
+      continue;
+    }
+    const base = m[1];
+    let j = m.index + m[0].length;
+    let depth = 1;
+    while (j < text.length && depth > 0) {
+      if (text[j] === "(") depth += 1;
+      else if (text[j] === ")") depth -= 1;
+      j += 1;
+    }
+    const arg = text.slice(m.index + m[0].length, j - 1);
+    result += `log(${arg},${base})`;
+    i = j;
+  }
+  return result;
+}
+
 function normalize(raw: string): string {
   let text = raw.trim();
+  // LaTeX-in açıq boşluq əmri (`\ `) əvvəlcə HƏQİQİ boşluğa çevrilir, SONRA bütün boşluqlar
+  // silinir — sympy/mathjs onlara həssas deyil, amma gizli-vurma qaydası (aşağıda) boşluq
+  // varlığından asılıdır; əvvəlcədən silmək "2x+1" ilə "2 x + 1"-i eyni nəticəyə gətirir
+  // (SYSTEM-REVIEW §B1). Sıra vacibdir: `\ ` əvvəl çevrilməlidir, əks halda strip onun
+  // boşluğunu aparıb tək "\" saxlayar.
+  text = text.replace(/\\ /g, " ");
+  text = text.replace(/\s+/g, "");
   text = text.replace(/−/g, "-");
   text = text.replace(LATEX_FRAC_RE, "($1)/($2)");
   text = text.replace(LATEX_SQRT_RE, "sqrt($1)");
@@ -31,8 +71,9 @@ function normalize(raw: string): string {
   text = text.replace(/\\pi/g, "pi");
   text = text.replace(/°/g, "");
   text = text.replace(/,/g, ".");
-  text = text.replace(/\\ /g, " ");
   text = text.replace(/\bln\(/g, "log(");
+  text = convertLogBase(text);
+  text = text.replace(/\\left|\\right/g, "");
   text = insertImplicitMultiplication(text.trim());
   return text.trim();
 }
@@ -128,4 +169,27 @@ export function equationCrossCheck(canonical: string, values: string[]): boolean
  * `verified`: true/false/null. */
 export function verifyFinalAnswer(canonical: string, values: string[]): { verified: boolean | null } {
   return { verified: equationCrossCheck(canonical, values) };
+}
+
+/** SYSTEM-REVIEW-2026-08-07 §B1: şagirdin S4-də yazdığı cavab `check.accept`-in EYNİ
+ * normallaşdırmasından keçsin (vergül/nöqtə, boşluq, unicode minus/kəsr, `log_b`, gizli
+ * vurma) — əvvəllər addım-yoxlaması yalnız trim+lowercase edib sətir bərabərliyinə baxırdı,
+ * `0.5` ilə `1/2` fərqli sətir olduğu üçün düzgün cavab səhv sayılırdı. Sətir bərabərliyi
+ * (normallaşdırılmış formada) YALNIZ son çarədir — əvvəlcə ədədi ekvivalentlik yoxlanılır. */
+export function studentAnswerMatches(input: string, accept: string): boolean {
+  const normInput = normalize(input);
+  const normAccept = normalize(accept);
+  if (!normInput || !normAccept) return false;
+  if (normInput === normAccept) return true;
+
+  const inputVal = evalNumeric(normInput);
+  const acceptVal = evalNumeric(normAccept);
+  if (inputVal === null || acceptVal === null) return false;
+  try {
+    const residual = subtract(inputVal as never, acceptVal as never);
+    const mag = magnitude(residual);
+    return mag !== null && mag < 1e-6;
+  } catch {
+    return false;
+  }
 }

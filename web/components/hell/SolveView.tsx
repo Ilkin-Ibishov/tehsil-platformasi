@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry";
+import { studentAnswerMatches } from "@/lib/verify/answer";
+import { reportAttemptProgress } from "@/lib/attempts";
 
 export type SolveStep = {
   index: number;
@@ -27,20 +29,19 @@ type StepAnswerState = {
   startedAt: number;
 };
 
-// Schema (docs/STEP-SCHEMA.json → check.accept) modeldən istənilən dəyişənlik formalarını
-// (unicode/ASCII minus) artıq siyahıda gətirir — bura yalnız boşluq/böyük-kiçik hərf
-// normallaşdırması düşür, ayrıca simvolik yoxlama lazım deyil (client-side sympy YOXDUR).
-function normalizeInput(raw: string): string {
-  return raw.trim().toLowerCase().replace(/−/g, "-").replace(/\s+/g, "");
-}
-
+// SYSTEM-REVIEW-2026-08-07 §B1: `check.accept` modelin düşündüyü YAZI formalarının siyahısıdır
+// (`"0.5"`, `"1/2"`...), amma şagird bunlardan fərqli ekvivalent formada yaza bilər (`"0,5"`,
+// `".5"`) — sadə sətir bərabərliyi bunu SƏHV sayardı. `studentAnswerMatches`
+// (`web/lib/verify/answer.ts`) həm golden cavabın, həm indi şagird cavabının keçdiyi EYNİ
+// normallaşdırma+ədədi ekvivalentlik yolundan istifadə edir (server-də `equationCrossCheck`-in
+// işlətdiyi funksiyalar) — nəticə, "choice"/mətn cavablarda normallaşdırılmış sətir bərabərliyinə
+// düşür, ədədi cavablarda isə forma fərqinə görə saxta `error_code` yazılmır.
 function isCorrect(input: string, accept: string[]): boolean {
-  const norm = normalizeInput(input);
-  if (!norm) return false;
-  return accept.some((a) => normalizeInput(a) === norm);
+  if (!input.trim()) return false;
+  return accept.some((a) => studentAnswerMatches(input, a));
 }
 
-export function SolveView({ solution, onReset }: { solution: SolveResult; onReset: () => void }) {
+export function SolveView({ solution, attemptId, onReset }: { solution: SolveResult; attemptId: string; onReset: () => void }) {
   const t = useTranslations("hell");
   const steps = solution.steps;
   const total = steps.length;
@@ -54,6 +55,26 @@ export function SolveView({ solution, onReset }: { solution: SolveResult; onRese
 
   const currentStep = steps[stepIndex];
   const currentAnswer = answers[stepIndex] ?? { input: "", status: "idle", attemptNo: 0, startedAt: Date.now() };
+
+  // SYSTEM-REVIEW-2026-08-07 §A1: son addıma çatmadan bu ekran sökülürsə (geri, "yeni sual
+  // çək" ADƏTƏN sökmür amma naviqasiya edə bilər, tab bağlama) — `abandoned_at_step` bunu
+  // yazır. `HANDOFF 40`-dakı unmount-cleanup dərsi eynidir: unmount anında `revealed`/`stepIndex`
+  // dəyərləri prop/closure-dan gec ola bilər, ona görə ref-lər ayrıca sinxronlaşdırılır.
+  const revealedRef = useRef(revealed);
+  const stepIndexRef = useRef(stepIndex);
+  useEffect(() => {
+    revealedRef.current = revealed;
+  }, [revealed]);
+  useEffect(() => {
+    stepIndexRef.current = stepIndex;
+  }, [stepIndex]);
+  useEffect(() => {
+    return () => {
+      if (!revealedRef.current) {
+        reportAttemptProgress({ attemptId, completed: false, abandonedAtStep: stepIndexRef.current, durationSec: null });
+      }
+    };
+  }, [attemptId]);
 
   useEffect(() => {
     if (revealed || !currentStep) return;
@@ -113,11 +134,13 @@ export function SolveView({ solution, onReset }: { solution: SolveResult; onRese
     setRevealed(true);
     trackEvent("solution.answer_revealed", { at_step: stepIndex + 1, of_total: total });
     const errorsTotal = Object.values(answers).filter((a) => a.status === "wrong").length;
+    const durationSec = Math.round((Date.now() - solveStartedAt.current) / 1000);
     trackEvent("solution.completed", {
       steps_total: total,
       errors_total: errorsTotal,
-      duration_sec: Math.round((Date.now() - solveStartedAt.current) / 1000),
+      duration_sec: durationSec,
     });
+    reportAttemptProgress({ attemptId, completed: true, abandonedAtStep: null, durationSec });
   }
 
   function advance() {

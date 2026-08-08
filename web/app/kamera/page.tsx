@@ -21,8 +21,10 @@ export default function KameraPage() {
   const [captured, setCaptured] = useState<Captured | null>(null);
   const [inviteError, setInviteError] = useState(false);
   const [solution, setSolution] = useState<SolveResult | null>(null);
+  const [solutionAttemptId, setSolutionAttemptId] = useState<string | null>(null);
   const [refusalReason, setRefusalReason] = useState<string | null>(null);
   const screenOpenedFired = useRef(false);
+  const currentAttemptIdRef = useRef<string | undefined>(undefined);
 
   // docs/TELEMETRY.md: solve.waiting_abandoned (S7, KRİTİK) — istifadəçi cavab gözləyərkən
   // SƏHİFƏNİN ÖZÜNÜ tərk edir (geri, tab bağlama, marşrut dəyişimi). `pendingSince` sorğu
@@ -42,7 +44,9 @@ export default function KameraPage() {
   useEffect(() => {
     if (stage === "invite" || screenOpenedFired.current) return;
     screenOpenedFired.current = true;
-    setAttemptId(uuidv4());
+    const id = uuidv4();
+    currentAttemptIdRef.current = id;
+    setAttemptId(id);
     trackEvent("capture.screen_opened", {});
   }, [stage]);
 
@@ -53,9 +57,12 @@ export default function KameraPage() {
 
   function resetToCapture() {
     setSolution(null);
+    setSolutionAttemptId(null);
     setRefusalReason(null);
     setCaptured(null);
-    setAttemptId(uuidv4());
+    const id = uuidv4();
+    currentAttemptIdRef.current = id;
+    setAttemptId(id);
     setStage("capture");
   }
 
@@ -72,6 +79,7 @@ export default function KameraPage() {
       form.append("grade", "11");
       form.append("locale", "az");
       form.append("subject", "math");
+      if (currentAttemptIdRef.current) form.append("attempt_id", currentAttemptIdRef.current);
 
       const res = await fetch("/api/solve", { method: "POST", body: form });
 
@@ -129,6 +137,7 @@ export default function KameraPage() {
       }
 
       setSolution({ canonical: body.canonical, final_answer: body.final_answer, steps: body.steps });
+      setSolutionAttemptId(typeof body.attempt_id === "string" ? body.attempt_id : currentAttemptIdRef.current ?? null);
       setStage("solved");
     } catch {
       trackEvent("solve.failed", { reason: "network_error", http_status: null, attempts: 1 });
@@ -176,8 +185,8 @@ export default function KameraPage() {
     return <LoadingView />;
   }
 
-  if (stage === "solved" && solution) {
-    return <SolveView solution={solution} onReset={resetToCapture} />;
+  if (stage === "solved" && solution && solutionAttemptId) {
+    return <SolveView solution={solution} attemptId={solutionAttemptId} onReset={resetToCapture} />;
   }
 
   if (stage === "refused") {
