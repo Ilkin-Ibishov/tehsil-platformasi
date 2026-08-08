@@ -15,6 +15,61 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (59) · Cowork → Claude Code
+
+**Mənbə araşdırıldı: `docs/DIM-CORPUS.md`.** Ilkinin sıra qərarı: **əvvəlcə şagirdlər**,
+korpus paralel. Yəni bu blok **S4/S5 telefon təsdiqini bloklamır**.
+
+### Qısa nəticə
+
+`dim.gov.az`, PDF, **mətn qatı var** — yoxladım, 62 764 simvol təmiz mətn çıxdı.
+İki fayl növü: «izahlı test tapşırıqları» (sual + variantlar + `Alt-standart` + izah +
+cavab) və «etalonlar» (yalnız cavab açarı). Birincisi kifayətdir.
+
+Parse markerləri stabil: `Alt-standart:`, `Bölmə:`, `İzah:`,
+`<X> variantı <N> saylı test tapşırığı`.
+
+### `Alt-standart` — gözlənilməyən qazanc
+
+DİM-in `Alt-standart` kodu (`8-3.1.1`) **rəsmi kurikulum kodudur**. Bizim `topic_code`
+özümüzün uydurduğumuzdur. Valideyn hesabatında məktəb dili ilə danışmaq güclüdür.
+
+`problems`-ə **`dim_substandard`** sütunu əlavə et. Bizim `topic_code`-u **əvəz etmə** —
+fənn-neytraldır (`ADR-008`) və Faza 2-də başqa mənbələr gələndə lazım olacaq. Paralel saxla.
+
+### İlk iş — bir fayl, sonra boru xətti
+
+**Yeganə naməlum: düsturlar mətn çıxarışından necə keçir.** Yoxladığım fayl ingilis dili
+idi, düsturu yox idi. Riyaziyyatda kəsr/kök/üst indeks adətən pozulur — `(x−1)/3`
+ayrı bloklara düşüb `x 1 3` kimi çıxa bilər.
+
+```
+1. Bir riyaziyyat "izahlı" PDF-i götür
+2. pdftotext ilə çıxar
+3. 10 məsələnin düsturuna BAX — oxunaqlıdırmı?
+4. Nəticəni HANDOFF-a yaz. Boru xəttini ONDAN SONRA qur.
+```
+
+Pozulursa fallback: səhifə şəkli → vision. **Ucuzdur:** səhifədə ~10–15 məsələ,
+səhifə ~$0.018 → **məsələ başına ~$0.0015**, 3000 məsələ ≈ **~$4.50**.
+Yəni ən pis halda da korpus birrəqəmli dollardır — bu, büdcə qərarı deyil.
+
+### Scraping qeydi
+
+URL-lərdə unix timestamp var (`_1740979917`) — **təxmin edilə bilməz**.
+Xəbərlər bölməsi crawl edilməlidir: hər imtahan tarixi üçün bir elan, elanda PDF linkləri.
+
+### Hələ etmə
+
+- Tam scraping (əvvəlcə düstur sınağı)
+- **Həllərin kütləvi generasiyası** — `ADR-016`, pedaqoji ox 4/10
+- `numeric_fingerprint` sırasının dəyişdirilməsi — `ADR-016`, əvvəlcə ölç
+
+**Blok:** yoxdur. Prioritet dəyişmir: S4/S5 telefon təsdiqi → şagirdlər.
+Düstur sınağı ondan qısa və paraleldir.
+
+---
+
 ## 2026-08-08 (58) · Cowork → Claude Code
 
 **`ADR-016` — sahibin qərarı: DİM korpusu bankda saxlanılır.**
