@@ -58,6 +58,34 @@ async function fetchFinalAnswer(attemptId: string): Promise<FinalAnswer> {
   return body.final_answer;
 }
 
+// S6 (HANDOFF 56/57): "eynisini sən həll et" — yeni LLM çağırışı yoxdur, `problems`-dən eyni
+// `topic_code`-lu başqa məsələ. 404 = namizəd yoxdur (ADR-003: `formula`-ya məhdudlaşdırılıb),
+// bu, xəta deyil — çağıran sadəcə transfer addımını göstərmir.
+type TransferProblem = { transfer_problem_id: string; canonical: string };
+
+async function fetchTransferProblem(attemptId: string): Promise<TransferProblem | null> {
+  const res = await fetch("/api/attempts/transfer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ attempt_id: attemptId, device_id: getDeviceId() }),
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`transfer http ${res.status}`);
+  return res.json();
+}
+
+async function checkTransferAnswer(attemptId: string, transferProblemId: string, answer: string): Promise<{ correct: boolean }> {
+  const res = await fetch("/api/attempts/transfer/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ attempt_id: attemptId, device_id: getDeviceId(), transfer_problem_id: transferProblemId, answer }),
+  });
+  if (!res.ok) throw new Error(`transfer check http ${res.status}`);
+  return res.json();
+}
+
+type TransferState = "loading" | "shown" | "checking" | "answered" | "unavailable" | "error";
+
 export function SolveView({ solution, attemptId, onReset }: { solution: SolveResult; attemptId: string; onReset: () => void }) {
   const t = useTranslations("hell");
   const steps = solution.steps;
@@ -70,8 +98,14 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
   const [revealError, setRevealError] = useState(false);
   const [finalAnswer, setFinalAnswer] = useState<FinalAnswer | null>(null);
   const [reportedWrong, setReportedWrong] = useState(false);
+  const [transferState, setTransferState] = useState<TransferState | null>(null);
+  const [transferProblem, setTransferProblem] = useState<TransferProblem | null>(null);
+  const [transferInput, setTransferInput] = useState("");
+  const [transferCorrect, setTransferCorrect] = useState<boolean | null>(null);
   const solveStartedAt = useRef(Date.now());
   const shownSteps = useRef<Set<number>>(new Set());
+  const transferShownAt = useRef<number>(0);
+  const transferFetchStarted = useRef(false);
 
   const currentStep = steps[stepIndex];
   const currentAnswer = answers[stepIndex] ?? { input: "", status: "idle" as StepStatus, attemptNo: 0, startedAt: Date.now() };
@@ -95,6 +129,45 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
       }
     };
   }, [attemptId]);
+
+  // S6: cavab açılan kimi (bir dəfə) transfer namizədi soruşulur — tapılmasa (`null`) heç nə
+  // göstərilmir, `transfer.shown`/`skipped` yalnız HƏQİQƏTƏN göstərildikdə mənalıdır.
+  useEffect(() => {
+    if (!revealed || transferFetchStarted.current) return;
+    transferFetchStarted.current = true;
+    setTransferState("loading");
+    fetchTransferProblem(attemptId)
+      .then((problem) => {
+        if (!problem) {
+          setTransferState("unavailable");
+          return;
+        }
+        setTransferProblem(problem);
+        transferShownAt.current = Date.now();
+        setTransferState("shown");
+        trackEvent("transfer.shown", {});
+      })
+      .catch(() => setTransferState("unavailable"));
+  }, [revealed, attemptId]);
+
+  async function submitTransferAnswer() {
+    if (!transferProblem || !transferInput.trim() || transferState === "checking") return;
+    setTransferState("checking");
+    try {
+      const { correct } = await checkTransferAnswer(attemptId, transferProblem.transfer_problem_id, transferInput);
+      setTransferCorrect(correct);
+      setTransferState("answered");
+      trackEvent("transfer.answered", { correct, time_ms: Date.now() - transferShownAt.current });
+    } catch {
+      // Şəbəkə xətası — S6 ölçmə üçündür, şagirdi buna görə ilişdirmirik: sadəcə keçirik.
+      setTransferState("unavailable");
+    }
+  }
+
+  function skipTransfer() {
+    trackEvent("transfer.skipped", {});
+    setTransferState("unavailable");
+  }
 
   useEffect(() => {
     if (revealed || !currentStep) return;
@@ -303,6 +376,59 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
             <span style={{ fontSize: 14, color: "var(--t2)" }}>{t("answer.reportWrongDone")}</span>
           )}
         </div>
+
+        {/* S6 — "eynisini sən həll et". `transferState` `null`/`loading`/`unavailable` heç nə
+            göstərmir (namizəd yoxdursa səssizcə keçilir), `shown`/`checking`/`answered` sual +
+            cavab axınıdır. */}
+        {(transferState === "shown" || transferState === "checking" || transferState === "answered") && transferProblem && (
+          <div style={{ margin: "0 var(--page-pad-x)", padding: 18, border: "1px solid var(--bor)", borderRadius: "var(--rad)", background: "var(--sur)", display: "flex", flexDirection: "column", gap: 12 }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.1em", color: "var(--acc)" }}>
+              {t("transfer.label")}
+            </span>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 18, color: "var(--t1)", overflowX: "auto", whiteSpace: "nowrap" }}>
+              {formatMath(transferProblem.canonical)}
+            </div>
+            {transferState !== "answered" && (
+              <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
+                <input
+                  type="text"
+                  value={transferInput}
+                  placeholder={t("step.inputPlaceholder")}
+                  onChange={(e) => setTransferInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void submitTransferAnswer();
+                  }}
+                  disabled={transferState === "checking"}
+                  style={{ flex: 1, minWidth: 0, minHeight: "var(--tap)", border: "1px solid var(--bor)", borderRadius: "var(--rad)", background: "var(--bg)", color: "var(--t1)", fontFamily: "var(--font-mono)", fontSize: 16, padding: "0 14px", outline: "none" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => void submitTransferAnswer()}
+                  disabled={!transferInput.trim() || transferState === "checking"}
+                  style={{ minHeight: "var(--tap)", padding: "0 22px", border: "1px solid var(--acc)", borderRadius: "var(--rad)", background: "var(--accsoft)", color: "var(--acc)", fontFamily: "inherit", fontSize: 15, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", opacity: transferInput.trim() && transferState !== "checking" ? 1 : 0.5 }}
+                >
+                  {transferState === "checking" ? t("step.checking") : t("step.check")}
+                </button>
+              </div>
+            )}
+            {transferState === "answered" && transferCorrect !== null && (
+              <div style={{ display: "flex", alignItems: "baseline", gap: 10, padding: "10px 14px", borderRadius: "var(--rad)", background: transferCorrect ? "var(--accsoft)" : "var(--warnsoft)" }}>
+                <span style={{ color: transferCorrect ? "var(--acc)" : "var(--warn)", fontSize: 14 }}>{transferCorrect ? "✓" : "✕"}</span>
+                <span style={{ fontSize: 14, lineHeight: 1.6 }}>{transferCorrect ? t("transfer.correct") : t("transfer.wrong")}</span>
+              </div>
+            )}
+            {transferState !== "answered" && (
+              <button
+                type="button"
+                onClick={skipTransfer}
+                style={{ alignSelf: "flex-start", minHeight: 44, padding: 0, border: "none", background: "transparent", color: "var(--t2)", fontFamily: "inherit", fontSize: 14, cursor: "pointer" }}
+              >
+                {t("transfer.skip")}
+              </button>
+            )}
+          </div>
+        )}
+
         <div style={{ padding: "0 var(--page-pad-x)", marginTop: 8 }}>
           <button
             type="button"

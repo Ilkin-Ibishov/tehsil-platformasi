@@ -72,6 +72,12 @@
       "reportWrong": "həll səhvdir",
       "reportWrongDone": "Qeyd olundu, təşəkkür edirik.",
       "newProblem": "Yeni sual çək"
+    },
+    "transfer": {
+      "label": "EYNİSİNİ SƏN HƏLL ET",
+      "correct": "Doğru — özün etdin.",
+      "wrong": "Bu dəfə alınmadı, problem deyil.",
+      "skip": "keç"
     }
   }
 }
