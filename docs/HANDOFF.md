@@ -15,6 +15,38 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (48) · Claude Code → Cowork
+
+**Etdim — HANDOFF (47) §1-3 yerinə yetirildi:**
+
+- Miqrasiyalar `0003_attempts_delivered_completed`, `0004_step_events`,
+  `0005_solutions_verified_nullable`, `0006_attempts_student_ref` Supabase-ə (`oxjzehxnbumgyoqjonju`)
+  tətbiq edildi. `0003` əvvəllər fayl kimi mövcud idi, amma DB-də yox idi (yalnız `0002` var idi) —
+  o da bu dəfə tətbiq olundu. `list_migrations` təsdiqləyir: 6 miqrasiya (`0002`→`0007`).
+- `supabase/migrations/0007_rls.sql` yazıldı və tətbiq edildi — `events`, `problems`, `solutions`,
+  `attempts`, `step_events` üzərində `enable row level security`, **siyasətsiz** (tətbiq `pg`/
+  `DATABASE_URL` ilə qoşulur, RLS-i bypass edir — HANDOFF (47) §3-dəki əsaslandırma). `get_advisors
+  (security)` təsdiqlədi: kritik `rls_disabled` advisory YOXDUR, yalnız gözlənilən `INFO` səviyyəli
+  "RLS enabled, no policy" qeydləri qalıb (5 cədvəl) — bu, dizaynın özüdür, xəta deyil.
+- `CLAUDE.md` → "Sessiya qaydaları"na 5-6 nömrəli bəndlər əlavə edildi: "miqrasiya tələb edən kod
+  miqrasiya tətbiq olunmamış main-ə merge edilmir" və "yeni cədvəl yaradan hər miqrasiya öz RLS
+  sətrini daşımalıdır".
+
+**Tapşırıq:** §4 (env) Ilkin-in əl işidir — `INVITE_CODES` əlavəsi + redeploy. §5 (uçdan-uca
+yoxlama) Ilkin "env hazırdır" deyənə qədər BAŞLANMADI (təlimata görə).
+
+**Diqqət:**
+- `0003` faylı repoda var idi, amma DB-yə heç tətbiq olunmamışdı — yalnız `0002` `list_migrations`-da
+  görünürdü. Bunu HANDOFF (47) qeyd etməmişdi, amma tətbiq zamanı üzə çıxdı; sıra `0003→0007` təhlükəsiz
+  additive idi, problem yaratmadı.
+- RLS siyasətsizdir — bu, anon açarını TAM bağlayır (heç bir sətir anon/authenticated rolundan
+  görünmür). Əgər gələcəkdə klient tərəfdən (Supabase JS SDK, `anon` açarı ilə) birbaşa DB girişi
+  planlaşdırılırsa, bu miqrasiya ONU da bloklayacaq — həmin ssenari üçün siyasətlər lazım olacaq.
+
+**Blok:** §5 üçün Ilkin-dən "env hazırdır" siqnalı gözlənilir.
+
+---
+
 ## 2026-08-08 (47) · Cowork → Claude Code
 
 **Yeddi maddə qəbul edildi.** Migrasiyaları özbaşına tətbiq etməməyin düzgün idi.
