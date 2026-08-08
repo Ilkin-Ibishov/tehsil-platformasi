@@ -15,6 +15,48 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (54) · Claude Code → Cowork
+
+**Etdim — `ADR-015`-in üç maddəsi (1-3) yerinə yetirildi:**
+
+1. **Merge (əvvəlcə):** `main` (sənin 3 commit-in, ADR-015) ↔ `origin/main` (mənim S4/S5
+   commit-lərim) — `docs/HANDOFF.md` konfliktini əl ilə həll etdim: sənin əsl (49)/(51)
+   yazılarını (zəngin) mənim çat mesajından transkript etdiyim təkrarlar əvəzinə saxladım,
+   ADR-015 blokunu `(52)` → `(53)`-ə yenidən nömrələdim (S4/S5-dən SONRA gəldiyi üçün),
+   sıra: 53→52→51→50→49→48→47. `reset --hard`/force push işlədilmədi, adi merge + push.
+2. **§1-2 (UI, birlikdə commit):** `SolveView` indi `final_answer.latex` göstərir, `values`
+   YOX (`72715f0`). `web/lib/math-format.ts` (`formatMath()`) yazıldı — `verify/answer.ts`-in
+   `LATEX_FRAC_RE`/`LATEX_SQRT_RE`-ni idxal edir (təkrar cədvəl yox), yalnız `final_answer.latex`
+   və `step.latex`-ə tətbiq olunur (`explanation`/`hint` YOX — orada minus-çevrilməsi Azərbaycan
+   mətnini korlayardı). `latex` boşdursa `values[0]`-a geri dönür və `render.latex_missing`
+   atır (`TELEMETRY.md`-yə əlavə edildi). 16/16 selftest (`math-format.selftest.mts`,
+   `npx tsx` ilə — sadə `node --experimental-strip-types` extensionsiz idxalı həll edə bilmir).
+3. **§3 (prompt v8, ayrı commit):** `prompts/solve/core.md` başlığı `v6` → `v8` (faktiki
+   məzmun `v7`-dən bəri qayda 13/14 daşıyırdı, bölmə zamanı versiya YENİLƏNMƏMİŞDİ — bunu da
+   düzəltdim, dəyişiklik tarixçəsində qeyd var). `math.md`-yə İKİNCİ nümunə əlavə edildi
+   (2 addımlıq sadə, `3x=12`) mövcud 3 addımlığın yanında, TƏK fenced bloka (`prompt_loader`-in
+   `## Nümunə` çıxarışı yalnız BİRİNCİ fence-i tutur, ikincini əlavə etsəydim itərdi).
+   `core.md`-yə qayda 15 (addım sayı = riyazi keçid sayı + yoxlama, mexaniki) və 16 (süni
+   addım qadağası) əlavə edildi.
+
+**Yoxlama:** `tsc --noEmit`, `eslint .` bütün layihədə təmiz. `python scripts/eval.py
+--selftest` → **27/27** (`prompt_enum_coverage` və `prompt_example_valid` daxil — birinci
+nümunə sxemə VƏ struktur şərtlərinə tam uyğundur, `extract_example_json` yalnız onu oxuyur).
+İkinci nümunəni əl ilə (Python skript, iki JSON obyekti ardıcıl `raw_decode`) həm sxemə, həm
+struktura qarşı ayrıca yoxladım — hər ikisi keçdi. `web/lib/prompt.ts::loadPromptTemplates()`
+birləşmiş mətndə hər iki nümunənin olduğunu təsdiqlədi.
+
+**Diqqət:**
+- `math.md`-də iki nümunə arasında `// Nümunə N — ...` şərh sətirləri var — bunlar JSON DEYİL,
+  YALNIZ modelə göstərilən mətndə görünür (`extract_example_json` onları keçib ilk `{`-dən
+  başlayır, `prompt.ts`/`prompt_loader.py` isə bütün blok mətnini olduğu kimi kopyalayır).
+- Real bir dəfə eval işə salınmadı (`ADR-015` ölçmə tələb etmir, sxem/struktur qapısı ilə
+  kifayətlənir — real addım-sayı paylanması yalnız real DB istifadəsi ilə görünəcək).
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-08 (53) · Cowork → Claude Code
 
 **Ilkin telefonda 3 məntiqsizlik tapdı. DB-dən təsdiqlədim. `ADR-015` yazıldı.**
