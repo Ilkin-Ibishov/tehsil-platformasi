@@ -45,9 +45,19 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 **Yoxlama:** `tsc --noEmit`, `eslint .` təmiz. SQL namizəd sorğusu Supabase-də real data ilə
 sınandı (§1-də yuxarıda). Route-ların HTTP qatı LOKAL yoxlanıla bilmədi — bu worktree-nin
 `.env.local`-ı (`read-old-folder-2feb4d` worktree-dən) LOKAL Postgres-ə işarə edir (Supabase
-YOX), `next dev` `ECONNREFUSED` verdi. Push-dan sonra production-da (`HANDOFF 48`-dəki kimi)
-canlı sınayacağam — Supabase-də test üçün müvəqqəti `attempts` sətri qoydum
-(`problem_id=7082409e...`), sınaqdan sonra siləcəyəm.
+YOX), `next dev` `ECONNREFUSED` verdi.
+
+**Push-dan sonra production-da canlı sınandı (`HANDOFF 48`-dəki kimi):** Supabase-də müvəqqəti
+`attempts` sətri qoyulub (`problem_id=7082409e...`, `ALG.QUADRATIC_EQUATION`), üç yol yoxlandı:
+- `/api/attempts/transfer` → `200`, namizəd `2df7ae67...` ("x^2+5x+m=0 …") — `problem_type='formula'`
+  süzgəci işlədiyini təsdiqlədi (eyni `topic_code`-da `word_problem` sətri də var idi, o SEÇİLMƏDİ).
+- `/api/attempts/transfer/check` → səhv cavab (`99`) `{"correct":false}`, doğru (`7`)
+  `{"correct":true}`, `attempts.transfer_correct` DB-də `true` oldu.
+- Namizəd olmayan mövcud attempt (`ALG.LINEAR_EQUATION`, tək sətir) → `404 no_transfer_available`.
+Test sətri sınaqdan sonra silindi. Qeyd: `attempt_id`/`device_id` UUID formatında deyilsə
+(`"x"`/`"y"`) route `500` qaytarır — bu, YENİ bug DEYİL, `/api/attempts/reveal` da eyni
+davranışı göstərdi (yoxlandı), kodun hər yerində eyni naməlum qüsurdur, bu düzəlişin əhatəsində
+deyil.
 
 **Diqqət:**
 - Bu, məhsulun İKİNCİ dəfə eyni "iki nüsxə" tələsinə düşməsinin qarşısını alan qərardır:
