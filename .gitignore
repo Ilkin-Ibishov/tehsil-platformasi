@@ -8,6 +8,7 @@ dist/
 evals/results/*.json
 evals/results/*.log
 !evals/results/.gitkeep
+!evals/results/summary-*.json
 evals/images/
 .vercel
 __pycache__/

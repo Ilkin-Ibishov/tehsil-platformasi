@@ -65,7 +65,8 @@ Bir məsələnin bir neçə həlli ola bilər (fərqli sinif dərinliyi). Seçim
 | `ocr_source` | text | `texo_client` / `vision_llm` |
 | `ocr_corrected` | bool | istifadəçi OCR nəticəsini düzəltdimi → OCR keyfiyyət siqnalı |
 | `revealed_answer` | bool | "cavabı göstər"ə basdımı |
-| `completed` | bool | son addıma çatdımı |
+| `delivered` | bool | server `/api/solve`-də yazır — həll çatdırıldımı (gündəlik limit BUNU sayır) |
+| `completed` | bool | klient `/api/attempts/progress`-də yazır — son addıma çatdımı (SYSTEM-REVIEW §A1: `delivered`-dən AYRI sahə, əvvəllər ikisi eyni sütunda qarışırdı) |
 | `abandoned_at_step` | int null | hansı addımda tərk etdi |
 | `duration_sec` | int | |
 | `transfer_correct` | bool null | "eynisini sən həll et" nəticəsi |

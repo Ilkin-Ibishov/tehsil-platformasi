@@ -326,6 +326,43 @@ def write_results(pipeline_name, set_path, entries, metrics, out_dir, date_str):
     return out_path
 
 
+def write_summary(pipeline_name, set_path, entries, metrics, prompt_version, out_dir, date_str):
+    """`evals/results/{pipeline}-{date}.json`-un (xam çıxışlı, `.gitignore`-da) yüngül,
+    GİT-Ə GÖNDƏRİLƏN xülasəsi. HANDOFF (38): `B-2026-08-07.json` worktree təmizlənməsi ilə
+    silindi — bu, eval nəticəsinin itdiyi ÜÇÜNCÜ hadisədir (`ADR-003`-ün icazə verdiyi xam
+    çıxış itkisi deyil, METRİKANIN ÖZÜ itdi). `raw_text`/`raw_output` bu faylda YOXDUR (həcm,
+    `ADR-003`) — yalnız hökm vermək üçün lazım olan minimum: hansı item necə qiymətləndirildi.
+
+    `prompt_version` mütləq yazılır: HANDOFF (27)-dəki "köhnə rəy səhvən v6-ya aid edildi"
+    problemi məhz bunun heç yerdə saxlanmamasından yaranmışdı."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    set_stem = Path(set_path).stem
+    out_path = out_dir / f"summary-{set_stem}-{date_str}.json"
+
+    items = []
+    for e in entries:
+        raw = e.get("raw_output")
+        model_values = None
+        if isinstance(raw, dict):
+            model_values = (raw.get("final_answer") or {}).get("values")
+        items.append({
+            "id": e.get("id"),
+            "final_answer_correct": e.get("final_answer_correct"),
+            "model_values": model_values,
+        })
+
+    payload = {
+        "pipeline": pipeline_name,
+        "set": str(set_path),
+        "date": date_str,
+        "prompt_version": prompt_version,
+        "metrics": metrics,
+        "items": items,
+    }
+    out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return out_path
+
+
 def _print_metric_line(label, metric_dict, gate_eligible, gate_value=None):
     if metric_dict["n"] == 0:
         print(f"  {label}: ölçülə bilmədi (n=0)")

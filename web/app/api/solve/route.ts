@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
   const image = form.get("image");
   const deviceId = form.get("device_id");
-  const attemptId = form.get("attempt_id");
+  const clientAttemptId = form.get("attempt_id");
   const inviteCode = form.get("invite_code");
   const grade = Number(form.get("grade") ?? 11);
   const locale = String(form.get("locale") ?? "az");
@@ -76,10 +76,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_invite" }, { status: 403 });
   }
 
-  // 2) Gündəlik limit — YALNIZ çatdırılmış (completed=true) həllər sayılır (S5 invariantı).
+  // 2) Gündəlik limit — YALNIZ çatdırılmış (delivered=true) həllər sayılır (S5 invariantı).
+  // `completed` BURADAN AYRIDIR (SYSTEM-REVIEW §A1) — "son addıma çatdı" klientin
+  // `/api/attempts/progress`-ə yazdığı ayrı sahədir, limitə təsir etmir.
   const { rows: limitRows } = await pool.query(
     `select count(*)::int as c from attempts
-     where device_id = $1 and completed = true and created_at >= date_trunc('day', now())`,
+     where device_id = $1 and delivered = true and created_at >= date_trunc('day', now())`,
     [deviceId]
   );
   const dailyCount = limitRows[0]?.c ?? 0;
@@ -88,7 +90,7 @@ export async function POST(req: NextRequest) {
       .query(
         `insert into events (event_id, device_id, attempt_id, name, props)
          values ($1,$2,$3,'limit.blocked',$4)`,
-        [randomUUID(), deviceId, typeof attemptId === "string" ? attemptId : null, JSON.stringify({ daily_count: dailyCount })]
+        [randomUUID(), deviceId, typeof clientAttemptId === "string" ? clientAttemptId : null, JSON.stringify({ daily_count: dailyCount })]
       )
       .catch((err) => console.error("[/api/solve] limit.blocked telemetriya xətası:", err));
     return NextResponse.json({ error: "limit_reached", daily_count: dailyCount }, { status: 429 });
@@ -170,7 +172,12 @@ export async function POST(req: NextRequest) {
   const verificationMethod = verified === true ? "sympy" : "none";
   const costUsd = computeCostUsd(usage);
   const solutionId = randomUUID();
-  const attemptRowId = randomUUID();
+  // Klient telemetriya üçün bu ID-ni artıq kamera ekranı açılanda yaradıb (lib/telemetry
+  // setAttemptId) — həmin ID-ni burada sətir PK-sı kimi işlədirik ki, S4-də "son addıma
+  // çatdı" yeniləməsi (/api/attempts/progress) əlavə round-trip data saxlamadan bu sətri
+  // tapa bilsin. Format etibarsızdırsa (köhnə klient, boş sahə) server öz ID-sini yaradır.
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const attemptRowId = typeof clientAttemptId === "string" && UUID_RE.test(clientAttemptId) ? clientAttemptId : randomUUID();
   const hash = canonicalHash(parsed.canonical);
 
   const client = await pool.connect();
@@ -207,7 +214,7 @@ export async function POST(req: NextRequest) {
     );
 
     await client.query(
-      `insert into attempts (id, device_id, problem_id, solution_id, match_path, ocr_source, completed)
+      `insert into attempts (id, device_id, problem_id, solution_id, match_path, ocr_source, delivered)
        values ($1,$2,$3,$4,'llm','vision_llm',true)`,
       [attemptRowId, deviceId, problemId, solutionId]
     );
@@ -228,6 +235,7 @@ export async function POST(req: NextRequest) {
     {
       ...parsed,
       solution_id: solutionId,
+      attempt_id: attemptRowId,
       match_path: "llm",
       verification: { verified: true, method: verificationMethod, verified_at: new Date().toISOString() },
       meta: {

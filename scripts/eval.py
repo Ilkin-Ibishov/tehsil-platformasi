@@ -89,6 +89,12 @@ def run(pipeline_name, set_path, today, image_max_px=None):
 
     out_path = report.write_results(pipeline_name, set_path, entries, metrics, RESULTS_DIR, today)
     print(f"\nNəticə yazıldı: {out_path.relative_to(REPO_ROOT)}")
+
+    prompt_version = prompt_loader.load_prompt_version()
+    summary_path = report.write_summary(
+        pipeline_name, set_path, entries, metrics, prompt_version, RESULTS_DIR, today
+    )
+    print(f"Xülasə (git-ə gedir) yazıldı: {summary_path.relative_to(REPO_ROOT)}")
     return 0
 
 
