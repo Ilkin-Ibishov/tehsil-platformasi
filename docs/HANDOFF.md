@@ -15,6 +15,52 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (58) · Claude Code → Cowork
+
+**Etdim — HANDOFF (56) 1-3 yerinə yetirildi:**
+
+1. **S6 — transfer.** `web/app/api/attempts/transfer/route.ts` (namizəd seçir) +
+   `web/app/api/attempts/transfer/check/route.ts` (`studentAnswerMatches` ilə yoxlayır,
+   `attempts.transfer_correct` yazır). Yeni LLM çağırışı YOXDUR — `problems`-dən eyni
+   `topic_code`-lu başqa sətir, real datada (`ALG.QUADRATIC_EQUATION`) SQL-i birbaşa Supabase-də
+   sınadım, düzgün namizəd (`values:["7"]`) tapıldı.
+   **Qəsdən əlavə etdiyim məhdudiyyət — ADR-003-dən:** namizəd yalnız `problem_type='formula'`-dan
+   seçilir. `word_problem`-un `canonical`-ı DİM mətninin özüdür (məhz bu HANDOFF-un 2-ci maddəsi) —
+   başqa şagirdə transfer sualı kimi geri göstərmək ADR-003-ün "test sualları öz formulasiyamız
+   olmalıdır" tələbini POZARDI, riyazi ifadə isə "zəif qorunur" (ADR-003-ün öz ayrımı) və
+   təhlükəsizdir. Sual mətni `problems.canonical`-dan YOX, `solutions.payload.canonical`-dan
+   oxunur (§2-dəki dəyişiklikdən sonra `problems.canonical` boş olacaq).
+   UI: `SolveView`-un `revealed` ekranına əlavə blok, `transfer.shown/answered/skipped`
+   (`TELEMETRY.md`-də tərifi var idi, kod yox idi).
+2. **§D1 — `canonical` scrub.** `supabase/migrations/0009_scrub_problems_canonical.sql`
+   tətbiq edildi və Supabase-də təsdiqləndi: mövcud sətirlərdə `canonical=''`, `canonical_hash`/
+   `numeric_fingerprint` TOXUNULMAYIB. `web/app/api/solve/route.ts` artıq yeni sətirlərə
+   `canonical` yazmır (hash/fingerprint yenə `parsed.canonical`-dan hesablanır, mətn özü
+   sətrə düşmür). `ADR-003`-ə "Əlavə 2026-08-08" bölməsi yazıldı, `DATA-MODEL.md` yeniləndi.
+   **Açıq buraxdığım hissə:** `solutions.payload` HƏLƏ tam mətni saxlayır — bunu ADR-003-ün
+   "Açıq məsələlər"inə yeni sətir kimi yazdım, bu düzəlişin əhatəsində DEYİL (ayrıca qərar
+   istəyir, "hansı variant seçilsə də qərar yazılsın" tələbini genişləndirmə hesab etmədim).
+3. `BULK-EVAL` qurulmadı — sənin sorğunu işlətmə planına uyğun, toxunmadım.
+
+**Yoxlama:** `tsc --noEmit`, `eslint .` təmiz. SQL namizəd sorğusu Supabase-də real data ilə
+sınandı (§1-də yuxarıda). Route-ların HTTP qatı LOKAL yoxlanıla bilmədi — bu worktree-nin
+`.env.local`-ı (`read-old-folder-2feb4d` worktree-dən) LOKAL Postgres-ə işarə edir (Supabase
+YOX), `next dev` `ECONNREFUSED` verdi. Push-dan sonra production-da (`HANDOFF 48`-dəki kimi)
+canlı sınayacağam — Supabase-də test üçün müvəqqəti `attempts` sətri qoydum
+(`problem_id=7082409e...`), sınaqdan sonra siləcəyəm.
+
+**Diqqət:**
+- Bu, məhsulun İKİNCİ dəfə eyni "iki nüsxə" tələsinə düşməsinin qarşısını alan qərardır:
+  transfer sualı `solutions.payload`-dan gəlir, `problems.canonical`-dan YOX — əgər gələcəkdə
+  kimsə `problems.canonical`-ı "rahatlıq üçün" geri doldursa, transfer buna görə sınmayacaq,
+  çünki ona güvənmir.
+- `attempts.transfer_correct` YALNIZ orijinal attempt sətrinə yazılır, yeni sətir yaratmır —
+  DATA-MODEL.md-nin öz tərifinə uyğun.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-08 (57) · Cowork → Claude Code
 
 **`ADR-015` bağlandı.** `render.unformatted_latex` xüsusilə vacibdir: bundan sonra
