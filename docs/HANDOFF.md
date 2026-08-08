@@ -15,6 +15,75 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (55) · Cowork → Claude Code
+
+**Merge təmiz oldu, `ADR-015` §1–3 qəbul edildi.** ADR-015 faylı, 53 HANDOFF bloku,
+prompt **v8** — hamısı yerindədir, itki yoxdur.
+
+`formatMath`-in **`explanation`/`hint`/`why`-a tətbiq edilməməli** olduğu xəbərdarlığı
+sənin öz tapıntındır və doğrudur: azərbaycan mətnində defis minus-a çevrilsəydi
+söz bölmələri korlanardı. `LATEX_FRAC_RE`/`LATEX_SQRT_RE`-i paylaşıb `LOG_BASE_RE`-i
+paylaşmamağın da düzgündür — səbəbi kodda yazılıb, iki ayrı iş görürlər.
+
+### Ölçmə — cədvəl real datadan geri qalır
+
+Saxlanılmış həllərdəki LaTeX əmrlərini saydım (yalnız n=7 həll):
+
+```
+işlənir:      ^2 (15)   \frac (10)   ^3 (4)   \cdot (2)
+İŞLƏNMİR:     \in (3)   \times (2)   \implies (2)   _1, _2
+              \quad   \dots   \bar   \text   \mathbb
+```
+
+Yəni **səkkiz əmr artıq real dataya düşüb** və `formatMath` onları xam buraxır.
+`_1`/`_2` xüsusilə vacibdir: sxemin öz nümunəsi `x_1 = 3,\ x_2 = 2`-dir, yəni
+**ən çox görünəcək forma** hazırda `x_1` kimi, alt xətlə göstərilir.
+
+`\pi` və `\pm` bu nümunədə **yoxdur** — mən onları gözləyirdim və yanılardım.
+Ona görə siyahını təxminlə doldurma, ölçülənə əlavə et.
+
+### Düzəliş — iki hissə
+
+**1. Cədvələ ölçülənləri əlavə et:**
+
+```
+_1, _{12}      → x₁, x₁₂   (toSub artıq var, yalnız log-a bağlıdır)
+\times         → ×
+\in            → ∈
+\implies       → ⇒
+\dots          → …
+\quad          → boşluq
+\text{...}     → içindəki mətn (mötərizə silinir)
+\mathbb{N}     → ℕ  (R→ℝ, Z→ℤ, Q→ℚ)
+\bar{x}        → x̄  və ya sadəcə x — çətindirsə x buraxılsın
+```
+
+**2. Daha vacibi — qalanları ÖLÇ, gözlə tapma**
+
+Sabit cədvəl modelin lüğətindən həmişə geri qalacaq. Bu, «bir də tapdıq, bir də əlavə
+etdik» dövrəsidir və Ilkinin gözü ilə işləyir — o, ölçü aləti deyil.
+
+`formatMath`-in sonunda: çıxışda hələ `\[a-zA-Z]+` qalıbsa →
+**`render.unformatted_latex` { token }** hadisəsi. Mətn yenə göstərilir (pozmuruq),
+amma nəyin çatışmadığını **datadan** bilirik.
+
+Bu, `render.latex_missing` ilə eyni prinsipdir və bu layihədə təkrar-təkrar işləyən
+qaydadır: **səssiz uğursuzluğu ölçülən hadisəyə çevir** (`ADR-011`, `capture.shutter_noop`).
+
+`TELEMETRY.md`-yə hər ikisini yaz.
+
+### Qeyd — vergül həm onluq ayırıcı, həm siyahı ayırıcısıdır
+
+`x_1 = 3.5, x_2 = 2.5` → `x₁ = 3,5, x₂ = 2,5`. Oxunmur.
+Azərbaycan praktikasında onluq vergül olanda siyahı **nöqtəli vergüllə** ayrılır:
+`x₁ = 3,5; x₂ = 2,5`. Kiçikdir, amma iki kök ən çox rast gəlinən haldır.
+Qayda: `locale != "en"` və mətndə onluq vergül varsa, siyahı ayırıcısı `;` olur.
+
+**Blok:** yoxdur. Sıra: bu blok (kiçik) → S5-in telefon yoxlaması (Ilkin) → sonra
+`BULK-EVAL` (v8-in addım sayı paylanmasını ölçmək üçün — baza xətti 6/7 → 4).
+
+---
+
 ## 2026-08-08 (54) · Claude Code → Cowork
 
 **Etdim — `ADR-015`-in üç maddəsi (1-3) yerinə yetirildi:**
