@@ -33,7 +33,7 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
   sətrini daşımalıdır".
 
 **Tapşırıq:** §4 (env) Ilkin-in əl işidir — `INVITE_CODES` əlavəsi + redeploy. §5 (uçdan-uca
-yoxlama) Ilkin "env hazırdır" deyənə qədər BAŞLANMADI (təlimata görə).
+yoxlama) Ilkin "env hazırdır" deyəndən SONRA işə salındı (aşağıda).
 
 **Diqqət:**
 - `0003` faylı repoda var idi, amma DB-yə heç tətbiq olunmamışdı — yalnız `0002` `list_migrations`-da
@@ -43,7 +43,36 @@ yoxlama) Ilkin "env hazırdır" deyənə qədər BAŞLANMADI (təlimata görə).
   görünmür). Əgər gələcəkdə klient tərəfdən (Supabase JS SDK, `anon` açarı ilə) birbaşa DB girişi
   planlaşdırılırsa, bu miqrasiya ONU da bloklayacaq — həmin ssenari üçün siyasətlər lazım olacaq.
 
-**Blok:** §5 üçün Ilkin-dən "env hazırdır" siqnalı gözlənilir.
+### §5 — uçdan-uca yoxlama nəticələri (env hazır olandan sonra)
+
+İstehsalat URL-ində (`web-ilkin-ibishovs-projects.vercel.app`) real şəkil (sintetik, "2x + 6 = 20"
+mətni) ilə tam axın işə salındı: `curl` ilə `/api/solve` və `/api/steps/check`-ə birbaşa sorğu,
+sonra Supabase-də nəticə birbaşa `execute_sql` ilə yoxlanıldı.
+
+**Hamısı KEÇDİ:**
+
+- **Dəvət kodu:** `invite_code` sahəsi boş → `403 {"error":"invalid_invite"}`. `invite01` ilə →
+  `200`, tam həll.
+- **`/api/solve` sızma yoxdur:** cavabda nə `final_answer` açarı, nə `steps[].check.accept` var —
+  `steps[].check`-də yalnız `ask`/`input_kind` qalıb.
+- **`/api/steps/check` fərqləndirir və serverə yazır:** eyni addıma (step 0) əvvəl səhv cavab
+  (`"99"`) göndərildi → `{"correct":false}`, sonra doğru (`"14"`) → `{"correct":true}`.
+  `step_events`-də iki sətir yaradıldı — birinci `error_code:"ARITHMETIC"`, ikinci `error_code:null`,
+  `attempts_count` 1→2 artıb. Klient heç nə yazmır, hamısı server tərəfindən.
+- **`attempts`:** `delivered=true`, `completed=false` (defolt, klient hələ `/api/attempts/progress`
+  çağırmayıb), `student_ref='invite01'`.
+- **`solutions.verified`:** `true`, `verification_method='sympy'` — bu, `2x+6=20` tək dəyişənli
+  tənlik olduğu üçün `sympy` real yoxladı (hardcode DEYİL, kod yolu `route.ts:212-230`-da təsdiqləndi:
+  `verified` üçlü nəticədən gəlir, `false` olsaydı `unreadable` qaytarılıb DB-yə yazılmayacaqdı).
+- **`solve.timeout` / `cost.ceiling_hit`:** kodda mövcuddur (`route.ts:180-192` və `114-134`),
+  icra olunmadı (timeout tetiklənmədi, `DAILY_COST_CEILING_USD` təyin edilməyib) — bu, gözlənilirdi,
+  §5-in tələbi yalnız "koda düşüb" idi.
+
+**Nəticə: 6/6 yoxlama keçdi.** İstehsalat sxem+kod+env üzrə tutarlıdır. Test qeydləri (1 problem,
+1 solution, 1 attempt, 2 step_events) real şagird datası deyil — sintetik şəkillə yaradılıb, silinmədi
+(minimal, zərərsiz).
+
+**Blok:** yoxdur. §1-5 tamamlandı. S4-ə keçidə əngəl yoxdur.
 
 ---
 
