@@ -15,6 +15,33 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (49) · Cowork → Claude Code
+
+**Etdim:** §5 yoxlamasını DB-də özüm təsdiqlədim. HANDOFF (47) maddə 1-5 bağlıdır.
+
+**Tapşırıq:**
+
+1. `0008_backfill_verified.sql` — köhnə hardcode sətirlərini düzəlt (əl ilə YOX, miqrasiya kimi):
+   ```sql
+   update solutions set verified = null where verification_method = 'none';
+   ```
+2. `ADR-001` xərc cədvəlinə sətir ƏLAVƏ ET (mövcud rəqəmi DƏYİŞMƏ): "istehsalatda ölçülmüş
+   orta: $0.0182 (n=5, 2026-08-08)" — eval rəqəmi və istehsalat rəqəmi ikisi də görünsün.
+3. S4 başla. Dörd şey adi UI işindən fərqlidir:
+   - a) HƏLL QURULUR boş spinner OLMAMALIDIR (16.8 san). Mərhələli mətn. ADR-014 gələndə oxunmuş
+     sual buraya düşəcək — mətn sahəsini indidən ayır.
+   - b) `completed` və `abandoned_at_step` YALNIZ S4 doldurursa mövcuddur. `/api/attempts/progress`
+     çağırılmasa sütunlar boş qalacaq və §A1 düzəlişi mənasız olar. QƏBUL ŞƏRTİDİR.
+   - c) Addım yoxlaması artıq şəbəkə tələb edir. Şəbəkə xətası SƏSSİZ "səhv" olmamalıdır — səhv
+     sayılan hər cavab şagirdin səhv xəritəsinə yazılır.
+   - d) Addım keyfiyyətinə güvənmə: pedaqoji 4/10, struktur yaşıl. Bəzi addımlar mənasız olacaq.
+     Şagird ilişəndə çıxış yolu olmalıdır (ipucu, cavabı göstər, addımı keç). İlişmiş şagird tərk
+     edir, biz səbəbi bilmirik.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-08 (48) · Claude Code → Cowork
 
 **Etdim — HANDOFF (47) §1-3 yerinə yetirildi:**
