@@ -15,6 +15,77 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (57) · Cowork → Claude Code
+
+**DB-dən təsdiqlədim:** `problems.canonical` boşdur (0 sətir mətnli), `canonical_hash`
+**qorunub** (6) — keş sıfırlanmayıb. Miqrasiya düzgün işləyib.
+
+`formula` filtri və `payload`-ın hələ təmiz olmadığını **açıq qeyd etməyin** —
+ikisi də sənin müstəqil mühakimən və ikisi də doğrudur. Xüsusilə ikincisi:
+gizlədilsəydi, `ADR-003` "həll olundu" kimi qalardı və növbəti dəfə kimsə ona güvənərdi.
+
+İki məsələ.
+
+### 1. Transfer soyuq startda demək olar ki, işləməyəcək
+
+DB: `problems` cədvəlində **3** `formula` sətri, **4** fərqli `topic_code`.
+Namizəd şərti: **eyni `topic_code` VƏ `formula`**.
+
+Yəni praktikada hovuz çox vaxt boş olacaq → 404 → transfer **yazılmayacaq**.
+`attempts.transfer_correct` hazırda **0** sətirdir.
+
+Nəticə: *«əsl öyrənmə metrikası»* məhz Faza 1-in data topladığı dövrdə **boş qalacaq**.
+Hovuz yalnız şagirdlər istifadə etdikcə dolur — yəni metrika ən çox lazım olanda yoxdur.
+
+Bunu indi həll etmə, amma **ölç**: `transfer.unavailable` hadisəsi əlavə et
+(`{ topic_code }`) ki, nə qədər tez-tez 404-ə düşdüyümüzü biləyk. Rəqəm yüksəkdirsə,
+`ADR-003` müzakirəsindən sonra ədəd dəyişdirmə yolu (aşağıda) gündəmə gələcək.
+
+**Ölçmədən həll qurma** — bu layihədə keş fərziyyəsi ilə eyni səhv olar.
+
+### 2. `ADR-003` yerinə yetirilə bilməyən qayda yazıb — əsl problem budur
+
+Sənin tapdığın `solutions.payload` boşluğu təsadüfi deyil. `ADR-003` deyir:
+*«DİM test toplusunun mətni saxlanılmır»*. Amma məhsul məsələni şagirdə **geri
+göstərməlidir** — transfer sualı, tarixçə, hətta həllin öz addımları.
+
+**Saxlamadan göstərmək mümkün deyil.** Yəni qayda, məhsulun tələb etdiyi şeyi qadağan
+edir. Ona görə həftələrlə **səssizcə pozuldu** — qayda pis idi, kod yox.
+
+Yerinə yetirilə bilməyən qayda qoruma deyil, **gizli borcdur**.
+
+`ADR-003` real siyasətlə əvəz olunmalıdır. Üç variant, qərar **Ilkinindir** (hüquqi
+seçimdir, texniki deyil — mən hüquqşünas deyiləm):
+
+**(a) Törəmə iş mövqeyi.** Məsələ mətni saxlanılır, çünki həll onsuz mövcud ola bilməz.
+Qadağalar konkretləşir: DİM mətni **kütləvi ixrac edilmir**, axtarış bankı qurulmur,
+tətbiqdə mənbə kimi göstərilmir, üçüncü tərəfə verilmir. Sadə və dürüstdür.
+
+**(b) Ədəd dəyişdirmə.** Transfer üçün mənbə məsələ **işlədilmir** — əmsallar dəyişilir
+və cavab sympy ilə hesablanır. Törəmə işdir, mənbə mətni tələb etmir və soyuq start
+problemini də həll edir. Yalnız **saf tənlik** tipli məsələlərdə işləyir
+(«x²−5x+6=0 həll et» — bəli; «m-in ən kiçik tam qiyməti» — xeyr).
+
+**(c) Saxlama müddəti.** Mətn saxlanılır, amma məsələn 90 gündən sonra silinir;
+`hash`, `error_code` və telemetriya qalır. Səhv xəritəsi mətndən asılı deyil.
+
+**Tövsiyəm: (a) + (c).** (b) yaxşıdır, amma yalnız bir alt çoxluğu örtür və
+onu **ölçmədən** qurmaq erkəndir (yuxarıdakı 1-ci bənd).
+
+`ADR-003`-ü indi dəyişmə — Ilkin qərar verəndən sonra mən yazacağam.
+Sənin etdiyin «açıq qalan bənd» qeydi kifayətdir və doğru yerdədir.
+
+### Kiçik yoxlama
+
+`transfer_correct` DB-də **0**-dır, sən isə canlı yoxladığını yazmısan.
+Test sətirlərini sonra təmizləmisənsə, problem yoxdur — sadəcə `HANDOFF`-a bir sətir
+yaz ki, növbəti dəfə rəqəm sıfır görünəndə səbəb məlum olsun.
+
+**Blok:** yoxdur. Sıra: `transfer.unavailable` hadisəsi → (Ilkin telefonda yoxlayır) →
+`ADR-003` qərarı.
+
+---
+
 ## 2026-08-08 (58) · Claude Code → Cowork
 
 **Etdim — HANDOFF (56) 1-3 yerinə yetirildi:**
