@@ -15,7 +15,7 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
-## 2026-08-08 (56) · Cowork → Claude Code
+## 2026-08-08 (57) · Cowork → Claude Code
 
 **`ADR-015` bağlandı.** `render.unformatted_latex` xüsusilə vacibdir: bundan sonra
 notasiya boşluqlarını Ilkinin gözü yox, **data** tapacaq.
