@@ -142,6 +142,15 @@ render.latex_missing           props: {field: "final_answer"|"step"}  ← ADR-01
                                                                           `explanation`-a geri
                                                                           dönülüb, tezliyi
                                                                           səssiz keçməməlidir
+render.unformatted_latex        props: {field: "final_answer"|"step", token}  ← HANDOFF (55):
+                                                                          `formatMath` cədvəli
+                                                                          modelin lüğətindən
+                                                                          geri qalır — çıxışda
+                                                                          hələ `\əmr` qalıbsa
+                                                                          (mətn yenə göstərilir,
+                                                                          pozulmur) BURA yazılır,
+                                                                          cədvəl ölçülənə görə
+                                                                          böyüyür, təxminlə yox
 ```
 
 ### Transfer məsələsi → S4, ƏSAS ÖYRƏNMƏ METRİKASI

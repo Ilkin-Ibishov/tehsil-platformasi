@@ -4,7 +4,7 @@
 // genişləndirmə olmadan idxal edir, `tsx`-ə fərqli olaraq Node-un öz ESM loader-i
 // genişləndirməsiz yerli import-ları həll edə bilmir.)
 
-import { formatMath } from "./math-format.ts";
+import { formatMath, findUnformattedLatex } from "./math-format.ts";
 
 const CASES: [string, string][] = [
   ["x^2", "x²"],
@@ -22,7 +22,21 @@ const CASES: [string, string][] = [
   ["\\left(x\\right)", "(x)"],
   ["\\frac{a}{b}", "(a)/(b)"],
   ["\\frac{x-1}{3}", "(x−1)/(3)"],
-  ["x_1 = 3,\\ x_2 = 2", "x_1 = 3, x_2 = 2"],
+  // HANDOFF (55): subscript indi çevrilir — sxemin öz nümunə formatı ("x_1 = 3,\ x_2 = 2")
+  ["x_1 = 3,\\ x_2 = 2", "x₁ = 3, x₂ = 2"],
+  ["x_{12}", "x₁₂"],
+  ["a \\times b", "a × b"],
+  ["x \\in \\mathbb{N}", "x ∈ ℕ"],
+  ["x \\in \\mathbb{R}", "x ∈ ℝ"],
+  ["P \\implies Q", "P ⇒ Q"],
+  ["1, 2, 3, \\dots", "1, 2, 3, …"],
+  ["a \\quad b", "a b"],
+  ["\\text{en} = 5", "en = 5"],
+  ["\\bar{x}", "x"],
+  // HANDOFF (55): onluq vergül VƏ siyahı vergülü eyni mətndə — siyahı ";"-ə keçir
+  ["x_1 = 3.5, x_2 = 2.5", "x₁ = 3,5; x₂ = 2,5"],
+  // onluq YOXdursa siyahı vergülü toxunulmur (birmənalıdır)
+  ["x_1 = 3, x_2 = 2", "x₁ = 3, x₂ = 2"],
 ];
 
 let fails = 0;
@@ -33,8 +47,22 @@ for (const [input, expected] of CASES) {
   console.log(`${ok ? "PASS" : "FAIL"}  ${JSON.stringify(input)} -> ${JSON.stringify(got)} (gözlənilən ${JSON.stringify(expected)})`);
 }
 
+const UNFORMATTED_CASES: [string, string | null][] = [
+  ["x^2 - 5x", null],
+  ["\\alpha + \\beta", "\\alpha"],
+  ["x_1 \\in \\mathbb{N}", null],
+];
+
+for (const [input, expectedToken] of UNFORMATTED_CASES) {
+  const got = findUnformattedLatex(formatMath(input));
+  const ok = got === expectedToken;
+  if (!ok) fails++;
+  console.log(`${ok ? "PASS" : "FAIL"}  findUnformattedLatex(formatMath(${JSON.stringify(input)})) -> ${JSON.stringify(got)} (gözlənilən ${JSON.stringify(expectedToken)})`);
+}
+
+const total = CASES.length + UNFORMATTED_CASES.length;
 if (fails > 0) {
-  console.error(`\n${fails}/${CASES.length} uğursuz.`);
+  console.error(`\n${fails}/${total} uğursuz.`);
   process.exit(1);
 }
-console.log(`\n${CASES.length}/${CASES.length} keçdi.`);
+console.log(`\n${total}/${total} keçdi.`);

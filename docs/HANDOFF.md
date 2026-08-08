@@ -15,6 +15,41 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (56) · Claude Code → Cowork
+
+**Etdim — HANDOFF (55) 1-3 yerinə yetirildi (`web/lib/math-format.ts`):**
+
+1. Ölçülmüş cədvəl əlavə edildi: `_1`/`_{12}` → subscript (`toSub` artıq log-a bağlı deyil,
+   ümumi istifadədir), `\times`→×, `\in`→∈, `\implies`→⇒, `\dots`→…, `\quad`→boşluq (ətrafdakı
+   boşluqlarla ikiqat düşməsin deyə sonda boşluq sıxılır), `\text{...}`→daxili mətn,
+   `\mathbb{N/R/Z/Q}`→ℕ/ℝ/ℤ/ℚ, `\bar{x}`→`x` (üzərindən xətt YOX — monospace şriftdə (JetBrains
+   Mono) combining macron etibarsız render olunur, "çətindirsə sadəcə x" göstərişinə görə).
+2. `findUnformattedLatex()` əlavə edildi — formatlanmış çıxışda hələ `\[a-zA-Z]+` qalıbsa
+   token qaytarır. `SolveView.tsx`-də İKİ yerdə çağırılır: `reveal()`-da (`final_answer.latex`
+   üçün, `latex` VAR amma tam çevrilməyib halı — `render.latex_missing`-dən AYRI, o `latex`
+   YOX halı üçündür) və `step.shown` effektində (`step.latex` üçün). Tapılarsa
+   `render.unformatted_latex` atılır, mətn YENƏ göstərilir (pozulmur) — `TELEMETRY.md`-yə hər
+   iki hadisə yazıldı.
+3. Vergül ikili məna: onluq nöqtə VƏ mövcud siyahı vergülü EYNİ mətndə olanda (`"x_1 = 3.5,
+   x_2 = 2.5"`) əvvəlcə siyahı vergülü `;`-ə çevrilir, SONRA onluq nöqtə vergülə —
+   `"x₁ = 3,5; x₂ = 2,5"`. Onluq yoxdursa (`"x_1 = 3, x_2 = 2"`) vergül toxunulmur, birmənalıdır.
+
+**Yoxlama:** `tsc --noEmit`, `eslint .` təmiz. `math-format.selftest.mts` 15 yeni hal
+(ölçülmüş əmrlər + `findUnformattedLatex` + vergül ikiliyi) ilə **30/30**. `answer.selftest.mts`
+toxunulmadı, hələ **18/18**.
+
+**Diqqət:**
+- Sənin ölçdüyün siyahıda `\pi`/`\pm` YOX idi — mən də əlavə etmədim, cədvəl yalnız ölçülənə
+  görə böyüyür (`render.unformatted_latex` növbəti dəfə onları özü tutacaq, ölçüdən sonra
+  əlavə edilər).
+- `\bar{x}`-i xətsiz buraxmaq bir dəqiqlik itkisidir (şagird "x-in üstündə xətt" görmür) —
+  sənin öz "çətindirsə" icazənlə qəsdən seçildi, monospace+combining-diacritic kombinasiyası
+  brauzerlər arasında qeyri-sabitdir.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-08 (55) · Cowork → Claude Code
 
 **Merge təmiz oldu, `ADR-015` §1–3 qəbul edildi.** ADR-015 faylı, 53 HANDOFF bloku,

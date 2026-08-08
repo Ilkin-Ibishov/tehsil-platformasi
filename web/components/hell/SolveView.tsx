@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { trackEvent, getDeviceId } from "@/lib/telemetry";
 import { reportAttemptProgress } from "@/lib/attempts";
-import { formatMath } from "@/lib/math-format";
+import { formatMath, findUnformattedLatex } from "@/lib/math-format";
 
 export type SolveStep = {
   index: number;
@@ -101,6 +101,12 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
     if (shownSteps.current.has(stepIndex)) return;
     shownSteps.current.add(stepIndex);
     trackEvent("step.shown", { index: stepIndex, total, error_code: currentStep.error_code });
+    if (currentStep.latex) {
+      // HANDOFF (55): `formatMath` cədvəli modelin lüğətindən geri qalır — çıxışda hələ
+      // tanınmayan `\əmr` qalıbsa ÖLÇÜRÜK (mətni pozmuruq, `render.latex_missing` ilə eyni prinsip).
+      const token = findUnformattedLatex(formatMath(currentStep.latex));
+      if (token) trackEvent("render.unformatted_latex", { field: "step", token });
+    }
     setAnswers((prev) => ({
       ...prev,
       [stepIndex]: prev[stepIndex] ?? { input: "", status: "idle", attemptNo: 0, startedAt: Date.now() },
@@ -184,6 +190,11 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
       // (nəzəri — sxem tələb edir, amma modeldən gələn hər sahə zəmanətli deyil) geri dönüş
       // `values[0]`-dur, tezliyini SƏSSİZ buraxmırıq.
       trackEvent("render.latex_missing", { field: "final_answer" });
+    } else {
+      // HANDOFF (55): eyni ölçmə final_answer üçün — `render.latex_missing`-dən AYRI hal,
+      // `latex` var, amma `formatMath` onu tam çevirə bilməyib.
+      const token = findUnformattedLatex(formatMath(answer.latex));
+      if (token) trackEvent("render.unformatted_latex", { field: "final_answer", token });
     }
     setFinalAnswer(answer);
     setRevealing(false);
