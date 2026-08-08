@@ -249,12 +249,16 @@ export async function POST(req: NextRequest) {
       await client.query(`update problems set hit_count = hit_count + 1 where id = $1`, [problemId]);
     } else {
       problemId = randomUUID();
+      // ADR-003 (2026-08-08 əlavəsi) / HANDOFF (56) §2: `canonical` mətn məsələlərində DİM
+      // mətnini demək olar hərfi saxlayırdı (§D1) — artıq YAZILMIR, keş açarı yalnız
+      // `canonical_hash`/`numeric_fingerprint`-dir (hər ikisi `parsed.canonical`-dan
+      // HESABLANIR, mətnin özü isə sətrə düşmür). `solutions.payload` hələ tam çıxışı
+      // (canonical daxil) saxlayır — bu, AYRICA açıq məsələdir, bax ADR-003.
       await client.query(
         `insert into problems (id, canonical, canonical_hash, numeric_fingerprint, problem_type, subject, grade, topic_code, source)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,'user_photo')`,
+         values ($1,'',$2,$3,$4,$5,$6,$7,'user_photo')`,
         [
           problemId,
-          parsed.canonical,
           hash,
           numericFingerprint(parsed.canonical),
           parsed.problem_type ?? null,

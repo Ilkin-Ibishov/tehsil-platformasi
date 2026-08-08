@@ -73,11 +73,50 @@ Nəticələr:
 
 **Qərar verilməyib.** DİM import işinə başlamazdan əvvəl həll edilməlidir.
 
+## Əlavə 2026-08-08 — `canonical` DİM mətnini saxlayırdı, qərar verildi (§D1)
+
+Praktikada `problems.canonical` mətn məsələlərində DİM test toplusunun mətnini **demək olar
+hərfi** saxlayırdı (`STEP-SCHEMA.json`-un öz tərifinə görə: "mətn məsələsidirsə orijinal mətn
++ içindəki düsturlar `$...$` içində" — bu, elə DİM mətninin ÖZÜ deməkdir). Bu bölmənin yuxarıdakı
+"Qəbul edilən mövqe" hissəsi ("`canonical` (normallaşdırılmış riyazi ifadə) saxlanılır") yalnız
+`formula` tipli məsələlər üçün doğru çıxdı — `word_problem`/`mixed` üçün ADR-003 faktiki olaraq
+pozulurdu, kod yazılana qədər sezilməmişdi.
+
+**Qərar (variant b, SYSTEM-REVIEW §D1-dəki iki variantdan):** `problems.canonical` artıq
+**yazılmır** — sütun qalır (DDL sadəliyi üçün silinmir), gələcək bütün insert-lər boş sətir
+yazır. Keş açarı YALNIZ `canonical_hash` + `numeric_fingerprint`-dir — hər ikisi hələ də
+`parsed.canonical`-dan hesablanır, mətnin ÖZÜ isə heç bazaya düşmür.
+
+**Miqrasiya:** `supabase/migrations/0009_scrub_problems_canonical.sql` — mövcud `canonical`
+sətirləri boşaldılır (`update ... set canonical = ''`). `canonical_hash` TOXUNULMUR — o,
+sətirdən asılı deyil (SHA-256 əvvəlcədən hesablanıb saxlanılıb), silinsə keş bütün mövcud
+sətirlər üçün sıfırlanardı (hər növbəti eyni foto YENİ sətir kimi görünərdi).
+
+**Kod:** `web/app/api/solve/route.ts` — yeni `problems` sətri insert olunanda `canonical`
+sahəsinə həmişə `''` yazılır (`hash`/`numeric_fingerprint` yenə `parsed.canonical`-dan
+hesablanır, saxlanılan sətirə düşmür).
+
+### Açıq qalan boşluq — `solutions.payload` HƏLƏ tam mətni saxlayır
+
+Bu düzəliş yalnız `problems.canonical`-a aiddir. `solutions.payload` (modelin tam JSON
+çıxışı) öz daxilində `canonical`-ı olduğu kimi saxlayır — DİM mətni ORADA hələ tamdır.
+`problems`/`solutions` arasındakı keş münasibətinə görə (bir `problem_id`-yə bir neçə
+`solution_id` bağlana bilər, məs. fərqli modellər/vaxtlarla) bu, HƏLƏ DƏ ADR-003-ün
+"DİM mətni saxlanılmır" vədini tam ödəmir — yalnız İKİ yerdən biri düzəldi.
+
+Bunu indi genişləndirmədim: S6 (transfer) `solutions.payload.canonical`-dan sual mətni
+oxuyur (bax `HANDOFF 56` §1) və `problem_type='formula'`-ya məhdudlaşdırılıb — bu, DİM
+prosasını GÖSTƏRMİR (riyazi ifadə "zəif qorunur", ADR-003-ün yuxarıdakı ayrımına görə).
+Amma `solutions.payload`-ın ÖZÜ hüquqi baxımdan hələ açıq məsələdir — **ayrıca qərar
+tələb edir**, bu düzəlişin əhatəsində deyil.
+
 ## Açıq məsələlər
 
 - [ ] Miqyaslanmadan əvvəl 1 saatlıq hüquqşünas rəyi (ucuzdur, gecikdirmə)
 - [ ] **DİM ilə rəsmi lisenziya danışığı** — alınsa kopyalana bilməyən üstünlükdür.
       Ən azı bir e-poçt göndərməyə dəyər.
+- [ ] **`solutions.payload` hələ DİM mətnini tam saxlayır** (2026-08-08 əlavəsinə bax) —
+      `problems.canonical` düzəldi, `payload` düzəlmədi. Ayrıca qərar tələb edir.
 
 ## Pulsuz və təhlükəsiz mənbə
 

@@ -18,8 +18,8 @@ Birincisi paylaşılan aktivdir, ikincisi şəxsi datadır. RLS siyasətləri bu
 | sütun | tip | qeyd |
 |---|---|---|
 | `id` | uuid pk | |
-| `canonical` | text | normallaşdırılmış təsvir |
-| `canonical_hash` | text unique | `sha256(normalize(canonical))` — birinci dərəcəli açar |
+| `canonical` | text | **BOŞ** (ADR-003, 2026-08-08 əlavəsi) — mətn məsələlərində DİM mətninin özü çıxdı, §D1. Sütun qalır, yazılmır. |
+| `canonical_hash` | text unique | `sha256(normalize(canonical))` — hesablanır, mətnin özü saxlanılmır. Birinci dərəcəli açar |
 | `numeric_fingerprint` | text | mətndəki bütün ədədlər sıra ilə: `"60,2,3"` — ikinci dərəcəli açar |
 | `embedding` | vector(768) | üçüncü dərəcəli açar, pgvector |
 | `problem_type` | text | `formula` / `word_problem` / `geometry` / `mixed` |
@@ -33,9 +33,10 @@ Birincisi paylaşılan aktivdir, ikincisi şəxsi datadır. RLS siyasətləri bu
 
 **İndekslər:** `canonical_hash` (unique btree), `numeric_fingerprint` (btree), `embedding` (ivfflat).
 
-> ⚠️ **Hüquqi:** DİM test toplusunun mətni bu cədvəldə **saxlanılmır**. `canonical` yalnız riyazi ifadədir,
-> mətn məsələsində isə normallaşdırılmış qısa forma. Tətbiqdə DİM-in orijinal mətni **göstərilmir**.
-> Bax `docs/decisions/ADR-003-dim-dataset-legal.md`.
+> ⚠️ **Hüquqi:** `canonical` sütunu artıq YAZILMIR (`0009_scrub_problems_canonical.sql`) — mətn
+> məsələlərində DİM mətninin özünü saxlayırdı (§D1). Keş açarı yalnız `canonical_hash`/
+> `numeric_fingerprint`-dir. **`solutions.payload` hələ tam mətni saxlayır** — bu, AYRICA açıq
+> hüquqi məsələdir, bax `docs/decisions/ADR-003-dim-dataset-legal.md` "Əlavə 2026-08-08".
 
 ## `solutions` — həllər
 
