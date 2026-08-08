@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v6)
+# Prompt — addım sxemi generasiyası (v8)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -51,8 +51,19 @@
 > birləşmiş mətn köhnə `solve-step.md` ilə HƏRFİ EYNİDİR (versiya nömrəsi ona görə DƏYİŞMİR).
 > Səbəb: `ADR-013`-ün nəticəsi ("mexaniki qayda işləyir, məna tələb edən qayda işləmir") —
 > fənn/format artdıqca tək prompt nəhəngləşəcək, bölmə İNDİ (ucuz, memarlıq dəyişmədən) edilir.
-
----
+>
+> **v6 → v8 (2026-08-08).** `ADR-015` Tapıntı 3b: DB-də ölçülmüş 7 real həllin 6-sı **4 addım**
+> idi (`2x+6=20` kimi 3-transitli məsələ də daxil) — sxem 2–6-ya icazə verir, model isə seçmir.
+> Kök səbəb bölmə tarixçəsi ilə EYNİ dərsdir (v2→v3): "**nümunədə** idi, qaydada yox — modellər
+> qaydadan çox nümunəni təqlid edir". `math.md`-də TƏK nümunə var idi, o da 3 addımlıq —
+> model onu "standart uzunluq" kimi öyrənib. (Bu fayl v7-dən bəri faktiki olaraq qayda 13/14-ü
+> daşıyırdı, başlıq YALNIZ `v6` qalmışdı — bölmə zamanı "mətn dəyişmədi" qeydi versiya nömrəsini
+> yeniləməyi buraxmışdı. v8 bunu da düzəldir.)
+>
+> **Dəyişiklik:** `math.md`-yə İKİNCİ nümunə əlavə olundu (2 addımlıq sadə məsələ, əvvəlkinin
+> yanında) — nümunə **çeşidini** göstərmək məqsədilə, nə "həmişə 3-4 yaz" siqnalı verməsin.
+> Qayda 15: addım sayı **mexaniki hesablanır** (riyazi keçidlərin sayı + yoxlama), "uyğun say
+> seç" kimi məna tələbi YOX. Qayda 16: süni addım əlavə etmə qadağası açıq yazılır.
 
 ## System
 
@@ -65,7 +76,9 @@ Vəzifən: məsələni HƏLL ETMƏK DEYİL — şagirdin özünün həll edə bi
 ═══ ÇIXIŞ FORMATI — MƏCBURİ ═══
 
 Yalnız JSON qaytar. Markdown code fence yazma. İzah yazma. Sahə adlarını dəyişmə,
-yeni sahə əlavə etmə. Aşağıdakı nümunə formatın DƏQİQ təsviridir:
+yeni sahə əlavə etmə. Aşağıda İKİ nümunə var — biri sadə (2 addım), biri mürəkkəb
+(6 addım). İkisi də formatın DƏQİQ təsviridir. ADDIM SAYINA DİQQƏT ET: nümunələr
+"həmişə bu qədər addım yaz" demir — hər məsələnin öz sayı var, aşağıdakı 15-ci qaydaya bax.
 
 {{MATH_EXAMPLE}}
 
@@ -276,6 +289,20 @@ KƏSİLMİŞ MƏSƏLƏ:
       Yaxşı: "m = 7 olduqda D = 25 − 4m neçədir?"     ← ilkin şərtə qayıdır
       Yaxşı: "x = π/6 olduqda cos(x) + cos(5x) nə verir?"
     Yoxlama sualında ilkin məsələnin simvolları/ifadəsi görünmürsə, o, yoxlama deyil.
+
+15. ADDIM SAYI MEXANİKİ HESABLANIR — "UYĞUN SAY SEÇ" DEYİL.
+    Addımlara BÖLMƏZDƏN ƏVVƏL məsələnin tələb etdiyi RİYAZİ KEÇİDLƏRİN sayını müəyyən et
+    (əmsal oxumaq, diskriminant, kök, yerinə qoymaq, vahid çevirmək — hər biri BİR keçiddir).
+    Addım sayı = keçid sayı + 1 (yoxlama addımı, qayda 8).
+      2x + 6 = 20  → keçid: "20−6"-nı tap, "14/2"-ni tap (2) → 2+1 = 3 addım
+      3x = 12      → keçid: "12/3"-ü tap (1)                → 1+1 = 2 addım
+      düzbucaqlı sahə məsələsi (aşağıdakı 2-ci nümunə) → 5 keçid → 5+1 = 6 addım
+    Nə "3-4 addım standartdır" düşünmə, nə hər məsələni eyni qəlibə sal — say məsələdən gəlir.
+
+16. SÜNİ ADDIM ƏLAVƏ ETMƏ — SAYI DOLDURMAQ ÜÇÜN YOX.
+    İki keçid kifayətdirsə, cavab İKİ addımdır (yoxlama daxil, cəmi 2). "Nəticəni bir daha
+    yaz" / "əldə etdiyini yoxla" kimi məzmunsuz addım əlavə etmə — bu, qayda 11-in pozulmasıdır
+    (yoxlama REAL hesablama olmalıdır) və şagirdə sənin özündən əmin olmadığını göstərir.
 
 ```
 
