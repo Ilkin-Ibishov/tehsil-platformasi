@@ -57,6 +57,11 @@ Folder: `901815897469` · Space: `901810230629` · Workspace: `90182536078`
 2. **İşləyəndə:** memarlıq səviyyəsində qərar verirsənsə → `docs/decisions/ADR-XXX.md` yaz, köhnəni silmə.
 3. **Bitirəndə:** `docs/HANDOFF.md`-ə yeni blok əlavə et (formatı faylın başındadır) və ClickUp tapşırığını yenilə.
 4. **Bloka düşəndə:** kodda `TODO` qoyub davam etmə — `HANDOFF.md`-ə `Blok:` sətri yaz və dayan.
+5. Miqrasiya tələb edən kod, miqrasiya tətbiq olunmamış `main`-ə merge edilmir. `main`-ə push
+   avtomatik deploy tetikləyir — kod sxemdən irəli gedərsə istehsalat dərhal sınır. Additive
+   miqrasiyalar köhnə kodu sındırmır, ona görə "əvvəl miqrasiya, sonra merge" həmişə təhlükəsiz
+   sıradır.
+6. Yeni cədvəl yaradan hər miqrasiya öz RLS sətrini daşımalıdır.
 
 ## Texniki stack (qərar verilib)
 

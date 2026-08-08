@@ -161,6 +161,12 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
     advance();
   }
 
+  // HANDOFF (49) §3d: "Cavabı göstər" indi HƏR addımdan çağırıla bilər (ilişmiş şagirdin çıxış
+  // yolu), təkcə sonuncudan yox — əvvəllər `advance()` yalnız son addımda buraya çatırdı.
+  // `completed`/`abandoned_at_step` semantikasını qorumaq üçün "həqiqətən bitirdi" indi
+  // ÇAĞIRIŞ ANINDAKI `stepIndex`-dən hesablanır: son addımdan çağırılıbsa tam bitmə, əks halda
+  // pes etmə (`completed=false`, `abandoned_at_step=stepIndex`) — `solution.completed` YALNIZ
+  // birincidə atılır, ikincidə DEYİL (steps_total/errors_total "bütün addımlar bitdi" fərz edir).
   async function reveal() {
     setRevealing(true);
     setRevealError(false);
@@ -176,14 +182,22 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
     setRevealing(false);
     setRevealed(true);
     trackEvent("solution.answer_revealed", { at_step: stepIndex + 1, of_total: total });
-    const errorsTotal = Object.values(answers).filter((a) => a.status === "wrong").length;
+    const finishedAllSteps = stepIndex >= total - 1;
     const durationSec = Math.round((Date.now() - solveStartedAt.current) / 1000);
-    trackEvent("solution.completed", {
-      steps_total: total,
-      errors_total: errorsTotal,
-      duration_sec: durationSec,
+    if (finishedAllSteps) {
+      const errorsTotal = Object.values(answers).filter((a) => a.status === "wrong").length;
+      trackEvent("solution.completed", {
+        steps_total: total,
+        errors_total: errorsTotal,
+        duration_sec: durationSec,
+      });
+    }
+    reportAttemptProgress({
+      attemptId,
+      completed: finishedAllSteps,
+      abandonedAtStep: finishedAllSteps ? null : stepIndex,
+      durationSec,
     });
-    reportAttemptProgress({ attemptId, completed: true, abandonedAtStep: null, durationSec });
   }
 
   function advance() {
@@ -446,13 +460,26 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={abandonStep}
-            style={{ alignSelf: "flex-start", minHeight: 44, padding: 0, border: "none", background: "transparent", color: "var(--t2)", fontFamily: "inherit", fontSize: 14, cursor: "pointer" }}
-          >
-            {t("step.abandon")}
-          </button>
+          <div style={{ display: "flex", gap: 20 }}>
+            <button
+              type="button"
+              onClick={abandonStep}
+              style={{ alignSelf: "flex-start", minHeight: 44, padding: 0, border: "none", background: "transparent", color: "var(--t2)", fontFamily: "inherit", fontSize: 14, cursor: "pointer" }}
+            >
+              {t("step.abandon")}
+            </button>
+            {/* HANDOFF (49) §3d: ilişmiş şagird üçün HƏR addımdan çıxış yolu — sonuncu addıma
+                qədər gözləmək məcburi deyil. `reveal()` `completed`/`abandoned_at_step`-i çağırış
+                anındakı addımdan düzgün hesablayır (bax yuxarı şərh). */}
+            <button
+              type="button"
+              onClick={() => void reveal()}
+              disabled={revealing}
+              style={{ alignSelf: "flex-start", minHeight: 44, padding: 0, border: "none", background: "transparent", color: "var(--t2)", fontFamily: "inherit", fontSize: 14, cursor: "pointer", opacity: revealing ? 0.6 : 1 }}
+            >
+              {t("step.showAnswer")}
+            </button>
+          </div>
         </div>
       </div>
 

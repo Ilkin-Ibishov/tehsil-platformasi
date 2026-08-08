@@ -25,6 +25,12 @@ const CASES: [string, string, boolean][] = [
   ["-3", "−3", true], // unicode minus
   ["0", "", false],
   ["", "", false],
+  // HANDOFF (45) §B1 / (51): `log(x, base)` arqument sırası — bir dəfə commit-dən əvvəl tutulub,
+  // npm install olmadan tsc bu faylı yoxlaya bilmirdi (mathjs modul tapılmırdı). Reqressiya
+  // qıfılı: sıra `(base, x)` olsaydı bu üç hal SƏHV qayıdardı.
+  ["log_2(8)", "3", true],
+  ["log_3(9)", "2", true],
+  ["log2(16)", "4", true],
 ];
 
 let fails = 0;

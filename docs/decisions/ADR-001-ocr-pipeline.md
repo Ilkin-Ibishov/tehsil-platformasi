@@ -113,6 +113,9 @@ Texo onu həll etmir.
 | 200 həll/ay | $3.34 | $2.94 ❌ |
 | 400 həll/ay | $6.68 | $2.94 ❌❌ |
 
+İstehsalatda ölçülmüş orta: $0.0182 (n=5, 2026-08-08) — eval rəqəmi ($0.0167) ilə eyni tərtibdə,
+istehsalat bir qədər yuxarıdır (real DİM şəkilləri eval fixture-larından fərqli token profili verir).
+
 Bu, `PRODUCT.md`-dəki "marja problem deyil" cümləsini **ləğv edir**. Üç azaldıcı ölçülüb:
 məsələ keşi (`ADR-003`), kontekst keşi (prompt sabitdir, $0.15/1M), `gemini-3.5-flash-lite`
 ($0.30/$2.50). Keş 60% + Flash-Lite → **200 həll/ay = $0.30**.

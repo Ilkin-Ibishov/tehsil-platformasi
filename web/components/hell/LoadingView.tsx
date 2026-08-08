@@ -18,7 +18,11 @@ const STAGES: { afterMs: number; key: string }[] = [
   { afterMs: 13000, key: "stage4" },
 ];
 
-export function LoadingView() {
+// HANDOFF (49) §3a: `ADR-014` (təklif, hələ qəbul edilməyib) — triaj çağırışı qayıdanda
+// "Sualı oxudum: …" mətni BURAYA (`questionText`) düşəcək. İndi heç bir çağıran ötürmür
+// (boş qalır, heç nə render olunmur) — sahə mərhələ mətnindən (`STAGES`) QƏSDƏN ayrılıb ki,
+// ADR-014 gələndə struktur dəyişməsin, yalnız marşrutlaşdırma (kamera/page.tsx-də prop ötürülməsi).
+export function LoadingView({ questionText }: { questionText?: string }) {
   const t = useTranslations("hell.loading");
   const [elapsedMs, setElapsedMs] = useState(0);
 
@@ -35,6 +39,9 @@ export function LoadingView() {
 
   return (
     <main style={{ flex: 1, padding: "0 var(--page-pad-x)", display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
+      {questionText && (
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>{questionText}</p>
+      )}
       <div
         style={{
           height: 56,

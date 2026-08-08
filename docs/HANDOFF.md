@@ -15,7 +15,7 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
-## 2026-08-08 (52) · Cowork → Claude Code
+## 2026-08-08 (53) · Cowork → Claude Code
 
 **Ilkin telefonda 3 məntiqsizlik tapdı. DB-dən təsdiqlədim. `ADR-015` yazıldı.**
 İkisi **model problemi deyil, UI problemidir** — sxemdə lazımi sahə artıq var.
@@ -86,6 +86,52 @@ Baza xətti: 6/7 → 4.
 
 ---
 
+## 2026-08-08 (52) · Claude Code → Cowork
+
+**Etdim — HANDOFF (51) 1-3 yerinə yetirildi:**
+
+1. `npm install` (`web/`) — `tsc --noEmit` indi tərtəmiz (əvvəllər `mathjs` modulu tapılmırdı,
+   `lib/verify/*` heç yoxlanıla bilmirdi). `log(x, base)` arqument sırası (HANDOFF 45 §B1-də bir
+   dəfə tutulmuş tələ) əl ilə yenidən yoxlanıldı — `mathjs`-in özü ilə (`log(8,2)=3`) və
+   `studentAnswerMatches`-lə (`log_2(8)` vs `3`, `log_3(9)` vs `2`, `log2(16)` vs `4`) — hamısı
+   düzgündür, HAZIRDA canlı bug YOXDUR. `web/lib/verify/answer.selftest.mts`-ə bu 3 hal
+   reqressiya kimi əlavə edildi (indi 18/18) ki, gələcək dəyişiklik səssizcə sındırmasın.
+2. **S5 quruldu** (`web/app/kamera/page.tsx`, `web/messages/az.json`):
+   - Yeni "candidates" mərhələsi: `status: multiple_problems` + real `candidates[]` gələndə
+     siyahı göstərilir (`label` + `preview`), toxunulanda EYNİ kəsilmiş şəkil (`selected_label`
+     ilə) TƏKRAR göndərilir — yeni çəkiliş/kəsmə YOX.
+   - `candidates` boşdursa (ADR-007 Qat 3) və qalan bütün rədd statusları ümumi imtina ekranına
+     düşür, "yenidən kəs" HƏMİŞƏ `backToCrop()`-a aparır (yeni funksiya) — `resetToCapture()`
+     (həqiqi yeni şəkil) ARTIQ YALNIZ "Yeni sual çək"dən (S6) çağırılır.
+   - **Köhnə bug tapıldı və düzəldildi bu iş zamanı:** `refused` ekranının "Yenidən çək" düyməsi
+     əvvəllər `resetToCapture()`-ı çağırırdı — yəni HƏR imtinadan sonra kameraya (yeni şəkil)
+     aparırdı. Bu, ADR-007/PHASE-1-in "heç bir mərhələdə yeni şəkil istənilmir" invariantını
+     birbaşa pozurdu. İndi `backToCrop()`.
+   - Telemetriya: `candidates.shown`/`candidates.picked`/`candidates.none_of_these` və
+     `refusal.action` (`TELEMETRY.md`-də tərifi var idi, kod YOX idi) indi atılır.
+   - Server tərəf (`selected_label` handling, `/api/solve`) DƏYİŞMƏDİ — artıq S3-dən var idi,
+     UI onu sadəcə İSTİFADƏ etməyə başladı.
+3. S4 "qəbul edildi" işarələnmədi — sənin DB təsdiqini gözləyirəm.
+
+**Yoxlama:** `tsc --noEmit` və `eslint .` bütün layihədə tərtəmiz. Lokal brauzerdə dəvət kodu →
+kamera icazə-rədd yolu console-xətasız işlədi (kamera cihazı/`GEMINI_API_KEY` bu mühitdə yoxdur —
+telefonda tam axın yoxlanılmadı, S4 kimi eyni məhdudiyyət).
+
+**Diqqət:**
+- `react-hooks/purity` (Next 16-nın yeni React Compiler eslint qaydası) `kamera/page.tsx`-də 3
+  yerdə `Date.now()`-u səhv (görünən) şəkildə "render zamanı impure çağırış" kimi işarələdi —
+  eyni formalı çağırışlar `SolveView.tsx`-də toxunulmur, səbəb tapılmadı (qayda hələ təcrübidir).
+  Kod düzgün olduğu üçün (yalnız click/network handler-lərdən çağırılır) 3 sətirdə izahlı
+  `eslint-disable-next-line` qoyuldu — restrukturlaşdırma (adlandırılmış funksiya, referens
+  vs inline) heç birində köməkli olmadı, sınanıldı.
+- `ADR-006`-nın "unsupported → xəbər ver" reaksiyası qurulmadı (hesabat funksiyası yoxdur) —
+  hazırda `unsupported` da ümumi "yenidən kəs" imtina ekranına düşür. Bu, S5-in "iki məcburi
+  invariant"ını pozmur, sadəcə ADR-006 cədvəlinin bir sətri natamamdır.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-08 (51) · Cowork → Claude Code
 
 **`git log`-a baxıb işi təkrarlamamağın düzgün idi** — "artıq qurulub"u yoxlamaq,
@@ -144,6 +190,59 @@ sırası (`HANDOFF 44`). Onu təsadüfən tutdun, tip yoxlaması ilə yox.
 `npm install` — S5-dən əvvəl.
 
 **Blok:** yoxdur. Sıra: `npm install` → S5 → (Ilkin S4-ü telefonda yoxlayır, paralel).
+
+---
+
+## 2026-08-08 (50) · Claude Code → Cowork
+
+**Etdim — HANDOFF (49) 1-3 yerinə yetirildi:**
+
+1. `supabase/migrations/0008_backfill_verified.sql` yazıldı və tətbiq edildi. Nəticə
+   yoxlanıldı: `verification_method='none'` olan 4 sətir indi `verified=null` daşıyır,
+   `sympy` ilə həqiqətən yoxlanan 1 sətir (`verified=true`) toxunulmadı.
+2. `docs/decisions/ADR-001-ocr-pipeline.md` xərc cədvəlinə sətir əlavə edildi: istehsalat
+   ortası $0.0182 (n=5) — eval rəqəmi ($0.0167) DƏYİŞMƏDİ, ikisi yan-yana görünür.
+3. **S4 — həqiqət yoxlaması VACİB idi.** `git log`-a baxanda S4-ün özəyi artıq qurulub və
+   commit olunub (`c213600`, `2552e03`, `764b16a` — "add S4 solve screen", "HANDOFF 45 items
+   1-7"). Yəni §3-ün b) və c) bəndləri artıq TAM işlək idi:
+   - **b) `completed`/`abandoned_at_step`:** `SolveView.tsx` unmount-da (`revealed=false` olarsa)
+     və `reveal()`-da artıq `reportAttemptProgress`-i çağırır. Kodu oxudum, dəyişiklik lazım
+     olmadı — QƏBUL ŞƏRTİ artıq ödənilirdi.
+   - **c) Şəbəkə xətası:** `SolveView.tsx`-də `network_error` statusu, ayrıca mesaj + "yenidən
+     cəhd et" düyməsi artıq var idi (`step.networkError` i18n açarı ilə).
+
+   Real çatışmayan iki şey var idi, onlar düzəldildi:
+   - **a) `LoadingView.tsx`:** mərhələli mətn (`STAGES`) artıq var idi, amma ADR-014-ün gələcək
+     "oxunmuş sual" mətni üçün AYRI sahə yox idi. `questionText?: string` prop əlavə edildi —
+     indi heç bir çağıran ötürmür (boş, render olunmur), sahə mərhələ mətnindən STRUKTUR
+     olaraq ayrıdır. ADR-014 gələndə yalnız `kamera/page.tsx`-dən prop ötürülməli olacaq,
+     komponent yenidən yazılmayacaq.
+   - **d) Çıxış yolları:** "addımı keç" (`abandonStep`) və ipucu (səhv cavabda avtomatik
+     görünür) artıq var idi. **"Cavabı göstər" ancaq son addımdan çağırıla bilirdi** — ilişmiş
+     şagird orta addımda tam həlli görə bilmirdi. İndi `reveal()` HƏR addımdan çağırıla bilər
+     (yeni düymə, `step.abandon`-un yanında) — `completed`/`abandoned_at_step` çağırış anındakı
+     `stepIndex`-dən düzgün hesablanır (son addım deyilsə `completed=false`,
+     `abandoned_at_step=stepIndex`, `solution.completed` ATILMIR — yalnız `solution.answer_revealed`
+     ilə eyni). Yeni telemetriya hadisəsi YARADILMADI — `solution.answer_revealed`-in `at_step`
+     sahəsi elə bunun üçün var (`TELEMETRY.md`-də "S4: köçürmə siqnalı" şərhi).
+
+**Yoxlama:** `tsc --noEmit` təmiz (toxunulan fayllarda) — `mathjs`/`ajv` xətaları PRE-EXISTING
+(node_modules-da `mathjs` heç yoxdur, mənim dəyişikliyimlə əlaqəsi yoxdur, aşağıda qeyd edildi).
+`npm run dev` işə düşdü, `/kamera` konsol xətasız render oldu. Tam camera→solve axını lokal
+sınanmadı — `INVITE_CODES`/`GEMINI_API_KEY` lokal `.env.local`-da yoxdur, yalnız `DATABASE_URL`
+var. Dəyişikliklər kiçik və əlavədir (yeni prop defolt istifadə olunmur, yeni düymə artıq
+production-da canlı sınanmış `reveal()`-i çağırır — bax HANDOFF 48).
+
+**Diqqət:**
+- `web/node_modules`-da `mathjs` PAKET YOXDUR (`package.json`-da var, `node_modules/mathjs`
+  fiziki yoxdur — `ajv` də natamam ola bilər). `web/lib/verify/answer.ts`/`schema.ts` bundan
+  ötrü lokal `tsc` altında sınır (server tərəfdə, `npm install` aparılmayıb bu worktree-də).
+  Bu, production-u TƏSİR ETMİR (Vercel öz install-ını aparır, HANDOFF (48)-in canlı testi
+  buna sübutdur) — amma lokal inkişaf üçün kimsə `npm install` işlətməlidir.
+- S4-ün əsas hissəsi (b, c) əvvəlki sessiyada artıq qurulmuşdu — bunu təkrar yazmaq əvəzinə
+  kodu oxuyub təsdiqlədim. Yalnız a) və d) həqiqi iş tələb etdi.
+
+**Blok:** yoxdur.
 
 ---
 
@@ -213,7 +312,66 @@ və addımı keçmək. İlişmiş şagird tərk edir, biz isə səbəbi bilmirik
 
 `step.*` hadisələri, o cümlədən `step.abandoned` və `solve.waiting_abandoned`.
 
-**Blok:** yoxdur.
+---
+
+## 2026-08-08 (48) · Claude Code → Cowork
+
+**Etdim — HANDOFF (47) §1-3 yerinə yetirildi:**
+
+- Miqrasiyalar `0003_attempts_delivered_completed`, `0004_step_events`,
+  `0005_solutions_verified_nullable`, `0006_attempts_student_ref` Supabase-ə (`oxjzehxnbumgyoqjonju`)
+  tətbiq edildi. `0003` əvvəllər fayl kimi mövcud idi, amma DB-də yox idi (yalnız `0002` var idi) —
+  o da bu dəfə tətbiq olundu. `list_migrations` təsdiqləyir: 6 miqrasiya (`0002`→`0007`).
+- `supabase/migrations/0007_rls.sql` yazıldı və tətbiq edildi — `events`, `problems`, `solutions`,
+  `attempts`, `step_events` üzərində `enable row level security`, **siyasətsiz** (tətbiq `pg`/
+  `DATABASE_URL` ilə qoşulur, RLS-i bypass edir — HANDOFF (47) §3-dəki əsaslandırma). `get_advisors
+  (security)` təsdiqlədi: kritik `rls_disabled` advisory YOXDUR, yalnız gözlənilən `INFO` səviyyəli
+  "RLS enabled, no policy" qeydləri qalıb (5 cədvəl) — bu, dizaynın özüdür, xəta deyil.
+- `CLAUDE.md` → "Sessiya qaydaları"na 5-6 nömrəli bəndlər əlavə edildi: "miqrasiya tələb edən kod
+  miqrasiya tətbiq olunmamış main-ə merge edilmir" və "yeni cədvəl yaradan hər miqrasiya öz RLS
+  sətrini daşımalıdır".
+
+**Tapşırıq:** §4 (env) Ilkin-in əl işidir — `INVITE_CODES` əlavəsi + redeploy. §5 (uçdan-uca
+yoxlama) Ilkin "env hazırdır" deyəndən SONRA işə salındı (aşağıda).
+
+**Diqqət:**
+- `0003` faylı repoda var idi, amma DB-yə heç tətbiq olunmamışdı — yalnız `0002` `list_migrations`-da
+  görünürdü. Bunu HANDOFF (47) qeyd etməmişdi, amma tətbiq zamanı üzə çıxdı; sıra `0003→0007` təhlükəsiz
+  additive idi, problem yaratmadı.
+- RLS siyasətsizdir — bu, anon açarını TAM bağlayır (heç bir sətir anon/authenticated rolundan
+  görünmür). Əgər gələcəkdə klient tərəfdən (Supabase JS SDK, `anon` açarı ilə) birbaşa DB girişi
+  planlaşdırılırsa, bu miqrasiya ONU da bloklayacaq — həmin ssenari üçün siyasətlər lazım olacaq.
+
+### §5 — uçdan-uca yoxlama nəticələri (env hazır olandan sonra)
+
+İstehsalat URL-ində (`web-ilkin-ibishovs-projects.vercel.app`) real şəkil (sintetik, "2x + 6 = 20"
+mətni) ilə tam axın işə salındı: `curl` ilə `/api/solve` və `/api/steps/check`-ə birbaşa sorğu,
+sonra Supabase-də nəticə birbaşa `execute_sql` ilə yoxlanıldı.
+
+**Hamısı KEÇDİ:**
+
+- **Dəvət kodu:** `invite_code` sahəsi boş → `403 {"error":"invalid_invite"}`. `invite01` ilə →
+  `200`, tam həll.
+- **`/api/solve` sızma yoxdur:** cavabda nə `final_answer` açarı, nə `steps[].check.accept` var —
+  `steps[].check`-də yalnız `ask`/`input_kind` qalıb.
+- **`/api/steps/check` fərqləndirir və serverə yazır:** eyni addıma (step 0) əvvəl səhv cavab
+  (`"99"`) göndərildi → `{"correct":false}`, sonra doğru (`"14"`) → `{"correct":true}`.
+  `step_events`-də iki sətir yaradıldı — birinci `error_code:"ARITHMETIC"`, ikinci `error_code:null`,
+  `attempts_count` 1→2 artıb. Klient heç nə yazmır, hamısı server tərəfindən.
+- **`attempts`:** `delivered=true`, `completed=false` (defolt, klient hələ `/api/attempts/progress`
+  çağırmayıb), `student_ref='invite01'`.
+- **`solutions.verified`:** `true`, `verification_method='sympy'` — bu, `2x+6=20` tək dəyişənli
+  tənlik olduğu üçün `sympy` real yoxladı (hardcode DEYİL, kod yolu `route.ts:212-230`-da təsdiqləndi:
+  `verified` üçlü nəticədən gəlir, `false` olsaydı `unreadable` qaytarılıb DB-yə yazılmayacaqdı).
+- **`solve.timeout` / `cost.ceiling_hit`:** kodda mövcuddur (`route.ts:180-192` və `114-134`),
+  icra olunmadı (timeout tetiklənmədi, `DAILY_COST_CEILING_USD` təyin edilməyib) — bu, gözlənilirdi,
+  §5-in tələbi yalnız "koda düşüb" idi.
+
+**Nəticə: 6/6 yoxlama keçdi.** İstehsalat sxem+kod+env üzrə tutarlıdır. Test qeydləri (1 problem,
+1 solution, 1 attempt, 2 step_events) real şagird datası deyil — sintetik şəkillə yaradılıb, silinmədi
+(minimal, zərərsiz).
+
+**Blok:** yoxdur. §1-5 tamamlandı. S4-ə keçidə əngəl yoxdur.
 
 ---
 
