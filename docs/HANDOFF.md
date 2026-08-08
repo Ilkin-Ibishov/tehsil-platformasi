@@ -15,6 +15,56 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (58) · Cowork → Claude Code
+
+**`ADR-016` — sahibin qərarı: DİM korpusu bankda saxlanılır.**
+`ADR-003`-ün «mətn saxlanılmır» qaydası **ləğv olundu**. Hüquqi qiymətləndirmə
+və məsuliyyət Ilkinindir. `ADR-003`-ü «ADR-016 ilə əvəz olundu» kimi işarələ, silmə.
+
+Bu qərar dörd açıq problemi eyni anda bağlayır — detallar `ADR-016`-da.
+Sənin üçün üç nəticə var.
+
+### 1. HƏLLƏRİ KÜTLƏVİ ÖNCƏDƏN GENERASİYA ETMƏ
+
+Ən cəlbedici addım budur və **səhvdir**. Pedaqoji ox **4/10**-dur, v8 ölçülməyib.
+Minlərlə həlli pis promptla generasiya etmək qüsuru bazaya bişirməkdir.
+
+İndi: **məsələ bankı** (mətn, cavab, `topic_code`, mənbə) — ucuz, prompta bağlı deyil.
+Sonra: həll **tələb üzrə**, keşlənir, `solutions.prompt_version` ilə.
+Prompt düzələndə köhnə versiyalı həllər etibarsız sayılır.
+
+`solutions`-a **`prompt_version` sütunu** əlavə et — `HANDOFF 38`-də bu sahə
+`summary-*.json` üçün onsuz da tələb olunmuşdu, indi DB-də də lazımdır.
+
+### 2. `numeric_fingerprint` birinci dərəcəli açar olmalıdır
+
+`DATA-MODEL.md` uyğunlaşdırma sırasını belə yazır:
+`canonical_hash` → `numeric_fingerprint` → `embedding` → `llm`.
+
+Korpusla bu **tərsinə işləyir**: scraped mətn və model çıxışı **heç vaxt bayt-bayt
+eyni olmayacaq**, ona görə `canonical_hash` demək olar ki, heç vaxt tutmayacaq.
+`SYSTEM-REVIEW §E`-də bu risk yazılmışdı; korpus onu nəzəri olmaqdan çıxarır.
+
+**İndi kod yazma** — əvvəlcə ölç: korpus yüklənəndən sonra 20 foto, ikisini paralel
+hesabla, hansının daha çox tutduğuna bax. `DATA-MODEL.md` sırası **ölçmədən sonra** dəyişir.
+
+### 3. `ADR-014` (triaj) artıq opsional deyil
+
+Şəkli korpusdakı məsələyə uyğunlaşdırmaq üçün əvvəlcə **mətn** lazımdır.
+Hazırda mətn yalnız tam həll çağırışından sonra çıxır — yəni uyğunlaşdırma üçün
+onsuz da tam qiymət ödənilir və keş mənasız olur.
+
+`ADR-014` əvvəl «prompt böyüməsi» məsələsi idi; indi **keşin işləməsi üçün şərtdir**.
+Qapısı `ADR-014`-də yazılıb və dəyişmir — amma sıra yuxarı qalxır.
+
+**Hələ implementasiya etmə.** S4/S5 telefonda təsdiqlənməyib.
+
+**Blok:** mənbə formatı məlum deyil (HTML / mətnli PDF / skan PDF) — scraping
+boru xəttinin qiyməti buna görə sıfırdan yüzlərlə dollara qədər dəyişir.
+Ilkin cavab verəndən sonra plan yazılacaq.
+
+---
+
 ## 2026-08-08 (57) · Cowork → Claude Code
 
 **DB-dən təsdiqlədim:** `problems.canonical` boşdur (0 sətir mətnli), `canonical_hash`
