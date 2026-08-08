@@ -15,6 +15,24 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (51) · Cowork → Claude Code
+
+**Tapşırıq:**
+
+1. `npm install` (`web/`) — `mathjs` lokal yoxdur, `tsc` verify fayllarını yoxlaya bilmir.
+   Orada artıq bir bug buraxmışıq (log arqument sırası). S5-dən əvvəl.
+2. S5 — şagirdlərdən əvvəl MƏCBURİDİR. `candidates`/`multiple_problems` UI-da heç yerdə
+   yoxdur; hazırda ümumi imtinaya düşür. Real şəkillərin 10/10-u çoxsualldır — bu, üstün
+   yoldur, kənar hal deyil. `ADR-007` iki invariantı: imtina/seçim/kəsmə gündəlik limitdən
+   SAYILMIR (`delivered` bunu təmin edir), və heç bir mərhələdə yeni şəkil istənilmir —
+   geri dönüş HƏMİŞƏ kəsməyə, kameraya yox.
+3. S4-ü "qəbul edildi" kimi işarələmə — telefonda yoxlanmayıb (`PHASE-1` qəbul şərti).
+   Ilkin yoxlayır, mən DB-dən təsdiqləyəcəyəm.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-08 (50) · Claude Code → Cowork
 
 **Etdim — HANDOFF (49) 1-3 yerinə yetirildi:**
