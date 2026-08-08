@@ -15,6 +15,73 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-07 (40) · Cowork → Claude Code
+
+**`ADR-014` — Ilkin çağırışın ikiyə bölünməsini təklif etdi. Təhlil yazıldı, qərar
+ölçmə ilə verilir. İNDİ İMPLEMENTASİYA ETMƏ.**
+
+Bu blok üç şey üçündür: (a) səni xəbərdar etmək, (b) **indi ediləcək ucuz hazırlığı**
+vermək, (c) S4-ün bundan asılı olmadığını təsdiqləmək.
+
+### Qısa təhlil
+
+Ilkinin arqumenti prompt böyüməsi idi (fənn/format artdıqca tək prompt nəhəngləşir) —
+doğrudur, `ADR-013` onu dəstəkləyir: məna tələb edən qaydalar onsuz da 5/10 tutulur,
+prompt böyüdükcə pisləşəcək.
+
+Amma **daha güclü iki arqument var və ikisi də indiki xərcə aiddir:**
+
+**1. Bahalı prompt üstün yolda İKİ DƏFƏ ödənilir.** Real şəkillərin 10/10-u
+çoxsualldır. Normal axın: tam həll promptu işləyir → "burada 5 məsələ var" deyir
+(həll istehsal etmir, amma $0.0167 alır) → şagird seçir → **tam prompt yenidən işləyir**.
+Cəmi $0.033. Triaj ucuz modeldə olsa: ~$0.013 (**~60% ucuz**).
+
+**2. Keş yalnız bu halda işləyə bilər.** Keş açarı `canonical_hash`-dır, `canonical`
+isə **həll çağırışının çıxışıdır** — yəni keşi yoxlamaq üçün əvvəlcə tam həlli almalısan.
+Hazırkı memarlıqda keş **prinsipcə mənasızdır**. `ADR-001` biznes modelini
+"keş 60% + Flash-Lite" hesabına bağlayır; o hesab indi qeyri-mümkündür.
+
+### Ən vacib forma düzəlişi
+
+Bölmə **"şəkli atmaq" kimi qurulmamalıdır**. Həndəsə, cədvəl, qrafikdə şəkil
+məsələnin özüdür (`problem_type: geometry` sxemdə var, **heç vaxt sınanmayıb**).
+
+Doğru forma: **çağırış 1 promptu SEÇİR; çağırış 2 mətni alır, triaj deyirsə şəkli də alır.**
+Bu fərq ADR-in mərkəzidir.
+
+### Vaxt: S4/S5-dən SONRA, şagirdlərdən ƏVVƏL
+
+İndi yox — S4 məhsulun özüdür və hələ qurulmayıb; memarlığı onun altından dəyişmək
+S4-ü iki dəfə yazmaq deməkdir. Faza 2-yə də saxlanmır — iki dəfə ödənən prompt
+**indiki** xərc problemidir.
+
+### İNDİ ediləcək tək şey (ucuz, memarlığı dəyişmir)
+
+`prompts/solve-step.md`-i **nüvə + fənn əlavəsi** kimi böl:
+
+```
+prompts/solve/core.md      — sxem, error_code-lar, 14 qayda, nümunələr
+prompts/solve/math.md      — riyaziyyata xas hissə (indi çox kiçikdir)
+```
+
+`prompt_loader` onları birləşdirsin; **tək çağırış davam edir**, çıxış eyni qalır.
+Bölmə günü bu, marşrutlaşdırma dəyişikliyi olur, yenidən yazma yox.
+Eval və istehsalat onsuz da eyni loader-i işlədir — bu, dəyişmir.
+
+**Diqqət:** `CLAUDE.md`-dəki fayl sahibliyi cədvəlində `prompts/*.md` sətri var —
+yol dəyişirsə cədvəli də yenilə.
+
+### Qapı (ölçmə vaxtı gələndə)
+
+10 kəsilmiş şəkil, hər iki memarlıq, ~$0.35:
+dəqiqlik 9/10-dan **1 item-dən çox itirməsin** · hallüsinasiya **0 qalsın** ·
+sxem/struktur 100% · çoxsuallı yolda xərc **azalsın** · triaj **≤6 san**.
+Şərtlərin hamısı ödənilmirsə **tək çağırış qalır**.
+
+**Blok:** yoxdur. Sıra dəyişmir: `HANDOFF 39`-dakı 1–6, sonra S4.
+
+---
+
 ## 2026-08-07 (39) · Cowork → Claude Code
 
 **İki sənəd: `docs/SYSTEM-REVIEW-2026-08-07.md` və `docs/BULK-EVAL.md`.**
