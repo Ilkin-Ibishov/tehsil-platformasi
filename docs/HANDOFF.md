@@ -15,6 +15,67 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (51) · Cowork → Claude Code
+
+**`git log`-a baxıb işi təkrarlamamağın düzgün idi** — "artıq qurulub"u yoxlamaq,
+yenidən yazmaqdan ucuzdur və HANDOFF-un mənası budur.
+
+Üç şey: biri qayda, biri boşluq, biri kiçik borc.
+
+### 1. S4 hələ QƏBUL EDİLMİŞ SAYILMIR
+
+`PHASE-1.md` → S4 qəbul şərti: *«telefonda tam axın»*. Bu, hələ olmayıb.
+
+`HANDOFF 29`-da S2-ni yanlış qəbul etdiyimi etiraf edib qayda yazmışdım:
+*«qəbul şərti insan yoxlaması tələb edirsə, sprint həmin yoxlama gələnə qədər
+qəbul edilmiş sayılmır»*. Öz qaydamı tətbiq edirəm — kod hazırdır, sprint yox.
+
+Ilkin telefonda yoxlayır: addıma cavab ver (düz və səhv), "cavabı göstər", erkən çıxış.
+Sonra DB-dən təsdiqləyəcəyəm: `completed`, `abandoned_at_step`, `step_events`,
+`revealed_answer` **həqiqətən dolurmu**. Sütunları qurduq, amma indiyə qədər
+onları yalnız sintetik sorğu doldurub.
+
+### 2. S5 yoxdur, halbuki o, ÜSTÜN yoldur
+
+Kodda `candidates` / `multiple_problems` **heç yerdə yoxdur**. Hazırkı davranış:
+`status != ok` → ümumi **imtina ekranı** (`refusal.shown`).
+
+Yəni şagird səhifənin şəklini çəkəndə:
+
+```
+LLM çağırışı işləyir            $0.018 ödənilir
+cavab: multiple_problems
+UI: "imtina" göstərir            həll YOXDUR
+şagird yenidən kəsməli olur      ikinci çağırış, daha $0.018
+```
+
+**Real şəkillərin 10/10-u çoxsualldır** (`ADR-007`, ölçülüb). Bu, kənar hal deyil —
+**normal haldır**. Ilkin sınayanda işlədi, çünki o, bir sualı diqqətlə çərçivəyə saldı.
+15 yaşlı şagird tələsik çəkəcək.
+
+İki nəticə: (a) tətbiq üstün yolda **həll vermir**, (b) hər belə şəkil **iki dəfə**
+ödənilir. `ADR-007` bunun üçün yazılmışdı və hələ tətbiq olunmayıb.
+
+**S5 şagirdlərdən əvvəl məcburidir.** `ADR-007`-nin iki invariantı qüvvədədir:
+imtina/seçim/kəsmə **gündəlik limitdən sayılmır** (indi `delivered` bunu təmin edir),
+və heç bir mərhələdə **yeni şəkil istənilmir** — geri dönüş həmişə **kəsməyə**.
+
+### 3. `mathjs` lokal quraşdırılmayıb — "rahat olanda" deyil
+
+`package.json`-dadır (istehsalat sağlamdır), amma `web/node_modules`-də yoxdur.
+Nəticə: `tsc` **məhz `verify` fayllarını** yoxlaya bilmir.
+
+Bu, o fayllardır ki, orada **artıq bir bug buraxmışıq** — `log(x, base)` arqument
+sırası (`HANDOFF 44`). Onu təsadüfən tutdun, tip yoxlaması ilə yox.
+Şagirdin cavabının düz və ya səhv sayılması bu koddan asılıdır; səhv nəticə birbaşa
+`error_code` xəritəsinə yazılır.
+
+`npm install` — S5-dən əvvəl.
+
+**Blok:** yoxdur. Sıra: `npm install` → S5 → (Ilkin S4-ü telefonda yoxlayır, paralel).
+
+---
+
 ## 2026-08-08 (49) · Cowork → Claude Code
 
 **Yoxlama təsdiqləndi — DB-yə özüm baxdım.** `invite01` sətri: `delivered=true`,
