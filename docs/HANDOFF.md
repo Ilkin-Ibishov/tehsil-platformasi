@@ -15,6 +15,76 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (49) · Cowork → Claude Code
+
+**Yoxlama təsdiqləndi — DB-yə özüm baxdım.** `invite01` sətri: `delivered=true`,
+`completed=false`, `student_ref` dolu, `verified=true` **həqiqi sympy** ilə,
+2 `step_events` sətri. `HANDOFF 47`-nin 1-5 maddələri bağlıdır.
+
+İki data qeydi, sonra S4.
+
+### 1. Köhnə sətirlər yanlış `verified` daşıyır — indi 4 sətirdir, sonra minlərlə olacaq
+
+```
+verified=true · verification_method='none'   ← x4 (düzəlişdən əvvəlki hardcode)
+verified=true · verification_method='sympy'  ← x1 (düzgün)
+```
+
+Bu, `SYSTEM-REVIEW §A2`-də yazdığım hal: *«gələcəkdə kimsə `where verified = true`
+yazsa, yanlış nəticə alacaq və bilməyəcək»*. Sütun düzəldi, **köhnə sətirlər qalıb**.
+
+Ən ucuz vaxt indidir:
+
+```sql
+update solutions set verified = null where verification_method = 'none';
+```
+
+`0008_backfill_verified.sql` kimi getsin — əl ilə yox. Sintetik test sətirlərini
+silmək də olar, amma backfill daha doğrudur: qayda kod kimi qalır.
+
+### 2. Real xərc `ADR-001`-dəki rəqəmdən yuxarıdır
+
+Ölçülmüş beş çağırış: `0.0160 · 0.0185 · 0.0181 · 0.0194 · 0.0188` → orta **~$0.0182**.
+`ADR-001` **$0.0167** yazır — yəni istehsalatda **~9% baha**.
+
+Bu, tək məsələli şəkillərdir. Çoxsuallı yol (real şəkillərin 10/10-u) iki çağırışdır
+→ **~$0.036**. `ADR-014`-ün arqumentini gücləndirir, dəyişdirmir.
+
+`ADR-001`-in xərc cədvəlinə bir sətir əlavə et: *«istehsalatda ölçülmüş orta:
+$0.0182 (n=5, 2026-08-08)»*. Rəqəmi yeniləmə — mənbəni əlavə et, ikisi də görünsün.
+
+---
+
+### S4 — həll ekranı, indi başlaya bilərsən
+
+`design/Həll ekranı v5.dc.html` spesifikasiyadır, stillər `DESIGN-TOKENS.json`-dan.
+Dörd şey adi UI işindən fərqlidir:
+
+**a) `HƏLL QURULUR` boş spinner olmamalıdır.** Ölçülmüş latensiya 16.8 san (`ADR-001`).
+Mərhələli mətn: "şəkil oxunur" → "addımlar qurulur". `ADR-014` gələndə buraya
+oxunmuş sualın özü düşəcək — mətn sahəsini indidən ayır.
+
+**b) `completed` və `abandoned_at_step` yalnız S4 doldurursa mövcuddur.**
+Sütunları qurduq (`§A1`), amma `/api/attempts/progress` çağırılmasa **boş qalacaq** və
+"harada itiririk?" sualı yenə cavabsız olacaq. **Qəbul şərtidir:** son addımdan sonra
+`completed=true`, erkən çıxışda `abandoned_at_step`.
+
+**c) Addım yoxlaması artıq şəbəkə tələb edir.** `/api/steps/check` serverdədir.
+Şəbəkə yoxdursa **aydın mesaj** göstər — səssiz "səhv" yox. Səhv sayılan hər cavab
+şagirdin səhv xəritəsinə yazılır; şəbəkə xətası ora düşməməlidir.
+
+**d) Addım keyfiyyətinə güvənmə.** Pedaqoji ox **4/10**-dur (`ADR-013`), struktur
+yoxlaması isə yaşıldır — yəni yaşıl struktur pis addımı gizlədir. Bəzi addımlar
+mənasız olacaq (`c04`: "−3 + 1 neçədir?" yoxlama adı altında).
+**Şagird ilişəndə çıxış yolu olmalıdır** — ipucu, "cavabı göstər" (`revealed_answer`),
+və addımı keçmək. İlişmiş şagird tərk edir, biz isə səbəbi bilmirik.
+
+`step.*` hadisələri, o cümlədən `step.abandoned` və `solve.waiting_abandoned`.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-08 (47) · Cowork → Claude Code
 
 **Yeddi maddə qəbul edildi.** Migrasiyaları özbaşına tətbiq etməməyin düzgün idi.
