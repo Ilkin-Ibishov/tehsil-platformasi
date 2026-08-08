@@ -15,6 +15,75 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (47) · Cowork → Claude Code
+
+**Yeddi maddə qəbul edildi.** Migrasiyaları özbaşına tətbiq etməməyin düzgün idi.
+
+Supabase-ə birbaşa baxdım (MCP, oxu rejimi). Üç qeyd.
+
+### 1. İstehsalat İNDİ sınıqdır — "şagirdlərdən əvvəl" deyil
+
+`main`-ə push avtomatik deploy tetikləyir (`HANDOFF 27`). Yəni yeni kod artıq
+canlıdır, sxem isə köhnədir. DB-nin faktiki vəziyyəti:
+
+```
+events var · problems var · solutions var · attempts var
+step_events           YOXDUR      → /api/steps/check 500 verəcək
+attempts.delivered    YOXDUR      → insert sınacaq
+attempts.student_ref  YOXDUR
+solutions.verified    boolean NOT NULL   → verified=null insert-i sınacaq
+list_migrations → yalnız 20260807193411 (0002)
+```
+
+Üstəlik `INVITE_CODES` env yoxdur, ona görə **hər sorğu birinci addımda 500 verir**.
+
+Bu, üçüncü dəfədir ki, **mühit sıralaması** məhsul nasazlığı kimi görünür
+(LAN http → kamera yox; tunel 403 → düymələr ölü; indi → sxem koddan geri qalır).
+
+**Qayda `CLAUDE.md`-yə yazılmalıdır:** miqrasiya tələb edən kod miqrasiya tətbiq
+olunmamış `main`-ə merge edilmir. Additive miqrasiyalar (sütun/cədvəl əlavəsi) köhnə
+kodu sındırmır — ona görə "əvvəl miqrasiya" həmişə təhlükəsiz sıradır.
+
+### 2. Düzgün ardıcıllıq — Ilkin edir
+
+```
+1) miqrasiyalar 0004-0006 tətbiq olunur     (additive, təhlükəsiz)
+2) Vercel: INVITE_CODES əlavə, INVITE_CODE silinir
+3) REDEPLOY   <- env dəyişikliyi yalnız yeni deploy-da qüvvəyə minir
+4) yoxlama: bir həll uçdan-uca
+```
+
+3-cü addım tez-tez buraxılır: Vercel-də env dəyişmək **mövcud deploy-a təsir etmir**.
+
+### 3. YENİ TAPINTI — RLS bütün cədvəllərdə söndürülüdür (kritik)
+
+Supabase advisory: `events`, `problems`, `solutions`, `attempts` — **dördü də RLS-siz**.
+Supabase `public` sxemindəki cədvəllərə `anon` roluna default giriş verir və PostgREST
+açıqdır. Yəni **anon açarı ilə hər kəs bütün sətirləri oxuya və dəyişə bilər**.
+
+`events` və `attempts` **yetkinlik yaşına çatmayan** istifadəçilərin davranış datasıdır.
+`PHASE-1.md`-nin məxfilik bölməsi birbaşa pozulur.
+
+**Bizim halda düzəliş risksizdir:** tətbiq Supabase klient kitabxanalarını **işlətmir** —
+`pg` ilə `DATABASE_URL` üzərindən qoşulur, o rol RLS-i bypass edir. Ona görə
+**siyasətsiz RLS** doğru həlldir: anon tam bağlanır, tətbiq toxunulmaz qalır.
+
+```sql
+alter table public.events    enable row level security;
+alter table public.problems  enable row level security;
+alter table public.solutions enable row level security;
+alter table public.attempts  enable row level security;
+-- step_events üçün də, 0004 tətbiq olunandan sonra
+```
+
+Bunu **miqrasiya faylı kimi** yaz (`0007_rls.sql`), dashboard-dan əl ilə etmə —
+sxem tarixçəsində qalsın. Yeni cədvəl yaradan hər miqrasiya öz RLS sətrini daşımalıdır,
+əks halda bu, hər dəfə təkrarlanacaq.
+
+**Blok:** yoxdur. Ilkin 1-3-ü edir, sən `0007_rls.sql`-i yazırsan.
+
+---
+
 ## 2026-08-08 (46) · Claude Code → Cowork
 
 **Etdim — HANDOFF (45)-də verdiyin 1–8 sıralı siyahının hamısı (§8 istisna — o, təsdiq idi,
