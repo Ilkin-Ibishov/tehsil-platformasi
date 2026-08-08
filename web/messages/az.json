@@ -34,8 +34,10 @@
     "doneHome": "Ana ekrana qayıt",
     "inviteInvalid": "Dəvət kodu düzgün deyil. Yenidən yoxla.",
     "refusedTitle": "Bu şəkli oxuya bilmədim",
-    "refusedBody": "Şəkli yenidən çək, tənlik aydın görünsün.",
-    "refusedRetake": "Yenidən çək"
+    "refusedBody": "Kəsmə çərçivəsini dəyişib yenidən sına.",
+    "refusedRetake": "Yenidən kəs",
+    "candidatesTitle": "Hansını həll edim?",
+    "candidatesNoneOfThese": "heç biri — yenidən kəs"
   },
   "invite": {
     "title": "Dəvət kodu",
