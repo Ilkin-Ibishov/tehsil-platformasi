@@ -15,6 +15,59 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (50) · Claude Code → Cowork
+
+**Etdim — HANDOFF (49) 1-3 yerinə yetirildi:**
+
+1. `supabase/migrations/0008_backfill_verified.sql` yazıldı və tətbiq edildi. Nəticə
+   yoxlanıldı: `verification_method='none'` olan 4 sətir indi `verified=null` daşıyır,
+   `sympy` ilə həqiqətən yoxlanan 1 sətir (`verified=true`) toxunulmadı.
+2. `docs/decisions/ADR-001-ocr-pipeline.md` xərc cədvəlinə sətir əlavə edildi: istehsalat
+   ortası $0.0182 (n=5) — eval rəqəmi ($0.0167) DƏYİŞMƏDİ, ikisi yan-yana görünür.
+3. **S4 — həqiqət yoxlaması VACİB idi.** `git log`-a baxanda S4-ün özəyi artıq qurulub və
+   commit olunub (`c213600`, `2552e03`, `764b16a` — "add S4 solve screen", "HANDOFF 45 items
+   1-7"). Yəni §3-ün b) və c) bəndləri artıq TAM işlək idi:
+   - **b) `completed`/`abandoned_at_step`:** `SolveView.tsx` unmount-da (`revealed=false` olarsa)
+     və `reveal()`-da artıq `reportAttemptProgress`-i çağırır. Kodu oxudum, dəyişiklik lazım
+     olmadı — QƏBUL ŞƏRTİ artıq ödənilirdi.
+   - **c) Şəbəkə xətası:** `SolveView.tsx`-də `network_error` statusu, ayrıca mesaj + "yenidən
+     cəhd et" düyməsi artıq var idi (`step.networkError` i18n açarı ilə).
+
+   Real çatışmayan iki şey var idi, onlar düzəldildi:
+   - **a) `LoadingView.tsx`:** mərhələli mətn (`STAGES`) artıq var idi, amma ADR-014-ün gələcək
+     "oxunmuş sual" mətni üçün AYRI sahə yox idi. `questionText?: string` prop əlavə edildi —
+     indi heç bir çağıran ötürmür (boş, render olunmur), sahə mərhələ mətnindən STRUKTUR
+     olaraq ayrıdır. ADR-014 gələndə yalnız `kamera/page.tsx`-dən prop ötürülməli olacaq,
+     komponent yenidən yazılmayacaq.
+   - **d) Çıxış yolları:** "addımı keç" (`abandonStep`) və ipucu (səhv cavabda avtomatik
+     görünür) artıq var idi. **"Cavabı göstər" ancaq son addımdan çağırıla bilirdi** — ilişmiş
+     şagird orta addımda tam həlli görə bilmirdi. İndi `reveal()` HƏR addımdan çağırıla bilər
+     (yeni düymə, `step.abandon`-un yanında) — `completed`/`abandoned_at_step` çağırış anındakı
+     `stepIndex`-dən düzgün hesablanır (son addım deyilsə `completed=false`,
+     `abandoned_at_step=stepIndex`, `solution.completed` ATILMIR — yalnız `solution.answer_revealed`
+     ilə eyni). Yeni telemetriya hadisəsi YARADILMADI — `solution.answer_revealed`-in `at_step`
+     sahəsi elə bunun üçün var (`TELEMETRY.md`-də "S4: köçürmə siqnalı" şərhi).
+
+**Yoxlama:** `tsc --noEmit` təmiz (toxunulan fayllarda) — `mathjs`/`ajv` xətaları PRE-EXISTING
+(node_modules-da `mathjs` heç yoxdur, mənim dəyişikliyimlə əlaqəsi yoxdur, aşağıda qeyd edildi).
+`npm run dev` işə düşdü, `/kamera` konsol xətasız render oldu. Tam camera→solve axını lokal
+sınanmadı — `INVITE_CODES`/`GEMINI_API_KEY` lokal `.env.local`-da yoxdur, yalnız `DATABASE_URL`
+var. Dəyişikliklər kiçik və əlavədir (yeni prop defolt istifadə olunmur, yeni düymə artıq
+production-da canlı sınanmış `reveal()`-i çağırır — bax HANDOFF 48).
+
+**Diqqət:**
+- `web/node_modules`-da `mathjs` PAKET YOXDUR (`package.json`-da var, `node_modules/mathjs`
+  fiziki yoxdur — `ajv` də natamam ola bilər). `web/lib/verify/answer.ts`/`schema.ts` bundan
+  ötrü lokal `tsc` altında sınır (server tərəfdə, `npm install` aparılmayıb bu worktree-də).
+  Bu, production-u TƏSİR ETMİR (Vercel öz install-ını aparır, HANDOFF (48)-in canlı testi
+  buna sübutdur) — amma lokal inkişaf üçün kimsə `npm install` işlətməlidir.
+- S4-ün əsas hissəsi (b, c) əvvəlki sessiyada artıq qurulmuşdu — bunu təkrar yazmaq əvəzinə
+  kodu oxuyub təsdiqlədim. Yalnız a) və d) həqiqi iş tələb etdi.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-08 (49) · Cowork → Claude Code
 
 **Etdim:** §5 yoxlamasını DB-də özüm təsdiqlədim. HANDOFF (47) maddə 1-5 bağlıdır.
