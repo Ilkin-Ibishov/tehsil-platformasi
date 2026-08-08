@@ -25,7 +25,7 @@ adlandırılmasını zəiflədirsə — o dəyişiklik səhvdir, nə qədər "t�
 | Səhv kodları (`error_code`) | `docs/STEP-SCHEMA.json` → `error_codes` | Cowork — **dəyişməz enum** |
 | Dizayn tokenləri | `docs/DESIGN-TOKENS.json` | Cowork |
 | DB sxemi | `docs/DATA-MODEL.md` | hər ikisi (miqrasiya ilə) |
-| Prompt mətnləri | `prompts/*.md` | hər ikisi |
+| Prompt mətnləri | `prompts/**/*.md` (nüvə: `prompts/solve/core.md`, fənn əlavəsi: `prompts/solve/math.md` — ADR-014) | hər ikisi |
 | Memarlıq qərarları | `docs/decisions/ADR-*.md` | hər ikisi |
 | Tapşırıq statusu | ClickUp | hər ikisi |
 | Növbə jurnalı | `docs/HANDOFF.md` | hər ikisi |

@@ -147,3 +147,16 @@ istifadəçiyə `status: unreadable` qaytarılır (`docs/PHASE-1.md` server qayd
 sxem valid, DB-yə `problems`/`solutions`/`attempts` yazıldı, `verification_method="none"`
 düzgün seçildi. Dəvət kodu rədd (403) və gündəlik limit (429 + `limit.blocked` telemetriyası)
 ayrıca sınandı, hər ikisi işləyir.
+
+## Əlavə 2026-08-08 — Qərar 3 geri çağırılır: fərdi kod, tək paylaşılan sirr YOX
+
+SYSTEM-REVIEW-2026-08-07 §A3 (HANDOFF 41): Qərar 3-ün "tək paylaşılan sirr" seçimi retensiya
+qapısını (`docs/PHASE-1.md`: "20 şagirddən ≥8-i 7 gündə ≥3 dəfə qayıdır") sındırırdı —
+ölçmə tamamilə `device_id`-yə (localStorage) söykənir, iOS Safari isə quraşdırılmamış saytın
+yaddaşını MƏHZ 7 gün istifadəsizlikdən sonra silir (ITP). Ölçü aləti ölçdüyü sərhəddə sınırdı.
+
+**"Per-user kod cədvəli overengineering olardı" arqumenti düzgün qaldı** — cədvəl yenə
+lazım deyil, çünki kodun ÖZÜ unikaldır. `INVITE_CODE` (tək dəyər) → `INVITE_CODES`
+(vergüllə ayrılmış siyahı, `ilkin-01`...`ilkin-20`) — uyğun gələn kod `attempts.student_ref`
+kimi yazılır (`0006_attempts_student_ref.sql`). Retensiya BUNUN üzrə hesablanmalıdır,
+`device_id` YOX.

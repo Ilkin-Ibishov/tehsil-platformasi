@@ -161,7 +161,7 @@ def _selftest_cases():
 def _selftest_prompt_schema_invariants():
     """86eyhnv2r: prompt ↔ sxem invariantı, API çağırışı olmadan.
     İSTİQAMƏT BİRTƏRƏFLİDİR — sınarsa düzəldiləcək şey promptdur, STEP-SCHEMA.json və ya
-    check_structure DEYİL (bax prompts/solve-step.md, docs/STEP-SCHEMA.json başlıqlarındakı
+    check_structure DEYİL (bax prompts/solve/core.md, docs/STEP-SCHEMA.json başlıqlarındakı
     "TOXUNMA" qeydləri)."""
     failures = []
     system_text, _user_template = prompt_loader.load_prompt_templates()
@@ -216,7 +216,7 @@ def selftest():
         if "prompt_enum_coverage" in failures or "prompt_example_valid" in failures:
             print(
                 "  DİQQƏT: bu ikisi prompt↔sxem invariantıdır — sınarsa düzəldiləcək şey "
-                "prompts/solve-step.md-dir, STEP-SCHEMA.json/steps_compare.py deyil."
+                "prompts/solve/core.md-dir, STEP-SCHEMA.json/steps_compare.py deyil."
             )
         return 1
     print(f"\n{total}/{total} self-test keçdi. Harness məntiqi etibarlıdır.")

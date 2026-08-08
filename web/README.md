@@ -54,12 +54,12 @@ günlük keçid idi, tarixi qeyd üçün saxlanılır.
 
 ```bash
 cp .env.example .env.local
-# INVITE_CODE — özün seç (sınaq qrupuna şifahi/mesajla ötürüləcək)
+# INVITE_CODES — hər şagirdə fərdi, vergüllə ayrılmış (SYSTEM-REVIEW §A3, ADR-012 yenilənməsi)
 # GEMINI_API_KEY — Vercel-də artıq var, lokal test üçün ayrıca əlavə et
 ```
 
 Axın: dəvət kodu (yalnız bir dəfə, `localStorage`-da saxlanılır) → kamera → kəsmə →
-`/api/solve` (Gemini, `prompts/solve-step.md` fayldan oxunur — eval harness ilə TƏK MƏNBƏ) →
+`/api/solve` (Gemini, `prompts/solve/core.md`+`math.md` fayldan oxunur — eval harness ilə TƏK MƏNBƏ) →
 sxem yoxlanışı (1 retry) → ədədi yoxlama (`lib/verify/`, `ADR-012`) → `problems`/`solutions`/
 `attempts`-a yazı. `verified===false` (QƏTİ ZİDDİYYƏT) olarsa → `status: "unreadable"`.
 `verified===null` (yoxlanıla bilmədi — söz/parametr/ehtimal məsələləri, `ADR-012` Qərar 4)
@@ -91,7 +91,7 @@ lib/
   db.ts               pg Pool, DATABASE_URL-dən (S1a lokal, S1b Supabase — kod dəyişmir)
   design-tokens.ts   ../docs/DESIGN-TOKENS.json → CSS custom property (ADR-002, tək mənbə)
   image.ts            kəs → (yalnız lazımdırsa) ≤1600px kiçilt — sıra sabitdir
-  prompt.ts            ../prompts/solve-step.md-dən System/User oxuyur (eval ilə TƏK MƏNBƏ)
+  prompt.ts            ../prompts/solve/{core,math}.md-dən System/User oxuyur (eval ilə TƏK MƏNBƏ)
   llm.ts / cost.ts     Gemini (OpenAI-uyğun) çağırışı, xərc hesablaması
   verify/               schema.ts (ajv), answer.ts (mathjs, ADR-012), leak.ts — scripts/lib portu
   telemetry/          klient kitabxanası: IndexedDB növbə, offline-a davamlı flush, idempotent

@@ -15,8 +15,14 @@ import { detectLeak } from "@/lib/verify/leak";
 // 4. selected_label verilibsə, yalnız o məsələ həll edilir.
 //
 // Dəvət kodu + gündəlik limit (30) — ADR-012: paylaşılan sirr (env), device_id üzrə limit.
+//
+// SYSTEM-REVIEW §C2 (HANDOFF 41): `maxDuration` YOX idi, latensiya 16.8 san — defolta çox
+// yaxın, işləməsi TƏSADÜFƏ görə idi. İndi Vercel-ə 60 san büdcə verilir, LLM çağırışı özü
+// ~45 san-da `AbortController`-lə kəsilir (15 san DB yazısı/cavab üçün buffer).
 
 const DAILY_LIMIT = 30;
+export const maxDuration = 60;
+const LLM_TIMEOUT_MS = 45_000;
 
 type StepSchemaOutput = {
   status?: string;
@@ -66,15 +72,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "device_id sahəsi yoxdur" }, { status: 400 });
   }
 
-  // 1) Dəvət kodu — serverdə saxlanılan tək paylaşılan sirr (ADR-012).
-  const expectedInvite = process.env.INVITE_CODE;
-  if (!expectedInvite) {
-    console.error("[/api/solve] INVITE_CODE env dəyişəni təyin edilməyib");
+  // 1) Dəvət kodu — SYSTEM-REVIEW §A3 (HANDOFF 41): əvvəllər TƏK paylaşılan sirr idi
+  // (ADR-012), indi hər şagirdə FƏRDİ kod (`ilkin-01`...`ilkin-20`, `INVITE_CODES`-də vergüllə
+  // ayrılıb) — kodun özü `student_ref` kimi yazılır, retensiya bunun üzrə hesablanır
+  // (`device_id` ITP-yə görə sıfırlana bilir, retensiya qapısını sındırır — bax A3).
+  const validInviteCodes = new Set(
+    (process.env.INVITE_CODES ?? "")
+      .split(",")
+      .map((c) => c.trim())
+      .filter(Boolean)
+  );
+  if (validInviteCodes.size === 0) {
+    console.error("[/api/solve] INVITE_CODES env dəyişəni təyin edilməyib");
     return NextResponse.json({ error: "server konfiqurasiyası tamamlanmayıb" }, { status: 500 });
   }
-  if (typeof inviteCode !== "string" || inviteCode !== expectedInvite) {
+  if (typeof inviteCode !== "string" || !validInviteCodes.has(inviteCode)) {
     return NextResponse.json({ error: "invalid_invite" }, { status: 403 });
   }
+  const studentRef = inviteCode;
 
   // 2) Gündəlik limit — YALNIZ çatdırılmış (delivered=true) həllər sayılır (S5 invariantı).
   // `completed` BURADAN AYRIDIR (SYSTEM-REVIEW §A1) — "son addıma çatdı" klientin
@@ -96,6 +111,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "limit_reached", daily_count: dailyCount }, { status: 429 });
   }
 
+  // 2b) Qlobal gündəlik xərc tavanı (SYSTEM-REVIEW §C1) — device_id limitindən AYRI: dəvət kodu
+  // paylaşılan sirrdir, device_id sıfırlana bilir, yəni tək cihazlıq limit sızmış koda qarşı
+  // qorumur. `DAILY_COST_CEILING_USD` təyin edilməyibsə tavan yoxdur (dev defolt).
+  const dailyCeiling = Number(process.env.DAILY_COST_CEILING_USD);
+  if (Number.isFinite(dailyCeiling) && dailyCeiling > 0) {
+    const { rows: costRows } = await pool.query(
+      `select coalesce(sum(cost_usd), 0)::float8 as total from solutions
+       where created_at >= date_trunc('day', now())`
+    );
+    const dailyCostUsd = costRows[0]?.total ?? 0;
+    if (dailyCostUsd >= dailyCeiling) {
+      await pool
+        .query(
+          `insert into events (event_id, device_id, attempt_id, name, props)
+           values ($1,$2,$3,'cost.ceiling_hit',$4)`,
+          [randomUUID(), deviceId, typeof clientAttemptId === "string" ? clientAttemptId : null, JSON.stringify({ daily_cost_usd: dailyCostUsd, ceiling_usd: dailyCeiling })]
+        )
+        .catch((err) => console.error("[/api/solve] cost.ceiling_hit telemetriya xətası:", err));
+      return NextResponse.json({ error: "limit_reached", daily_count: dailyCount }, { status: 429 });
+    }
+  }
+
   // 3) Prompt — TƏK MƏNBƏ prompts/solve-step.md-dən (ADR-012).
   const { system, userTemplate } = loadPromptTemplates();
   let userPrompt = renderUserPrompt(userTemplate, grade, subject, locale);
@@ -111,27 +148,48 @@ export async function POST(req: NextRequest) {
   let latencyMs = 0;
   let attempts = 0;
 
-  for (let call = 1; call <= 2; call++) {
-    let result;
-    try {
-      result = await callVisionLLM({ systemPrompt: system, userPrompt, imageBase64, imageMime });
-    } catch (err) {
-      console.error(`[/api/solve] LLM çağırışı xətası (cəhd ${call}):`, err);
-      continue;
-    }
-    usage = result.usage;
-    latencyMs = result.latencyMs;
-    attempts = result.attempts;
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => timeoutController.abort(), LLM_TIMEOUT_MS);
+  try {
+    for (let call = 1; call <= 2; call++) {
+      if (timeoutController.signal.aborted) break;
+      let result;
+      try {
+        result = await callVisionLLM({ systemPrompt: system, userPrompt, imageBase64, imageMime, signal: timeoutController.signal });
+      } catch (err) {
+        if (timeoutController.signal.aborted) break;
+        console.error(`[/api/solve] LLM çağırışı xətası (cəhd ${call}):`, err);
+        continue;
+      }
+      usage = result.usage;
+      latencyMs = result.latencyMs;
+      attempts = result.attempts;
 
-    const check = validateStep(result.parsed);
-    if (check.valid) {
-      parsed = result.parsed as StepSchemaOutput;
-      break;
+      const check = validateStep(result.parsed);
+      if (check.valid) {
+        parsed = result.parsed as StepSchemaOutput;
+        break;
+      }
+      console.error(`[/api/solve] sxem etibarsız (cəhd ${call}):`, check.errors, "xam çıxış:", result.rawText);
     }
-    console.error(`[/api/solve] sxem etibarsız (cəhd ${call}):`, check.errors, "xam çıxış:", result.rawText);
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   if (!parsed) {
+    if (timeoutController.signal.aborted) {
+      await pool
+        .query(
+          `insert into events (event_id, device_id, attempt_id, name, props)
+           values ($1,$2,$3,'solve.timeout',$4)`,
+          [randomUUID(), deviceId, typeof clientAttemptId === "string" ? clientAttemptId : null, JSON.stringify({ timeout_ms: LLM_TIMEOUT_MS })]
+        )
+        .catch((err) => console.error("[/api/solve] solve.timeout telemetriya xətası:", err));
+      return NextResponse.json(
+        { schema_version: 1, status: "unreadable", reason: "Server cavab vermədi, yenidən cəhd et." },
+        { status: 200 }
+      );
+    }
     return NextResponse.json(
       { schema_version: 1, status: "unreadable", reason: "Server xətası, yenidən cəhd et." },
       { status: 200 }
@@ -208,15 +266,20 @@ export async function POST(req: NextRequest) {
     }
 
     await client.query(
+      // SYSTEM-REVIEW §A2: `verified` HƏQİQİ üçlü dəyəri yazır (`true`/`null`) — əvvəllər
+      // hardcode `true` idi, `verified===null` (yoxlanıla bilmədi) halında da `true` yazılırdı.
+      // Davranış düzgün idi (`false` bu sətrə çatmır, yuxarıda rədd edilir), amma sütun yalan
+      // deyirdi: "neçə həll həqiqətən sympy ilə təsdiqlənib?" sualı `verified`-dən cavablana
+      // bilmirdi, yalnız `verification_method`-dan.
       `insert into solutions (id, problem_id, schema_version, payload, verified, verification_method, model, cost_usd)
-       values ($1,$2,1,$3,true,$4,$5,$6)`,
-      [solutionId, problemId, JSON.stringify(parsed), verificationMethod, process.env.GEMINI_MODEL ?? null, costUsd]
+       values ($1,$2,1,$3,$4,$5,$6,$7)`,
+      [solutionId, problemId, JSON.stringify(parsed), verified, verificationMethod, process.env.GEMINI_MODEL ?? null, costUsd]
     );
 
     await client.query(
-      `insert into attempts (id, device_id, problem_id, solution_id, match_path, ocr_source, delivered)
-       values ($1,$2,$3,$4,'llm','vision_llm',true)`,
-      [attemptRowId, deviceId, problemId, solutionId]
+      `insert into attempts (id, device_id, problem_id, solution_id, match_path, ocr_source, delivered, student_ref)
+       values ($1,$2,$3,$4,'llm','vision_llm',true,$5)`,
+      [attemptRowId, deviceId, problemId, solutionId, studentRef]
     );
 
     await client.query("commit");
@@ -231,9 +294,26 @@ export async function POST(req: NextRequest) {
     client.release();
   }
 
+  // SYSTEM-REVIEW §2 (HANDOFF 45): `...parsed` əvvəllər TAM LLM çıxışını qaytarırdı — hər
+  // addımın `check.accept`-i və `final_answer` şagird birinci addıma cavab verməzdən əvvəl
+  // brauzerdə idi. DB-dəki `payload` (yuxarıda) TAM qalır — yalnız ŞƏBƏKƏ cavabından çıxarılır.
+  // Addım yoxlaması indi `/api/steps/check`-dədir (§B1-dəki eyni normallaşdırma), son cavab
+  // `/api/attempts/reveal`-dədir. `error_code`/`hint` BURADA qalır — bunlar cavabı açmır,
+  // yalnız səhv edildikdə göstərilən diaqnoz mətnidir.
+  const clientSteps = (parsed.steps ?? []).map((step) => {
+    const typedStep = step as { check?: { ask?: string; accept?: string[]; input_kind?: string } } & Record<string, unknown>;
+    const checkRest = { ...typedStep.check };
+    delete checkRest.accept;
+    return { ...typedStep, check: checkRest };
+  });
+  const parsedWithoutAnswers: Record<string, unknown> = { ...parsed };
+  delete parsedWithoutAnswers.final_answer;
+  delete parsedWithoutAnswers.steps;
+
   return NextResponse.json(
     {
-      ...parsed,
+      ...parsedWithoutAnswers,
+      steps: clientSteps,
       solution_id: solutionId,
       attempt_id: attemptRowId,
       match_path: "llm",

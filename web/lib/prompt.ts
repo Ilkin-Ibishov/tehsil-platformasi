@@ -1,23 +1,30 @@
-// prompts/solve-step.md-dən System/User şablonlarını oxuyur — TƏK MƏNBƏ (CLAUDE.md fayl
-// sahibliyi cədvəli). scripts/lib/prompt_loader.py ilə EYNİ çıxarma məntiqi (ADR-012):
-// eval harness və istehsalat eyni faylı, eyni qaydayla parçalayır.
+// prompts/solve/core.md + prompts/solve/math.md-dən System/User şablonlarını oxuyur —
+// TƏK MƏNBƏ (CLAUDE.md fayl sahibliyi cədvəli). scripts/lib/prompt_loader.py ilə EYNİ çıxarma
+// məntiqi (ADR-012): eval harness və istehsalat eyni faylları, eyni qaydayla parçalayır.
+// `ADR-014`/HANDOFF 40: əvvəllər tək `prompts/solve-step.md` idi, nüvə + fənn əlavəsi olaraq
+// bölündü — `core.md`-dəki `{{MATH_EXAMPLE}}` yer tutucusuna `math.md`-in nümunəsi qoyulur,
+// birləşmiş mətn köhnə fayla HƏRFİ EYNİDİR.
 import fs from "node:fs";
 import path from "node:path";
 
-const PROMPT_PATH = path.join(process.cwd(), "..", "prompts", "solve-step.md");
+const CORE_PATH = path.join(process.cwd(), "..", "prompts", "solve", "core.md");
+const MATH_PATH = path.join(process.cwd(), "..", "prompts", "solve", "math.md");
 
-function extractBlock(text: string, heading: string): string {
+function extractBlock(text: string, heading: string, sourcePath: string): string {
   const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const re = new RegExp("## " + escaped + "\\s*```\\s*([\\s\\S]*?)```");
   const match = text.match(re);
-  if (!match) throw new Error(`prompts/solve-step.md-də '## ${heading}' bloku tapılmadı`);
+  if (!match) throw new Error(`${sourcePath}-də '## ${heading}' bloku tapılmadı`);
   return match[1].trim();
 }
 
 export function loadPromptTemplates(): { system: string; userTemplate: string } {
-  const text = fs.readFileSync(PROMPT_PATH, "utf-8");
-  const system = extractBlock(text, "System");
-  const userTemplate = extractBlock(text, "User (dəyişənlərlə)");
+  const coreText = fs.readFileSync(CORE_PATH, "utf-8");
+  const mathText = fs.readFileSync(MATH_PATH, "utf-8");
+  const mathExample = extractBlock(mathText, "Nümunə", MATH_PATH);
+
+  const system = extractBlock(coreText, "System", CORE_PATH).replace("{{MATH_EXAMPLE}}", mathExample);
+  const userTemplate = extractBlock(coreText, "User (dəyişənlərlə)", CORE_PATH);
   return { system, userTemplate };
 }
 

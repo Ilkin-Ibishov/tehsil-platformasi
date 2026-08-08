@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { trackEvent } from "@/lib/telemetry";
-import { studentAnswerMatches } from "@/lib/verify/answer";
+import { trackEvent, getDeviceId } from "@/lib/telemetry";
 import { reportAttemptProgress } from "@/lib/attempts";
 
 export type SolveStep = {
@@ -11,34 +10,51 @@ export type SolveStep = {
   title: string;
   explanation: string;
   latex?: string;
-  check: { ask: string; accept: string[]; input_kind?: "number" | "expression" | "choice" };
+  check: { ask: string; input_kind?: "number" | "expression" | "choice" };
   error_code: string;
   hint: string;
 };
 
 export type SolveResult = {
   canonical: string;
-  final_answer: { latex: string; values: string[]; choice?: string };
   steps: SolveStep[];
 };
 
+type FinalAnswer = { latex: string; values: string[]; choice?: string };
+
+type StepStatus = "idle" | "checking" | "correct" | "wrong" | "network_error";
+
 type StepAnswerState = {
   input: string;
-  status: "idle" | "correct" | "wrong";
+  status: StepStatus;
   attemptNo: number;
   startedAt: number;
 };
 
-// SYSTEM-REVIEW-2026-08-07 §B1: `check.accept` modelin düşündüyü YAZI formalarının siyahısıdır
-// (`"0.5"`, `"1/2"`...), amma şagird bunlardan fərqli ekvivalent formada yaza bilər (`"0,5"`,
-// `".5"`) — sadə sətir bərabərliyi bunu SƏHV sayardı. `studentAnswerMatches`
-// (`web/lib/verify/answer.ts`) həm golden cavabın, həm indi şagird cavabının keçdiyi EYNİ
-// normallaşdırma+ədədi ekvivalentlik yolundan istifadə edir (server-də `equationCrossCheck`-in
-// işlətdiyi funksiyalar) — nəticə, "choice"/mətn cavablarda normallaşdırılmış sətir bərabərliyinə
-// düşür, ədədi cavablarda isə forma fərqinə görə saxta `error_code` yazılmır.
-function isCorrect(input: string, accept: string[]): boolean {
-  if (!input.trim()) return false;
-  return accept.some((a) => studentAnswerMatches(input, a));
+// SYSTEM-REVIEW-2026-08-07 §2 (HANDOFF 45): addım yoxlaması indi SERVERDƏDİR
+// (`/api/steps/check`) — `check.accept` artıq `/api/solve` cavabında yoxdur (bax
+// web/app/api/solve/route.ts), ona görə burada yoxlana bilməzdi belə. Server §B1-dəki EYNİ
+// `studentAnswerMatches`-i işlədir və nəticəni `step_events`-ə ÖZÜ yazır — `error_code` indi
+// şagirdin CAVABINA əsaslanır, klientin "düz/səhv" dediyinə yox.
+async function checkStepAnswer(attemptId: string, stepIndex: number, answer: string): Promise<{ correct: boolean }> {
+  const res = await fetch("/api/steps/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ attempt_id: attemptId, device_id: getDeviceId(), step_index: stepIndex, answer }),
+  });
+  if (!res.ok) throw new Error(`step check http ${res.status}`);
+  return res.json();
+}
+
+async function fetchFinalAnswer(attemptId: string): Promise<FinalAnswer> {
+  const res = await fetch("/api/attempts/reveal", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ attempt_id: attemptId, device_id: getDeviceId() }),
+  });
+  if (!res.ok) throw new Error(`reveal http ${res.status}`);
+  const body = await res.json();
+  return body.final_answer;
 }
 
 export function SolveView({ solution, attemptId, onReset }: { solution: SolveResult; attemptId: string; onReset: () => void }) {
@@ -49,12 +65,15 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, StepAnswerState>>({});
   const [revealed, setRevealed] = useState(false);
+  const [revealing, setRevealing] = useState(false);
+  const [revealError, setRevealError] = useState(false);
+  const [finalAnswer, setFinalAnswer] = useState<FinalAnswer | null>(null);
   const [reportedWrong, setReportedWrong] = useState(false);
   const solveStartedAt = useRef(Date.now());
   const shownSteps = useRef<Set<number>>(new Set());
 
   const currentStep = steps[stepIndex];
-  const currentAnswer = answers[stepIndex] ?? { input: "", status: "idle", attemptNo: 0, startedAt: Date.now() };
+  const currentAnswer = answers[stepIndex] ?? { input: "", status: "idle" as StepStatus, attemptNo: 0, startedAt: Date.now() };
 
   // SYSTEM-REVIEW-2026-08-07 §A1: son addıma çatmadan bu ekran sökülürsə (geri, "yeni sual
   // çək" ADƏTƏN sökmür amma naviqasiya edə bilər, tab bağlama) — `abandoned_at_step` bunu
@@ -95,11 +114,23 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
     }));
   }
 
-  function submitAnswer() {
-    if (!currentStep) return;
-    const correct = isCorrect(currentAnswer.input, currentStep.check.accept);
+  async function submitAnswer() {
+    if (!currentStep || currentAnswer.status === "checking") return;
     const attemptNo = currentAnswer.attemptNo + 1;
     const timeOnStepMs = Date.now() - currentAnswer.startedAt;
+    const submittedInput = currentAnswer.input;
+
+    setAnswers((prev) => ({ ...prev, [stepIndex]: { ...currentAnswer, status: "checking" } }));
+
+    let correct: boolean;
+    try {
+      const result = await checkStepAnswer(attemptId, stepIndex, submittedInput);
+      correct = result.correct;
+    } catch {
+      // SYSTEM-REVIEW §2 diqqəti: şəbəkə yoxdursa AYDIN mesaj, səssiz "səhv" yox.
+      setAnswers((prev) => ({ ...prev, [stepIndex]: { ...currentAnswer, status: "network_error" } }));
+      return;
+    }
 
     trackEvent("step.answer_submitted", {
       index: stepIndex,
@@ -114,7 +145,7 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
 
     setAnswers((prev) => ({
       ...prev,
-      [stepIndex]: { ...currentAnswer, status: correct ? "correct" : "wrong", attemptNo },
+      [stepIndex]: { ...prev[stepIndex], input: submittedInput, status: correct ? "correct" : "wrong", attemptNo },
     }));
   }
 
@@ -130,7 +161,19 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
     advance();
   }
 
-  function reveal() {
+  async function reveal() {
+    setRevealing(true);
+    setRevealError(false);
+    let answer: FinalAnswer;
+    try {
+      answer = await fetchFinalAnswer(attemptId);
+    } catch {
+      setRevealing(false);
+      setRevealError(true);
+      return;
+    }
+    setFinalAnswer(answer);
+    setRevealing(false);
     setRevealed(true);
     trackEvent("solution.answer_revealed", { at_step: stepIndex + 1, of_total: total });
     const errorsTotal = Object.values(answers).filter((a) => a.status === "wrong").length;
@@ -145,13 +188,28 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
 
   function advance() {
     if (stepIndex >= total - 1) {
-      reveal();
+      void reveal();
       return;
     }
     setStepIndex((i) => i + 1);
   }
 
-  const finalValuesText = useMemo(() => solution.final_answer.values.join(",  "), [solution.final_answer.values]);
+  const finalValuesText = useMemo(() => finalAnswer?.values.join(",  ") ?? "", [finalAnswer]);
+
+  if (revealError) {
+    return (
+      <main style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 16, padding: "24px var(--page-pad-x)" }}>
+        <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)", margin: 0 }}>{t("answer.revealError")}</p>
+        <button
+          type="button"
+          onClick={() => void reveal()}
+          style={{ alignSelf: "flex-start", minHeight: "var(--tap)", padding: "0 22px", border: "none", borderRadius: "var(--rad)", background: "var(--acc)", color: "var(--accink)", fontFamily: "inherit", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+        >
+          {t("step.retry")}
+        </button>
+      </main>
+    );
+  }
 
   if (revealed) {
     return (
@@ -297,8 +355,9 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
                   placeholder={t("step.inputPlaceholder")}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") submitAnswer();
+                    if (e.key === "Enter") void submitAnswer();
                   }}
+                  disabled={currentAnswer.status === "checking"}
                   style={{
                     flex: 1,
                     minWidth: 0,
@@ -315,8 +374,8 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
                 />
                 <button
                   type="button"
-                  onClick={submitAnswer}
-                  disabled={!currentAnswer.input.trim()}
+                  onClick={() => void submitAnswer()}
+                  disabled={!currentAnswer.input.trim() || currentAnswer.status === "checking"}
                   style={{
                     minHeight: "var(--tap)",
                     padding: "0 22px",
@@ -329,10 +388,10 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
                     fontWeight: 700,
                     cursor: "pointer",
                     whiteSpace: "nowrap",
-                    opacity: currentAnswer.input.trim() ? 1 : 0.5,
+                    opacity: currentAnswer.input.trim() && currentAnswer.status !== "checking" ? 1 : 0.5,
                   }}
                 >
-                  {t("step.check")}
+                  {currentAnswer.status === "checking" ? t("step.checking") : t("step.check")}
                 </button>
               </div>
             </div>
@@ -374,6 +433,19 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
             </div>
           )}
 
+          {currentAnswer.status === "network_error" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "12px 16px", borderRadius: "var(--rad)", background: "var(--warnsoft)" }}>
+              <span style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>{t("step.networkError")}</span>
+              <button
+                type="button"
+                onClick={() => void submitAnswer()}
+                style={{ alignSelf: "flex-start", minHeight: 44, padding: 0, border: "none", background: "transparent", color: "var(--t2)", fontFamily: "inherit", fontSize: 14, cursor: "pointer", borderBottom: "1px solid var(--bor)" }}
+              >
+                {t("step.retry")}
+              </button>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={abandonStep}
@@ -388,6 +460,7 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
         <button
           type="button"
           onClick={advance}
+          disabled={revealing}
           style={{
             width: "100%",
             minHeight: 56,
@@ -403,9 +476,10 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0 20px",
+            opacity: revealing ? 0.6 : 1,
           }}
         >
-          <span>{stepIndex >= total - 1 ? t("step.showAnswer") : t("step.next")}</span>
+          <span>{stepIndex >= total - 1 ? (revealing ? t("step.checking") : t("step.showAnswer")) : t("step.next")}</span>
           <span style={{ fontFamily: "var(--font-mono)" }}>{stepIndex >= total - 1 ? "↓" : "→"}</span>
         </button>
       </div>

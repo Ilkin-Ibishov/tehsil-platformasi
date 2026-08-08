@@ -1,35 +1,44 @@
-"""prompts/solve-step.md-dən System/User şablonlarını oxuyur. prompts/*.md tək mənbədir —
-prompt mətni burada hardcode edilmir (bax CLAUDE.md fayl sahibliyi cədvəli)."""
+"""prompts/solve/core.md + prompts/solve/math.md-dən System/User şablonlarını oxuyur.
+prompts/**/*.md tək mənbədir — prompt mətni burada hardcode edilmir (bax CLAUDE.md fayl
+sahibliyi cədvəli). `ADR-014`/HANDOFF 40: əvvəllər tək `prompts/solve-step.md` idi, nüvə +
+fənn əlavəsi olaraq bölündü — `core.md`-dəki `{{MATH_EXAMPLE}}` yer tutucusuna `math.md`-in
+nümunəsi qoyulur, birləşmiş mətn köhnə fayla HƏRFİ EYNİDİR."""
 
 import json
 import re
 from pathlib import Path
 
-PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / "solve-step.md"
+PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts" / "solve"
+CORE_PATH = PROMPTS_DIR / "core.md"
+MATH_PATH = PROMPTS_DIR / "math.md"
 
 _SECTION_RE = "## {name}\\s*```\\s*(.*?)```"
 _VERSION_RE = re.compile(r"^#.*\(v([\w.]+)\)", re.MULTILINE)
 
 
-def _extract_block(text, heading):
+def _extract_block(text, heading, source_path):
     match = re.search(_SECTION_RE.format(name=re.escape(heading)), text, flags=re.DOTALL)
     if not match:
-        raise ValueError(f"prompts/solve-step.md-də '## {heading}' bloku tapılmadı")
+        raise ValueError(f"{source_path}-də '## {heading}' bloku tapılmadı")
     return match.group(1).strip()
 
 
 def load_prompt_templates():
-    text = PROMPT_PATH.read_text(encoding="utf-8")
-    system = _extract_block(text, "System")
-    user_template = _extract_block(text, "User (dəyişənlərlə)")
+    core_text = CORE_PATH.read_text(encoding="utf-8")
+    math_text = MATH_PATH.read_text(encoding="utf-8")
+    math_example = _extract_block(math_text, "Nümunə", MATH_PATH)
+
+    system = _extract_block(core_text, "System", CORE_PATH)
+    system = system.replace("{{MATH_EXAMPLE}}", math_example)
+    user_template = _extract_block(core_text, "User (dəyişənlərlə)", CORE_PATH)
     return system, user_template
 
 
 def load_prompt_version():
-    """`prompts/solve-step.md`-in başlığındakı `(v6)` kimi versiya işarəsini oxuyur — HANDOFF
+    """`prompts/solve/core.md`-in başlığındakı `(v6)` kimi versiya işarəsini oxuyur — HANDOFF
     (38): nəticə faylına yazılmayanda "hansı rəy hansı promptaydı" qarışır (HANDOFF 27-dəki
     "köhnə rəy v6-ya aid edildi" səhvi). Tapılmasa `"unknown"` — səssiz boş qalmır."""
-    text = PROMPT_PATH.read_text(encoding="utf-8")
+    text = CORE_PATH.read_text(encoding="utf-8")
     match = _VERSION_RE.search(text)
     return f"v{match.group(1)}" if match else "unknown"
 

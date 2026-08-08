@@ -39,9 +39,10 @@
   },
   "invite": {
     "title": "Dəvət kodu",
-    "body": "Bu, sınaq qrupu üçün paylaşılan koddur — sənə müəllimin/valideynin verib.",
+    "body": "Bu, sənə fərdi verilmiş koddur — sənə müəllimin/valideynin verib.",
     "placeholder": "Kodu bura yaz",
-    "submit": "Davam et"
+    "submit": "Davam et",
+    "pwaHint": "Növbəti dəfə tez açmaq üçün: brauzer menyusundan \"Ana ekrana əlavə et\" seç."
   },
   "hell": {
     "loading": {
@@ -54,15 +55,18 @@
       "counter": "ADDIM {index} / {total}",
       "inputPlaceholder": "cavabın",
       "check": "yoxla",
+      "checking": "yoxlanır…",
       "correct": "Doğru.",
       "errorRecorded": "hesabatına yazıldı",
       "retry": "yenidən yaz",
+      "networkError": "Şəbəkə xətası — cavabın yoxlanıla bilmədi. Yenidən cəhd et.",
       "abandon": "Bu addımı başa düşmədim →",
       "next": "Növbəti addım",
       "showAnswer": "Cavabı göstər"
     },
     "answer": {
       "label": "CAVAB",
+      "revealError": "Şəbəkə xətası — cavab gətirilə bilmədi. Yenidən cəhd et.",
       "reportWrong": "həll səhvdir",
       "reportWrongDone": "Qeyd olundu, təşəkkür edirik.",
       "newProblem": "Yeni sual çək"

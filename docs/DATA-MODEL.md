@@ -61,6 +61,7 @@ Bir məsələnin bir neçə həlli ola bilər (fərqli sinif dərinliyi). Seçim
 | `user_id` | uuid fk | |
 | `problem_id` | uuid fk | |
 | `solution_id` | uuid fk | |
+| `student_ref` | text null | fərdi dəvət kodu (SYSTEM-REVIEW §A3) — **retensiya BUNUN üzrə hesablanır**, `device_id` YOX (ITP-yə görə sıfırlana bilir) |
 | `match_path` | text | `hash` / `fingerprint` / `embedding` / `llm` — **keş effektivliyi metrikası** |
 | `ocr_source` | text | `texo_client` / `vision_llm` |
 | `ocr_corrected` | bool | istifadəçi OCR nəticəsini düzəltdimi → OCR keyfiyyət siqnalı |

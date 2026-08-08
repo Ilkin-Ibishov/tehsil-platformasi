@@ -127,16 +127,18 @@ export default function KameraPage() {
         step_count: Array.isArray(body.steps) ? body.steps.length : null,
       });
 
-      if (!body.canonical || !body.final_answer || !Array.isArray(body.steps) || body.steps.length === 0) {
+      if (!body.canonical || !Array.isArray(body.steps) || body.steps.length === 0) {
         // Sxem "ok" deyib, amma həll sahələri yoxdursa (nəzəri, server bunu artıq unreadable
         // kimi qaytarmalıdır) — bura düşməməlidir, amma UI-ı boş ekranla çökdürmək əvəzinə
-        // ümumi xəta göstəririk.
+        // ümumi xəta göstəririk. `final_answer` BURADA yoxlanılmır — SYSTEM-REVIEW §2-dən sonra
+        // /api/solve onu artıq qaytarmır (bax web/app/api/solve/route.ts), `/api/attempts/reveal`
+        // "Cavabı göstər"də alınır.
         trackEvent("solve.failed", { reason: "empty_solution", http_status: res.status, attempts: 1 });
         setStage("done");
         return;
       }
 
-      setSolution({ canonical: body.canonical, final_answer: body.final_answer, steps: body.steps });
+      setSolution({ canonical: body.canonical, steps: body.steps });
       setSolutionAttemptId(typeof body.attempt_id === "string" ? body.attempt_id : currentAttemptIdRef.current ?? null);
       setStage("solved");
     } catch {

@@ -80,6 +80,10 @@ export function InviteGate({ onCode }: { onCode: (code: string) => void }) {
       >
         {t("submit")}
       </button>
+      {/* SYSTEM-REVIEW §A3 (HANDOFF 41): quraşdırılmamış saytın localStorage-ı iOS Safari-də
+          7 gün istifadəsizlikdən sonra silinir — məhz retensiya qapısının ölçdüyü pəncərə.
+          PWA kimi quraşdırılanda ITP silinməsi tətbiq olunmur. */}
+      <p style={{ fontSize: 12, lineHeight: 1.5, color: "var(--t3)", margin: 0 }}>{t("pwaHint")}</p>
     </main>
   );
 }

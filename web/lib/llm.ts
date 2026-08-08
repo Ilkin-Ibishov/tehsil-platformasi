@@ -10,6 +10,12 @@ const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 const MAX_ATTEMPTS = 3;
 const RETRY_BASE_DELAY_MS = 1000;
 
+// SYSTEM-REVIEW-2026-08-07 §C2 (HANDOFF 41): əvvəllər burada heç bir timeout/abort yox idi —
+// işləməsi platformanın defolt kəsmə vaxtına görə TƏSADÜFİ idi. Timeout məsuliyyəti çağırana
+// (`/api/solve`) verilib — o, `AbortController`-i ~45 san-da işə salır, `opts.signal` bura
+// gəlir, `fetch`-ə ötürülür. Burada AYRICA timeout QURULMUR ki, iki fərqli saat bir-birini
+// ötməsin.
+
 export type LLMUsage = { prompt_tokens?: number; completion_tokens?: number };
 
 export type LLMResult = {
@@ -29,6 +35,7 @@ export async function callVisionLLM(opts: {
   userPrompt: string;
   imageBase64: string;
   imageMime: string;
+  signal?: AbortSignal;
 }): Promise<LLMResult> {
   const model = process.env.GEMINI_MODEL;
   const apiKey = process.env.GEMINI_API_KEY;
@@ -65,6 +72,7 @@ export async function callVisionLLM(opts: {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      signal: opts.signal,
     });
     latencyMs = performance.now() - started;
 

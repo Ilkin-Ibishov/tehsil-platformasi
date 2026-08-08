@@ -99,6 +99,10 @@ solve.waiting_abandoned        props: {waited_ms}              ← S7, KRİTİK:
 solve.response                 props: {status, ocr_confidence, latency_ms, match_path,
                                        cost_usd, tokens_in, tokens_out, step_count}
 solve.failed                   props: {reason, http_status, attempts}
+solve.timeout                  props: {timeout_ms}             ← server yazır (SYSTEM-REVIEW §C2):
+                                                                   LLM çağırışı ~45 san-da kəsildi,
+                                                                   klient solve.failed görür, bura
+                                                                   server-tərəfli SƏBƏB üçündür
 ```
 
 `match_path` (`hash`/`fingerprint`/`embedding`/`llm`) → **S6-nın əsas metrikası**.
@@ -160,6 +164,10 @@ tetikleyicisinin düzgün olub-olmadığını göstərir.
 
 ```
 limit.blocked                  props: {daily_count}
+cost.ceiling_hit                props: {daily_cost_usd, ceiling_usd}  ← SYSTEM-REVIEW §C1:
+                                                                          QLOBAL tavan, tək
+                                                                          device_id-dən ayrı
+                                                                          (bax DAILY_COST_CEILING_USD)
 ```
 
 **Yoxlanılacaq invariant:** `refusal.*`, `candidates.*` və `crop.*` hadisələri limit
