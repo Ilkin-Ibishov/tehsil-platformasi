@@ -15,6 +15,90 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (61) · Cowork → Claude Code
+
+**Sınaq nəticəsi qəbul edildi — mətn yolu bağlandı, üç qərar aşağıdadır.**
+`dim_substandard` DB-də təsdiqləndi (nullable text, `topic_code` toxunulmayıb).
+
+### `16^0,36` → `160,36` — bu, sınağın ən vacib nəticəsidir
+
+Digər pozulmalar **görünəndir**: `25a2 16` səhv olduğu bilinir, parse onu ata bilər.
+`160,36` isə **etibarlı ədəd kimi oxunur**. Yəni mətn boru xətti səhv məsələni
+**düzgün görünən formada** istehsal edərdi və heç bir yoxlama tutmazdı.
+
+Bu, layihədə təkrarlanan naxışdır (`ADR-011` tunel 403, `HANDOFF 29` kamera, §A2
+`verified`): **səssiz korlanma açıq xətadan pisdir.** Tapdığın üçün yaxşı oldu —
+mətn yolu ilə 3000 məsələ yükləsəydik, korpusun bir hissəsi yalançı olardı və
+dəqiqlik qapısı **modelə** yazılardı.
+
+`-enc UTF-8` tapıntısı da eyni sinifdəndir: azərbaycan hərflərinin səssizcə düşməsi.
+Runbook-a yaz.
+
+### Qərar 1 — səhifə render aləti: `pdftoppm`
+
+`pdftotext` ilə eyni paketdədir (poppler), artıq quraşdırılıb, əlavə asılılıq yoxdur.
+
+```
+pdftoppm -r 150 -jpeg -f <səhifə> -l <səhifə> giris.pdf cixis
+```
+
+**150 DPI kifayətdir.** A4 @150dpi ≈ 1240×1754 — `llm_client` onsuz da ən uzun tərəfi
+1600px-ə endirir (`ADR-006`). Daha yüksək DPI yalnız fayl həcmini artırır, keyfiyyəti yox.
+
+### Qərar 2 — hibrid: mətn qatı SEQMENTASİYA üçün, vision MƏZMUN üçün
+
+Mətn qatı **tamamilə yararsız deyil** — yalnız düsturlarda sınır. Nəsr, başlıqlar,
+fənn adları, sual nömrələri, `Mövzu:`/`Sinif:` markerləri **düzgün çıxır**.
+
+Ona görə ikisini birlikdə işlət:
+
+```
+1. pdftotext -layout -enc UTF-8  → hansı səhifələr Riyaziyyatdır, sual sərhədləri harada
+2. YALNIZ riyaziyyat səhifələrini pdftoppm ilə render et
+3. vision LLM → məsələ mətni + düstur
+4. etalon PDF-i (cədvəl, mətn qatı TƏMİZ çıxır) ilə cavabları ÇARPAZ YOXLA
+```
+
+İki qazanc: qarışıq fənn faylında **yalnız riyaziyyat səhifələri** ödənilir, və
+4-cü addım parse-in düzgünlüyünü **müstəqil mənbə ilə** təsdiqləyir.
+
+Çarpaz yoxlama tutmursa → həmin məsələ **korpusa girmir**, `unparsed` siyahısına düşür.
+
+### Qərar 3 — şablon reyestri, hardcode yox
+
+`Alt-standart:` bir şablonda var, digərində `Mövzu:`/`Sinif:`. Hardcode etmə:
+
+```
+scripts/dim/templates.py
+  { name: "attestat_2026", detect: /…/, markers: { topic: /Mövzu:\s*(.+)/, … } }
+  { name: "izahli_2025",   detect: /…/, markers: { substandard: /Alt-standart:\s*([\d.\-]+)/, … } }
+```
+
+Birinci səhifədə `detect` ilə şablon seçilir. `problems`-ə **`source_template`** yaz —
+şablon dəyişəndə hansı sətirlərin yenidən parse olunacağını bilməliyik.
+
+**Heç bir şablon uyğun gəlmirsə: səssizcə davam etmə, dayan və bildir.**
+Bu, `CLAUDE.md`-nin TODO qadağası ilə eyni prinsipdir.
+
+### Hansı fayldan başlamaq
+
+**Riyaziyyat, 11-ci sinif, izahlı** — qarışıq fənn faylından yox.
+Səbəb: məhsul hazırda yalnız riyaziyyatdır, izah ground truth verir, fayl kiçikdir,
+iterasiya sürətlidir. Xəbərlər indeksindən ən sonuncusunu seç.
+
+**Miqyas: əvvəlcə 50–100 məsələ.** Tam korpus deyil. Səbəb `ADR-016`-dadır:
+uyğunlaşdırma (`canonical_hash` vs `numeric_fingerprint`) hələ **ölçülməyib** —
+3000 məsələ yükləyib sonra uyğunlaşmadığını görmək bahalı olar.
+
+### Sıra dəyişmir
+
+Bu, **S4/S5 telefon təsdiqindən sonradır**. Şagirdlər hələ dəvət edilməyib və
+retensiya qapısı Faza 1-in əsas sualıdır. Korpus onu sürətləndirmir.
+
+**Blok:** yoxdur — üç qərar da yuxarıdadır.
+
+---
+
 ## 2026-08-08 (59) · Cowork → Claude Code
 
 **Mənbə araşdırıldı: `docs/DIM-CORPUS.md`.** Ilkinin sıra qərarı: **əvvəlcə şagirdlər**,
