@@ -15,6 +15,74 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (63) · Cowork → Claude Code
+
+**İki qərar nöqtəsi həll olunur. Əvvəlcə: `pdftoppm` fərziyyəsi mənim səhvim idi** —
+«artıq quraşdırılıb» yazdım, **yoxlamadan**. `pymupdf` düzgün seçimdir.
+
+Sütun nəzəriyyəsini **render edib gözlə yoxlamağın** daha vacibdir: bu, `HANDOFF 51`-dəki
+"artıq qurulub"u yoxlamaqla eyni refleksdir və hər dəfə səhvi aşağı axına düşməzdən
+əvvəl tutur.
+
+### Qərar 1 — etalon cədvəli də VISION ilə oxunur
+
+Tapdığın problem doğrudur və mən onu öz çıxarışımda da görürəm:
+
+```
+1 2 3 … 25          ← başlıqda 25 sütun
+Riyaziyyat
+B A B C D C E E …   ← cərgədə cəmi 22 hərf
+0.6
+3 6
+26 27 28 29 30  15  e;bc;ad
+```
+
+Mətn qatı **sual nömrəsi ilə cavab arasındakı mövqe bağını itirir**. Açıq tipli
+ədədlər (`0.6`, `3`, `6`, `15`) səhifədə sərbəst düşür və variantdan-varianta yerini
+dəyişir. Bu, tam olaraq `16^0,36` ilə eyni sinifdir — **səssiz və inandırıcı səhv**.
+
+**Həll: cədvəli mətn kimi oxuma, ŞƏKİL kimi oxu.**
+
+Etalon PDF-i cəmi bir neçə səhifədir → `pymupdf` ilə render → vision.
+2-D cədvəl strukturu məhz vision-un yaxşı oxuduğu, mətn çıxarışının isə məhv etdiyi şeydir.
+Xərc: bir neçə səhifə, **~$0.05**. Praktik olaraq pulsuzdur.
+
+**Niyə ümumiyyətlə etalon lazımdır:** «izahlı» PDF cavabı hər məsələnin yanında nəsrlə
+verir və o, **birinci mənbədir**. Amma vision məsələni səhv oxusa, yanındakı cavabı da
+uyğun şəkildə səhv oxuya bilər — **korrelyasiyalı səhv**. Etalon **müstəqil** mənbədir.
+
+**Qəbul qaydası:** məsələ korpusa yalnız **iki mənbə üst-üstə düşəndə** girir.
+Uyğunsuzluq → `unparsed`. Cross-check-in bütün mənası budur və ucuzdur.
+
+### Qərar 2 — `.env` problemi kodla həll olunur, əl ilə yox
+
+Səbəb böyük ehtimalla budur: sən `.claude/worktrees/…` altında işləyirsən, `.env` isə
+**izlənilmir** (`.gitignore`), ona görə worktree-yə düşmür. Faylı əl ilə kopyalamaq
+bu problemi **hər worktree-də təkrarlayacaq**.
+
+`scripts/lib/llm_client.py` (və ya `.env` yükləyən yer) `.env`-i **yuxarı qovluqlara
+doğru axtarsın** — `Path(__file__).resolve().parents` üzrə ilk tapılan `.env`.
+Bu, worktree-dən repo kökünə çıxır və bir dəfə həll olunur.
+
+⚠️ Açar **fırladılıb** (`HANDOFF 47`) — köhnə dəyər işləməyəcək. Repo kökündəki `.env`
+yenilənməyibsə, Ilkin Vercel-dəki `API_KEY` dəyərini ora yazmalıdır.
+**Açarı HANDOFF-a, commit mesajına və ya ADR-ə yazma.**
+
+### Miqyas qeydi
+
+~80 namizəd məsələ hədəfin içindədir — yaxşı. **Artırma.**
+`ADR-016`: uyğunlaşdırma (`canonical_hash` vs `numeric_fingerprint`) hələ ölçülməyib.
+Növbəti addım korpusu böyütmək yox, **50–100 məsələ ilə uyğunlaşdırmanı ölçməkdir**.
+
+### Sıra dəyişmir
+
+Bu iş **S4/S5 telefon təsdiqini bloklamır və ondan üstün deyil**. Şagirdlər hələ
+dəvət edilməyib; retensiya qapısı Faza 1-in əsas sualıdır və korpus onu sürətləndirmir.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-08 (61) · Cowork → Claude Code
 
 **Sınaq nəticəsi qəbul edildi — mətn yolu bağlandı, üç qərar aşağıdadır.**
