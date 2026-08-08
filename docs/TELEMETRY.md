@@ -136,6 +136,12 @@ step.abandoned                 props: {index, total}           ← S2: funnel-in
 solution.completed             props: {steps_total, errors_total, duration_sec}
 solution.answer_revealed       props: {at_step, of_total}      ← S4: köçürmə siqnalı
 solution.reported_wrong                                         ← "həll səhvdir" düyməsi
+
+render.latex_missing           props: {field: "final_answer"|"step"}  ← ADR-015: `latex`
+                                                                          boşdur, `values[0]`/
+                                                                          `explanation`-a geri
+                                                                          dönülüb, tezliyi
+                                                                          səssiz keçməməlidir
 ```
 
 ### Transfer məsələsi → S4, ƏSAS ÖYRƏNMƏ METRİKASI

@@ -9,8 +9,11 @@
 import { evaluate, subtract, abs as mAbs } from "mathjs";
 
 const LATEX_SEGMENT_RE = /\$(.+?)\$/g;
-const LATEX_FRAC_RE = /\\frac\{([^{}]*)\}\{([^{}]*)\}/g;
-const LATEX_SQRT_RE = /\\sqrt\{([^{}]*)\}/g;
+// ADR-015: `web/lib/math-format.ts` (GÖSTƏRMƏK üçün, əks istiqamətdə) bu İKİ patterni idxal
+// edir ki, LaTeX konstruksiyalarının tanınma cədvəli TƏKRARLANMASIN — burada YOXLAMAQ üçün
+// təmizlənir, orada UNICODE-a çevrilir, amma "bu, `\frac{a}{b}` formasıdır" tanınması eynidir.
+export const LATEX_FRAC_RE = /\\frac\{([^{}]*)\}\{([^{}]*)\}/g;
+export const LATEX_SQRT_RE = /\\sqrt\{([^{}]*)\}/g;
 
 // sympy-nin implicit-multiplication transformunun best-effort qarşılığı (ADR-012 "Bilinən fərq").
 // Yalnız RƏQƏM-əsaslı bitişikliyi həll edir (5x, 2(x+1), )x, )(  ) — hərf-hərf bitişikliyinə

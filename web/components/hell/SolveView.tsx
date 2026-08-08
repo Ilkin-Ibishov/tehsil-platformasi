@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { trackEvent, getDeviceId } from "@/lib/telemetry";
 import { reportAttemptProgress } from "@/lib/attempts";
+import { formatMath } from "@/lib/math-format";
 
 export type SolveStep = {
   index: number;
@@ -178,6 +179,12 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
       setRevealError(true);
       return;
     }
+    if (!answer.latex) {
+      // ADR-015 Tapıntı 1: `values` müqayisə üçündür, göstərmək üçün YOX. `latex` boşdursa
+      // (nəzəri — sxem tələb edir, amma modeldən gələn hər sahə zəmanətli deyil) geri dönüş
+      // `values[0]`-dur, tezliyini SƏSSİZ buraxmırıq.
+      trackEvent("render.latex_missing", { field: "final_answer" });
+    }
     setFinalAnswer(answer);
     setRevealing(false);
     setRevealed(true);
@@ -208,7 +215,14 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
     setStepIndex((i) => i + 1);
   }
 
-  const finalValuesText = useMemo(() => finalAnswer?.values.join(",  ") ?? "", [finalAnswer]);
+  // ADR-015 Tapıntı 1/2: `values` müqayisə üçündür (server tərəfdə istifadə olunur), şagirdə
+  // GÖSTƏRİLƏN `latex`-dir — o da `formatMath`-dan keçir (unicode riyaziyyat, `data-tex`
+  // müqaviləsi). `latex` boşdursa geri dönüş `values[0]` (yenə formatlanmış).
+  const finalDisplayText = useMemo(() => {
+    if (!finalAnswer) return "";
+    const src = finalAnswer.latex || finalAnswer.values[0] || "";
+    return formatMath(src);
+  }, [finalAnswer]);
 
   if (revealError) {
     return (
@@ -249,7 +263,7 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
             whiteSpace: "nowrap",
           }}
         >
-          {finalValuesText}
+          {finalDisplayText}
         </div>
         <div style={{ padding: "0 var(--page-pad-x)", display: "flex", gap: 20 }}>
           {!reportedWrong && (
@@ -354,7 +368,7 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
               whiteSpace: "nowrap",
             }}
           >
-            {currentStep.latex}
+            {formatMath(currentStep.latex)}
           </div>
         )}
 
