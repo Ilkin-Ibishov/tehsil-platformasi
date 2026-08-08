@@ -15,6 +15,77 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-08 (52) · Cowork → Claude Code
+
+**Ilkin telefonda 3 məntiqsizlik tapdı. DB-dən təsdiqlədim. `ADR-015` yazıldı.**
+İkisi **model problemi deyil, UI problemidir** — sxemdə lazımi sahə artıq var.
+
+### 1. Ekranda cavabın bütün variasiyaları görünür (`0.3 · 0,3 · 3/10`)
+
+`STEP-SCHEMA` → `final_answer` **iki sahə** tələb edir:
+`latex` = *"Göstərilən forma"*, `values` = maşınla yoxlanan.
+UI **`values`-i göstərir** — yəni müqayisə üçün nəzərdə tutulmuş massivi.
+
+`attempts.completed` ilə eyni sinif səhv (`§A1`): bir sahə iki işə qoşulub.
+Fərq: bu dəfə sahə onsuz da var, **miqrasiya lazım deyil**, UI oxuduğu yeri dəyişir.
+
+- cavab ekranı və `SolveView` → **`final_answer.latex`**
+- addımlarda `step.latex` varsa o, yoxdursa `explanation`
+- `latex` boşdursa geri dönüş `values[0]` **və** `render.latex_missing` hadisəsi —
+  səssiz keçməsin, tezliyini bilməliyik
+
+### 2. Düsturlar şagirdin oxuduğu formatda deyil (`x^3`, `b^2 - 4ac`, `3.5`)
+
+Modelin çıxışı qeyri-sabitdir: bəzən ASCII, bəzən LaTeX (`\log_3`, `\sqrt{}`, `$…$`),
+UI isə **xam** göstərir. Onluq ayırıcı da yanlışdır: `3.5` → azərbaycanca **`3,5`**.
+
+**Cavab dizayn faylındadır, yeni qərar tələb etmir.**
+`design/Həll ekranı v5.dc.html`:
+
+```html
+<span data-tex="x^2 - 5x + 6 = 0" style="font-family:'JetBrains Mono'">x² − 5x + 6 = 0</span>
+```
+
+LaTeX mənbə atributda, ekranda **unicode riyaziyyat**: `x²`, `b²`, `√D`, həqiqi minus `−`.
+`CLAUDE.md`: dizayn faylları **spesifikasiyadır**.
+
+**Həll: render qatı, prompt yox.** `web/lib/math-format.ts` → `formatMath()`.
+`ADR-013` dərsi: mexaniki qayda işləyir, məna tələb edən qayda işləmir.
+"Gözəl yaz" promptda məna tələbidir və 5/10 tutulacaq; render qatı deterministikdir,
+testlənir, bir dəfə yazılır və ru/en/tr, fizika/kimya gələndə də işləyir.
+
+⚠️ `verify/answer.ts` LaTeX artefaktlarını onsuz da təmizləyir (`HANDOFF 44`).
+`formatMath` onun **əks istiqamətidir** — **eyni cədvəli paylaşsınlar, iki siyahı olmasın.**
+`ADR-015`-də çevirmə cədvəli var.
+
+Kəsrlər (`\frac`) unicode-da yaxşı çıxmır → indilik `(x−1)/3`. KaTeX **əlavə etmirik**:
+~250KB mobil bundle, problem hələ ölçülməyib. `render.latex_missing` və şagird rəyi
+göstərsə, sonra.
+
+### 3. Bütün suallar üçün 4 addım
+
+Ölçdüm (DB, n=7): **4, 4, 3, 4, 4, 4, 4**. `2x + 6 = 20` üçün də 3 addım.
+Sxem 2–6-ya icazə verir, model seçmir.
+
+Kök səbəb **promptun öz tarixçəsində** yazılıb: *"Kök səbəb qaydada deyil, nümunədə idi…
+modellər qaydadan çox nümunəni təqlid edir"* (v2→v3). Promptda bir nümunə var, o da 3–4 addımlıq.
+
+**Prompt v8:**
+1. **İki nümunə**: biri **2 addımlıq sadə**, biri **6 addımlıq mürəkkəb**.
+   Nümunə qaydadan güclüdür — bunu iki dəfə ölçmüşük.
+2. Mexaniki qayda: model əvvəlcə **riyazi keçidlərin sayını** müəyyən edir,
+   addım sayı = həmin say + yoxlama. "Uyğun say seç" yazma — sayılan şey ver.
+3. Açıq qadağa: **süni addım əlavə etmə**. İki keçid kifayətdirsə cavab 2 addımdır.
+
+Ölçmə `BULK-EVAL.md` mətn dəstində: addım sayının **paylanmasına** bax.
+Baza xətti: 6/7 → 4.
+
+**Blok:** yoxdur. Sıra: `npm install` → **1 və 2 (UI, tez)** → 3 (prompt v8) → S5.
+
+1 və 2 S5-dən əvvəldir, çünki ikisi də kiçikdir və S5 eyni ekranlara toxunacaq.
+
+---
+
 ## 2026-08-08 (51) · Cowork → Claude Code
 
 **`git log`-a baxıb işi təkrarlamamağın düzgün idi** — "artıq qurulub"u yoxlamaq,
