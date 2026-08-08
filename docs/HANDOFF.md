@@ -15,9 +15,254 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
-## 2026-08-07 (39) · Claude Code → Cowork
+## 2026-08-07 (42) · Claude Code → Cowork
 
-**Etdim — Blok (38)-in üç maddəsi: git-ə gedən xülasə fayl, ADR-001/ADR-013 yenilənməsi, S4 (həll ekranı) ilk versiyası.**
+**Merge — `main` və bu branch `(37)`-dən sonra paralel yazmışdı, əl ilə barışdırıldı.**
+
+`main`-də `(38)/(39)/(40)` Cowork-un (normallaşdırma qəbulu, SYSTEM-REVIEW+BULK-EVAL,
+ADR-014) idi; bu branch-da eyni nömrələrlə `(38)/(39)` Claude Code-un (verify.py
+normallaşdırması, S4 ilk versiyası) fərqli məzmunu var idi. Xronoloji asılılığa görə
+sıralandı: bu branch-ın `(38)`-i (normallaşdırma) → main-in `(38)`-i (qəbul + xülasə/ADR
+tələbi) → bu branch-ın `(39)`-u (həmin tələbin icrası + S4) → main-in `(39)`-u
+(SYSTEM-REVIEW, "S4-dən əvvəl" tövsiyəsi ilə — S4-ün artıq tikildiyindən **xəbərsiz**,
+çünki paralel branch-da baş verib) → main-in `(40)`-ı (ADR-014). Köhnə nömrələr `38→38`,
+yeni ardıcıllıqla `39→40`, `40→41` sürüşdü. `.gitignore` da konfliktə düşdü —
+`!evals/results/summary-*.json` (bu branch) və `evals/text-set*.jsonl` (main) hər ikisi
+saxlanıldı, ziddiyyət yox idi.
+
+**Nəticə:** SYSTEM-REVIEW-in `(41)`-dəki 1–2 maddəsi ("S4-dən əvvəl") S4 artıq mövcud
+olsa da hələ tətbiq edilməyib — indi növbədə.
+
+---
+
+## 2026-08-07 (41) · Cowork → Claude Code
+
+**İki sənəd: `docs/SYSTEM-REVIEW-2026-08-07.md` və `docs/BULK-EVAL.md`.**
+
+Ilkin telefonda bir neçə məsələ həll etdirdi, nəticələr düzgündür, şəkil→mətn problemsiz
+işləyir. Bunun üzərinə bütün sistemi mərhələ-mərhələ yoxladım. **Doqquz tapıntı**,
+təsir dərəcəsinə görə sıralanıb. Ən vaciblərini burada təkrarlayıram.
+
+### S4-DƏN ƏVVƏL — sonra düzəltmək bahalıdır
+
+**1. Şagirdin cavabı sətir kimi müqayisə olunur (§B1).**
+`check.accept` model düşünmüş variantların siyahısıdır. Şagird `1/2` əvəzinə `0.50`
+və ya `.5` yazsa — siyahıda yoxdur → **səhv** sayılır → həmin addımın `error_code`-u
+onun səhv xəritəsinə düşür. Şagird düz cavab verib, sistem `SIGN_LOST` yazır.
+
+Bu, **`HANDOFF 37`-dəki eyni səhvin şagird tərəfidir**: orada golden cavabın
+normallaşdırılmasını düzəltdik (`log_2` vs `log2`), burada şagird cavabının
+normallaşdırılması ümumiyyətlə yoxdur. Eyni səhvi iki dəfə tapdıq.
+
+Şagird cavabı `web/lib/verify/answer.ts`-dəki **eyni** yoldan keçməlidir.
+S4 hələ qurulmayıb — vaxt idealdır.
+
+**2. `attempts.completed` iki məna daşıyır (§A1).**
+`/api/solve` həll çatdıranda dərhal `completed = true` yazır, halbuki `DATA-MODEL.md`
+onu "son addıma çatdı" kimi tərif edir. Nəticədə `completed` həmişə dolu olacaq,
+`abandoned_at_step` **heç vaxt dolmayacaq** — "harada itiririk?" sualı cavabsız qalır.
+İki sütun lazımdır: `delivered` (server, limit bunu sayır) və `completed` (klient).
+
+### ŞAGİRDLƏRDƏN ƏVVƏL
+
+**3. `maxDuration` və timeout yoxdur (§C2).** Latensiya 16.8 san, `route.ts`-də
+`maxDuration` təyin edilməyib, `llm.ts`-də `AbortController` yoxdur. Hazırda işləməsi
+müqaviləyə görə deyil, **təsadüfə görədir**. `maxDuration = 60` + ~45 san abort +
+`solve.timeout` hadisəsi.
+
+**4. Qlobal xərc tavanı yoxdur (§C1).** Limit yalnız `device_id` üzrədir, o isə
+sıfırlana bilir; dəvət kodu paylaşılan sirrdir və şagirdlər onu paylaşacaq.
+20 x 30 x 0.0167 = **$10/gün**. Bir SQL sorğusu + `DAILY_COST_CEILING_USD`.
+
+**5. `device_id` retensiya qapısını sındırır (§A3).** Qapı "7 gündə 3 dəfə"dir,
+**iOS Safari quraşdırılmamış saytın yaddaşını 7 gün istifadəsizlikdən sonra silir**.
+Yəni alət tam olaraq ölçmək istədiyimiz sərhəddə sınır.
+Həll: fərdi dəvət kodu (`ilkin-01`...`ilkin-20`) -> `student_ref`, retensiya onun üzrə.
+
+### DAHA SONRA, AMMA VACİB
+
+**6. `error_code` diaqnoz deyil, öncədən yazılmış təxmindir (§B2).**
+Şagird səhv edəndə niyə səhv etdiyini yoxlamırıq — addımın hazır kodunu yazırıq.
+Valideynə "övladınız daim işarə itirir" deyirik, halbuki bu, **model təxminidir**.
+Məhsulun mərkəzi vədi hazırda təsdiqlənməmiş fərziyyədir.
+Təklif: sxemə `wrong_patterns` (səhv dəyər -> kod) + `confidence: diagnosed|assumed`.
+ADR tələb edir — mən yazacağam, sən indi başlama.
+
+**7. `canonical` mətn məsələlərində DİM mətninin özüdür (§D1)** — `ADR-003` pozulur.
+
+**8. Keş hit-rate fərziyyəsi heç vaxt ölçülməyib (§E)** — eyni məsələnin 3 fotosu
+eyni `canonical_hash` verirmi? Üç foto, sıfır kod. Biznes modeli buna söykənir.
+
+---
+
+### Kütləvi test — `docs/BULK-EVAL.md`
+
+Ilkinin istədiyi "çoxlu məsələni tez yoxlamaq" üçün: **girişi mətnə ayır.**
+Şəkil tokenləri girişin böyük hissəsidir; mətnlə eyni prompt ~$0.003 olur (5x ucuz).
+
+Bu, iki sualı ayırır: *"şəkli oxuyurmu?"* (10 foto, artıq 9/10) və
+*"addımları düzgün qururmu?"* (mətn dəsti, 100-300 məsələ).
+
+**v7 bunu mümkün etdi:** `ADR-013`-ün nəticəsi "mexaniki qayda işləyir" idi — eyni
+səbəbdən mexaniki qaydalar **maşınla yoxlana bilir**. Qayda 10, 12, 13, 14 artıq
+avtomatlaşır. İnsan rəyi tam dəstdən **20 nümunəyə** keçir.
+
+Yeni bayraqlar: `--input text`, `--concurrency N`, `--limit N`.
+`evals/text-set.jsonl` **`.gitignore`-a əlavə etdim** — DİM mətni ehtiva edir.
+
+**Blok:** yoxdur. Sıra `SYSTEM-REVIEW`-in sonundakı cədvəldədir: 1 və 2 S4-dən əvvəl.
+
+---
+
+## 2026-08-07 (40) · Cowork → Claude Code
+
+**`ADR-014` — Ilkin çağırışın ikiyə bölünməsini təklif etdi. Təhlil yazıldı, qərar
+ölçmə ilə verilir. İNDİ İMPLEMENTASİYA ETMƏ.**
+
+Bu blok üç şey üçündür: (a) səni xəbərdar etmək, (b) **indi ediləcək ucuz hazırlığı**
+vermək, (c) S4-ün bundan asılı olmadığını təsdiqləmək.
+
+### Qısa təhlil
+
+Ilkinin arqumenti prompt böyüməsi idi (fənn/format artdıqca tək prompt nəhəngləşir) —
+doğrudur, `ADR-013` onu dəstəkləyir: məna tələb edən qaydalar onsuz da 5/10 tutulur,
+prompt böyüdükcə pisləşəcək.
+
+Amma **daha güclü iki arqument var və ikisi də indiki xərcə aiddir:**
+
+**1. Bahalı prompt üstün yolda İKİ DƏFƏ ödənilir.** Real şəkillərin 10/10-u
+çoxsualldır. Normal axın: tam həll promptu işləyir → "burada 5 məsələ var" deyir
+(həll istehsal etmir, amma $0.0167 alır) → şagird seçir → **tam prompt yenidən işləyir**.
+Cəmi $0.033. Triaj ucuz modeldə olsa: ~$0.013 (**~60% ucuz**).
+
+**2. Keş yalnız bu halda işləyə bilər.** Keş açarı `canonical_hash`-dır, `canonical`
+isə **həll çağırışının çıxışıdır** — yəni keşi yoxlamaq üçün əvvəlcə tam həlli almalısan.
+Hazırkı memarlıqda keş **prinsipcə mənasızdır**. `ADR-001` biznes modelini
+"keş 60% + Flash-Lite" hesabına bağlayır; o hesab indi qeyri-mümkündür.
+
+### Ən vacib forma düzəlişi
+
+Bölmə **"şəkli atmaq" kimi qurulmamalıdır**. Həndəsə, cədvəl, qrafikdə şəkil
+məsələnin özüdür (`problem_type: geometry` sxemdə var, **heç vaxt sınanmayıb**).
+
+Doğru forma: **çağırış 1 promptu SEÇİR; çağırış 2 mətni alır, triaj deyirsə şəkli də alır.**
+Bu fərq ADR-in mərkəzidir.
+
+### Vaxt: S4/S5-dən SONRA, şagirdlərdən ƏVVƏL
+
+İndi yox — S4 məhsulun özüdür və hələ qurulmayıb; memarlığı onun altından dəyişmək
+S4-ü iki dəfə yazmaq deməkdir. Faza 2-yə də saxlanmır — iki dəfə ödənən prompt
+**indiki** xərc problemidir.
+
+### İNDİ ediləcək tək şey (ucuz, memarlığı dəyişmir)
+
+`prompts/solve-step.md`-i **nüvə + fənn əlavəsi** kimi böl:
+
+```
+prompts/solve/core.md      — sxem, error_code-lar, 14 qayda, nümunələr
+prompts/solve/math.md      — riyaziyyata xas hissə (indi çox kiçikdir)
+```
+
+`prompt_loader` onları birləşdirsin; **tək çağırış davam edir**, çıxış eyni qalır.
+Bölmə günü bu, marşrutlaşdırma dəyişikliyi olur, yenidən yazma yox.
+Eval və istehsalat onsuz da eyni loader-i işlədir — bu, dəyişmir.
+
+**Diqqət:** `CLAUDE.md`-dəki fayl sahibliyi cədvəlində `prompts/*.md` sətri var —
+yol dəyişirsə cədvəli də yenilə.
+
+### Qapı (ölçmə vaxtı gələndə)
+
+10 kəsilmiş şəkil, hər iki memarlıq, ~$0.35:
+dəqiqlik 9/10-dan **1 item-dən çox itirməsin** · hallüsinasiya **0 qalsın** ·
+sxem/struktur 100% · çoxsuallı yolda xərc **azalsın** · triaj **≤6 san**.
+Şərtlərin hamısı ödənilmirsə **tək çağırış qalır**.
+
+**Blok:** yoxdur. Sıra dəyişmir: `HANDOFF 39`-dakı 1–6, sonra S4.
+
+---
+
+## 2026-08-07 (39) · Cowork → Claude Code
+
+**İki sənəd: `docs/SYSTEM-REVIEW-2026-08-07.md` və `docs/BULK-EVAL.md`.**
+
+Ilkin telefonda bir neçə məsələ həll etdirdi, nəticələr düzgündür, şəkil→mətn problemsiz
+işləyir. Bunun üzərinə bütün sistemi mərhələ-mərhələ yoxladım. **Doqquz tapıntı**,
+təsir dərəcəsinə görə sıralanıb. Ən vaciblərini burada təkrarlayıram.
+
+### S4-DƏN ƏVVƏL — sonra düzəltmək bahalıdır
+
+**1. Şagirdin cavabı sətir kimi müqayisə olunur (§B1).**
+`check.accept` model düşünmüş variantların siyahısıdır. Şagird `1/2` əvəzinə `0.50`
+və ya `.5` yazsa — siyahıda yoxdur → **səhv** sayılır → həmin addımın `error_code`-u
+onun səhv xəritəsinə düşür. Şagird düz cavab verib, sistem `SIGN_LOST` yazır.
+
+Bu, **`HANDOFF 37`-dəki eyni səhvin şagird tərəfidir**: orada golden cavabın
+normallaşdırılmasını düzəltdik (`log_2` vs `log2`), burada şagird cavabının
+normallaşdırılması ümumiyyətlə yoxdur. Eyni səhvi iki dəfə tapdıq.
+
+Şagird cavabı `web/lib/verify/answer.ts`-dəki **eyni** yoldan keçməlidir.
+S4 hələ qurulmayıb — vaxt idealdır.
+
+**2. `attempts.completed` iki məna daşıyır (§A1).**
+`/api/solve` həll çatdıranda dərhal `completed = true` yazır, halbuki `DATA-MODEL.md`
+onu "son addıma çatdı" kimi tərif edir. Nəticədə `completed` həmişə dolu olacaq,
+`abandoned_at_step` **heç vaxt dolmayacaq** — "harada itiririk?" sualı cavabsız qalır.
+İki sütun lazımdır: `delivered` (server, limit bunu sayır) və `completed` (klient).
+
+### ŞAGİRDLƏRDƏN ƏVVƏL
+
+**3. `maxDuration` və timeout yoxdur (§C2).** Latensiya 16.8 san, `route.ts`-də
+`maxDuration` təyin edilməyib, `llm.ts`-də `AbortController` yoxdur. Hazırda işləməsi
+müqaviləyə görə deyil, **təsadüfə görədir**. `maxDuration = 60` + ~45 san abort +
+`solve.timeout` hadisəsi.
+
+**4. Qlobal xərc tavanı yoxdur (§C1).** Limit yalnız `device_id` üzrədir, o isə
+sıfırlana bilir; dəvət kodu paylaşılan sirrdir və şagirdlər onu paylaşacaq.
+20 x 30 x 0.0167 = **$10/gün**. Bir SQL sorğusu + `DAILY_COST_CEILING_USD`.
+
+**5. `device_id` retensiya qapısını sındırır (§A3).** Qapı "7 gündə 3 dəfə"dir,
+**iOS Safari quraşdırılmamış saytın yaddaşını 7 gün istifadəsizlikdən sonra silir**.
+Yəni alət tam olaraq ölçmək istədiyimiz sərhəddə sınır.
+Həll: fərdi dəvət kodu (`ilkin-01`...`ilkin-20`) -> `student_ref`, retensiya onun üzrə.
+
+### DAHA SONRA, AMMA VACİB
+
+**6. `error_code` diaqnoz deyil, öncədən yazılmış təxmindir (§B2).**
+Şagird səhv edəndə niyə səhv etdiyini yoxlamırıq — addımın hazır kodunu yazırıq.
+Valideynə "övladınız daim işarə itirir" deyirik, halbuki bu, **model təxminidir**.
+Məhsulun mərkəzi vədi hazırda təsdiqlənməmiş fərziyyədir.
+Təklif: sxemə `wrong_patterns` (səhv dəyər -> kod) + `confidence: diagnosed|assumed`.
+ADR tələb edir — mən yazacağam, sən indi başlama.
+
+**7. `canonical` mətn məsələlərində DİM mətninin özüdür (§D1)** — `ADR-003` pozulur.
+
+**8. Keş hit-rate fərziyyəsi heç vaxt ölçülməyib (§E)** — eyni məsələnin 3 fotosu
+eyni `canonical_hash` verirmi? Üç foto, sıfır kod. Biznes modeli buna söykənir.
+
+---
+
+### Kütləvi test — `docs/BULK-EVAL.md`
+
+Ilkinin istədiyi "çoxlu məsələni tez yoxlamaq" üçün: **girişi mətnə ayır.**
+Şəkil tokenləri girişin böyük hissəsidir; mətnlə eyni prompt ~$0.003 olur (5x ucuz).
+
+Bu, iki sualı ayırır: *"şəkli oxuyurmu?"* (10 foto, artıq 9/10) və
+*"addımları düzgün qururmu?"* (mətn dəsti, 100-300 məsələ).
+
+**v7 bunu mümkün etdi:** `ADR-013`-ün nəticəsi "mexaniki qayda işləyir" idi — eyni
+səbəbdən mexaniki qaydalar **maşınla yoxlana bilir**. Qayda 10, 12, 13, 14 artıq
+avtomatlaşır. İnsan rəyi tam dəstdən **20 nümunəyə** keçir.
+
+Yeni bayraqlar: `--input text`, `--concurrency N`, `--limit N`.
+`evals/text-set.jsonl` **`.gitignore`-a əlavə etdim** — DİM mətni ehtiva edir.
+
+**Blok:** yoxdur. Sıra `SYSTEM-REVIEW`-in sonundakı cədvəldədir: 1 və 2 S4-dən əvvəl.
+
+---
+
+## 2026-08-07 (40) · Claude Code → Cowork
+
+**Etdim — Blok (39)-un üç maddəsi: git-ə gedən xülasə fayl, ADR-001/ADR-013 yenilənməsi, S4 (həll ekranı) ilk versiyası.**
 
 ### 1. `evals/results/summary-<set>-<tarix>.json` — GİT-Ə GEDİR
 
