@@ -40,23 +40,22 @@ heç bir 500. Sadəcə `private` sxeminin bütün qorunması yox olacaq, çünki
       `select * from private.question_answers limit 1;` **UĞURLU** olmalıdır
       (miqrasiya skriptləri `MIGRATION_DATABASE_URL` ilə bunu tələb edir).
 
-- [ ] `check_answer`/`check_step`/`get_answer`/`get_step_answer`/`store_answer`/
-      `store_step_answers` funksiyalarının hamısında `EXECUTE` yalnız
-      `app_runtime`-ə verilib, `PUBLIC`-ə YOX:
-      ```sql
-      select p.proname, r.rolname
-        from pg_proc p
-        join pg_proc_acl on true -- (real sorğu: information_schema.role_routine_grants)
-      ```
-      sadə forması:
+- [ ] `reveal_answer`/`reveal_step_answer`/`store_answer`/`store_step_answers`
+      funksiyalarının hamısında `EXECUTE` yalnız `app_runtime`-ə verilib,
+      `PUBLIC`-ə YOX (HANDOFF 71 — `check_answer`/`check_step` SİLİNDİ, bu
+      siyahıda ARTIQ YOXDUR):
       ```sql
       select routine_name, grantee, privilege_type
         from information_schema.role_routine_grants
        where routine_schema = 'public'
-         and routine_name in ('check_answer','check_step','get_answer',
-                               'get_step_answer','store_answer','store_step_answers');
+         and routine_name in ('reveal_answer','reveal_step_answer',
+                               'store_answer','store_step_answers');
       ```
       Yalnız `app_runtime` sətirləri olmalıdır.
+
+- [ ] `private.answer_access_log`-a yazı işləyir — bir `reveal_answer` çağırışından
+      sonra `select count(*) from private.answer_access_log where purpose='verify'`
+      artmalıdır (audit jurnalının özü sınmayıb).
 
 - [ ] Lokal `.env.local` (development) da EYNİ `app_runtime` roluna işarə edir —
       ADR-017-in öz qeyd etdiyi risk: *"lokal dev fərqli roldadırsa, icazə xətaları

@@ -1,9 +1,18 @@
 # ADR-019 — API qatı köçürməsi: `problems`/`solutions`/`attempts` → yeni sxem
 
-**Status:** Təklif (kod yazılmayıb — yalnız plan)
+**Status:** Təklif (kod mərhələsi indi başlayır)
 **Tarix:** 2026-08-10
-**Kontekst:** `ADR-018`, `ADR-017`, `HANDOFF (67)/(68)/(69)/(70)`, `supabase/migrations/0012-0022`
-(PR #2, hələ merge edilməyib), `.kiro/specs/test-bank/design.md`.
+**Kontekst:** `ADR-018`, `ADR-017`, `HANDOFF (67)/(68)/(69)/(70)/(71)`,
+`supabase/migrations/0012-0022` (PR #2, hələ merge edilməyib),
+`.kiro/specs/test-bank/design.md`.
+
+**Yenilənmə qeydi (HANDOFF 71):** G1-G3 Cowork tərəfindən bağlandı, RPC səthi
+DƏYİŞDİ — `check_answer`/`check_step` (bu sənədin ilk versiyasının təklif etdiyi
+`get_answer`/`get_step_answer` YOX) SİLİNDİ, əvəzinə `reveal_answer`/
+`reveal_step_answer`/`store_answer`/`store_step_answers` gəldi (audit jurnallı,
+insert-only yazı). §"Kritik boşluqlar" və §2 aşağıda YENİ səthə görə yenidən
+yazılıb. Köhnə mətnin qalıqları (RLS/select-audit kimi dəyişməyən hissələr)
+toxunulmayıb.
 
 ## Bir cümlədə
 
@@ -12,102 +21,45 @@ köhnə cədvəllər toxunulmaz qalırdı. Bu, ilk **breaking** deploy-dur: `001
 (RENAME) tətbiq olunan andan `web/app/api/**`-in mövcud kodu 500 qaytarmağa başlayır,
 əgər EYNİ deploy-da yenilənməyibsə. Plan bunun üçündür.
 
-## Planlaşdırma zamanı tapılan KRİTİK boşluqlar — kod yazılmazdan ƏVVƏL həll tələb edir
+## RPC səthi (HANDOFF 71, yekun) — `0018` bunu tətbiq edir
 
-Bunlar ADR-017/`design.md`-nin RPC səthində olmayan, amma real tətbiq kodu üçün
-MƏCBURİ olan hissələrdir. Endpoint-planı (§2) bunlara istinad edir — əvvəlcə
-oxunmalıdır, yoxsa §2 "necə" sualına cavab vermir.
+Əvvəlki plan versiyası `check_answer`/`check_step`/`get_answer`/`get_step_answer`
+adında dörd RPC təklif etmişdi. Cowork bunu **rədd etdi** — `check_answer`/
+`check_step` ADR-009-u pozurdu (SQL-də müqayisənin İKİNCİ nüsxəsi, `verify/answer.ts`-dən
+FƏRQLİ məntiqlə). Yekun səth **dörd fərqli funksiyadır**, hamısı `supabase/migrations/0018`-də:
 
-### G1 — `private` sxeminə YAZI yolu yoxdur (BLOKLAYICI)
+| Funksiya | İşi | `purpose` |
+|---|---|---|
+| `reveal_answer(q, purpose, ai default null)` | yekun cavab açarını qaytarır, audit yazır | `'verify'` (müqayisə üçün) / `'reveal'` (şagirdə göstərmək üçün) / `'eval'` |
+| `reveal_step_answer(q, idx, purpose, ai default null)` | addım açarını qaytarır, audit yazır | eyni üç dəyər |
+| `store_answer(q, a, v default 'exact')` | insert-only yazır, `boolean` qaytarır (`found`) | — |
+| `store_step_answers(q, rows)` | toplu insert-only yazır, neçə sətir yazıldığını qaytarır | — |
 
-`ADR-017`/`0018`: `app_runtime`-in `private` sxeminə **heç bir GRANT-ı yoxdur** —
-bu, oxumaq üçün düşünülüb. Amma `/api/solve` HƏR YENİ sualda `private.question_answers`
-və `private.step_answers`-ə YAZMALIDIR (şagird yeni məsələ çəkəndə). `app_runtime`
-rolu ilə bu, birbaşa mümkün DEYİL — `insert into private.question_answers ...`
-`permission denied for schema private` xətası verəcək.
+**Müqayisə HƏMİŞƏ Node-dadır** (`studentAnswerMatches`, `web/lib/verify/answer.ts`,
+DƏYİŞMİR) — DB yalnız saxlayır/verir. `ai` (`attempt_item_id`) audit üçündür,
+verilməsə `NULL` yazılır (məs. transfer axınında hələ `attempt_item` yoxdursa).
 
-**Lazımdır (bu ADR-in əhatəsində DEYİL, ayrıca miqrasiya/Cowork qərarı):**
+### G1/G2 — bağlandı (HANDOFF 71)
 
-```sql
-create function public.store_answer(q uuid, answer jsonb, validator text default 'exact')
-returns void language plpgsql security definer set search_path = private, public as $$
-begin
-  insert into private.question_answers (question_id, answer, validator)
-  values (q, answer, validator)
-  on conflict (question_id) do update set answer = excluded.answer, validator = excluded.validator;
-end; $$;
-revoke all on function public.store_answer from public;
-grant execute on function public.store_answer to app_runtime;
+Əvvəlki plan iki AYRI problem kimi görmüşdü ("yazı yolu yoxdur" / "server-daxili
+oxuma yolu yoxdur"). Cowork bunları BİR həllə birləşdirdi: `store_*` (yazı) və
+`reveal_*` (oxuma, HƏR ZAMAN Node-a dəyər qaytarır — nə `/api/attempts/reveal`
+üçün, nə server-daxili müqayisə üçün fərq yoxdur, ikisi də `purpose` ilə
+fərqləndirilir, funksiyanın ÖZÜ eynidir). Ayrıca RPC dizaynı lazım deyildi.
 
-create function public.store_step_answers(q uuid, steps jsonb)
-returns void language plpgsql security definer set search_path = private, public as $$
-begin
-  delete from private.step_answers where question_id = q;
-  insert into private.step_answers (question_id, step_index, accept, input_kind)
-  select q, (elem->>'index')::smallint, elem->'check'->'accept',
-         coalesce(elem->'check'->>'input_kind','number')
-  from jsonb_array_elements(steps) elem
-  where elem->'check' ? 'accept';
-end; $$;
-revoke all on function public.store_step_answers from public;
-grant execute on function public.store_step_answers to app_runtime;
-```
+**Diqqət — ADR-017-nin təminatı DƏQİQLƏŞDİ, ZƏİFLƏMƏDİ:** ilkin ifadə "tətbiq
+prosesi cavabı görə bilmir" idi, bu YANLIŞ idi (müqayisə Node-da olur, dəyər
+labüd olaraq oraya gəlir). Düzgün ifadə: cavab **cədvəl oxumaqla əlçatan deyil**,
+yalnız adlı+audit olunan funksiya ilə — sızma vektoru (təsadüfi `join`/`select *`)
+bağlıdır, server-daxili hesablama YOX.
 
-Bunlar olmadan §2.1 (`/api/solve`) YAZILA BİLMƏZ.
+### G3 — bağlandı, ziddiyyət yox idi (HANDOFF 71)
 
-### G2 — server-daxili "həqiqi cavabı oxu" yolu yoxdur (BLOKLAYICI)
-
-İki müstəqil ehtiyac EYNİ RPC-ni tələb edir:
-
-1. **`/api/attempts/reveal`** — şagird "Cavabı göstər"ə basanda HƏQİQİ dəyəri
-   QƏSDƏN görməlidir. `check_answer` bunu qaytarmır (yalnız `is_correct`).
-2. **Ədədi-tolerantlıq müqayisəsi** — `HANDOFF (67)`: *"`numeric_tolerance` bu
-   funksiya ilə işləmir, sympy müqayisəsi API qatındadır."* Yəni `check_answer`/
-   `check_step`-in hərfi `=`/`@>` müqayisəsi **kifayət deyil** — mövcud
-   `studentAnswerMatches` (`web/lib/verify/answer.ts`) `0.5` ilə `1/2`-ni,
-   `−3` ilə `-3`-ü, vergüllə nöqtəni EYNİ sayır (ədədi qiymətləndirmə,
-   `mathjs`, tolerantlıq `1e-6`). Bunu SQL-də `a = given` ilə əvəz etmək
-   **REQRESDİR** — bu gün işləyən cavablar sabah "səhv" görünəcək.
-
-**Nəticə:** server (Node, `app_runtime` altında) HƏQİQİ dəyəri MÜVƏQQƏTİ yaddaşa
-almalıdır ki, `studentAnswerMatches` ilə müqayisə edə bilsin — bu, `private` sxeminin
-KLİENTƏ sızmasından FƏRQLİDİR (qoruma sərhədi client-server arasındadır, server
-daxili hesablama deyil, `.kiro/steering/test-bank.md`-in "doğru cavab heç vaxt
-client-ə göndərilmir" qaydası ilə ziddiyyət YARATMIR).
-
-```sql
-create function public.get_answer(q uuid)
-returns jsonb language sql security definer set search_path = private, public as $$
-  select answer from private.question_answers where question_id = q;
-$$;
-revoke all on function public.get_answer from public;
-grant execute on function public.get_answer to app_runtime;
-
-create function public.get_step_answer(q uuid, idx smallint)
-returns jsonb language sql security definer set search_path = private, public as $$
-  select jsonb_build_object('accept', accept, 'input_kind', input_kind)
-  from private.step_answers where question_id = q and step_index = idx;
-$$;
-revoke all on function public.get_step_answer from public;
-grant execute on function public.get_step_answer to app_runtime;
-```
-
-**Nəticə (mühüm):** `check_answer`/`check_step` RPC-ləri praktikada YALNIZ
-`type != 'open'` (`single`/`multi`/`match`/`order`, gələcək) üçün istifadə olunacaq —
-hazırkı bütün suallar `type='open'` olduğu üçün, Faza 1-də `/api/answers/check` və
-`/api/steps/check` **`get_answer`/`get_step_answer` + Node-da `studentAnswerMatches`**
-yolu ilə işləyəcək, `check_answer`/`check_step` YOX. Bu, `0018`-i lazımsız etmir
-(gələcək tip üçün saxlanılır), amma §2-dəki plan bunu əsas götürür.
-
-### G3 — `private.question_answers.answer` forması `HANDOFF (67)`-nin dediyi ilə üst-üstə düşmür
-
-`0019` (PR #2) `answer = final_answer` (tam `{latex,values,choice}` obyekti) yazır.
-`HANDOFF (67)`: *"`/api/answers/check`-in `given` formatı: `{"value": <scalar>}`
-sabit forması."* Bunlar İKİ FƏRQLİ formadır. G2 qərarı (server `get_answer` ilə
-oxuyub Node-da müqayisə edir) bu ziddiyyəti PRAKTİKİ OLARAQ ƏHƏMİYYƏTSİZ EDİR —
-`check_answer` RPC-si (hərfi `a = given`) İSTİFADƏ OLUNMURSA, onun `given` formatı
-kod yolunda görünmür. Amma `0019`-un özü RƏSMİ formatı QƏTİLƏŞDİRMİR — bu, Cowork-un
-qərarı olaraq açıq qalır, §6-da risk kimi qeyd olunub.
+`private.question_answers.answer` = tam `{latex,values,choice}` obyekti — bu,
+SAXLAMA formatıdır və DÜZGÜNDÜR (`0019` dəyişmir). `HANDOFF(67)`-dəki
+`{"value": scalar}` **client SORĞUSUNUN** formatı idi (yəni `/api/answers/check`-ə
+GƏLƏN body), saxlama formatı YOX. İkisi eyni şey olmalı DEYİLDİ — mənim əvvəlki
+oxumam səhv idi.
 
 ### G4 — dedup sorğusu dəyişməlidir
 
@@ -123,7 +75,7 @@ düzəldilib.
 `/api/attempts/transfer` və `/api/attempts/transfer/check` HAZIRDA `solutions.payload`-ı
 (canonical VƏ `final_answer.values`) birbaşa SQL-də oxuyur — yeni sxemdə bu, `private`
 sxeminə birbaşa toxunmaq deməkdir, `app_runtime` ilə mümkün deyil. §2.4/§2.5-də
-G2-dəki `get_answer` ilə əvəzlənir.
+`reveal_answer(...,'verify',...)` ilə əvəzlənir.
 
 ---
 
@@ -174,8 +126,8 @@ funksiyalarıdır, dəyişməzlər.
 | `update problems set hit_count=hit_count+1` | `update questions set hit_count=hit_count+1, attempt_count=attempt_count+1` — HANDOFF-da ayrılmış iki sayğac (ADR-018 §1c), ikisi də artır |
 | `insert into problems (...)` | `insert into questions (id, canonical, canonical_hash, numeric_fingerprint, problem_type, subject_id, grade, topic_code, type, payload, difficulty_static, source, review_status, root_id) values (..., 'open', '{}', 3, 'user_capture', $review_status, id)` — **`review_status` YENİ MƏNTİQ**: `verified===true ? 'auto_verified' : 'draft'` (`HANDOFF 68` cədvəli) |
 | `insert into solutions (...)` | `insert into question_translations (question_id, lang, stem, steps, verified, verification_method, model, cost_usd, prompt_version) values ($1,'az',...)` — `stem` `parsed.canonical`-dan tikilir (`0017`-dəki eyni tək-blok forması), `steps` `check.accept` ÇIXARILMIŞ halda (bax aşağıda) |
-| — | **YENİ addım (G1):** `select store_answer($1, $2::jsonb, 'exact')` — `$2` = `final_answer` (forma §G3-də açıq qalıb) |
-| — | **YENİ addım (G1):** `select store_step_answers($1, $2::jsonb)` — `$2` = `parsed.steps` (tam, `accept` daxil — funksiya özü ayırır) |
+| — | **YENİ addım:** `select store_answer($1, $2::jsonb, 'exact')` — `$2` = `parsed.final_answer` (tam `{latex,values,choice}` obyekti, G3) |
+| — | **YENİ addım:** `select store_step_answers($1, $2::jsonb)` — `$2` = `jsonb_agg({step_index, accept, input_kind})`, `parsed.steps`-dən Node-da qurulur (funksiya `rows` massivini gözləyir, tam `steps` obyektini YOX — `0018`-dəki `store_step_answers` imzasına bax) |
 | `insert into attempts (id, device_id, problem_id, solution_id, match_path, ocr_source, delivered, student_ref)` | **İKİ INSERT:** `insert into attempts (id, device_id, student_ref, kind, started_at, client_created_at) values ($sessionId, $deviceId, $studentRef, 'photo_solve', now(), now())` + `insert into attempt_items (id, attempt_id, question_id, match_path, ocr_source, delivered, steps_total) values ($itemId, $sessionId, $questionId, 'llm', 'vision_llm', true, $stepsCount)` — **`sessionId` = klientin göndərdiyi `attempt_id`** (mövcud davranış saxlanılır, §G6), `itemId` server-generasiya |
 | Cavabda `attempt_id: attemptRowId` | **DƏYİŞMİR** — client eyni ID-ni alır, sadəcə indi sessiya ID-sidir. Client kodu TOXUNULMUR. |
 
@@ -189,10 +141,10 @@ BİR tranzaksiyada — RPC-lər `plpgsql`/`sql` funksiyalarıdır, adi `client.q
 Köhnə: `payload.steps[idx].check.accept`-i `attempts JOIN solutions` ilə oxuyur,
 Node-da `studentAnswerMatches` ilə müqayisə edir.
 
-Yeni (**G2** yolu, `check_step` RPC YOX):
+Yeni:
 
 1. `select ai.id as item_id, ai.question_id from attempt_items ai join attempts a on a.id=ai.attempt_id where a.id=$1 and a.device_id=$2` — sahiblik + `question_id` tapılır (əvvəlki `attempt_id`, indi SESSİYA id-si, §G6-ya görə).
-2. `select get_step_answer($question_id, $step_index)` → `{accept, input_kind}`.
+2. `select reveal_step_answer($question_id, $step_index, 'verify', $item_id)` → `{accept, input_kind}` (`NULL` ola bilər — açar yoxdursa `step_not_found` kimi `400` qaytar, köhnə davranışla eyni).
 3. Node-da eyni `studentAnswerMatches` (DƏYİŞMİR).
 4. `error_code` üçün: köhnədə `step.error_code` `payload`-dan gəlirdi — YENİ sxemdə
    bu, `question_translations.steps[idx].error_code`-dadır (**PUBLIC**, sirr deyil,
@@ -205,7 +157,7 @@ Yeni (**G2** yolu, `check_step` RPC YOX):
 
 Köhnə: `payload.final_answer`-i `attempts JOIN solutions`-dan oxuyur.
 
-Yeni: `select ai.question_id from attempt_items ai join attempts a on a.id=ai.attempt_id where a.id=$1 and a.device_id=$2`, sonra `select get_answer($question_id)` (**G2**). `latex` göstərmək üçün `question_translations`-dan da lazım ola bilər (`final_answer.latex` HAZIRDA `private.question_answers.answer`-in İÇİNDƏDİR, §G3-ün forması buna görə vacibdir — `latex` sirr DEYİL, amma indi sirr olan `values`-la EYNİ obyektdədir; ayrılması Cowork qərarı, §6).
+Yeni: `select ai.id as item_id, ai.question_id from attempt_items ai join attempts a on a.id=ai.attempt_id where a.id=$1 and a.device_id=$2`, sonra `select reveal_answer($question_id, 'reveal', $item_id)` → `{answer:{latex,values,choice}, validator}`. `latex` AYRICA sorğu tələb ETMİR — G3-ün bağlanması ilə eyni obyektin içindədir, birbaşa cavabda qaytarılır.
 
 ### 2.4 `POST /api/attempts/transfer`
 
@@ -215,19 +167,20 @@ oxuyur.
 
 Yeni:
 1. Mənbə: `select q.topic_code, q.id as question_id from attempt_items ai join attempts a on a.id=ai.attempt_id join questions q on q.id=ai.question_id where a.id=$1 and a.device_id=$2`.
-2. Namizəd: `select q.id from questions q join question_translations qt on qt.question_id=q.id where q.topic_code=$1 and q.problem_type='formula' and q.id != $2 and qt.lang='az' and qt.verified=true order by random() limit 1` — **`final_answer.values is not null` filtri DÜŞÜR** (private sxemə toxuna bilmirik), əvəzinə `qt.verified=true` işlədilir (məntiqi ekvivalent: `0019`-dakı backfill YALNIZ `status='ok'`+`steps`+`canonical` olan sətirlərə `question_answers` yazır, VERİFİED olub-olmaması ayrı, amma PRAKTİKİ olaraq `private.question_answers` mövcudluğu = `question_translations` sətrinin mövcudluğu ilə EYNİDİR, çünki `0019` `0017`-nin EYNİ "winning" seçimini işlədir — bu ekvivalentlik G1 yazılanda da qorunmalıdır: `store_answer` HƏR YENİ sualda `question_translations` INSERT-i ilə EYNİ tranzaksiyada çağrılmalıdır, yoxsa fərqli düşərlər).
+2. Namizəd: `select q.id from questions q join question_translations qt on qt.question_id=q.id where q.topic_code=$1 and q.problem_type='formula' and q.id != $2 and qt.lang='az' and qt.verified=true order by random() limit 1` — **`final_answer.values is not null` filtri DÜŞÜR** (private sxemə toxuna bilmirik), əvəzinə `qt.verified=true` işlədilir (məntiqi ekvivalent: `0019`-dakı backfill YALNIZ `status='ok'`+`steps`+`canonical` olan sətirlərə `question_answers` yazır, VERİFİED olub-olmaması ayrı, amma PRAKTİKİ olaraq `private.question_answers` mövcudluğu = `question_translations` sətrinin mövcudluğu ilə EYNİDİR, çünki `0019` `0017`-nin EYNİ "winning" seçimini işlədir — bu ekvivalentlik `/api/solve`-də `store_answer` yazılanda da qorunmalıdır: EYNİ tranzaksiyada `question_translations` INSERT-i ilə çağrılmalıdır, yoxsa fərqli düşərlər).
 3. `canonical` cavabda: `qt.stem->'blocks'->0->>'v'` (tək-blok formatı, `0017`-dəki kimi).
 
 ### 2.5 `POST /api/attempts/transfer/check`
 
 Köhnə: `solutions.payload.final_answer.values`-i birbaşa oxuyur.
 
-Yeni: `select get_answer($transfer_question_id)` (**G2**) → `answer.values`
-(və ya §G3 həll olunandan sonra hər hansı forma), Node-da `studentAnswerMatches`
-(DƏYİŞMİR). Nəticə: `update attempt_items set transfer_correct=$2 where attempt_id=$1
-and id = (select id from attempt_items where attempt_id=$1 limit 1)` — **`transfer_correct`
-`attempt_items`-dədir, `attempts` (sessiya) YOX** (`design.md` §9-a görə), sahiblik
-yoxlaması (`device_id`) sessiya cədvəlindən gəlir.
+Yeni: `select reveal_answer($transfer_question_id, 'verify', null)` (item hələ bu
+transfer sualı üçün yoxdur, `ai=NULL`) → `answer.values`, Node-da
+`studentAnswerMatches` (DƏYİŞMİR). Nəticə: `update attempt_items set
+transfer_correct=$2 where attempt_id=$1 and id = (select id from attempt_items
+where attempt_id=$1 limit 1)` — **`transfer_correct` `attempt_items`-dədir,
+`attempts` (sessiya) YOX** (`design.md` §9-a görə), sahiblik yoxlaması
+(`device_id`) sessiya cədvəlindən gəlir.
 
 ### 2.6 `POST /api/attempts/progress`
 
@@ -297,31 +250,32 @@ additiv miqrasiya köhnə kodu sındırmır, RENAME isə SINDIRIR. Ona görə s�
 
 | Endpoint | Sınma səbəbi | Şagird nə görür |
 |---|---|---|
-| `/api/solve` | `store_answer`/`store_step_answers` RPC-ləri yazılmayıb (G1) | `500`, "Server xətası, yenidən cəhd et" — YENİ SUAL HƏLL EDİLƏ BİLMİR, məhsulun əsas axını dayanır |
+| `/api/solve` | `store_answer`/`store_step_answers` çağırışı yazılmayıb/yanlışdır | `500`, "Server xətası, yenidən cəhd et" — YENİ SUAL HƏLL EDİLƏ BİLMİR, məhsulun əsas axını dayanır |
 | `/api/solve` | dedup sorğusu G4-ə köçürülməyib | funksional səhv YOX, amma keş tutmur — hər foto "yeni" sayılır, xərc artır (səssiz, şagird hiss etmir) |
-| `/api/steps/check` | `get_step_answer` RPC-si yoxdur/yanlış | addım YOXLANILA BİLMİR, `500` — şagird cavab yazır, heç nə baş vermir |
-| `/api/attempts/reveal` | `get_answer` RPC-si yoxdur | "Cavabı göstər" düyməsi işləmir — şagird son addımda ilişib qalır |
+| `/api/steps/check` | `reveal_step_answer` çağırışı yoxdur/yanlış, ya da `purpose` sətri etibarsızdır (funksiya `RAISE EXCEPTION` atır) | addım YOXLANILA BİLMİR, `500` — şagird cavab yazır, heç nə baş vermir |
+| `/api/attempts/reveal` | `reveal_answer` çağırışı yoxdur/yanlış | "Cavabı göstər" düyməsi işləmir — şagird son addımda ilişib qalır |
 | `/api/attempts/transfer` | namizəd sorğusu yeni sxemə uyğunlaşdırılmayıb | S6 sual göstərmir — `no_transfer_available`, funksiya SƏSSİZCƏ boş qalır (öyrənmə metrikası itir, şagird ZƏRƏR görmür, amma ÖLÇÜ itir) |
 | `/api/attempts/progress` | sütun adı səhvdir | `abandoned_at_step`/`duration_sec` YAZILMIR, valideyn hesabatının "harada itiririk" sualı korlanır — **şagird HEÇ NƏ hiss etmir** (fire-and-forget, 200 həmişə qayıdır), YALNIZ ölçmə səssiz sınır |
-| `/api/attempts/transfer/check` | `get_answer` çağırışı köhnə cədvələ gedir | `500`, transfer sualının cavabı yoxlanılmır — şagird cavab yazır, nəticə görmür |
+| `/api/attempts/transfer/check` | `reveal_answer` çağırışı köhnə cədvələ gedir | `500`, transfer sualının cavabı yoxlanılmır — şagird cavab yazır, nəticə görmür |
+| **Hamısı (`store_*`)** | `store_answer` ikinci dəfə EYNİ `question_id`-yə çağırılır (məs. retry) | **SƏSSİZ NO-OP** — funksiya `false` qaytarır (`ON CONFLICT DO NOTHING`), yeni sual YAZILMIR, köhnəsi qalır. Kod bunu YOXLAMALIDIR (`store_answer`-in `boolean` nəticəsi) — yoxlamasa, ekvivalent (fərqli LLM cavabı) SƏSSİZCƏ atılar, growth halında fərq gözə dəyməz, TEK problemli sual (yenidən LLM çağırışı yeni cavab versə) köhnə açarla qalar |
 | **Hamısı birdən** | `app_runtime` yaradılmayıb / `DATABASE_URL` köhnə rola işarə edir | **HEÇ BİR XƏTA GÖRÜNMÜR** — `postgres` rolu `private` sxeminə giriş İCAZƏSİ olduğu üçün RPC-lər lazımsız olur, kod "normal" işləyir, AMMA `private` sxeminin bütün qorunması İŞLƏMİR (§5 deploy checklist-in #1 bəndi) |
 
 ---
 
 ## Açıq qərarlar (bu ADR-in EDİMƏDİYİ, Cowork/Ilkin qərarı gözləyən)
 
-1. **G1/G2-nin RPC-ləri** — dizayn edilib (yuxarıda), amma `design.md`-yə YAZILMAYIB,
-   miqrasiya YARADILMAYIB. Bu ADR-in NÖVBƏTİ addımıdır (kod mərhələsi başlamazdan
-   əvvəl, §3 addım 1).
-2. **G3 — `question_answers.answer` forması.** `{latex,values,choice}` tam obyekt
-   (hazırkı `0019`) və ya `HANDOFF(67)`-nin `{"value": scalar}`-ı? G2 qərarı bunu
-   TƏCİLİ ETMİR (Node RPC-dən nə formada gəlsə, özü emal edir), amma sxem sənədi
-   (`design.md`) TUTARLI olmalıdır.
-3. **`/api/attempts/progress`-in `completed` semantikası** (§2.6-nın sonu) — `steps_revealed`
+G1/G2/G3 `HANDOFF (71)`-də bağlandı (yuxarıda əks olunub) — aşağıda YALNIZ HƏLƏ
+AÇIQ qalanlar:
+
+1. **`/api/attempts/progress`-in `completed` semantikası** (§2.6-nın sonu) — `steps_revealed`
    `steps_total`-a məcburi bərabərləşdirilsinmi, yoxsa YALNIZ real açılan addım sayı?
-4. **`review_status` yeni insert məntiqi** (§2.1) `HANDOFF(68)` cədvəlinə əsaslanır —
+2. **`review_status` yeni insert məntiqi** (§2.1) `HANDOFF(68)` cədvəlinə əsaslanır —
    AÇIQ TƏSDİQ istəmir (artıq qərar bağlanıb), sadəcə burada İLK DƏFƏ koda tərcümə
    olunur, səhv oxunma riski var, gözdən keçirilməlidir.
+3. **`store_answer`-in `false` nəticəsi kod tərəfində necə işlənir?** (yuxarıdakı
+   risk cədvəlinin son sətri) — sükutla keçmək, yoxsa `events`-ə bir telemetriya
+   yazmaq (`answer.store_conflict` kimi)? Kiçikdir, kod yazarkən qərar veriləcək,
+   ADR gözləmir.
 
-**Blok:** yoxdur — yuxarıdakı 4 nöqtə bu ADR-in NÖVBƏTİ addımını (RPC dizaynının
-rəsmiləşdirilməsi) bloklayır, amma planın özünü YOX.
+**Blok:** yoxdur — bu 3 nöqtə kod yazılarkən həll olunacaq qədər kiçikdir, planı
+bloklamır.
