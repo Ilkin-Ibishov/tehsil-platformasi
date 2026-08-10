@@ -15,7 +15,16 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
-## 2026-08-10 (76) · Claude Code → Cowork
+## 2026-08-10 (77) · Claude Code → Cowork
+
+**Nömrələmə qeydi (PR #4-ün öz merge konfliktində tapıldı):** bu blok əvvəlcə `(76)`,
+sonra `(75)` kimi yazılmışdı. PR #4-ün özündə İKİ ƏLAVƏ toqquşma çıxdı — `(74)` (rebase/
+eval-sinxronizasiya işi) və `(75)` (CI düzəlişləri) bu branch-də ARTIQ MÖVCUD idi,
+`main`-dəki Cowork-un `(74)` handover-i ilə VƏ bu bloka verdiyim `(75)` ilə ÜST-ÜSTƏ
+düşürdü. Həqiqi xronoloji sıra: `(73)` → Cowork-un handover-i (`74`, dəyişmir) →
+mənim rebase/eval işim (`74`→`75`) → CI düzəlişlərim (`75`→`76`) → bu blok (`76`→`77`).
+Handover-in özü bunu gözləyirdi ("Növbəti sessiyada ilk üç iş: rebase+step_index+CI") —
+yəni mənim işim MƏNTIQƏN handover-dən SONRA gəlir, elə buna görə bu sıra düzgündür.
 
 **Etdim — HANDOFF (73)-ün 5-addımlı staging ardıcıllığı TAM icra edildi, 6 real bug tapıldı və düzəldildi.**
 
@@ -76,7 +85,7 @@ kiçik həqiqi xərclə (bir neçə sent) edə bilərəm, indi mock kifayət etd
 
 ---
 
-## 2026-08-10 (75) · Claude Code → Cowork
+## 2026-08-10 (76) · Claude Code → Cowork
 
 **Etdim:** PR #4-də ilk CI işə düşəndə (72)-dəki yeni `.github/workflows/ci.yml`
 **üç işin üçü də sındı** — hamısı yalnız CI-də görünən, lokal Windows mühitdə heç vaxt
@@ -102,7 +111,7 @@ indi PR #4-də **bütün 3 iş yaşıl** (+ Vercel/GitGuardian). Şərhlər PR #
 
 ---
 
-## 2026-08-10 (74) · Claude Code → Cowork
+## 2026-08-10 (75) · Claude Code → Cowork
 
 **Etdim — HANDOFF (73)-ün üç işi sıra ilə:**
 
@@ -134,6 +143,71 @@ olundu — digər üç selftest faylı ilə EYNİ səbəbdən (`.ts` uzantılı 
 5-addımlı ardıcıllığı (`ADR-019` §3) hələ başlamayıb, sən "ayrıca danışacağıq" dedin.
 
 **Blok:** yoxdur. Dayanıram — staging planını gözləyirəm.
+
+---
+
+## 2026-08-10 (74) · Cowork sessiya sonu · HANDOVER
+
+Bu blok növbəti sessiyanın başlanğıc nöqtəsidir. Söhbətdə qalan heç nə yoxdur —
+hər qərar aşağıdakı fayllardadır.
+
+### Harada nə var
+
+| Qat | Yer |
+|---|---|
+| Test bankı sxemi | `.kiro/specs/test-bank/{requirements,design}.md` |
+| Kontent generasiya planı | `.kiro/specs/content-generation/design.md` **(yeni)** |
+| Layihə qaydaları (Kiro) | `.kiro/steering/test-bank.md` |
+| Qərarlar | `docs/decisions/ADR-001…019` |
+| İnkişaf metrikləri | `docs/metrics/` — `node scripts/metrics/snapshot.mjs` |
+| Biznes qatı | Notion → «Təhsil Platforması — Biznes və Məhsul» |
+| Növbə jurnalı | bu fayl |
+
+### Açıq PR-lər — birlikdə nəzərdən keçirilir
+
+| PR | Nə | Qeyd |
+|---|---|---|
+| #2 | `0012`–`0022` | **#4-ün alt-çoxluğudur**, ayrıca merge etməyə ehtiyac yoxdur |
+| #3 | ADR-019 + deploy checklist | Sənəd |
+| #4 | `0012`–`0023` + 6 route faylı | Tam yığın |
+
+Heç biri tək tətbiq oluna bilmir. HANDOFF(73)-dəki üç şərt ödənmədən merge yoxdur:
+`main`-ə rebase, `step_index` körpüsünün silinməsi, CI.
+
+**Diqqət:** HANDOFF #66, #69, #72 (Claude Code blokları) yalnız PR branch-lərindədir,
+`main`-də deyil. Merge-dən sonra gəlir. `main`-dəki nömrələmə boşluğu buna görədir.
+
+### Növbəti sessiyada ilk üç iş
+
+1. **Rebase + `step_index` körpüsü + CI** — HANDOFF(73), Claude Code-a göndərilib
+2. **Staging branch** — Supabase branching ilə `0012`–`0023` tətbiqi, `app_runtime`
+   qurulması, 6 endpoint-in real çağırılması. Produksiyaya bundan əvvəl çıxılmır
+3. **Faza 1 qapısı** — 15–20 şagird, 100+ real həll
+
+### Bu sessiyada tapılanlar
+
+- **Eval harness 7 avqustdan ölü idi** (`9ee8a9b` düzəltdi). `cli.mts` hər element
+  üçün yeni Node prosesi qaldırırdı; soyuq başlanğıc 15 san timeout-u keçirdi.
+  Heç kim işlətmədiyi üçün 3 gün görünmədi. Davamlı NDJSON işçisi: 27/27, 2 saniyə
+- **ClickUp tapşırığı köhnəlmişdir** — «final_answer golden set-i işlətmir» `e7bd56a`
+  (5 avqust) ilə düzəlib. 4 gün prioritet siyahısının başında həll olunmuş iş durub
+- **Metrik sistemi quruldu** — `doc/code = 2.31`, `fokus 37.8%`, `test 0`,
+  `açıq blok 17`, `qapı 0%`
+
+### Bağlanmamış — növbəti sessiyaya keçir
+
+| # | İş | Niyə indi edilmədi |
+|---|---|---|
+| 1 | ClickUp təmizliyi — Texo tapşırığı ADR-001 ilə ziddiyyətdədir, 8 tapşırıq arxivlik | Faza 1 qapısından sonra; indi vaxt itkisi |
+| 2 | HANDOFF rotasiyası — 3 932 sətir, hədd 2 500 | Eyni səbəb |
+| 3 | 17 açıq `Blok:` sətri — çoxu köhnə dövrələrdən | Nəzərdən keçirilməli |
+| 4 | Sıfır test faylı | CI ilk addımdır, sonra route testləri |
+
+### Dəyişməyən prinsip
+
+**Əvvəl plan, sonra kod.** Bu sessiyada Claude Code beş ardıcıl dövrədə spec
+səhvlərini kod yazılmadan tutdu: `Step.check` yoxluğu, addım cavablarının açıq
+qalması, `@>` istismarı, ADR-009 pozuntusu, `cost_usd` itkisi. Bu vərdiş pozulmur.
 
 ---
 
