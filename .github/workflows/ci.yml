@@ -58,6 +58,12 @@ jobs:
           cache: "npm"
           cache-dependency-path: web/package-lock.json
       - run: npm install
+      # `app/layout.tsx` App Router-in `LayoutProps<"/">` tipli-route tipindən istifadə
+      # edir — bu, `.next/types/**` altında YARADILAN ambient tipdir (`next dev`/`build`-in
+      # yan-effekti). Lokal inkişafda həmişə mövcuddur (`next dev` işlədilib), TƏMİZ CI
+      # checkout-da YOXDUR — onsuz `tsc` "Cannot find name 'LayoutProps'" ilə sınır.
+      # `next typegen` tam `build`-dən yüngüldür, yalnız tipləri yaradır.
+      - run: npx next typegen
       - run: npx tsc --noEmit
 
   lint:
