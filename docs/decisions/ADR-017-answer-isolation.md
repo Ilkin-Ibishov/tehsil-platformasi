@@ -48,6 +48,9 @@ REVOKE ALL ON SCHEMA private FROM PUBLIC;
 CREATE ROLE app_runtime LOGIN PASSWORD :'app_pw';
 GRANT USAGE ON SCHEMA public TO app_runtime;
 GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO app_runtime;
+-- Gələcək cədvəllər üçün (aşağıdakı "mənfi" bəndini bağlayır — ADR-018 §4a):
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT SELECT, INSERT, UPDATE ON TABLES TO app_runtime;
 -- private sxeminə GRANT verilmir
 
 CREATE TABLE private.question_answers (

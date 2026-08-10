@@ -140,7 +140,13 @@ CREATE TABLE questions (
   license_status TEXT NOT NULL DEFAULT 'unknown'
     CHECK (license_status IN ('owned','licensed','unknown','flagged')),
   review_status TEXT NOT NULL DEFAULT 'draft'
-    CHECK (review_status IN ('draft','verified','rejected')),
+    CHECK (review_status IN ('draft','auto_verified','verified','rejected')),
+    -- draft         = yoxlanmayıb, şagirdə göstərilmir
+    -- auto_verified = maşın (sympy/ADR-009) təsdiqləyib, insan baxmayıb → GÖRÜNÜR
+    -- verified      = insan nəzərdən keçirib → görünür
+    -- Görünmə şərti: review_status IN ('auto_verified','verified')
+    -- ADR-018 §6: mövcud sətirlərə 'verified' yazmaq YALAN siqnaldır,
+    -- 'draft' yazmaq isə istehsalatda sualları yox edir. Üçüncü dəyər hər ikisini həll edir.
   reviewed_by UUID,
   reviewed_at TIMESTAMPTZ,
 
@@ -174,11 +180,28 @@ CREATE TABLE question_standards (
 // numeric
 { "unit": "sm", "tolerance": 0.01 }
 
-// match
-{ "left": ["l1","l2","l3"], "right": ["r1","r2","r3"] }
+// open (ADR-018 §1b — mövcud DİM/user_capture sualları bu tipdədir)
+{ "input_kind": "numeric", "unit": "sm", "tolerance": 0.01 }
+// input_kind: 'numeric' | 'expression' | 'text' — STEP-SCHEMA check.input_kind ilə eyni ox
+// Doğru cavab burada YOXDUR, private.question_answers-dədir.
 ```
 
 Variantların **mətni** payload-da deyil, tərcümə cədvəlindədir — yalnız açarlar burada.
+
+### Dedup açarları (ADR-018 §1d)
+
+`questions` cədvəli `canonical_hash` və `numeric_fingerprint` sütunlarını da daşıyır —
+`user_capture` axını onlarsız işləmir. `UNIQUE (canonical_hash)` **götürülür**, çünki
+eyni məsələ müxtəlif sinif dərinliyi üçün klonlanır. Əvəzinə:
+
+```sql
+CREATE UNIQUE INDEX questions_dedup_idx
+  ON questions (canonical_hash, subject_id, grade)
+  WHERE superseded_by IS NULL AND deleted_at IS NULL;
+```
+
+Klonlamaya icazə verir, sinif daxilində dublikatı bloklayır. Uyğunlaşdırma sorğusu
+bu üçlü ilə gedir və `LIMIT 1` tələb etmir.
 
 ---
 
@@ -190,40 +213,33 @@ CREATE TABLE question_translations (
   lang TEXT NOT NULL CHECK (lang IN ('az','ru','en','tr')),
   stem JSONB NOT NULL,                    -- Content
   options JSONB,                          -- {"A":Content,"B":Content,...}
-  steps JSONB NOT NULL,                   -- Step[]
-  misconception JSONB,                    -- {"A":{"error_code":"SIGN_FLIP","note":"..."}}
+  steps JSONB NOT NULL,                   -- docs/STEP-SCHEMA.json → steps[] forması
+  misconception JSONB,                    -- {"A":{"error_code":"SIGN_LOST","note":"..."}}
                                           -- error_code MÜTLƏQ docs/STEP-SCHEMA.json
                                           -- error_codes enum-undan olmalıdır (qızıl qayda)
   hint JSONB,
+  -- ADR-018 §2b ilə təsdiqlənən additiv sütunlar (user_capture axını üçün):
+  verified BOOLEAN NOT NULL DEFAULT false,
+  verification_method TEXT,               -- 'sympy' | 'human' | 'none'
+  model TEXT,
+  cost_usd NUMERIC(8,5),
+  prompt_version TEXT,
   PRIMARY KEY (question_id, lang)
 );
 ```
 
-```ts
-type Step = {
-  id: string            // sabit, tərcümələr arasında EYNİ qalır (az versiyadan gəlir)
-  title: string
-  body: Content
-  why?: Content         // "Niyə?" düyməsi altında
-  check: {              // hər addım şagirddən cavab istəyir — məhsulun nüvəsi
-    kind: 'numeric' | 'expression' | 'choice'
-    prompt: Content
-    tolerance?: number
-    options?: { key: string; label: Content }[]  // yalnız kind='choice'
-  }
-  distractors?: {       // gözlənilən səhvlər → error_code
-    value: string
-    error_code: string  // docs/STEP-SCHEMA.json error_codes enum-u
-  }[]
-  reveals_answer: false // addım cavabı ifşa etməməlidir
-}
-```
+**`Step` tipi burada TƏKRAR TƏRİF OLUNMUR.** Mənbə həqiqət:
+`docs/STEP-SCHEMA.json` → `steps[]` (index / title / explanation / latex / why /
+tokens / **check** / **error_code** / hint). O sxem `CLAUDE.md`-yə görə dəyişməz
+müqavilədir və Cowork-un ADR-i olmadan dəyişmir.
 
-`check` sahəsi məcburidir. Onsuz addım sadəcə mətn olur və məhsul Photomath-a
-çevrilir — bax `CLAUDE.md` qızıl qaydası.
+`question_translations.steps` məhz o formanı daşıyır. Əvvəlki spec versiyasında
+paralel `Step` tipi tərif olunmuşdu — bu, iki mənbə həqiqəti yaradırdı və səhv idi
+(ADR-018 §2a).
 
-`distractors` **səhv** dəyərləri saxlayır, doğrunu yox. Doğru dəyər
-`private.step_answers` cədvəlindədir (§7).
+Yalnız bir əlavə qayda: `steps[].check.accept` **public sxemə yazılmır** —
+o, `private.step_answers`-ə köçür (§7). `question_translations.steps` içindəki
+`check` obyekti yalnız `ask` və `input_kind` saxlayır.
 
 `steps` NOT NULL-dır — məhsulun əsas fərqi budur, boş sual bazaya düşməməlidir.
 
@@ -258,14 +274,14 @@ CREATE TABLE private.question_answers (
   validator TEXT NOT NULL DEFAULT 'exact'  -- exact | numeric_tolerance | set | ordered
 );
 
--- Addım-səviyyəli cavablar. Dilə bağlı DEYİL: step_id tərcümələr arasında
--- eynidir, cavab dəyəri isə dil-neytraldır (rəqəm / ifadə).
+-- Addım-səviyyəli cavablar (STEP-SCHEMA steps[].check.accept).
+-- Dilə bağlı DEYİL: step_index tərcümələr arasında eynidir, cavab dil-neytraldır.
 CREATE TABLE private.step_answers (
   question_id UUID NOT NULL REFERENCES public.questions(id) ON DELETE CASCADE,
-  step_id TEXT NOT NULL,
-  answer JSONB NOT NULL,
-  validator TEXT NOT NULL DEFAULT 'numeric_tolerance',
-  PRIMARY KEY (question_id, step_id)
+  step_index SMALLINT NOT NULL,            -- STEP-SCHEMA steps[].index
+  accept JSONB NOT NULL,
+  input_kind TEXT NOT NULL,
+  PRIMARY KEY (question_id, step_index)
 );
 
 CREATE FUNCTION public.check_answer(q UUID, given JSONB)
@@ -283,14 +299,14 @@ GRANT EXECUTE ON FUNCTION public.check_answer TO app_runtime;
 
 -- Addım yoxlaması. error_code distractors-dan gəlir (public tərcümədə),
 -- doğru cavab isə heç vaxt qaytarılmır.
-CREATE FUNCTION public.check_step(q UUID, s TEXT, given JSONB)
+CREATE FUNCTION public.check_step(q UUID, idx SMALLINT, given JSONB)
 RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = private, public AS $$
-DECLARE a JSONB; v TEXT;
+DECLARE a JSONB; k TEXT;
 BEGIN
-  SELECT answer, validator INTO a, v
-  FROM private.step_answers WHERE question_id = q AND step_id = s;
-  RETURN jsonb_build_object('is_correct', a = given);
+  SELECT accept, input_kind INTO a, k
+  FROM private.step_answers WHERE question_id = q AND step_index = idx;
+  RETURN jsonb_build_object('is_correct', a @> given, 'input_kind', k);
 END; $$;
 
 REVOKE ALL ON FUNCTION public.check_step FROM PUBLIC;
