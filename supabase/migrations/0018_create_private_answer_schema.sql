@@ -18,11 +18,18 @@
 --
 -- Rol artıq mövcuddursa (təkrar tətbiq) `CREATE ROLE` xəta verər — DO bloku bunu
 -- idempotent edir.
+--
+-- ⚠️ Staging-də tapılan bug: psql-in `:'var'` DƏYİŞƏN ƏVƏZLƏMƏSİ `do $$ ... $$`
+-- blokunun DAXİLİNDƏ İŞLƏMİR — psql dollar-quoted body-ni AÇIQ MƏTN kimi göndərir,
+-- daxili sintaksisə toxunmur. `:'app_runtime_pw'` DO blokunun İÇİNDƏ qalsaydı hərfi
+-- `:` kimi Postgres-ə çatardı → sintaksis xətası. Həll: əvəzləmə DO-dan KƏNARDA,
+-- sessiya GUC-una yazılır (`set_config`), DO bloku onu `current_setting`-lə oxuyur.
+select set_config('app.temp_app_runtime_pw', :'app_runtime_pw', false);
 
 do $$
 begin
   if not exists (select 1 from pg_roles where rolname = 'app_runtime') then
-    execute format('create role app_runtime login password %L', :'app_runtime_pw');
+    execute format('create role app_runtime login password %L', current_setting('app.temp_app_runtime_pw'));
   end if;
 end
 $$;

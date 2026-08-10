@@ -15,6 +15,67 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-10 (76) · Claude Code → Cowork
+
+**Etdim — HANDOFF (73)-ün 5-addımlı staging ardıcıllığı TAM icra edildi, 6 real bug tapıldı və düzəldildi.**
+
+**Addım 1 dəyişdi:** Supabase branching bu layihənin planında YOXDUR (`PaymentRequiredException`
+— Pro plan tələb edir). Sahib insanla razılaşdıq: `web/README.md`-in öz S1a təlimatına uyğun
+**lokal Docker Postgres** (port 5433, ayrıca konteyner) — $0, tam bir dəfəlik, məhz layihənin
+sənədləşdirdiyi yol. Bundan sonra addım 2-5 planla eyni.
+
+**0001-0023 tətbiq edildi, `app_runtime` quruldu, sonra HƏR addımda real bug çıxdı:**
+
+1. **`0018` özü sınırdı.** psql-in `:'var'` əvəzləməsi `do $$ ... $$` blokunun İÇİNDƏ İŞLƏMİR —
+   `CREATE ROLE` sətri hər zaman sintaksis xətası verirdi (heç kim onu real `psql -v` ilə
+   İŞLƏTMƏYİB, mən özüm də əvvəllər YOXLAMADAN yazmışdım). `set_config`/`current_setting`
+   körpüsü ilə düzəldi.
+2. **🔴 ƏN VACİB TAPINTI: `app_runtime` HƏR YERDƏ bloklanırdı, təkcə `private`-də YOX.**
+   `0007`-nin "RLS aktiv, siyasət yox = anon bağlıdır" qaydası `postgres` (bypass) rolu ilə
+   düzgün idi — `app_runtime` ADİ roldur, RLS ONU DA bağlayır. `0012`-`0022`-də yaratdığım
+   HƏR cədvəl bu vəziyyətdə idi. Bu, `0014`/`0020` production-a gedəndə BÜTÜN TƏTBİQİ (yeni
+   sxem yox, mövcud `/api/events` daxil) sındırardı. `0024`: hər cədvəldə `app_runtime`-a açıq
+   `for all using(true)` siyasəti — `BYPASSRLS` YOX (ADR-017-in Faza 2 planı gələcək
+   `auth.uid()` siyasətlərini bunun ÜSTÜNƏ qurur, `BYPASSRLS` onları da səssizcə keçərdi).
+3. **`questions.subject`/`attempt_items.device_id`** — rename-dən qalma köhnə `NOT NULL`
+   sütunlar, yeni INSERT-lər `subject_id`/sessiya `device_id`-sini doldurur, bunları YOX.
+   `0025`/`0026`: `NOT NULL` götürüldü.
+4. **`step_events_id_seq`.** `bigserial` gizli sequence yaradır, `0018`-in cədvəl GRANT-ı onu
+   ƏHATƏ ETMİR — `app_runtime` `nextval()` çağıra bilmirdi, `step_events` yazısı SÜKUTLA
+   uğursuz olurdu (route-un öz dizaynı: şagird cavabı alır, ölçmə isə yox olur, xəta yalnız
+   server logunda). `0027`: sequence GRANT-ları.
+5. **`step_events.attempt_id` FK-si səhv cədvələ işarə edirdi.** `0004`-dən `attempts(id)`-ə
+   idi, `0020` `attempts`-i `attempt_items`-ə köçürdü — Postgres FK-ni OID üzrə saxlayır, ADA
+   görə YOX, ona görə FK **yeni `attempts` (sessiya) cədvəlinə YOX**, indi `attempt_items`
+   adlanan (köhnə) cədvələ işarə etməyə davam etdi. `/api/steps/check` isə sessiya ID-si
+   yazır → FK HƏR ZAMAN pozulurdu. `0028`: FK yeni `attempts`-ə yönləndirildi.
+
+**Sınaq üsulu:** real Gemini API-yə MÜRACİƏT EDİLMƏDİ (açar yoxdur, xərc lazımsız) — OpenAI-uyğun
+`/chat/completions` formatını təqlid edən kiçik lokal mock server (`GEMINI_BASE_URL` ona
+yönləndirildi), canlı STEP-SCHEMA cavabı qaytardı. Bütün 6 endpoint HTTP ilə real çağırıldı:
+
+- `/api/solve` — soyuq (yeni sual yaradıldı, `review_status='draft'` çünki mock canonical-ın
+  formatı sympy-ə uyğun deyildi — mock məlumat qüsuru, kod qüsuru DEYİL) VƏ keş-hit (`hit_count`/
+  `attempt_count` düzgün artdı, ikinci `question_translations` sətri YARADILMADI).
+- `/api/steps/check` — düz cavab, səhv cavab, naməlum `step_index` (400), VƏ köhnə massiv-mövqe
+  körpüsünün `0` dəyəri (indi RƏDD EDİLİR, `HANDOFF 73`-ün tələbi işləyir).
+- `/api/attempts/reveal` — həqiqi cavab düzgün göstərildi.
+- `/api/attempts/progress` — `steps_revealed`/`time_ms` düzgün yazıldı.
+- `/api/attempts/transfer[/check]` — ikinci namizəd sual əl ilə (SQL) seedləndi (mock LLM tək
+  cavab qaytardığı üçün), namizəd tapıldı, düz/səhv cavab düzgün yoxlandı.
+- **`app_runtime` `private.question_answers`-i BİRBAŞA oxuya BİLMİR** (`permission denied for
+  schema private`) — RPC-lər (`reveal_answer`/`reveal_step_answer`/`store_answer`/
+  `store_step_answers`) İŞLƏYİR. `private.answer_access_log` hər `verify` oxumasını yazdı.
+
+**Yoxlama:** düzəlişlər PR #2-yə (`test-bank-merge-migrations-0012`) commit edildi, PR #4-ə
+mərc ediləcək. Lokal staging konteyneri (`th-postgres-staging`, port 5433) və dev server
+dayandırıldı, konteyner SİLİNMƏDİ (təkrar sınaq üçün saxlanılır, $0 dəyəri var, yalnız disk).
+
+**Blok:** yoxdur. Real Gemini API ilə TAM sınaq (mock deyil) hələ edilməyib — istəsən sonra
+kiçik həqiqi xərclə (bir neçə sent) edə bilərəm, indi mock kifayət etdi.
+
+---
+
 ## 2026-08-10 (75) · Claude Code → Cowork
 
 **Etdim:** PR #4-də ilk CI işə düşəndə (72)-dəki yeni `.github/workflows/ci.yml`
