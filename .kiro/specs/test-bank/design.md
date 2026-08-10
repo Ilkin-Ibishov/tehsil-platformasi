@@ -291,7 +291,15 @@ DECLARE a JSONB; v TEXT;
 BEGIN
   SELECT answer, validator INTO a, v
   FROM private.question_answers WHERE question_id = q;
-  RETURN jsonb_build_object('is_correct', a = given);
+  -- `validator` sahəsi seçilir, amma bu funksiyada İSTİFADƏ OLUNMUR.
+  -- Yekun cavabın sympy müqayisəsi (ADR-009) `/api/answers/check` daxilindədir.
+  -- Bu funksiya yalnız hərfi bərabərliyi yoxlayır — `numeric_tolerance` üçün
+  -- KİFAYƏT DEYİL. Tolerantlıq lazım olan hallarda API qatı `validator` dəyərini
+  -- oxuyub sympy-ə yönləndirməlidir.
+  IF given IS NULL OR given = '{}'::jsonb THEN
+    RETURN jsonb_build_object('is_correct', false, 'reason', 'empty_answer');
+  END IF;
+  RETURN jsonb_build_object('is_correct', a = given, 'validator', v);
 END; $$;
 
 REVOKE ALL ON FUNCTION public.check_answer FROM PUBLIC;
@@ -304,9 +312,26 @@ RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = private, public AS $$
 DECLARE a JSONB; k TEXT;
 BEGIN
+  -- KRİTİK: boş girişi rədd et. `a @> '{}'` və `a @> '[]'` HƏMİŞƏ true qaytarır —
+  -- yəni boş cavab göndərən şagird "doğru" alırdı. Containment burada yanlış operatordur.
+  IF given IS NULL OR given = '{}'::jsonb OR given = '[]'::jsonb THEN
+    RETURN jsonb_build_object('is_correct', false, 'reason', 'empty_answer');
+  END IF;
+
   SELECT accept, input_kind INTO a, k
   FROM private.step_answers WHERE question_id = q AND step_index = idx;
-  RETURN jsonb_build_object('is_correct', a @> given, 'input_kind', k);
+
+  IF a IS NULL THEN
+    RETURN jsonb_build_object('is_correct', false, 'reason', 'no_answer_key');
+  END IF;
+
+  RETURN jsonb_build_object(
+    'is_correct',
+    CASE WHEN jsonb_typeof(a) = 'array'
+         THEN a @> jsonb_build_array(given)   -- accept siyahısı: üzvlük yoxlaması
+         ELSE a = given END,                  -- tək dəyər: bərabərlik
+    'input_kind', k
+  );
 END; $$;
 
 REVOKE ALL ON FUNCTION public.check_step FROM PUBLIC;

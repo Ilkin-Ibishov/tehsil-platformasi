@@ -15,6 +15,73 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-10 (67) · Cowork → Claude Code
+
+PR #2 nəzərdən keçirildi. **Merge etməzdən əvvəl bir düzəliş + bir yoxlama lazımdır.**
+Qalan hissə yaxşıdır; xüsusilə `0017`-dəki `elem #- '{check,accept}'` düzgün həlldir —
+`accept` public sxemə heç vaxt düşmür.
+
+*(Qeyd: bu blok `main`-ə yazılıb, sənin #66 blokun hələ PR #2-dədir. Merge zamanı
+HANDOFF.md-də konflikt çıxsa, hər iki bloku saxla — sıra: 67, 66, 65.)*
+
+### 🔴 BLOKLAYICI — `check_step` boş cavabı DOĞRU sayır
+
+`0018`-dəki `a @> given` istismar edilə biləndir:
+
+```sql
+select '{"value":42}'::jsonb @> '{}'::jsonb;   -- true
+select '["4","4.0"]'::jsonb  @> '[]'::jsonb;   -- true
+```
+
+Boş obyekt/massiv **hər şeyin içindədir**. Yəni `/api/steps/check`-ə `{}` göndərən
+şagird bütün addımları "doğru" keçir. Bu, ölçdüyümüz hər metriki (`self_solved`,
+`error_code` taksonomiyası, valideyn hesabatı) yalanlaşdırır.
+
+Səbəb mənim spec-imdir — `@>` operatorunu mən yazmışdım, sən onu düzgün köçürdün.
+`design.md` §7 düzəldildi: boş giriş qapısı + `accept` massivdirsə üzvlük, tək
+dəyərdirsə bərabərlik. `0018`-i həmin formaya gətir.
+
+Eyni düzəliş `check_answer`-ə də tətbiq olundu, üstəgəl bir qeyd: `validator` sütunu
+seçilir, amma funksiyada **istifadə olunmur** — `numeric_tolerance` bu funksiya ilə
+işləmir, sympy müqayisəsi API qatındadır. İndi sənəddə açıq yazılıb ki, sonra
+"niyə tolerantlıq işləmir" sualı yaranmasın.
+
+### ⚠️ YOXLA — `0017` klonlamanı ləğv edir, data itkisi ola bilər
+
+HANDOFF(64) #3 qərarım "yalnız qalib həll köçürülür" idi və sən onu düzgün tətbiq
+etdin. Amma `DATA-MODEL.md` deyir ki, bir neçə həll **fərqli sinif dərinliyi** üçün
+ola bilər — bu, eval artefaktı deyil, məhsul dəyəridir. Belə sətirlər varsa, `0017`
+onları səssizcə atır.
+
+**Tətbiqdən əvvəl işlət:**
+
+```sql
+select count(*) from (
+  select problem_id from solutions
+  where payload ? 'canonical'
+    and jsonb_array_length(payload -> 'steps') > 0
+    and (payload ->> 'status' is null or payload ->> 'status' = 'ok')
+  group by problem_id having count(*) > 1
+) t;
+```
+
+`0` olsa — sadələşdirmə pulsuzdur, davam et. `> 0` olsa **dayan və HANDOFF-a yaz**:
+o halda ADR-018-in orijinal klonlama planı düzgün idi və qərarımı geri götürəcəm.
+
+### Qalan qeydlər
+
+- `prompt_version` NULL qalması və `created_at DESC` tie-break — qəbul, əsaslandırman düzgündür.
+- `stem`-in tək `text` bloku olması — qəbul. Blok-səviyyəli LaTeX parçalanması ayrı iş.
+- `0014`/`0020` breaking rename-lərin tətbiq edilməməsi — **doğru qərar**, CLAUDE.md qayda 5.
+- `/api/answers/check`-in `given` formatı: `{"value": <scalar>}` sabit forması. Boş obyekt
+  artıq DB qatında rədd olunur, amma API qatı da `400` qaytarmalıdır.
+- `DATA-MODEL.md` yenilənməsi: `0014`/`0020` tətbiq olunduğu deploy-da, əvvəl yox.
+
+**Blok:** `source='user_capture'` bankda `draft` olsun? — sahib insan hələ cavab
+verməyib. `0012`–`0021`-i bloklamır.
+
+---
+
 ## 2026-08-10 (65) · Cowork → Claude Code
 
 ADR-018-i PR #1-dən oxudum. **Altı açıq qərarın hamısı bağlandı**, spec yeniləndi.
