@@ -15,6 +15,53 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-11 (78) · Claude Code → Cowork
+
+**Etdim — production cutover TAMAMLANDI.** Sahib insan təsdiqlədi ki, produksiyada
+real istifadəçi yoxdur, ona görə staging-dən sonra qalan yeganə addımı — canlıya
+keçidi — birbaşa icra etdim (PR #2/#3/#4 birlikdə).
+
+### Sıra
+
+1. **`0012`-`0028` production Supabase-ə tətbiq edildi** (`oxjzehxnbumgyoqjonju`),
+   Supabase MCP `apply_migration` ilə, sırayla.
+2. **`app_runtime` production-da yaradıldı**, yeni təsadüfi parolla (heç bir fayla/
+   commit-ə yazılmadı, yalnız Vercel `DATABASE_URL`-də saxlanılır).
+3. **Production-a xas YENİ bug tapıldı və düzəldildi ötəri**: `0021`-in `attempt_items.id`-ni
+   yenidən generasiya edən addımı `step_events_attempt_id_fkey`-ə (staging-in tapdığı
+   HANDOFF-76-dakı #5 bug, hələ `0028`-lə düzəldilməmiş vəziyyətdə) tərs düşdü — production-da
+   HƏQİQİ `step_events` sətirləri var idi (lokal staging boş idi, bu fərqi görməmişdi).
+   Həll: `0028`-in FK-düzəltmə hissəsini `0021`-dən ƏVVƏL bir dəfə əl ilə (constraint drop)
+   işlətdim, sonra normal sırada davam etdim. **Miqrasiya fayllarının özündə düzəliş
+   lazım deyil** — bu, yalnız mövcud data olan bir DB-yə tətbiq zamanı çıxan sıra
+   məsələsidir, təzə DB-də (staging kimi) baş vermir.
+4. **`app_runtime` izolyasiyası production-da təsdiqləndi** — real şəbəkə qoşulması ilə
+   (Supabase-in connection pooler-i üzərindən, `aws-0-eu-central-1.pooler.supabase.com`):
+   `private.question_answers`-i birbaşa oxumaq **rədd edildi** (`permission denied for
+   schema private`), `questions` oxunması VƏ `reveal_answer` RPC-si İŞLƏDİ.
+5. **Vercel production `DATABASE_URL` `app_runtime`-a keçirildi** (`vercel env rm`+`add`,
+   Vercel CLI ilə — repo kökündə artıq `.vercel/repo.json` linki var idi).
+6. **PR #2 → #4 (base `main`-ə köçürüldü) → #3, ardıcıl merge edildi.** PR #4-ün merge-i
+   production Vercel deploy-unu tetiklədi.
+7. **Deploy READY oldu, canlı sınandı**: `GET /` → 200, `/api/steps/check`/`reveal`/
+   `transfer` naməlum `attempt_id` ilə → düzgün `404 attempt_not_found` (500 YOX) —
+   yeni sxem + `app_runtime` ilə DB round-trip-i uçdan-uca işləyir. Real LLM çağırışı
+   (real `/api/solve`) EDİLMƏDİ — real dəvət kodu bilmirdim, bu, kiçik açıq qalan addımdır.
+
+### Diqqət
+
+- `docs/DATA-MODEL.md` HƏLƏ YENİLƏNMƏYİB — köhnə sxemi təsvir edir (ADR-019-də qeyd
+  olunmuş açıq iş).
+- Köhnə `problems`/`solutions`/(rename-dən əvvəlki) `attempts` adları artıq mövcud
+  deyil production-da — bunlara istinad edən qalan sənəd/skript qalıqları yoxlanmalıdır.
+- Rollback planı (`ADR-019` §3) YAZILMAYIB — indiyədək lazım olmadı, amma real istifadəçilər
+  gələndə (S4/S5 telefon təsdiqi) bundan ƏVVƏL yazılmalıdır.
+
+**Blok:** yoxdur. Növbəti addım: real `/api/solve` sınağı (kiçik həqiqi xərclə) VƏ ya
+birbaşa S4/S5 şagird dəvəti — sahib insanın qərarıdır.
+
+---
+
 ## 2026-08-10 (77) · Claude Code → Cowork
 
 **Nömrələmə qeydi (PR #4-ün öz merge konfliktində tapıldı):** bu blok əvvəlcə `(76)`,
