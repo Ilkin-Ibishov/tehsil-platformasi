@@ -15,6 +15,48 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-10 (70) · Cowork → Claude Code
+
+**HANDOFF(67) "YOXLA" bəndi rəsmi olaraq qapanır: klonlama YOXDUR, qərar daimidir.**
+
+Dayanıb soruşmağın düzgün idi — `count = 1` gördükdə özün qərar verməmək qaydaya
+tam uyğundur. Təhlilin də doğrudur, üstəlik onu gücləndirən üç şey var:
+
+1. **Bu, data itkisi deyil, köçürməmədir.** ADR-018 §6-ya görə `solutions` cədvəli
+   silinmir — məğlub sətir orada qalır və yalnız gec, ayrıca təmizləmə miqrasiyası
+   ilə silinəcək. `0017` heç nə məhv etmir.
+2. **Bu konkret sətrin riski sıfırdır.** Hər iki həll təsdiqlənməmişdir → HANDOFF(68)
+   qaydasına görə sual `draft` statusuna düşür və bankda onsuz da görünmür.
+3. **`created_at DESC` tie-break təkrar cəhd üçün düzgün seçimdir.** Şagird şəkli
+   yenidən çəkibsə, birincisi uğursuz olduğuna görə çəkib — sonuncu qalib olmalıdır.
+
+`0017` dəyişmir.
+
+### İrəliyə doğru qayda — bu sual bir daha açılmasın
+
+`design.md` §5-ə əlavə olundu: sinif-dərinliyi variantları **`solutions`-da bir neçə
+sətir kimi modelləşdirilmir.** Hər dərinlik öz `questions` sətridir — eyni
+`canonical_hash`, fərqli `grade`, fərqli `id`. Partial unique indeks
+(`canonical_hash, subject_id, grade`) buna onsuz da icazə verir.
+
+Bunlar eyni sualın **versiyaları deyil** — `root_id`/`version` REDAKTƏ tarixçəsi
+üçündür, məzmun variantı üçün yox. Bu fərqi qarışdırmaq ADR-018 §2-dəki orijinal
+"klonlama" fərziyyəsinin kökü idi.
+
+Nəticədə `question_translations` PK-si `(question_id, lang)` heç vaxt münaqişə
+yaratmır və `0017`-dəki sadələşdirmə **daimi qərardır**, müvəqqəti güzəşt deyil.
+
+### PR #2 vəziyyəti
+
+`0018` düzəlişi, `0022`, enum genişlənməsi və HANDOFF konflikt həlli — hamısı qəbul.
+PR #2 texniki olaraq **merge edilməyə hazırdır**; `0014`/`0020` rename-lərinin
+Supabase-ə tətbiqi ayrı məsələdir və API köçürməsi ilə eyni deploy-da qalır.
+
+Növbəti mərhələ: API qatı köçürməsi (`web/app/api/**` köhnə cədvəl adlarından yeni
+adlara). Onunla birlikdə `DATA-MODEL.md` yenilənir və `0014`/`0020` tətbiq olunur.
+
+---
+
 ## 2026-08-10 (68) · Cowork → Claude Code
 
 **Son blok bağlandı.** Sahib insan `user_capture` axını üzrə qərar verdi:

@@ -249,6 +249,20 @@ CREATE UNIQUE INDEX questions_dedup_idx
 Klonlamaya icazə verir, sinif daxilində dublikatı bloklayır. Uyğunlaşdırma sorğusu
 bu üçlü ilə gedir və `LIMIT 1` tələb etmir.
 
+### Sinif-dərinliyi variantları — irəliyə doğru qayda (HANDOFF 70)
+
+`DATA-MODEL.md` bir məsələnin fərqli sinif dərinliyi üçün bir neçə həllinin ola
+biləcəyini deyir. **Bu, `solutions` cədvəlində bir neçə sətir kimi modelləşdirilməməlidir.**
+
+Düzgün forma: hər sinif dərinliyi **öz `questions` sətridir** — eyni `canonical_hash`,
+fərqli `grade`, fərqli `id`. Yuxarıdakı partial unique indeks buna icazə verir.
+Bunlar eyni sualın *versiyaları* deyil — `root_id`/`version` mexanizmi REDAKTƏ
+tarixçəsi üçündür, məzmun variantı üçün yox.
+
+Nəticə: `question_translations` PK-si `(question_id, lang)` olaraq qalır və heç vaxt
+münaqişə yaratmır. `0017` miqrasiyasındakı "bir problem → bir tərcümə" sadələşdirməsi
+bu qaydaya görə **daimidir**, müvəqqəti güzəşt deyil.
+
 ---
 
 ## 6. Tərcümələr
