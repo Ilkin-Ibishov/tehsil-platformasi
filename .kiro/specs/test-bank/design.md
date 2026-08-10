@@ -201,12 +201,29 @@ CREATE TABLE question_translations (
 
 ```ts
 type Step = {
+  id: string            // sabit, tərcümələr arasında EYNİ qalır (az versiyadan gəlir)
   title: string
   body: Content
   why?: Content         // "Niyə?" düyməsi altında
+  check: {              // hər addım şagirddən cavab istəyir — məhsulun nüvəsi
+    kind: 'numeric' | 'expression' | 'choice'
+    prompt: Content
+    tolerance?: number
+    options?: { key: string; label: Content }[]  // yalnız kind='choice'
+  }
+  distractors?: {       // gözlənilən səhvlər → error_code
+    value: string
+    error_code: string  // docs/STEP-SCHEMA.json error_codes enum-u
+  }[]
   reveals_answer: false // addım cavabı ifşa etməməlidir
 }
 ```
+
+`check` sahəsi məcburidir. Onsuz addım sadəcə mətn olur və məhsul Photomath-a
+çevrilir — bax `CLAUDE.md` qızıl qaydası.
+
+`distractors` **səhv** dəyərləri saxlayır, doğrunu yox. Doğru dəyər
+`private.step_answers` cədvəlindədir (§7).
 
 `steps` NOT NULL-dır — məhsulun əsas fərqi budur, boş sual bazaya düşməməlidir.
 
@@ -241,6 +258,16 @@ CREATE TABLE private.question_answers (
   validator TEXT NOT NULL DEFAULT 'exact'  -- exact | numeric_tolerance | set | ordered
 );
 
+-- Addım-səviyyəli cavablar. Dilə bağlı DEYİL: step_id tərcümələr arasında
+-- eynidir, cavab dəyəri isə dil-neytraldır (rəqəm / ifadə).
+CREATE TABLE private.step_answers (
+  question_id UUID NOT NULL REFERENCES public.questions(id) ON DELETE CASCADE,
+  step_id TEXT NOT NULL,
+  answer JSONB NOT NULL,
+  validator TEXT NOT NULL DEFAULT 'numeric_tolerance',
+  PRIMARY KEY (question_id, step_id)
+);
+
 CREATE FUNCTION public.check_answer(q UUID, given JSONB)
 RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = private, public AS $$
@@ -253,7 +280,26 @@ END; $$;
 
 REVOKE ALL ON FUNCTION public.check_answer FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.check_answer TO app_runtime;
+
+-- Addım yoxlaması. error_code distractors-dan gəlir (public tərcümədə),
+-- doğru cavab isə heç vaxt qaytarılmır.
+CREATE FUNCTION public.check_step(q UUID, s TEXT, given JSONB)
+RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = private, public AS $$
+DECLARE a JSONB; v TEXT;
+BEGIN
+  SELECT answer, validator INTO a, v
+  FROM private.step_answers WHERE question_id = q AND step_id = s;
+  RETURN jsonb_build_object('is_correct', a = given);
+END; $$;
+
+REVOKE ALL ON FUNCTION public.check_step FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.check_step TO app_runtime;
 ```
+
+**Vacib:** `sympy` yoxlaması (ADR-009) bu funksiyaların yerini tutmur — o,
+`/api/steps/check` daxilində işləyir və doğru dəyəri `check_step` vasitəsilə
+alır. Doğru dəyər heç vaxt Node prosesində açıq şəkildə saxlanmır.
 
 Tətbiq `app_runtime` rolu ilə qoşulur; o rolun `private` sxeminə icazəsi yoxdur.
 İkinci müdafiə xətti: `/api/questions` heç vaxt cavab sahəsi qaytarmır.
