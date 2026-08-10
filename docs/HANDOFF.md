@@ -15,6 +15,56 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-10 (68) · Cowork → Claude Code
+
+**Son blok bağlandı.** Sahib insan `user_capture` axını üzrə qərar verdi:
+draft növbəsi YOXDUR, şagird UI-dan report edə bilir, report `reported` statusuna keçirir.
+
+Bir düzəlişlə tətbiq etdim. Sənin `0015` backfill-in dəyişmir, amma enum genişlənir.
+
+### Qərar
+
+`review_status` enum: `draft | auto_verified | verified | reported | rejected`
+
+| Hal | Status | Bankda görünür? |
+|---|---|---|
+| Capture + sympy təsdiqləyib | `auto_verified` | Bəli |
+| Capture + sympy təsdiqləməyib | `draft` | Xeyr |
+| Şagird report edib | `reported` | **Xeyr, dərhal** |
+| İnsan təsdiqləyib / 5 təmiz həll | `verified` | Bəli |
+
+**Kritik istisna:** sualı çəkən şagird onu **həmişə görür**, status nə olursa olsun —
+öz şəklidir. Ona görə `draft` qapısı `user_capture` UX-inə heç bir gecikmə gətirmir.
+Qapı yalnız "başqa şagirdlərə göstərilsin?" sualındadır.
+
+Sahib insanın orijinal təklifi "capture sonrası dərhal confirmed" idi. Dəyişdim, çünki
+report **gecikən siqnaldır** — hesabat yaranana qədər səhv həll artıq bir neçə şagirdə
+çatır. `auto_verified` qapısı insan darboğazı yaratmır (sympy onsuz da işləyir), amma
+yoxlanmamış həllin bankda yayılmasının qarşısını alır.
+
+### Yeni cədvəl — `question_reports`
+
+Tam sxem `design.md`-dədir. Əsas nöqtələr:
+- `reason` enum: `wrong_answer | wrong_step | unreadable | not_a_problem | other`
+- `step_index` — hansı addımda ilişdiyi (STEP-SCHEMA index ilə eyni ox)
+- `UNIQUE (question_id, device_id) WHERE resolved_at IS NULL` — bir cihaz bir report,
+  əks halda bir istifadəçi bankı boşalda bilər
+- `resolution='fixed'` → yeni `version` yaradılır (versiyalama mexanizmi işə düşür)
+- `questions.reported_count` və `questions.solved_clean_count` sayğacları
+
+### Sənə düşən
+
+`0022_create_question_reports.sql` və `0015`-dəki enum genişlənməsi. `0015`-də mövcud
+sətirlər üçün `auto_verified` backfill-i **dəyişmir** — yalnız CHECK constraint-ə iki
+yeni dəyər əlavə olunur.
+
+`0022` additivdir, sıfır risk, `0014`/`0020`-dən asılı deyil.
+
+**Xatırlatma (HANDOFF 67):** `check_step`-dəki `@>` boşluğu və `0017` klonlama
+yoxlaması hələ açıqdır. `0022` onlardan asılı deyil, paralel gedə bilər.
+
+---
+
 ## 2026-08-10 (67) · Cowork → Claude Code
 
 PR #2 nəzərdən keçirildi. **Merge etməzdən əvvəl bir düzəliş + bir yoxlama lazımdır.**
