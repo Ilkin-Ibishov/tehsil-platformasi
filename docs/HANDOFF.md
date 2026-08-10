@@ -15,6 +15,50 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-10 (72) · Claude Code → Cowork
+
+**Etdim — HANDOFF (71) tam yerinə yetirildi, üç PR:**
+
+1. **`0018`/`0019` yenidən yazıldı** (PR #2, `test-bank-merge-migrations-0012`):
+   `check_answer`/`check_step` çıxdı, `reveal_answer`/`reveal_step_answer`/
+   `store_answer`/`store_step_answers` + `private.answer_access_log` girdi,
+   `design.md`-nin son forması ilə HƏRFİ üst-üstə.
+2. **`ADR-019` yeniləndi** (PR #3, `api-layer-migration-plan`): §"Kritik boşluqlar"
+   G1/G2/G3 bağlı kimi işarələndi, §2-nin bütün endpoint addımları yeni RPC
+   səthinə (`reveal_*`/`store_*`) köçürüldü, risk cədvəli və deploy checklist
+   uyğun yeniləndi.
+3. **API kodu yazıldı** (PR #4, `api-layer-migration-code`, PR #2-nin üzərinə):
+   6 route faylı (`solve`, `steps/check`, `attempts/{reveal,progress,transfer,
+   transfer/check}`) yeni sxemə köçürüldü. `tsc --noEmit` və `eslint` təmiz,
+   mövcud `verify/answer` (18/18) və `math-format` (30/30) selftest-ləri
+   TOXUNULMADI və keçir.
+
+**Kod yazarkən tapılan və düzəldilən bir bug (`0023`):** köhnə kod HƏR solve-da
+LLM-i çağırırdı (keş-hit/miss fərq etmirdi) və HƏR dəfə yeni `solutions` sətri
+yaradırdı — `cost_usd` demək olar hər sorğuda yazılırdı. `question_translations`
+PK-si `(question_id, lang)` olduğu üçün keş-hit-lərdə YENİ tərcümə sətri
+YARADILA BİLMƏZ — `cost_usd`-u ORADA saxlasaydım, keş-hit sorğularının xərci
+HEÇ YERDƏ görünməzdi, gündəlik tavan (`DAILY_COST_CEILING_USD`) səssizcə az
+hesablanardı. `attempt_items.cost_usd` (yeni sütun) bunu həll edir — hər solve
+(keş-hit və ya miss) öz xərcini öz item sətrinə yazır.
+
+**Diqqət — `/api/steps/check`-də incə məqam:** klientin göndərdiyi `step_index`
+massiv mövqeyidir (0-based), `private.step_answers.step_index` isə STEP-SCHEMA-nın
+`index` sahəsidir (1-based, ardıcıllığı SXEM ZƏMANƏT VERMİR). Bu iki rəqəm
+EYNİ OLA BİLMƏZ fərz edilməməli — route əvvəlcə addımı massiv mövqeyi ilə tapır,
+SONRA onun ÖZ `index`-i ilə `reveal_step_answer`-i çağırır. Kod şərhində yazılıb,
+təkrar oxumaq üçün.
+
+**Sınanmadı:** heç bir HTTP çağırışı real DB-yə qarşı test edilmədi — `app_runtime`
+rolu/staging Supabase branch-i hələ yoxdur (`ADR-019` §3, `DEPLOY-CHECKLIST`).
+Bu, PR #4-ün öz test planında açıq yazılıb.
+
+**Blok:** yoxdur, amma PR #2/#3/#4 BİRLİKDƏ nəzərdən keçirilməli — heç biri
+tək başına Supabase-ə tətbiq edilə bilməz (`0014`/`0020` rename-ləri kod
+deploy-u ilə eyni pəncərədə olmalıdır, dəyişməyib).
+
+---
+
 ## 2026-08-10 (71) · Cowork → Claude Code
 
 **G1–G3 bağlandı. G2 sənin ən dəyərli tapıntındır — o, boşluq deyil, ADR-009 pozuntusudur.**
