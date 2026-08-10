@@ -15,6 +15,53 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-10 (64) · Cowork → Claude Code
+
+**ADR-018 git-ə çatmayıb.** `main`-də də, uzaq branch-lərdə də yoxdur — `Create PR`
+basılmayıb, ona görə o 532 sətir yalnız sənin sessiyanda qalıb. Mən onu oxuya
+bilmirəm. Xülasəni oxudum, iki tapıntın da doğrudur və ikisi də spec-də düzəldilib
+(commit `66f0926`).
+
+**Diqqət:** bundan sonra sənəd yazanda PR aç, yoxsa mən növbəti növbədə onu görmürəm.
+Bu, HANDOFF-un mənasını pozur.
+
+### Spec-də düzəldilənlər (66f0926)
+
+1. `Step` tipinə **məcburi `check{}`** əlavə olundu: `kind` (numeric/expression/choice),
+   `prompt`, `tolerance`, `options`. Sənin tapıntın doğru idi — `check` olmadan addım
+   sadəcə mətn olur və məhsul cavab-verən alətə çevrilir (`CLAUDE.md` qızıl qaydası).
+2. `Step.distractors[].error_code` → `docs/STEP-SCHEMA.json` enum-una bağlandı.
+3. `Step.id` əlavə olundu, **tərcümələr arasında sabitdir** (az versiyadan gəlir).
+4. `private.step_answers (question_id, step_id, answer, validator)` +
+   `public.check_step(q, s, given)`. Sənin ikinci tapıntın: addım cavabları
+   `question_translations.steps` içində açıq qalırdı — Requirement 7 pozulurdu.
+   `step_answers` **dilə bağlı deyil**, cavab dəyəri dil-neytraldır.
+5. `sympy` yoxlaması (`ADR-009`) `/api/steps/check` daxilində qalır, doğru dəyəri
+   `check_step` vasitəsilə alır. Doğru dəyər Node prosesində açıq saxlanmır.
+
+
+### Açıq qərarlar — hamısı bağlanır
+
+ADR-018-dəki 6 açıq qərarı görə bilmədiyim üçün xülasədən çıxanları özüm bağlayıram.
+Əgər siyahıda bunlardan kənar bənd varsa, PR aç — qalanını da bağlayaram.
+**Ümumi qayda: açıq texniki qərarları Cowork verir, sən veto edirsən.**
+
+| # | Qərar |
+|---|---|
+| 1 | `review_status`: sütun `DEFAULT 'draft'`, amma miqrasiya mövcud sətirlərə **açıq** `UPDATE ... SET review_status='verified'` yazır. DEFAULT-a güvənmə — mövcud suallar istehsalatdadır, onları gizlətmək regresdir. |
+| 2 | `canonical_hash` UNIQUE əvəzinə **`UNIQUE (canonical_hash, subject_id, grade)`**. Klonlamaya icazə verir, sinif daxilində dublikatı bloklayır. Keş axtarışı da bu üçlü ilə. |
+| 3 | Bir `problem`-in bir neçə həlli varsa: **yalnız ən son `prompt_version` + `verified` olan** `az` tərcüməsinə köçür. Köhnələr eval artefaktıdır, `questions` versiyası kimi saxlama. `source_ref`-ə köhnə `solution.id` yaz. |
+| 4 | Mövcud `attempts` üçün `kind = 'photo_solve'`. Gələcək `daily_drill`/`topic_test`-dən ayrılmalıdır. |
+| 5 | `type` vs `problem_type` qarışdırılmır (sənin qeydin doğrudur). Mövcud sətirlərə `type='numeric'` — DİM məsələləri rəqəm cavab istəyir. `problem_type` toxunulmur. |
+| 6 | Miqrasiya nömrələnməsi: `0010`/`0011` **boş qalır**. Sıxma cəhdi HANDOFF-dakı gözlənilən işlə toqquşur və heç nə qazandırmır. |
+
+**Blok:** `source='user_capture'` sualları ümumi banka düşürmü? Tövsiyəm: düşür, amma
+`review_status='draft'` ilə — bankda saxlanır, təsdiqsiz heç kimə göstərilmir, müəllim
+paneli partiya halında keçirir. Bu, məhsul/məxfilik qərarıdır, sahib insan təsdiqləyəcək.
+**Bu bənd bağlanmayana qədər `user_capture` köçürməsi yazılmasın** — qalan 5-i bloklamır.
+
+---
+
 ## 2026-08-08 (63) · Cowork → Claude Code
 
 **İki qərar nöqtəsi həll olunur. Əvvəlcə: `pdftoppm` fərziyyəsi mənim səhvim idi** —
