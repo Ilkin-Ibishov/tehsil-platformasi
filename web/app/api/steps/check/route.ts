@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
-import { studentAnswerMatches } from "@/lib/verify/answer";
+import { validateStepIndex, resolveStepCheck } from "@/lib/verify/step-check";
 
 // POST /api/steps/check — SYSTEM-REVIEW-2026-08-07 §2 (HANDOFF 45): addım yoxlaması serverdə
 // olur. Server `question_translations.steps`-dən (public, `error_code`/addım mətni üçün) və
@@ -11,22 +11,19 @@ import { studentAnswerMatches } from "@/lib/verify/answer";
 // `error_code`/`hint` BURADA qaytarılmır — onlar sirr deyil, `/api/solve` cavabında artıq
 // klientdədir (yalnız `check.accept` və `final_answer` gizlədilib).
 //
-// ADR-019 §2.2: `stepIndex` klientdən MASSİV MÖVQEYİ (0-based) kimi gəlir — `/api/solve`-in
-// qaytardığı `steps[]` sırası ilə EYNİ sıradır `question_translations.steps` (`0017`/solve
-// route-u eyni array-i saxlayır). `private.step_answers.step_index` isə STEP-SCHEMA-nın
-// `index` SAHƏSİDİR (1-based, məcburi ardıcıl DEYİL) — bu iki rəqəm EYNİ OLMAYA BİLƏR, ona
-// görə əvvəlcə massiv mövqeyi ilə addımı tapıb, SONRA onun öz `index`-i ilə RPC çağırılır.
+// HANDOFF (73) — BLOKLAYICI DÜZƏLİŞ: `step_index` İNDİ birbaşa STEP-SCHEMA `index`
+// sahəsidir (klient `SolveStep.index`-i geri göndərir, massiv MÖVQEYİ YOX). Əvvəlki versiya
+// massiv mövqeyini `private.step_answers`-in saxladığı `index`-ə "körpüləyirdi"
+// (`steps[stepIndex].index`) — bu körpü `question_translations`-un dil fallback zəncirinə
+// (`ru → az → tr → en`) görə SƏSSİZ SINIRDI: client bir dildə render edir, server başqa dildən
+// oxuyur, iki tərcümənin `steps[]` sırası/uzunluğu FƏRQLİ ola bilər. Körpü tamamilə silinib —
+// açar birbaşa `index` ilə axtarılır, tapılmasa AÇIQ `400` qaytarılır (səssiz `false` YOX).
 
 type Body = {
   attempt_id?: unknown;
   device_id?: unknown;
   step_index?: unknown;
   answer?: unknown;
-};
-
-type StoredStep = {
-  index?: number;
-  error_code?: string;
 };
 
 export async function POST(req: NextRequest) {
@@ -39,48 +36,50 @@ export async function POST(req: NextRequest) {
 
   const attemptId = body.attempt_id;
   const deviceId = body.device_id;
-  const stepIndex = body.step_index;
   const answer = body.answer;
 
   if (typeof attemptId !== "string" || typeof deviceId !== "string") {
     return NextResponse.json({ error: "attempt_id/device_id gözlənilir" }, { status: 400 });
   }
-  if (!Number.isInteger(stepIndex) || (stepIndex as number) < 0) {
+  const stepIndex = validateStepIndex(body.step_index);
+  if (stepIndex === null) {
+    // STEP-SCHEMA: steps[].index minimum 1 — massiv mövqeyi (0-based) ARTIQ QƏBUL EDİLMİR.
     return NextResponse.json({ error: "step_index gözlənilir" }, { status: 400 });
   }
   if (typeof answer !== "string") {
     return NextResponse.json({ error: "answer gözlənilir" }, { status: 400 });
   }
 
-  const { rows } = await pool.query<{ item_id: string; question_id: string; steps: StoredStep[] }>(
-    `select ai.id as item_id, ai.question_id, qt.steps
+  const { rows } = await pool.query<{ item_id: string; question_id: string; error_code: string | null }>(
+    `select ai.id as item_id, ai.question_id,
+            (
+              select elem ->> 'error_code'
+                from question_translations qt, jsonb_array_elements(qt.steps) elem
+               where qt.question_id = ai.question_id and qt.lang = 'az'
+                 and (elem ->> 'index')::int = $3
+            ) as error_code
        from attempt_items ai
        join attempts a on a.id = ai.attempt_id
-       join question_translations qt on qt.question_id = ai.question_id and qt.lang = 'az'
       where a.id = $1 and a.device_id = $2`,
-    [attemptId, deviceId]
+    [attemptId, deviceId, stepIndex]
   );
   if (rows.length === 0) {
     return NextResponse.json({ error: "attempt_not_found" }, { status: 404 });
   }
 
-  const { item_id: itemId, question_id: questionId, steps } = rows[0];
-  const step = steps[stepIndex as number];
-  if (!step || typeof step.index !== "number") {
-    return NextResponse.json({ error: "step_not_found" }, { status: 400 });
-  }
+  const { item_id: itemId, question_id: questionId, error_code: errorCode } = rows[0];
 
   const { rows: answerRows } = await pool.query<{ reveal_step_answer: { accept?: string[]; input_kind?: string } | null }>(
     `select reveal_step_answer($1, $2, 'verify', $3) as reveal_step_answer`,
-    [questionId, step.index, itemId]
+    [questionId, stepIndex, itemId]
   );
-  const revealed = answerRows[0]?.reveal_step_answer;
-  if (!revealed || !Array.isArray(revealed.accept)) {
-    return NextResponse.json({ error: "step_not_found" }, { status: 400 });
+  // Açıq validasiya (HANDOFF 73): açar tapılmadıqda AÇIQ 400, səssiz `{correct:false}` YOX —
+  // əks halda naməlum/səhv `step_index` şagirdə "səhv cavab" kimi göstərilə bilərdi.
+  const result = resolveStepCheck(answerRows[0]?.reveal_step_answer, answer);
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: 400 });
   }
-
-  const accept = revealed.accept;
-  const correct = accept.some((a) => studentAnswerMatches(answer, a));
+  const correct = result.correct;
 
   try {
     const { rows: countRows } = await pool.query<{ c: number }>(
@@ -91,7 +90,7 @@ export async function POST(req: NextRequest) {
     await pool.query(
       `insert into step_events (attempt_id, step_index, error_code, attempts_count)
        values ($1,$2,$3,$4)`,
-      [attemptId, stepIndex, correct ? null : step.error_code ?? null, attemptsCount]
+      [attemptId, stepIndex, correct ? null : errorCode, attemptsCount]
     );
   } catch (err) {
     // step_events yalnız ölçmədir — yazı uğursuz olsa da şagird cavabı almalıdır.
