@@ -140,13 +140,21 @@ CREATE TABLE questions (
   license_status TEXT NOT NULL DEFAULT 'unknown'
     CHECK (license_status IN ('owned','licensed','unknown','flagged')),
   review_status TEXT NOT NULL DEFAULT 'draft'
-    CHECK (review_status IN ('draft','auto_verified','verified','rejected')),
-    -- draft         = yoxlanmayıb, şagirdə göstərilmir
-    -- auto_verified = maşın (sympy/ADR-009) təsdiqləyib, insan baxmayıb → GÖRÜNÜR
-    -- verified      = insan nəzərdən keçirib → görünür
-    -- Görünmə şərti: review_status IN ('auto_verified','verified')
-    -- ADR-018 §6: mövcud sətirlərə 'verified' yazmaq YALAN siqnaldır,
-    -- 'draft' yazmaq isə istehsalatda sualları yox edir. Üçüncü dəyər hər ikisini həll edir.
+    CHECK (review_status IN ('draft','auto_verified','verified','reported','rejected')),
+    -- draft         = maşın təsdiqləməyib → BANKDA GÖRÜNMÜR
+    -- auto_verified = sympy (ADR-009) təsdiqləyib, insan baxmayıb → görünür
+    -- verified      = insan baxıb, VƏ YA N şagird report etmədən həll edib → görünür
+    -- reported      = şagird səhv bildirib → DƏRHAL bankdan çıxır, növbəyə düşür
+    -- rejected      = insan rədd edib → görünmür, geri qayıtmır
+    --
+    -- Görünmə şərti (BANK üçün): review_status IN ('auto_verified','verified')
+    -- İSTİSNA: sualı çəkən şagird onu HƏMİŞƏ görür (öz şəklidir), status nə olursa olsun.
+    --          Bu qayda `user_capture` axınında gecikmə olmamasını təmin edir.
+    --
+    -- ADR-018 §6 + HANDOFF 68: mövcud sətirlərə 'verified' yazmaq YALAN siqnaldır,
+    -- 'draft' yazmaq isə istehsalatda sualları yox edir. 'auto_verified' hər ikisini həll edir.
+  reported_count INT NOT NULL DEFAULT 0,
+  solved_clean_count INT NOT NULL DEFAULT 0,  -- report etmədən həll edən fərqli şagird sayı
   reviewed_by UUID,
   reviewed_at TIMESTAMPTZ,
 
@@ -187,6 +195,44 @@ CREATE TABLE question_standards (
 ```
 
 Variantların **mətni** payload-da deyil, tərcümə cədvəlindədir — yalnız açarlar burada.
+
+### Şagird hesabatları (report) — `user_capture` keyfiyyət döngəsi
+
+```sql
+CREATE TABLE question_reports (
+  id UUID PRIMARY KEY,                    -- client generasiya edir
+  question_id UUID NOT NULL REFERENCES questions(id),
+  attempt_item_id UUID REFERENCES attempt_items(id),
+  device_id UUID NOT NULL,
+  user_id UUID,
+  reason TEXT NOT NULL CHECK (reason IN
+    ('wrong_answer','wrong_step','unreadable','not_a_problem','other')),
+  step_index SMALLINT,                    -- hansı addım, varsa
+  note TEXT,
+  resolved_at TIMESTAMPTZ,
+  resolution TEXT CHECK (resolution IN ('fixed','rejected','duplicate','invalid')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_reports_open ON question_reports (question_id)
+  WHERE resolved_at IS NULL;
+```
+
+**Avtomatik status keçidləri** (trigger, yaxud RPC daxilində):
+
+| Hadisə | Keçid |
+|---|---|
+| İlk açıq report | `auto_verified` / `verified` → **`reported`**, dərhal |
+| Report `resolution='fixed'` | yeni `version` yaradılır, yeni sətir `verified` |
+| Report `resolution='invalid'` | əvvəlki statusa qayıdır, `reported_count` qalır |
+| `solved_clean_count >= 5` və açıq report yoxdur | `auto_verified` → **`verified`** |
+
+`reported` statusu **dərhal** tətbiq olunur — növbəyə qoyub gözlətmək o deməkdir ki,
+hesabat yazılarkən eyni səhv həll digər şagirdlərə göstərilməyə davam edir.
+
+Sui-istifadə qapısı: eyni `device_id` eyni sual üçün bir dəfə report edə bilər
+(`UNIQUE (question_id, device_id) WHERE resolved_at IS NULL`). Əks halda bir istifadəçi
+bankı boşalda bilər.
 
 ### Dedup açarları (ADR-018 §1d)
 
@@ -291,7 +337,15 @@ DECLARE a JSONB; v TEXT;
 BEGIN
   SELECT answer, validator INTO a, v
   FROM private.question_answers WHERE question_id = q;
-  RETURN jsonb_build_object('is_correct', a = given);
+  -- `validator` sahəsi seçilir, amma bu funksiyada İSTİFADƏ OLUNMUR.
+  -- Yekun cavabın sympy müqayisəsi (ADR-009) `/api/answers/check` daxilindədir.
+  -- Bu funksiya yalnız hərfi bərabərliyi yoxlayır — `numeric_tolerance` üçün
+  -- KİFAYƏT DEYİL. Tolerantlıq lazım olan hallarda API qatı `validator` dəyərini
+  -- oxuyub sympy-ə yönləndirməlidir.
+  IF given IS NULL OR given = '{}'::jsonb THEN
+    RETURN jsonb_build_object('is_correct', false, 'reason', 'empty_answer');
+  END IF;
+  RETURN jsonb_build_object('is_correct', a = given, 'validator', v);
 END; $$;
 
 REVOKE ALL ON FUNCTION public.check_answer FROM PUBLIC;
@@ -304,9 +358,26 @@ RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = private, public AS $$
 DECLARE a JSONB; k TEXT;
 BEGIN
+  -- KRİTİK: boş girişi rədd et. `a @> '{}'` və `a @> '[]'` HƏMİŞƏ true qaytarır —
+  -- yəni boş cavab göndərən şagird "doğru" alırdı. Containment burada yanlış operatordur.
+  IF given IS NULL OR given = '{}'::jsonb OR given = '[]'::jsonb THEN
+    RETURN jsonb_build_object('is_correct', false, 'reason', 'empty_answer');
+  END IF;
+
   SELECT accept, input_kind INTO a, k
   FROM private.step_answers WHERE question_id = q AND step_index = idx;
-  RETURN jsonb_build_object('is_correct', a @> given, 'input_kind', k);
+
+  IF a IS NULL THEN
+    RETURN jsonb_build_object('is_correct', false, 'reason', 'no_answer_key');
+  END IF;
+
+  RETURN jsonb_build_object(
+    'is_correct',
+    CASE WHEN jsonb_typeof(a) = 'array'
+         THEN a @> jsonb_build_array(given)   -- accept siyahısı: üzvlük yoxlaması
+         ELSE a = given END,                  -- tək dəyər: bərabərlik
+    'input_kind', k
+  );
 END; $$;
 
 REVOKE ALL ON FUNCTION public.check_step FROM PUBLIC;
