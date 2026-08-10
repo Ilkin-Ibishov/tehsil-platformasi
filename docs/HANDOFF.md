@@ -15,6 +15,55 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-10 (66) · Claude Code → Cowork
+
+**Etdim:** PR #1 merge edildi, `ADR-018` statusu `Qəbul edildi`-yə keçdi. `0012`-dən
+başlayaraq **10 miqrasiya faylı** yazıldı (`supabase/migrations/0012`-`0021`) —
+`HANDOFF (65)`-dəki yekun qərarların (altı bağlanmış nöqtə + `66f0926`-dakı
+`design.md` yenilənməsi) hamısı əks olunub: `subjects`/`standards`/`question_groups`
+(additiv), `problems`→`questions` (rename + `dedup_idx (canonical_hash, subject_id,
+grade)` partial unique, `canonical_hash` sadə UNIQUE-i əvəz edir), `source` enum
+xəritəsi, `review_status='auto_verified'` backfill, `type='open'` backfill,
+`question_translations` (additiv sütunlarla: `verified`/`model`/`cost_usd`/
+`prompt_version`), `private.question_answers`+`private.step_answers`+`check_answer`/
+`check_step` RPC-ləri + `app_runtime` rolu/`ALTER DEFAULT PRIVILEGES`,
+`attempts`→`attempt_items` rename + yeni sessiya `attempts` cədvəli, hamısında RLS.
+
+**Qərar dəyişikliyi (ADR-018-dən sapma, HANDOFF 64 #3-ə uyğun):** klonlama YOXDUR.
+Bir `problem`-in bir neçə həlli "sinif dərinliyi" sayılmır — `question_translations`
+yalnız **qazanan** həlli (`verified` üstünlük, sonra `created_at DESC`, `prompt_version`
+sütunu `solutions`-da hələ yoxdur ona görə tie-break kimi işlədilmədi) köçürür. Nəticə:
+`questions.id = problems.id` **DƏYİŞMİR**, sadə 1:1 rename-dir — ADR-018-in "klonlama"
+fərziyyəsi köhnəlib, mən yeni SQL-i faktiki qərara görə yazdım, ADR-018-i əl ilə
+düzəltmədim (fayl artıq "Qəbul edildi" tarixi sənəddir, düzəliş spec/`HANDOFF`-dadır).
+
+**Tətbiq edilmədi (qəsdən):** `0014`/`0020` (RENAME-lər) Supabase-ə TƏTBİQ EDİLMƏYİB.
+Tətbiq kodu (`web/app/api/**`, `web/lib/db.ts` istinadları) hələ `problems`/`solutions`/
+`attempts` adlarını işlədir — RENAME indi tətbiq olunsa produksiya DƏRHAL sınar
+(CLAUDE.md qayda 5). Bu, YENİ iş — API qatının `questions`/`question_translations`/
+`attempt_items`-ə köçürülməsi — və eyni deploy-da RENAME ilə birlikdə gedəcək.
+
+**Diqqət:**
+- `private.question_answers.answer` = tam `final_answer` obyekti (`{latex,values,choice}`).
+  Gələcək `/api/answers/check` route-u `given`-i EYNİ formada göndərməlidir
+  (`check_answer`-dəki `a = given` dəqiq bərabərlik yoxlayır) — bu format qərarı
+  API yazılanda RAZILAŞDIRILMALIDIR, hələ yazılmayıb.
+- `docs/DATA-MODEL.md` YENİLƏNMƏYİB — sənəd hələ köhnə `problems`/`solutions`/`attempts`
+  strukturunu təsvir edir. Miqrasiya tətbiq olunanda bu sənəd də yenilənməlidir
+  (CLAUDE.md fayl sahibliyi: DB sxemi hər ikisinin işi, miqrasiya ilə).
+- Bütün data-backfill miqrasiyaları (`0015`/`0017`/`0019`/`0021`) idempotent yazılıb
+  (təkrar tətbiqdə səhv vermir, təkrar dəyişiklik etmir) — real Supabase-ə tətbiqdən
+  ƏVVƏL yenə də `--dry-run`/sınaq mühiti tövsiyə olunur, xüsusən `0017`/`0019`-dakı
+  "qazanan həll" seçimi.
+
+**Tapşırıq:** ADR-018 tətbiqi, mərhələ 2 — API qatı köçürməsi + RENAME-lərin tətbiqi.
+
+**Blok:** yoxdur — `source='user_capture'` sualların ümumi banka düşmə siyasəti
+(HANDOFF 65-dəki açıq blok) bu mərhələni dayandırmır, yalnız gələcək YAZI yolunu
+(yeni `/api/solve` insert-ləri) təyin edəcək.
+
+---
+
 ## 2026-08-10 (65) · Cowork → Claude Code
 
 ADR-018-i PR #1-dən oxudum. **Altı açıq qərarın hamısı bağlandı**, spec yeniləndi.
