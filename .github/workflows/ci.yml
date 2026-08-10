@@ -5,6 +5,14 @@
 # Qəsdən BURADA YOXDUR: TS selftest-lərin (`answer`/`math-format`/`step-check`) özləri —
 # HANDOFF (73) yalnız `--selftest`/`tsc`/`eslint` istədi. `npx tsx **/*.selftest.mts` əlavə
 # etmək asan növbəti addımdır, bu ADR-in/tapşırığın əhatəsində deyil.
+#
+# `npm ci` YOX, `npm install` — CI-ni ilk dəfə qurarkən tapıldı: committed
+# `package-lock.json` Linux-a xas optional native-binary girişlərini (`@emnapi/*`,
+# `@swc/helpers`) daşımır, çünki lokal inkişaf mühiti Windows-dur və o platformada npm
+# onları lazımsız sayır. `npm ci` bunu "sinxron deyil" kimi rədd edir, `npm install`
+# YOX. Lockfile-ı Windows-dan Linux-uyğun yenidən yaratmaq mümkün olmadığı üçün (bu
+# mühitdə Linux npm yoxdur) `npm install` işlədilir — determinizm bir az azalır, amma
+# faktiki işləyən yeganə seçimdir.
 
 name: CI
 
@@ -24,6 +32,16 @@ jobs:
           cache: "pip"
           cache-dependency-path: scripts/requirements.txt
       - run: pip install -r scripts/requirements.txt
+      # `scripts/lib/verify.py::equation_cross_check` `web/lib/verify/cli.mts`-ə Node
+      # alt-prosesi kimi müraciət edir (mathjs) — `node_modules` olmadan `--selftest`
+      # `ERR_MODULE_NOT_FOUND: mathjs` ilə sınır. Bu addım əvvəllər YOX idi.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: web/package-lock.json
+      - run: npm install
+        working-directory: web
       - run: python scripts/eval.py --selftest
 
   typecheck:
@@ -39,7 +57,7 @@ jobs:
           node-version: "22"
           cache: "npm"
           cache-dependency-path: web/package-lock.json
-      - run: npm ci
+      - run: npm install
       - run: npx tsc --noEmit
 
   lint:
@@ -55,5 +73,5 @@ jobs:
           node-version: "22"
           cache: "npm"
           cache-dependency-path: web/package-lock.json
-      - run: npm ci
+      - run: npm install
       - run: npx eslint
