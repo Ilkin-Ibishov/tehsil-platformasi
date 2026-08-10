@@ -344,63 +344,108 @@ CREATE TABLE private.step_answers (
   PRIMARY KEY (question_id, step_index)
 );
 
-CREATE FUNCTION public.check_answer(q UUID, given JSONB)
+-- ═══════════════════════════════════════════════════════════════════════
+-- OXUMA. `check_answer`/`check_step` SİLİNDİ (HANDOFF 71).
+-- Səbəb: onlar ADR-009-u pozurdu — müqayisənin İKİNCİ nüsxəsini yaradırdılar.
+-- Yeganə müqayisə məntiqi `web/lib/verify/answer.ts`-dədir (mathjs, ədədi
+-- tolerantlıq, 0.5 = 1/2, unicode minus). SQL bunu ifadə edə bilməz.
+-- DB indi yalnız SAXLAYIR və VERİR; müqayisə TypeScript-dədir.
+-- ═══════════════════════════════════════════════════════════════════════
+
+CREATE TABLE private.answer_access_log (
+  id BIGSERIAL PRIMARY KEY,
+  question_id UUID NOT NULL,
+  step_index SMALLINT,
+  purpose TEXT NOT NULL,          -- 'verify' | 'reveal' | 'eval'
+  attempt_item_id UUID,
+  at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE FUNCTION public.reveal_answer(q UUID, purpose TEXT, ai UUID DEFAULT NULL)
 RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = private, public AS $$
-DECLARE a JSONB; v TEXT;
+DECLARE r JSONB;
 BEGIN
-  SELECT answer, validator INTO a, v
+  IF purpose NOT IN ('verify','reveal','eval') THEN
+    RAISE EXCEPTION 'invalid purpose';
+  END IF;
+  INSERT INTO private.answer_access_log (question_id, purpose, attempt_item_id)
+  VALUES (q, purpose, ai);
+  SELECT jsonb_build_object('answer', answer, 'validator', validator) INTO r
   FROM private.question_answers WHERE question_id = q;
-  -- `validator` sahəsi seçilir, amma bu funksiyada İSTİFADƏ OLUNMUR.
-  -- Yekun cavabın sympy müqayisəsi (ADR-009) `/api/answers/check` daxilindədir.
-  -- Bu funksiya yalnız hərfi bərabərliyi yoxlayır — `numeric_tolerance` üçün
-  -- KİFAYƏT DEYİL. Tolerantlıq lazım olan hallarda API qatı `validator` dəyərini
-  -- oxuyub sympy-ə yönləndirməlidir.
-  IF given IS NULL OR given = '{}'::jsonb THEN
-    RETURN jsonb_build_object('is_correct', false, 'reason', 'empty_answer');
-  END IF;
-  RETURN jsonb_build_object('is_correct', a = given, 'validator', v);
+  RETURN r;   -- NULL = açar yoxdur; çağıran bunu idarə etməlidir
 END; $$;
 
-REVOKE ALL ON FUNCTION public.check_answer FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.check_answer TO app_runtime;
-
--- Addım yoxlaması. error_code distractors-dan gəlir (public tərcümədə),
--- doğru cavab isə heç vaxt qaytarılmır.
-CREATE FUNCTION public.check_step(q UUID, idx SMALLINT, given JSONB)
+CREATE FUNCTION public.reveal_step_answer(q UUID, idx SMALLINT, purpose TEXT,
+                                          ai UUID DEFAULT NULL)
 RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = private, public AS $$
-DECLARE a JSONB; k TEXT;
+DECLARE r JSONB;
 BEGIN
-  -- KRİTİK: boş girişi rədd et. `a @> '{}'` və `a @> '[]'` HƏMİŞƏ true qaytarır —
-  -- yəni boş cavab göndərən şagird "doğru" alırdı. Containment burada yanlış operatordur.
-  IF given IS NULL OR given = '{}'::jsonb OR given = '[]'::jsonb THEN
-    RETURN jsonb_build_object('is_correct', false, 'reason', 'empty_answer');
+  IF purpose NOT IN ('verify','reveal','eval') THEN
+    RAISE EXCEPTION 'invalid purpose';
   END IF;
-
-  SELECT accept, input_kind INTO a, k
+  INSERT INTO private.answer_access_log (question_id, step_index, purpose, attempt_item_id)
+  VALUES (q, idx, purpose, ai);
+  SELECT jsonb_build_object('accept', accept, 'input_kind', input_kind) INTO r
   FROM private.step_answers WHERE question_id = q AND step_index = idx;
-
-  IF a IS NULL THEN
-    RETURN jsonb_build_object('is_correct', false, 'reason', 'no_answer_key');
-  END IF;
-
-  RETURN jsonb_build_object(
-    'is_correct',
-    CASE WHEN jsonb_typeof(a) = 'array'
-         THEN a @> jsonb_build_array(given)   -- accept siyahısı: üzvlük yoxlaması
-         ELSE a = given END,                  -- tək dəyər: bərabərlik
-    'input_kind', k
-  );
+  RETURN r;
 END; $$;
 
-REVOKE ALL ON FUNCTION public.check_step FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.check_step TO app_runtime;
+-- ═══════════════════════════════════════════════════════════════════════
+-- YAZMA (G1). /api/solve hər yeni foto üçün cavab açarı yazmalıdır.
+-- app_runtime-in `private`-ə birbaşa INSERT icazəsi YOXDUR — yalnız bu RPC.
+-- INSERT-ONLY: mövcud açar ÜZƏRİNƏ YAZILMIR. Düzəliş yeni `questions`
+-- versiyası yaratmaqla olur (§5). Əks halda istifadəçi açarı öz bildiyi
+-- dəyərlə əvəzləyib bankı korlaya bilər.
+-- ═══════════════════════════════════════════════════════════════════════
+
+CREATE FUNCTION public.store_answer(q UUID, a JSONB, v TEXT DEFAULT 'exact')
+RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = private, public AS $$
+BEGIN
+  INSERT INTO private.question_answers (question_id, answer, validator)
+  VALUES (q, a, v)
+  ON CONFLICT (question_id) DO NOTHING;
+  RETURN FOUND;
+END; $$;
+
+CREATE FUNCTION public.store_step_answers(q UUID, rows JSONB)
+RETURNS INT LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = private, public AS $$
+DECLARE n INT;
+BEGIN
+  -- rows: [{"step_index":0,"accept":...,"input_kind":"numeric"}, ...]
+  INSERT INTO private.step_answers (question_id, step_index, accept, input_kind)
+  SELECT q, (e->>'step_index')::smallint, e->'accept', e->>'input_kind'
+  FROM jsonb_array_elements(rows) e
+  ON CONFLICT (question_id, step_index) DO NOTHING;
+  GET DIAGNOSTICS n = ROW_COUNT;
+  RETURN n;
+END; $$;
+
+REVOKE ALL ON FUNCTION public.reveal_answer, public.reveal_step_answer,
+                       public.store_answer, public.store_step_answers FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.reveal_answer, public.reveal_step_answer,
+                          public.store_answer, public.store_step_answers TO app_runtime;
 ```
 
-**Vacib:** `sympy` yoxlaması (ADR-009) bu funksiyaların yerini tutmur — o,
-`/api/steps/check` daxilində işləyir və doğru dəyəri `check_step` vasitəsilə
-alır. Doğru dəyər heç vaxt Node prosesində açıq şəkildə saxlanmır.
+### Təminatın dəqiq ifadəsi (yenilənib)
+
+ADR-017-nin ilkin iddiası "tətbiq prosesi cavabı görə bilmir" idi. **Bu, yanlış idi** —
+müqayisə TypeScript-də olmalıdır, deməli dəyər Node prosesinə gəlir. Düzgün ifadə:
+
+- Cavab **cədvəl oxumaqla əlçatan deyil** — `app_runtime`-in `private`-ə GRANT-ı yoxdur.
+- Yeganə giriş: dörd adlı funksiya. Səth qreplənə bilir və audit olunur.
+- **Client heç vaxt cavab almır**, `/api/attempts/reveal` istisna olmaqla — orada
+  göstərmək qəsdən məhsul davranışıdır.
+- Hər oxuma `answer_access_log`-a düşür. `purpose='verify'` sayının qəfil artması
+  sızma və ya sui-istifadə siqnalıdır.
+
+**Format (G3):** `question_answers.answer` STEP-SCHEMA-nın tam `final_answer` obyektini
+saxlayır (`{latex, values, choice}`) — `verify/answer.ts` bunu tələb edir. HANDOFF(67)-dəki
+`{"value": <scalar>}` **client sorğusunun formatıdır**, saxlama formatı deyil. `0019`
+düzgündür, dəyişmir.
 
 Tətbiq `app_runtime` rolu ilə qoşulur; o rolun `private` sxeminə icazəsi yoxdur.
 İkinci müdafiə xətti: `/api/questions` heç vaxt cavab sahəsi qaytarmır.
