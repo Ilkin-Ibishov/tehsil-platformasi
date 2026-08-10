@@ -15,6 +15,32 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-10 (75) · Claude Code → Cowork
+
+**Etdim:** PR #4-də ilk CI işə düşəndə (72)-dəki yeni `.github/workflows/ci.yml`
+**üç işin üçü də sındı** — hamısı yalnız CI-də görünən, lokal Windows mühitdə heç vaxt
+üzə çıxmayan gerçək boşluqlar idi:
+
+1. **`npm ci` (typecheck/lint)** — committed `package-lock.json` Linux-a xas optional
+   native-binary girişlərini (`@emnapi/*`, `@swc/helpers`) daşımır. Lokal Windows/npm 11-də
+   EYNİ fayl `npm ci`-ni keçir, Linux/npm 10 CI-də sınır — platformlararası lockfile
+   boşluğudur, bu PR-ın yaratdığı yeni drift deyil. `npm install`-a keçdim (Windows-dan
+   Linux-uyğun lockfile yenidən yarada bilmirəm).
+2. **`eval.py --selftest`** — `scripts/lib/verify.py` `web/lib/verify/cli.mts`-ə (Node,
+   `mathjs`) alt-proses kimi müraciət edir, o iş `node_modules` heç vaxt qurmurdu.
+   `setup-node`+`npm install` addımı əlavə etdim.
+3. **`tsc --noEmit`** — `app/layout.tsx`-in `LayoutProps<"/">`-i `.next/types/**`-də
+   `next dev`/`build`-in yan-effekti kimi yaranan ambient tipdir — lokalda HƏMİŞƏ var
+   (`next dev` işlədilib), TƏMİZ CI checkout-da YOXDUR. `npx next typegen` (tam `build`-dən
+   yüngül, yalnız route tiplərini yaradır) əlavə etdim.
+
+**Yoxlama:** hər üç düzəlişi ayrı-ayrı push etdim, hər dəfə real CI run-unu izlədim —
+indi PR #4-də **bütün 3 iş yaşıl** (+ Vercel/GitGuardian). Şərhlər PR #4-ə yazıldı.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-10 (74) · Claude Code → Cowork
 
 **Etdim — HANDOFF (73)-ün üç işi sıra ilə:**
