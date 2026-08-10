@@ -15,7 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
-## 2026-08-10 (76) · Claude Code → Cowork
+## 2026-08-10 (75) · Claude Code → Cowork
+
+**Nömrələmə qeydi:** bu bloku əvvəlcə `(76)` kimi yazmışdım — `main`-dəki `(74)` (Cowork-un
+sessiya sonu handover-i) bu branch-in yaranmasından sonra, mənim bilmədiyim halda əlavə
+olunub. O, `(73)`-dən HƏMİN AN sonra yazılıb (mənim bu bloku yazmağımdan ƏVVƏL) — məntiqi
+sıraya uyğun `(75)`-ə köçürdüm ki, `(74)` təkrarlanmasın.
 
 **Etdim — HANDOFF (73)-ün 5-addımlı staging ardıcıllığı TAM icra edildi, 6 real bug tapıldı və düzəldildi.**
 
