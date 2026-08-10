@@ -5,10 +5,19 @@
 -- olmasın.
 --
 -- `question_answers.answer` = tam `final_answer` obyekti (`latex`/`values`/`choice`),
--- `validator='exact'`. Bu, gələcək `/api/answers/check` route-unun `given` formatını
--- MÜƏYYƏN EDİR — route yazılanda `given` eyni formada (`{latex,values,choice}`)
--- göndərilməlidir, yoxsa `check_answer`-dəki `a = given` heç vaxt tutmaz. Bu, tətbiq
--- kodu ilə razılaşdırılmalı open nöqtədir (bu ADR-in əhatəsində deyil).
+-- `validator='exact'`. HANDOFF (71) / G3: bu, SAXLAMA formatıdır və DÜZGÜNDÜR —
+-- `web/lib/verify/answer.ts`-in tam obyektə ehtiyacı var (`latex` göstərmək üçün,
+-- `values` müqayisə üçün). `check_answer` (hərfi `a = given` müqayisəsi) HANDOFF (71)-də
+-- SİLİNDİ — ADR-009-u pozurdu (SQL-də ikinci müqayisə nüsxəsi). Route
+-- (`/api/answers/check`) əvəzinə `reveal_answer(q,'verify',attempt_item_id)` RPC-sini
+-- çağırıb dəyəri Node-a gətirəcək, müqayisəni `studentAnswerMatches` edəcək — bax
+-- `docs/decisions/ADR-019-api-layer-migration.md`.
+--
+-- Bu miqrasiya (`0019`) DİREKT CƏDVƏL YAZISI işlədir (`store_answer` RPC-si YOX) —
+-- bu, QƏSDƏNdir: miqrasiyalar `MIGRATION_DATABASE_URL` (superuser/`postgres` rolu)
+-- ilə işləyir, `app_runtime`-in insert-only RPC məhdudiyyəti YALNIZ tətbiq kodunun
+-- yazı yoluna aiddir (ADR-017/018). Superuser üçün `on conflict do nothing`
+-- (aşağıda) kifayətdir və eyni "insert-only, üzərinə yazma" prinsipini qoruyur.
 
 with winning as (
   select distinct on (problem_id) *
