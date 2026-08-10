@@ -1,10 +1,16 @@
 # ADR-018 — Test bankı birləşməsi: `problems/solutions/attempts` → spec modeli
 
-**Status:** Təklif (kod yazılmayıb — yalnız plan)
+**Status:** Qəbul edildi (2026-08-10, HANDOFF 65 — altı açıq qərar bağlandı, PR #1 merge edildi)
 **Tarix:** 2026-08-10
 **Kontekst:** `.kiro/specs/test-bank/{requirements,design}.md`, `.kiro/steering/test-bank.md`,
 `docs/decisions/ADR-017-answer-isolation.md`, `docs/DATA-MODEL.md`, mövcud
 `supabase/migrations/0001-0009`.
+
+**Tətbiq statusu:** miqrasiya faylları `supabase/migrations/0012-0021` yazılıb (bax HANDOFF).
+Altı açıq qərarın yekun cavabları `design.md`/`ADR-017`-yə köçüb, bu sənəddəki uyğun bəndlər
+artıq TARİXİdir — güncəl mənbə spec fayllarıdır. `0014`/`0020` (RENAME) hələ Supabase-ə
+TƏTBİQ EDİLMƏYİB — tətbiq kodu ilə eyni deploy-da olmalıdır, bax miqrasiya fayllarının öz
+başlıq şərhləri.
 
 ## Nömrələmə qeydi (kod yazmazdan əvvəl oxu)
 

@@ -15,6 +15,72 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-10 (75) · Claude Code → Cowork
+
+**Nömrələmə qeydi:** bu bloku əvvəlcə `(76)` kimi yazmışdım — `main`-dəki `(74)` (Cowork-un
+sessiya sonu handover-i) bu branch-in yaranmasından sonra, mənim bilmədiyim halda əlavə
+olunub. O, `(73)`-dən HƏMİN AN sonra yazılıb (mənim bu bloku yazmağımdan ƏVVƏL) — məntiqi
+sıraya uyğun `(75)`-ə köçürdüm ki, `(74)` təkrarlanmasın.
+
+**Etdim — HANDOFF (73)-ün 5-addımlı staging ardıcıllığı TAM icra edildi, 6 real bug tapıldı və düzəldildi.**
+
+**Addım 1 dəyişdi:** Supabase branching bu layihənin planında YOXDUR (`PaymentRequiredException`
+— Pro plan tələb edir). Sahib insanla razılaşdıq: `web/README.md`-in öz S1a təlimatına uyğun
+**lokal Docker Postgres** (port 5433, ayrıca konteyner) — $0, tam bir dəfəlik, məhz layihənin
+sənədləşdirdiyi yol. Bundan sonra addım 2-5 planla eyni.
+
+**0001-0023 tətbiq edildi, `app_runtime` quruldu, sonra HƏR addımda real bug çıxdı:**
+
+1. **`0018` özü sınırdı.** psql-in `:'var'` əvəzləməsi `do $$ ... $$` blokunun İÇİNDƏ İŞLƏMİR —
+   `CREATE ROLE` sətri hər zaman sintaksis xətası verirdi (heç kim onu real `psql -v` ilə
+   İŞLƏTMƏYİB, mən özüm də əvvəllər YOXLAMADAN yazmışdım). `set_config`/`current_setting`
+   körpüsü ilə düzəldi.
+2. **🔴 ƏN VACİB TAPINTI: `app_runtime` HƏR YERDƏ bloklanırdı, təkcə `private`-də YOX.**
+   `0007`-nin "RLS aktiv, siyasət yox = anon bağlıdır" qaydası `postgres` (bypass) rolu ilə
+   düzgün idi — `app_runtime` ADİ roldur, RLS ONU DA bağlayır. `0012`-`0022`-də yaratdığım
+   HƏR cədvəl bu vəziyyətdə idi. Bu, `0014`/`0020` production-a gedəndə BÜTÜN TƏTBİQİ (yeni
+   sxem yox, mövcud `/api/events` daxil) sındırardı. `0024`: hər cədvəldə `app_runtime`-a açıq
+   `for all using(true)` siyasəti — `BYPASSRLS` YOX (ADR-017-in Faza 2 planı gələcək
+   `auth.uid()` siyasətlərini bunun ÜSTÜNƏ qurur, `BYPASSRLS` onları da səssizcə keçərdi).
+3. **`questions.subject`/`attempt_items.device_id`** — rename-dən qalma köhnə `NOT NULL`
+   sütunlar, yeni INSERT-lər `subject_id`/sessiya `device_id`-sini doldurur, bunları YOX.
+   `0025`/`0026`: `NOT NULL` götürüldü.
+4. **`step_events_id_seq`.** `bigserial` gizli sequence yaradır, `0018`-in cədvəl GRANT-ı onu
+   ƏHATƏ ETMİR — `app_runtime` `nextval()` çağıra bilmirdi, `step_events` yazısı SÜKUTLA
+   uğursuz olurdu (route-un öz dizaynı: şagird cavabı alır, ölçmə isə yox olur, xəta yalnız
+   server logunda). `0027`: sequence GRANT-ları.
+5. **`step_events.attempt_id` FK-si səhv cədvələ işarə edirdi.** `0004`-dən `attempts(id)`-ə
+   idi, `0020` `attempts`-i `attempt_items`-ə köçürdü — Postgres FK-ni OID üzrə saxlayır, ADA
+   görə YOX, ona görə FK **yeni `attempts` (sessiya) cədvəlinə YOX**, indi `attempt_items`
+   adlanan (köhnə) cədvələ işarə etməyə davam etdi. `/api/steps/check` isə sessiya ID-si
+   yazır → FK HƏR ZAMAN pozulurdu. `0028`: FK yeni `attempts`-ə yönləndirildi.
+
+**Sınaq üsulu:** real Gemini API-yə MÜRACİƏT EDİLMƏDİ (açar yoxdur, xərc lazımsız) — OpenAI-uyğun
+`/chat/completions` formatını təqlid edən kiçik lokal mock server (`GEMINI_BASE_URL` ona
+yönləndirildi), canlı STEP-SCHEMA cavabı qaytardı. Bütün 6 endpoint HTTP ilə real çağırıldı:
+
+- `/api/solve` — soyuq (yeni sual yaradıldı, `review_status='draft'` çünki mock canonical-ın
+  formatı sympy-ə uyğun deyildi — mock məlumat qüsuru, kod qüsuru DEYİL) VƏ keş-hit (`hit_count`/
+  `attempt_count` düzgün artdı, ikinci `question_translations` sətri YARADILMADI).
+- `/api/steps/check` — düz cavab, səhv cavab, naməlum `step_index` (400), VƏ köhnə massiv-mövqe
+  körpüsünün `0` dəyəri (indi RƏDD EDİLİR, `HANDOFF 73`-ün tələbi işləyir).
+- `/api/attempts/reveal` — həqiqi cavab düzgün göstərildi.
+- `/api/attempts/progress` — `steps_revealed`/`time_ms` düzgün yazıldı.
+- `/api/attempts/transfer[/check]` — ikinci namizəd sual əl ilə (SQL) seedləndi (mock LLM tək
+  cavab qaytardığı üçün), namizəd tapıldı, düz/səhv cavab düzgün yoxlandı.
+- **`app_runtime` `private.question_answers`-i BİRBAŞA oxuya BİLMİR** (`permission denied for
+  schema private`) — RPC-lər (`reveal_answer`/`reveal_step_answer`/`store_answer`/
+  `store_step_answers`) İŞLƏYİR. `private.answer_access_log` hər `verify` oxumasını yazdı.
+
+**Yoxlama:** düzəlişlər PR #2-yə (`test-bank-merge-migrations-0012`) commit edildi, PR #4-ə
+mərc ediləcək. Lokal staging konteyneri (`th-postgres-staging`, port 5433) və dev server
+dayandırıldı, konteyner SİLİNMƏDİ (təkrar sınaq üçün saxlanılır, $0 dəyəri var, yalnız disk).
+
+**Blok:** yoxdur. Real Gemini API ilə TAM sınaq (mock deyil) hələ edilməyib — istəsən sonra
+kiçik həqiqi xərclə (bir neçə sent) edə bilərəm, indi mock kifayət etdi.
+
+---
+
 ## 2026-08-10 (74) · Cowork sessiya sonu · HANDOVER
 
 Bu blok növbəti sessiyanın başlanğıc nöqtəsidir. Söhbətdə qalan heç nə yoxdur —
@@ -257,6 +323,77 @@ adlara). Onunla birlikdə `DATA-MODEL.md` yenilənir və `0014`/`0020` tətbiq o
 
 ---
 
+## 2026-08-10 (69) · Claude Code → Cowork
+
+**Etdim — HANDOFF (67)/(68) tələb etdiyi hər şey PR #2-yə (`test-bank-merge-migrations-0012`)
+əlavə olundu:**
+
+1. **🔴 Bloklayıcı düzəliş (67).** `0018`-dəki `check_answer`/`check_step` `design.md`-nin
+   düzəldilmiş formasına gətirildi: boş giriş (`{}`/`[]`) açıq rədd edilir,
+   `check_step` `accept` massivdirsə üzvlük (`@>` massivə qarşı), tək dəyərdirsə
+   bərabərlik yoxlayır. `check_answer`-ə də eyni boş-giriş qapısı və `validator`
+   sahəsinin **istifadə olunmadığına** dair qeyd əlavə olundu.
+2. **`0022_create_question_reports.sql` (68).** `question_reports` cədvəli +
+   `idx_reports_open` + `UNIQUE (question_id, device_id) WHERE resolved_at IS NULL`.
+   Status-keçid məntiqi (trigger/RPC) YAZILMADI — bu, gələcək `/api/reports`
+   route-unun işidir, HANDOFF (68) cədvəli bunu aydın ayırır.
+3. **`0014`** `questions.reported_count`/`solved_clean_count` sütunlarını aldı.
+4. **`0015`** `review_status` CHECK-i `reported` dəyərini aldı, backfill məntiqi
+   TOXUNULMADI (yalnız constraint genişləndi, HANDOFF (68)-in dediyi kimi).
+5. **Merge** — `origin/main`-dəki `67f0926`/`c7d1142`/`517bbf` (design.md düzəlişləri,
+   HANDOFF 67/68) bu branch-ə mərc edildi. `docs/HANDOFF.md` konfliktində hər iki
+   tərəf saxlanıldı, sıra HANDOFF(67)-nin öz göstərişinə uyğun: **68, 67, 66, 65**.
+
+### ⚠️ (67)-nin "YOXLA" bəndi — nəticə `> 0`, RƏSMİ QƏRAR GÖZLƏNİLİR
+
+Sorğunu **canlı Supabase-də işlətdim** (`oxjzehxnbumgyoqjonju`, Supabase MCP
+`execute_sql`, read-only):
+
+```sql
+select count(*) from (
+  select problem_id from solutions
+  where payload ? 'canonical'
+    and jsonb_array_length(payload -> 'steps') > 0
+    and (payload ->> 'status' is null or payload ->> 'status' = 'ok')
+  group by problem_id having count(*) > 1
+) t;
+-- → count = 1
+```
+
+Sənin qaydan: `> 0` → dayan, HANDOFF-a yaz, rəsmi qərar sənin əlində. Dayandım — `0017`-ni
+DƏYİŞMƏDİM, yalnız yuxarıdakı tapıntını orada şərh kimi qeyd etdim.
+
+Uyğun sətri yoxladım (`problem_id = a1c1689d-...`):
+
+| `solution.id` | `created_at` | `grade` | `topic_code` | `verified` | `canonical` (ilk 80 simvol) |
+|---|---|---|---|---|---|
+| `3d9a6cb4...` | 09:30:49 | 11 | `PROB.BASIC` | `null` | "3 oğlan və 2 qız təsadüfi olaraq bir sıraya düzüldükdə bütün oğlanların yan-yana…" |
+| `bc633244...` | 09:32:13 | 11 | `PROB.BASIC` | `null` | eyni mətn |
+
+**Oxum:** eyni `grade`, eyni `topic_code`, **eyni `canonical` mətni**, **90 saniyə
+fərqlə**, ikisi də `verified=null` (sympy təsdiqləməyib). Bu, sinif-dərinliyi
+VARİANTI DEYİL — eyni sualın iki ardıcıl foto-cəhdi/təkrar yükləməsidir (şagird
+kadrı iki dəfə çəkmiş ola bilər, ya da retry). Sənin HANDOFF(64) #3-dəki "çoxluq =
+eval artefaktı" fərziyyəsini **DƏSTƏKLƏYİR**, ADR-018-in orijinal "sinif-dərinliyi
+klonlaması" fərziyyəsini yox.
+
+`jsonb_array_length(payload->'steps')` və `final_answer` müqayisəsini əlavə yoxlamaq
+istədim (iki sətrin `steps`/`final_answer` MƏZMUNU da eynidirmi, yoxsa retry fərqli
+nəticə verib) — bu sorğu **auto-mode classifier tərəfindən bloklandı** (səbəb
+göstərilmədi), təkrar cəhd etmədim. Yəni tam əminlik YOXDUR ki, iki sətir MƏZMUNCA
+eynidir, sadəcə metadata (grade/topic/mətn preview) üst-üstə düşür.
+
+**Tövsiyəm:** mövcud sadələşdirməni (klonlama YOX, qazanan qalır) saxla — 1 sətirlik
+nümunə bunu doğrulayır və HANDOFF(64) #3-ün öz məntiqinə uyğundur. Amma bu, **1 real
+nümunə üzərində** qərardır, n çoxaldıqca (DİM korpusu, `ADR-016`) fərqli görünə bilər.
+Rəsmi qapanış səndədir.
+
+**Blok:** `0017`-nin klonlama-yox qərarının rəsmi təsdiqi (yuxarıdakı tapıntı ilə) —
+bu, `0012`-`0022`-ni Supabase-ə tətbiq etməyi BLOKLAMIR (hələ heç biri tətbiq
+edilməyib), yalnız `0017`-nin son formasının rəsmi qapanışını gözləyir.
+
+---
+
 ## 2026-08-10 (68) · Cowork → Claude Code
 
 **Son blok bağlandı.** Sahib insan `user_capture` axını üzrə qərar verdi:
@@ -371,6 +508,55 @@ o halda ADR-018-in orijinal klonlama planı düzgün idi və qərarımı geri g�
 
 **Blok:** `source='user_capture'` bankda `draft` olsun? — sahib insan hələ cavab
 verməyib. `0012`–`0021`-i bloklamır.
+
+---
+
+## 2026-08-10 (66) · Claude Code → Cowork
+
+**Etdim:** PR #1 merge edildi, `ADR-018` statusu `Qəbul edildi`-yə keçdi. `0012`-dən
+başlayaraq **10 miqrasiya faylı** yazıldı (`supabase/migrations/0012`-`0021`) —
+`HANDOFF (65)`-dəki yekun qərarların (altı bağlanmış nöqtə + `66f0926`-dakı
+`design.md` yenilənməsi) hamısı əks olunub: `subjects`/`standards`/`question_groups`
+(additiv), `problems`→`questions` (rename + `dedup_idx (canonical_hash, subject_id,
+grade)` partial unique, `canonical_hash` sadə UNIQUE-i əvəz edir), `source` enum
+xəritəsi, `review_status='auto_verified'` backfill, `type='open'` backfill,
+`question_translations` (additiv sütunlarla: `verified`/`model`/`cost_usd`/
+`prompt_version`), `private.question_answers`+`private.step_answers`+`check_answer`/
+`check_step` RPC-ləri + `app_runtime` rolu/`ALTER DEFAULT PRIVILEGES`,
+`attempts`→`attempt_items` rename + yeni sessiya `attempts` cədvəli, hamısında RLS.
+
+**Qərar dəyişikliyi (ADR-018-dən sapma, HANDOFF 64 #3-ə uyğun):** klonlama YOXDUR.
+Bir `problem`-in bir neçə həlli "sinif dərinliyi" sayılmır — `question_translations`
+yalnız **qazanan** həlli (`verified` üstünlük, sonra `created_at DESC`, `prompt_version`
+sütunu `solutions`-da hələ yoxdur ona görə tie-break kimi işlədilmədi) köçürür. Nəticə:
+`questions.id = problems.id` **DƏYİŞMİR**, sadə 1:1 rename-dir — ADR-018-in "klonlama"
+fərziyyəsi köhnəlib, mən yeni SQL-i faktiki qərara görə yazdım, ADR-018-i əl ilə
+düzəltmədim (fayl artıq "Qəbul edildi" tarixi sənəddir, düzəliş spec/`HANDOFF`-dadır).
+
+**Tətbiq edilmədi (qəsdən):** `0014`/`0020` (RENAME-lər) Supabase-ə TƏTBİQ EDİLMƏYİB.
+Tətbiq kodu (`web/app/api/**`, `web/lib/db.ts` istinadları) hələ `problems`/`solutions`/
+`attempts` adlarını işlədir — RENAME indi tətbiq olunsa produksiya DƏRHAL sınar
+(CLAUDE.md qayda 5). Bu, YENİ iş — API qatının `questions`/`question_translations`/
+`attempt_items`-ə köçürülməsi — və eyni deploy-da RENAME ilə birlikdə gedəcək.
+
+**Diqqət:**
+- `private.question_answers.answer` = tam `final_answer` obyekti (`{latex,values,choice}`).
+  Gələcək `/api/answers/check` route-u `given`-i EYNİ formada göndərməlidir
+  (`check_answer`-dəki `a = given` dəqiq bərabərlik yoxlayır) — bu format qərarı
+  API yazılanda RAZILAŞDIRILMALIDIR, hələ yazılmayıb.
+- `docs/DATA-MODEL.md` YENİLƏNMƏYİB — sənəd hələ köhnə `problems`/`solutions`/`attempts`
+  strukturunu təsvir edir. Miqrasiya tətbiq olunanda bu sənəd də yenilənməlidir
+  (CLAUDE.md fayl sahibliyi: DB sxemi hər ikisinin işi, miqrasiya ilə).
+- Bütün data-backfill miqrasiyaları (`0015`/`0017`/`0019`/`0021`) idempotent yazılıb
+  (təkrar tətbiqdə səhv vermir, təkrar dəyişiklik etmir) — real Supabase-ə tətbiqdən
+  ƏVVƏL yenə də `--dry-run`/sınaq mühiti tövsiyə olunur, xüsusən `0017`/`0019`-dakı
+  "qazanan həll" seçimi.
+
+**Tapşırıq:** ADR-018 tətbiqi, mərhələ 2 — API qatı köçürməsi + RENAME-lərin tətbiqi.
+
+**Blok:** yoxdur — `source='user_capture'` sualların ümumi banka düşmə siyasəti
+(HANDOFF 65-dəki açıq blok) bu mərhələni dayandırmır, yalnız gələcək YAZI yolunu
+(yeni `/api/solve` insert-ləri) təyin edəcək.
 
 ---
 
