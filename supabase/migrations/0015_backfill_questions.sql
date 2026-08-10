@@ -32,7 +32,8 @@ begin
   end if;
   if not exists (select 1 from pg_constraint where conname = 'questions_review_status_check') then
     alter table questions add constraint questions_review_status_check
-      check (review_status in ('draft','auto_verified','verified','rejected'));
+      -- 'reported' HANDOFF (68)-dən — user_capture keyfiyyət döngəsi (0022-yə bax).
+      check (review_status in ('draft','auto_verified','verified','reported','rejected'));
   end if;
   if not exists (select 1 from pg_constraint where conname = 'questions_type_check') then
     alter table questions add constraint questions_type_check

@@ -15,6 +15,15 @@
 -- `$...$` daxili LaTeX seqmentlərini `math` blokuna ayırmır (bu, parse tələb edir,
 -- miqrasiyanın əhatəsində deyil; UI qatı hazırkı `formatMath()`-a bənzər render tətbiq
 -- edə bilər ta ki block-səviyyəli parçalama yazılana qədər).
+--
+-- HANDOFF (67) yoxlaması işlədildi (production Supabase, `oxjzehxnbumgyoqjonju`),
+-- nəticə HANDOFF (69)-da: 1 `problem_id` birdən çox uyğun həll daşıyır. Sətirlərə
+-- baxıldı — eyni `grade`(11)/`topic_code`(PROB.BASIC)/`canonical` mətni, ~90 saniyə
+-- fərqlə, HƏR İKİSİ `verified=null`. Bu, sinif-dərinliyi VARİANTI DEYİL — eyni sualın
+-- TƏKRAR YÜKLƏNMƏSİDİR (iki ardıcıl foto/cəhd). Tapıntı HANDOFF (64) #3-ün fərziyyəsini
+-- (çoxluq = eval artefaktı) DƏSTƏKLƏYİR, pozmur — ona görə bu fayl DƏYİŞDİRİLMƏDİ.
+-- Yenə də HANDOFF (67)-nin qaydasına görə (">0 olsa dayan və yaz") qərar RƏSMİ OLARAQ
+-- Cowork tərəfindən bağlanmayıb — bax HANDOFF (69).
 
 with winning as (
   select distinct on (problem_id) *

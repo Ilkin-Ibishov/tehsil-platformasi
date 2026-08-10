@@ -26,6 +26,8 @@ alter table questions
   add column if not exists attempt_count         int not null default 0,
   add column if not exists license_status        text not null default 'unknown',
   add column if not exists review_status         text not null default 'draft',
+  add column if not exists reported_count        int not null default 0,
+  add column if not exists solved_clean_count    int not null default 0,
   add column if not exists reviewed_by           uuid,
   add column if not exists reviewed_at           timestamptz,
   add column if not exists updated_at            timestamptz not null default now(),

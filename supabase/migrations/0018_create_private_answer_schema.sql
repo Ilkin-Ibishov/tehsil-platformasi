@@ -44,14 +44,22 @@ create table if not exists private.step_answers (
   primary key (question_id, step_index)
 );
 
+-- ⚠️ HANDOFF (67) düzəlişi: `validator` sütunu seçilir, amma BU FUNKSİYADA İSTİFADƏ
+-- OLUNMUR — yalnız hərfi bərabərlik yoxlanır. `numeric_tolerance` bu funksiya ilə
+-- işləmir, yekun cavabın sympy müqayisəsi (ADR-009) `/api/answers/check` daxilindədir.
+-- Boş giriş (`{}`) rədd edilir — dəyişməsə `a = '{}'::jsonb` heç vaxt tuta bilməz,
+-- amma açıq rədd oxunaqlılıq üçündür və `check_step`-dəki eyni qoruma ilə simmetrikdir.
 create or replace function public.check_answer(q uuid, given jsonb)
 returns jsonb language plpgsql security definer
 set search_path = private, public as $$
 declare a jsonb; v text;
 begin
+  if given is null or given = '{}'::jsonb then
+    return jsonb_build_object('is_correct', false, 'reason', 'empty_answer');
+  end if;
   select answer, validator into a, v
   from private.question_answers where question_id = q;
-  return jsonb_build_object('is_correct', a = given);
+  return jsonb_build_object('is_correct', a = given, 'validator', v);
 end; $$;
 
 revoke all on function public.check_answer from public;
@@ -59,14 +67,36 @@ grant execute on function public.check_answer to app_runtime;
 
 -- Addım yoxlaması. `error_code` `question_translations.steps[].error_code`-dan
 -- (public) gəlir, DOĞRU cavab isə burada heç vaxt qaytarılmır.
+--
+-- ⚠️ HANDOFF (67) BLOKLAYICI düzəliş: `a @> given` istismar edilə bilirdi —
+-- `'{"value":42}'::jsonb @> '{}'::jsonb` VƏ `'["4"]'::jsonb @> '[]'::jsonb` HƏR İKİSİ
+-- `true` qaytarır (boş obyekt/massiv hər şeyin "daxilindədir"). Nəticə: `{}` göndərən
+-- şagird BÜTÜN addımları doğru keçirdi. İndi: (1) boş giriş açıq rədd edilir,
+-- (2) `accept` massivdirsə (bir neçə qəbul edilən yazılış) üzvlük yoxlanır, tək
+-- dəyərdirsə bərabərlik.
 create or replace function public.check_step(q uuid, idx smallint, given jsonb)
 returns jsonb language plpgsql security definer
 set search_path = private, public as $$
 declare a jsonb; k text;
 begin
+  if given is null or given = '{}'::jsonb or given = '[]'::jsonb then
+    return jsonb_build_object('is_correct', false, 'reason', 'empty_answer');
+  end if;
+
   select accept, input_kind into a, k
   from private.step_answers where question_id = q and step_index = idx;
-  return jsonb_build_object('is_correct', a @> given, 'input_kind', k);
+
+  if a is null then
+    return jsonb_build_object('is_correct', false, 'reason', 'no_answer_key');
+  end if;
+
+  return jsonb_build_object(
+    'is_correct',
+    case when jsonb_typeof(a) = 'array'
+         then a @> jsonb_build_array(given)
+         else a = given end,
+    'input_kind', k
+  );
 end; $$;
 
 revoke all on function public.check_step from public;
