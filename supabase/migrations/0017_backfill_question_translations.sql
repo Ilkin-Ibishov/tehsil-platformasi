@@ -22,8 +22,10 @@
 -- fərqlə, HƏR İKİSİ `verified=null`. Bu, sinif-dərinliyi VARİANTI DEYİL — eyni sualın
 -- TƏKRAR YÜKLƏNMƏSİDİR (iki ardıcıl foto/cəhd). Tapıntı HANDOFF (64) #3-ün fərziyyəsini
 -- (çoxluq = eval artefaktı) DƏSTƏKLƏYİR, pozmur — ona görə bu fayl DƏYİŞDİRİLMƏDİ.
--- Yenə də HANDOFF (67)-nin qaydasına görə (">0 olsa dayan və yaz") qərar RƏSMİ OLARAQ
--- Cowork tərəfindən bağlanmayıb — bax HANDOFF (69).
+-- HANDOFF (70): Cowork bu tapıntını RƏSMİ VƏ DAİMİ QƏRAR kimi bağladı — klonlama
+-- YOXDUR, sinif-dərinliyi variantları gələcəkdə `questions`-da AYRI sətir olacaq
+-- (eyni `canonical_hash`, fərqli `grade`), `solutions`-da çoxsaylı sətir kimi YOX.
+-- `design.md` §5-ə bu qayda əlavə olundu ki, sual bir daha açılmasın.
 
 with winning as (
   select distinct on (problem_id) *
