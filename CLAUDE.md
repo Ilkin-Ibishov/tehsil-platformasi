@@ -27,6 +27,8 @@ adlandırılmasını zəiflədirsə — o dəyişiklik səhvdir, nə qədər "t�
 | DB sxemi | `docs/DATA-MODEL.md` | hər ikisi (miqrasiya ilə) |
 | Prompt mətnləri | `prompts/**/*.md` (nüvə: `prompts/solve/core.md`, fənn əlavəsi: `prompts/solve/math.md` — ADR-014) | hər ikisi |
 | Memarlıq qərarları | `docs/decisions/ADR-*.md` | hər ikisi |
+| Test bankı arxitekturası | `.kiro/specs/test-bank/design.md` | Cowork — SQL sxemi mənbə həqiqətdir |
+| Test bankı qaydaları | `.kiro/steering/test-bank.md` | Cowork |
 | Tapşırıq statusu | ClickUp | hər ikisi |
 | Növbə jurnalı | `docs/HANDOFF.md` | hər ikisi |
 | Gələcək ideyalar | `docs/FUTURE-IDEAS.md` | Cowork — **tapşırıq deyil, kod yazma** |
@@ -62,6 +64,10 @@ Folder: `901815897469` · Space: `901810230629` · Workspace: `90182536078`
    miqrasiyalar köhnə kodu sındırmır, ona görə "əvvəl miqrasiya, sonra merge" həmişə təhlükəsiz
    sıradır.
 6. Yeni cədvəl yaradan hər miqrasiya öz RLS sətrini daşımalıdır.
+7. **Test bankı işinə başlamazdan əvvəl** oxu: `.kiro/specs/test-bank/requirements.md`,
+   `.kiro/specs/test-bank/design.md`, `.kiro/steering/test-bank.md`,
+   `docs/decisions/ADR-017-answer-isolation.md`. `design.md`-dəki SQL sxemi mənbə
+   həqiqətdir — ondan sapma ADR tələb edir.
 
 ## Texniki stack (qərar verilib)
 
