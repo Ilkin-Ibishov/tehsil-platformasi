@@ -31,9 +31,11 @@ ADR-009-a görə düzəldilib:
 `golden_values` verilməzsə (məs. selftest mock halları) davranış köhnə ilə eynidir — yalnız 2-ci qat işləyir.
 """
 
+import atexit
 import json
 import re
 import subprocess
+import threading
 from pathlib import Path
 
 import sympy
@@ -196,22 +198,77 @@ def equation_cross_check(canonical, values):
     if not values:
         return False
 
-    payload = json.dumps({"canonical": canonical, "values": values})
-    try:
-        result = subprocess.run(
-            ["node", "--no-warnings", str(_VERIFY_CLI_PATH)],
-            input=payload,
-            capture_output=True,
-            text=True,
-            timeout=15,
-            check=True,
-        )
-    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
-        raise RuntimeError(
-            f"web/lib/verify/cli.mts çağırışı uğursuz oldu (Node.js quraşdırılıbmı, "
-            f"`npm install` web/-də işlədilibmi?): {exc}"
-        ) from exc
-    return json.loads(result.stdout)["verified"]
+    line = _worker_call({"canonical": canonical, "values": values})
+    if "error" in line:
+        raise RuntimeError(f"cli.mts xətası: {line['error']}")
+    return line["verified"]
+
+
+# ── Davamlı Node işçisi ────────────────────────────────────────────────
+# Əvvəl hər element üçün ayrı proses qalxırdı: ~1 san/çağırış, və İLK (soyuq)
+# çağırış 15 san timeout-u keçib bütün run-ı öldürürdü. Harness 7 avqustdan
+# 10 avqusta qədər məhz buna görə səssizcə sınıq qaldı — heç kim işlətmədiyi
+# üçün görünmədi. İndi bir proses qalxır və NDJSON ilə yaşayır.
+
+_WORKER = None
+_WORKER_LOCK = threading.Lock()
+_FIRST_CALL_TIMEOUT = 60   # soyuq başlanğıc: tip-təmizləmə + modul həlli
+_CALL_TIMEOUT = 20
+
+
+def _start_worker():
+    proc = subprocess.Popen(
+        ["node", "--no-warnings", str(_VERIFY_CLI_PATH), "--server"],
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        text=True, bufsize=1,
+    )
+    atexit.register(_stop_worker)
+    return proc
+
+
+def _stop_worker():
+    global _WORKER
+    if _WORKER and _WORKER.poll() is None:
+        try:
+            _WORKER.stdin.close()
+            _WORKER.wait(timeout=5)
+        except Exception:
+            _WORKER.kill()
+    _WORKER = None
+
+
+def _worker_call(payload):
+    global _WORKER
+    with _WORKER_LOCK:
+        first = _WORKER is None
+        if _WORKER is None or _WORKER.poll() is not None:
+            _WORKER = _start_worker()
+            first = True
+
+        timeout = _FIRST_CALL_TIMEOUT if first else _CALL_TIMEOUT
+        watchdog = threading.Timer(timeout, lambda: _WORKER and _WORKER.kill())
+        watchdog.start()
+        try:
+            _WORKER.stdin.write(json.dumps(payload) + "\n")
+            _WORKER.stdin.flush()
+            out = _WORKER.stdout.readline()
+        except (BrokenPipeError, OSError) as exc:
+            raise RuntimeError(f"cli.mts işçisi qopdu: {exc}") from exc
+        finally:
+            watchdog.cancel()
+
+        if not out:
+            err = ""
+            try:
+                err = _WORKER.stderr.read() or ""
+            except Exception:
+                pass
+            _stop_worker()
+            raise RuntimeError(
+                "web/lib/verify/cli.mts cavab vermədi (Node.js quraşdırılıbmı, "
+                f"`npm install` web/-də işlədilibmi?). stderr: {err[:500]}"
+            )
+        return json.loads(out)
 
 
 def verify_final_answer(canonical, values, golden_values=None, answer_values_are="alternate_forms", answer_is_root=True):

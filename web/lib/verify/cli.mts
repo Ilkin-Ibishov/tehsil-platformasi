@@ -10,6 +10,7 @@
 // heç vaxt golden_values olmur, ona görə divergensiya riski onda yoxdur (ADR-012, Qərar 1).
 
 import { equationCrossCheck } from "./answer.ts";
+import { createInterface } from "node:readline";
 
 async function readStdin(): Promise<string> {
   const chunks: Buffer[] = [];
@@ -17,7 +18,24 @@ async function readStdin(): Promise<string> {
   return Buffer.concat(chunks).toString("utf-8");
 }
 
-const raw = await readStdin();
-const { canonical, values } = JSON.parse(raw) as { canonical: string; values: string[] };
-const verified = equationCrossCheck(canonical, values);
-process.stdout.write(JSON.stringify({ verified }));
+function handle(line: string): string {
+  try {
+    const { canonical, values } = JSON.parse(line) as { canonical: string; values: string[] };
+    return JSON.stringify({ verified: equationCrossCheck(canonical, values) });
+  } catch (e) {
+    return JSON.stringify({ error: String(e) });
+  }
+}
+
+// --server: davamlı rejim. NDJSON — hər sətir bir sorğu, hər sətir bir cavab.
+// Səbəb: hər element üçün ayrı Node prosesi qaldırmaq ~1 san/çağırış idi və ilk
+// (soyuq) çağırış 15 san timeout-u keçirdi — harness səssizcə sınıq qalırdı.
+if (process.argv.includes("--server")) {
+  const rl = createInterface({ input: process.stdin, crlfDelay: Infinity });
+  for await (const line of rl) {
+    if (!line.trim()) continue;
+    process.stdout.write(handle(line) + "\n");
+  }
+} else {
+  process.stdout.write(handle(await readStdin()));
+}
