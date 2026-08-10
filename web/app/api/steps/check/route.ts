@@ -3,13 +3,19 @@ import { pool } from "@/lib/db";
 import { studentAnswerMatches } from "@/lib/verify/answer";
 
 // POST /api/steps/check — SYSTEM-REVIEW-2026-08-07 §2 (HANDOFF 45): addım yoxlaması serverdə
-// olur. `/api/solve` artıq `check.accept`-i şəbəkəyə göndərmir (bax route.ts) — server DB-dəki
-// `solutions.payload`-dan (tam LLM çıxışı, heç vaxt gizlədilməyib) oxuyur, §B1-dəki EYNİ
-// `studentAnswerMatches`-lə müqayisə edir və faktı `step_events`-ə ÖZÜ yazır (klient hesabatı
-// yox — `error_code` indi şagirdin CAVABINA əsaslanır, klientin dediyinə yox).
+// olur. Server `question_translations.steps`-dən (public, `error_code`/addım mətni üçün) və
+// `private.step_answers`-dən (`reveal_step_answer` RPC-si ilə, HANDOFF 71) oxuyur, §B1-dəki
+// EYNİ `studentAnswerMatches`-lə müqayisə edir və faktı `step_events`-ə ÖZÜ yazır (klient
+// hesabatı yox — `error_code` indi şagirdin CAVABINA əsaslanır, klientin dediyinə yox).
 //
 // `error_code`/`hint` BURADA qaytarılmır — onlar sirr deyil, `/api/solve` cavabında artıq
 // klientdədir (yalnız `check.accept` və `final_answer` gizlədilib).
+//
+// ADR-019 §2.2: `stepIndex` klientdən MASSİV MÖVQEYİ (0-based) kimi gəlir — `/api/solve`-in
+// qaytardığı `steps[]` sırası ilə EYNİ sıradır `question_translations.steps` (`0017`/solve
+// route-u eyni array-i saxlayır). `private.step_answers.step_index` isə STEP-SCHEMA-nın
+// `index` SAHƏSİDİR (1-based, məcburi ardıcıl DEYİL) — bu iki rəqəm EYNİ OLMAYA BİLƏR, ona
+// görə əvvəlcə massiv mövqeyi ilə addımı tapıb, SONRA onun öz `index`-i ilə RPC çağırılır.
 
 type Body = {
   attempt_id?: unknown;
@@ -19,12 +25,8 @@ type Body = {
 };
 
 type StoredStep = {
-  check?: { accept?: string[] };
+  index?: number;
   error_code?: string;
-};
-
-type StoredPayload = {
-  steps?: StoredStep[];
 };
 
 export async function POST(req: NextRequest) {
@@ -50,10 +52,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "answer gözlənilir" }, { status: 400 });
   }
 
-  const { rows } = await pool.query<{ payload: StoredPayload }>(
-    `select s.payload
-       from attempts a
-       join solutions s on s.id = a.solution_id
+  const { rows } = await pool.query<{ item_id: string; question_id: string; steps: StoredStep[] }>(
+    `select ai.id as item_id, ai.question_id, qt.steps
+       from attempt_items ai
+       join attempts a on a.id = ai.attempt_id
+       join question_translations qt on qt.question_id = ai.question_id and qt.lang = 'az'
       where a.id = $1 and a.device_id = $2`,
     [attemptId, deviceId]
   );
@@ -61,13 +64,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "attempt_not_found" }, { status: 404 });
   }
 
-  const steps = rows[0].payload.steps ?? [];
+  const { item_id: itemId, question_id: questionId, steps } = rows[0];
   const step = steps[stepIndex as number];
-  if (!step || !Array.isArray(step.check?.accept)) {
+  if (!step || typeof step.index !== "number") {
     return NextResponse.json({ error: "step_not_found" }, { status: 400 });
   }
 
-  const accept = step.check.accept;
+  const { rows: answerRows } = await pool.query<{ reveal_step_answer: { accept?: string[]; input_kind?: string } | null }>(
+    `select reveal_step_answer($1, $2, 'verify', $3) as reveal_step_answer`,
+    [questionId, step.index, itemId]
+  );
+  const revealed = answerRows[0]?.reveal_step_answer;
+  if (!revealed || !Array.isArray(revealed.accept)) {
+    return NextResponse.json({ error: "step_not_found" }, { status: 400 });
+  }
+
+  const accept = revealed.accept;
   const correct = accept.some((a) => studentAnswerMatches(answer, a));
 
   try {

@@ -4,9 +4,12 @@ import { studentAnswerMatches } from "@/lib/verify/answer";
 
 // POST /api/attempts/transfer/check — S6 (HANDOFF 56 §1). `/api/attempts/transfer`-in verdiyi
 // `transfer_problem_id`-nin cavabını EYNİ `studentAnswerMatches`-lə yoxlayır (§B1-dəki eyni
-// normallaşdırma — `step.check`/final answer ilə tutarlı) və nəticəni ORİJİNAL `attempts`
-// sətrinə (`attempt_id`) yazır, `transfer_correct`. Yeni cəhd sətri YARADILMIR — bu, S4/S5-dəki
-// kimi ayrıca "cəhd" deyil, mövcud attempt-in davamıdır (DATA-MODEL.md: sahə `attempts`-dədir).
+// normallaşdırma — `step.check`/final answer ilə tutarlı) və nəticəni ORİJİNAL `attempt_items`
+// sətrinə (`transfer_correct`) yazır. Yeni cəhd sətri YARADILMIR — bu, S4/S5-dəki kimi ayrıca
+// "cəhd" deyil, mövcud item-in davamıdır (design.md §9: `transfer_correct` `attempt_items`-dədir).
+//
+// HANDOFF (71): cavab dəyəri `reveal_answer(q,'verify',null)` ilə oxunur — `ai=null`, çünki bu
+// sorğu MƏNBƏ item-ə deyil, TRANSFER sualının öz açarına aiddir, hələ ona bağlı item yoxdur.
 
 type Body = {
   attempt_id?: unknown;
@@ -14,6 +17,10 @@ type Body = {
   transfer_problem_id?: unknown;
   answer?: unknown;
 };
+
+type RevealResult = {
+  answer: { values?: string[] };
+} | null;
 
 export async function POST(req: NextRequest) {
   let body: Body;
@@ -25,47 +32,44 @@ export async function POST(req: NextRequest) {
 
   const attemptId = body.attempt_id;
   const deviceId = body.device_id;
-  const transferProblemId = body.transfer_problem_id;
+  const transferQuestionId = body.transfer_problem_id;
   const answer = body.answer;
 
   if (typeof attemptId !== "string" || typeof deviceId !== "string") {
     return NextResponse.json({ error: "attempt_id/device_id gözlənilir" }, { status: 400 });
   }
-  if (typeof transferProblemId !== "string") {
+  if (typeof transferQuestionId !== "string") {
     return NextResponse.json({ error: "transfer_problem_id gözlənilir" }, { status: 400 });
   }
   if (typeof answer !== "string") {
     return NextResponse.json({ error: "answer gözlənilir" }, { status: 400 });
   }
 
-  const { rows: attemptRows } = await pool.query(
-    `select id from attempts where id = $1 and device_id = $2`,
+  const { rows: itemRows } = await pool.query<{ item_id: string }>(
+    `select ai.id as item_id
+       from attempt_items ai
+       join attempts a on a.id = ai.attempt_id
+      where a.id = $1 and a.device_id = $2`,
     [attemptId, deviceId]
   );
-  if (attemptRows.length === 0) {
+  if (itemRows.length === 0) {
     return NextResponse.json({ error: "attempt_not_found" }, { status: 404 });
   }
+  const { item_id: itemId } = itemRows[0];
 
-  const { rows: solutionRows } = await pool.query<{ values: string[] }>(
-    `select s.payload->'final_answer'->'values' as values
-       from solutions s
-      where s.problem_id = $1
-      order by s.created_at desc
-      limit 1`,
-    [transferProblemId]
+  const { rows: revealRows } = await pool.query<{ reveal_answer: RevealResult }>(
+    `select reveal_answer($1, 'verify', null) as reveal_answer`,
+    [transferQuestionId]
   );
-  if (solutionRows.length === 0 || !Array.isArray(solutionRows[0].values) || solutionRows[0].values.length === 0) {
+  const revealed = revealRows[0]?.reveal_answer;
+  const values = revealed?.answer?.values;
+  if (!Array.isArray(values) || values.length === 0) {
     return NextResponse.json({ error: "transfer_problem_not_found" }, { status: 404 });
   }
 
-  const accept = solutionRows[0].values;
-  const correct = accept.some((a) => studentAnswerMatches(answer, a));
+  const correct = values.some((a) => studentAnswerMatches(answer, a));
 
-  await pool.query(`update attempts set transfer_correct = $2 where id = $1 and device_id = $3`, [
-    attemptId,
-    correct,
-    deviceId,
-  ]);
+  await pool.query(`update attempt_items set transfer_correct = $2 where id = $1`, [itemId, correct]);
 
   return NextResponse.json({ correct }, { status: 200 });
 }
