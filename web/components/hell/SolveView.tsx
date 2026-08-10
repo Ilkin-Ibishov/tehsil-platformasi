@@ -37,11 +37,17 @@ type StepAnswerState = {
 // web/app/api/solve/route.ts), ona görə burada yoxlana bilməzdi belə. Server §B1-dəki EYNİ
 // `studentAnswerMatches`-i işlədir və nəticəni `step_events`-ə ÖZÜ yazır — `error_code` indi
 // şagirdin CAVABINA əsaslanır, klientin "düz/səhv" dediyinə yox.
-async function checkStepAnswer(attemptId: string, stepIndex: number, answer: string): Promise<{ correct: boolean }> {
+//
+// HANDOFF (73): `step_index` BURADA `SolveStep.index`-dir (STEP-SCHEMA-nın öz sahəsi),
+// massiv MÖVQEYİ YOX. Server açarı bununla saxlayır (`private.step_answers`) — massiv
+// mövqeyi ilə çağırmaq dil fallback ssenarisində (fərqli tərcümələr fərqli `steps[]`
+// uzunluğu/sırası daşıya bilər) səssiz yanlış nəticəyə gətirirdi. Çağıran `currentStep.index`
+// göndərməlidir, `stepIndex` (React state, massiv mövqeyi) YOX — bax aşağıda `submitAnswer`.
+async function checkStepAnswer(attemptId: string, stepSchemaIndex: number, answer: string): Promise<{ correct: boolean }> {
   const res = await fetch("/api/steps/check", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ attempt_id: attemptId, device_id: getDeviceId(), step_index: stepIndex, answer }),
+    body: JSON.stringify({ attempt_id: attemptId, device_id: getDeviceId(), step_index: stepSchemaIndex, answer }),
   });
   if (!res.ok) throw new Error(`step check http ${res.status}`);
   return res.json();
@@ -204,7 +210,7 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
 
     let correct: boolean;
     try {
-      const result = await checkStepAnswer(attemptId, stepIndex, submittedInput);
+      const result = await checkStepAnswer(attemptId, currentStep.index, submittedInput);
       correct = result.correct;
     } catch {
       // SYSTEM-REVIEW §2 diqqəti: şəbəkə yoxdursa AYDIN mesaj, səssiz "səhv" yox.

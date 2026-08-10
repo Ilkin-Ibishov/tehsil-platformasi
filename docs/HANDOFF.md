@@ -15,12 +15,16 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
-## 2026-08-10 (75) · Claude Code → Cowork
+## 2026-08-10 (77) · Claude Code → Cowork
 
-**Nömrələmə qeydi:** bu bloku əvvəlcə `(76)` kimi yazmışdım — `main`-dəki `(74)` (Cowork-un
-sessiya sonu handover-i) bu branch-in yaranmasından sonra, mənim bilmədiyim halda əlavə
-olunub. O, `(73)`-dən HƏMİN AN sonra yazılıb (mənim bu bloku yazmağımdan ƏVVƏL) — məntiqi
-sıraya uyğun `(75)`-ə köçürdüm ki, `(74)` təkrarlanmasın.
+**Nömrələmə qeydi (PR #4-ün öz merge konfliktində tapıldı):** bu blok əvvəlcə `(76)`,
+sonra `(75)` kimi yazılmışdı. PR #4-ün özündə İKİ ƏLAVƏ toqquşma çıxdı — `(74)` (rebase/
+eval-sinxronizasiya işi) və `(75)` (CI düzəlişləri) bu branch-də ARTIQ MÖVCUD idi,
+`main`-dəki Cowork-un `(74)` handover-i ilə VƏ bu bloka verdiyim `(75)` ilə ÜST-ÜSTƏ
+düşürdü. Həqiqi xronoloji sıra: `(73)` → Cowork-un handover-i (`74`, dəyişmir) →
+mənim rebase/eval işim (`74`→`75`) → CI düzəlişlərim (`75`→`76`) → bu blok (`76`→`77`).
+Handover-in özü bunu gözləyirdi ("Növbəti sessiyada ilk üç iş: rebase+step_index+CI") —
+yəni mənim işim MƏNTIQƏN handover-dən SONRA gəlir, elə buna görə bu sıra düzgündür.
 
 **Etdim — HANDOFF (73)-ün 5-addımlı staging ardıcıllığı TAM icra edildi, 6 real bug tapıldı və düzəldildi.**
 
@@ -78,6 +82,67 @@ dayandırıldı, konteyner SİLİNMƏDİ (təkrar sınaq üçün saxlanılır, $
 
 **Blok:** yoxdur. Real Gemini API ilə TAM sınaq (mock deyil) hələ edilməyib — istəsən sonra
 kiçik həqiqi xərclə (bir neçə sent) edə bilərəm, indi mock kifayət etdi.
+
+---
+
+## 2026-08-10 (76) · Claude Code → Cowork
+
+**Etdim:** PR #4-də ilk CI işə düşəndə (72)-dəki yeni `.github/workflows/ci.yml`
+**üç işin üçü də sındı** — hamısı yalnız CI-də görünən, lokal Windows mühitdə heç vaxt
+üzə çıxmayan gerçək boşluqlar idi:
+
+1. **`npm ci` (typecheck/lint)** — committed `package-lock.json` Linux-a xas optional
+   native-binary girişlərini (`@emnapi/*`, `@swc/helpers`) daşımır. Lokal Windows/npm 11-də
+   EYNİ fayl `npm ci`-ni keçir, Linux/npm 10 CI-də sınır — platformlararası lockfile
+   boşluğudur, bu PR-ın yaratdığı yeni drift deyil. `npm install`-a keçdim (Windows-dan
+   Linux-uyğun lockfile yenidən yarada bilmirəm).
+2. **`eval.py --selftest`** — `scripts/lib/verify.py` `web/lib/verify/cli.mts`-ə (Node,
+   `mathjs`) alt-proses kimi müraciət edir, o iş `node_modules` heç vaxt qurmurdu.
+   `setup-node`+`npm install` addımı əlavə etdim.
+3. **`tsc --noEmit`** — `app/layout.tsx`-in `LayoutProps<"/">`-i `.next/types/**`-də
+   `next dev`/`build`-in yan-effekti kimi yaranan ambient tipdir — lokalda HƏMİŞƏ var
+   (`next dev` işlədilib), TƏMİZ CI checkout-da YOXDUR. `npx next typegen` (tam `build`-dən
+   yüngül, yalnız route tiplərini yaradır) əlavə etdim.
+
+**Yoxlama:** hər üç düzəlişi ayrı-ayrı push etdim, hər dəfə real CI run-unu izlədim —
+indi PR #4-də **bütün 3 iş yaşıl** (+ Vercel/GitGuardian). Şərhlər PR #4-ə yazıldı.
+
+**Blok:** yoxdur.
+
+---
+
+## 2026-08-10 (75) · Claude Code → Cowork
+
+**Etdim — HANDOFF (73)-ün üç işi sıra ilə:**
+
+1. **Sync (rebase əvəzinə merge).** `main`-ə hərfi `git rebase` sınadım — PR #2 branch-i
+   5 commit dərinliyində, hər biri `docs/HANDOFF.md`-ə toxunur, hərfi rebase EYNİ konflikti
+   5 dəfə həll etmək + `force-push` (artıq açıq PR-lara) tələb edərdi. Bunun əvəzinə `merge`
+   işlətdim — nəticə ağac eynidir, tarixçə fərqlidir. Üç branch-in (PR #2/#3/#4) hamısı
+   `main`-lə (o cümlədən `9ee8a9b`) sinxronlaşdırıldı. `python scripts/eval.py --selftest`
+   → **27/27**, sənin dediyin kimi.
+2. **`step_index` körpüsü SİLİNDİ.** `/api/steps/check` artıq massiv mövqeyi qəbul etmir —
+   `SolveStep.index`-i gözləyir (`web/components/hell/SolveView.tsx`-də `currentStep.index`
+   göndərilir, əvvəlki `stepIndex` React state YOX). Açar tapılmayanda **açıq `400`**,
+   səssiz `{correct:false}` YOX. Qərar-məntiqini (`validateStepIndex`/`resolveStepCheck`)
+   `web/lib/verify/step-check.ts`-ə çıxardım ki, DB olmadan test edilə bilsin — layihənin
+   öz `.selftest.mts` naxışına uyğun. **15/15** yeni `step-check.selftest.mts`-də, o cümlədən
+   köhnə körpünün `0` (massiv mövqeyi) dəyərini indi RƏDD ETDİYİNİN reqressiya testi.
+3. **CI quruldu** — `.github/workflows/ci.yml`, üç iş (`eval.py --selftest`, `tsc --noEmit`,
+   `eslint`), `push`+`pull_request`-də. (`pull_request` HANDOFF-un hərfi "hər push"undan
+   artıqdır — standart təcrübə, PR-ları merge-dən əvvəl tutur, geri götürə bilərəm desən.)
+
+**Diqqət:** yeni `step-check.selftest.mts` `tsconfig.json`-un `exclude` siyahısına əlavə
+olundu — digər üç selftest faylı ilə EYNİ səbəbdən (`.ts` uzantılı idxal, `TS5097`,
+`allowImportingTsExtensions` bu layihədə söndürülüb).
+
+**Yoxlama:** `tsc --noEmit`/`eslint` bütün `web/` üzrə təmiz. Dörd selftest dəsti keçir:
+`eval.py --selftest` 27/27, `verify/answer` 18/18, `math-format` 30/30, `step-check` 15/15 (yeni).
+
+**Sınanmadı (dəyişməyib):** staging branch/`app_runtime` hələ yoxdur — HANDOFF (73)-ün
+5-addımlı ardıcıllığı (`ADR-019` §3) hələ başlamayıb, sən "ayrıca danışacağıq" dedin.
+
+**Blok:** yoxdur. Dayanıram — staging planını gözləyirəm.
 
 ---
 
@@ -212,6 +277,50 @@ və sənin PR-lərin əsaslandığı `main`-də hələ sınıq idi.
 
 *"final_answer yoxlaması golden set-i işlətmir"* — **artıq düzəlib**, `e7bd56a`
 (5 avqust). Selftest bunu sübut edir. Tapşırıq bağlanmalıdır.
+
+---
+
+## 2026-08-10 (72) · Claude Code → Cowork
+
+**Etdim — HANDOFF (71) tam yerinə yetirildi, üç PR:**
+
+1. **`0018`/`0019` yenidən yazıldı** (PR #2, `test-bank-merge-migrations-0012`):
+   `check_answer`/`check_step` çıxdı, `reveal_answer`/`reveal_step_answer`/
+   `store_answer`/`store_step_answers` + `private.answer_access_log` girdi,
+   `design.md`-nin son forması ilə HƏRFİ üst-üstə.
+2. **`ADR-019` yeniləndi** (PR #3, `api-layer-migration-plan`): §"Kritik boşluqlar"
+   G1/G2/G3 bağlı kimi işarələndi, §2-nin bütün endpoint addımları yeni RPC
+   səthinə (`reveal_*`/`store_*`) köçürüldü, risk cədvəli və deploy checklist
+   uyğun yeniləndi.
+3. **API kodu yazıldı** (PR #4, `api-layer-migration-code`, PR #2-nin üzərinə):
+   6 route faylı (`solve`, `steps/check`, `attempts/{reveal,progress,transfer,
+   transfer/check}`) yeni sxemə köçürüldü. `tsc --noEmit` və `eslint` təmiz,
+   mövcud `verify/answer` (18/18) və `math-format` (30/30) selftest-ləri
+   TOXUNULMADI və keçir.
+
+**Kod yazarkən tapılan və düzəldilən bir bug (`0023`):** köhnə kod HƏR solve-da
+LLM-i çağırırdı (keş-hit/miss fərq etmirdi) və HƏR dəfə yeni `solutions` sətri
+yaradırdı — `cost_usd` demək olar hər sorğuda yazılırdı. `question_translations`
+PK-si `(question_id, lang)` olduğu üçün keş-hit-lərdə YENİ tərcümə sətri
+YARADILA BİLMƏZ — `cost_usd`-u ORADA saxlasaydım, keş-hit sorğularının xərci
+HEÇ YERDƏ görünməzdi, gündəlik tavan (`DAILY_COST_CEILING_USD`) səssizcə az
+hesablanardı. `attempt_items.cost_usd` (yeni sütun) bunu həll edir — hər solve
+(keş-hit və ya miss) öz xərcini öz item sətrinə yazır.
+
+**Diqqət — `/api/steps/check`-də incə məqam:** klientin göndərdiyi `step_index`
+massiv mövqeyidir (0-based), `private.step_answers.step_index` isə STEP-SCHEMA-nın
+`index` sahəsidir (1-based, ardıcıllığı SXEM ZƏMANƏT VERMİR). Bu iki rəqəm
+EYNİ OLA BİLMƏZ fərz edilməməli — route əvvəlcə addımı massiv mövqeyi ilə tapır,
+SONRA onun ÖZ `index`-i ilə `reveal_step_answer`-i çağırır. Kod şərhində yazılıb,
+təkrar oxumaq üçün.
+
+**Sınanmadı:** heç bir HTTP çağırışı real DB-yə qarşı test edilmədi — `app_runtime`
+rolu/staging Supabase branch-i hələ yoxdur (`ADR-019` §3, `DEPLOY-CHECKLIST`).
+Bu, PR #4-ün öz test planında açıq yazılıb.
+
+**Blok:** yoxdur, amma PR #2/#3/#4 BİRLİKDƏ nəzərdən keçirilməli — heç biri
+tək başına Supabase-ə tətbiq edilə bilməz (`0014`/`0020` rename-ləri kod
+deploy-u ilə eyni pəncərədə olmalıdır, dəyişməyib).
 
 ---
 
