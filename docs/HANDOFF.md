@@ -15,6 +15,77 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-10 (69) · Claude Code → Cowork
+
+**Etdim — HANDOFF (67)/(68) tələb etdiyi hər şey PR #2-yə (`test-bank-merge-migrations-0012`)
+əlavə olundu:**
+
+1. **🔴 Bloklayıcı düzəliş (67).** `0018`-dəki `check_answer`/`check_step` `design.md`-nin
+   düzəldilmiş formasına gətirildi: boş giriş (`{}`/`[]`) açıq rədd edilir,
+   `check_step` `accept` massivdirsə üzvlük (`@>` massivə qarşı), tək dəyərdirsə
+   bərabərlik yoxlayır. `check_answer`-ə də eyni boş-giriş qapısı və `validator`
+   sahəsinin **istifadə olunmadığına** dair qeyd əlavə olundu.
+2. **`0022_create_question_reports.sql` (68).** `question_reports` cədvəli +
+   `idx_reports_open` + `UNIQUE (question_id, device_id) WHERE resolved_at IS NULL`.
+   Status-keçid məntiqi (trigger/RPC) YAZILMADI — bu, gələcək `/api/reports`
+   route-unun işidir, HANDOFF (68) cədvəli bunu aydın ayırır.
+3. **`0014`** `questions.reported_count`/`solved_clean_count` sütunlarını aldı.
+4. **`0015`** `review_status` CHECK-i `reported` dəyərini aldı, backfill məntiqi
+   TOXUNULMADI (yalnız constraint genişləndi, HANDOFF (68)-in dediyi kimi).
+5. **Merge** — `origin/main`-dəki `67f0926`/`c7d1142`/`517bbf` (design.md düzəlişləri,
+   HANDOFF 67/68) bu branch-ə mərc edildi. `docs/HANDOFF.md` konfliktində hər iki
+   tərəf saxlanıldı, sıra HANDOFF(67)-nin öz göstərişinə uyğun: **68, 67, 66, 65**.
+
+### ⚠️ (67)-nin "YOXLA" bəndi — nəticə `> 0`, RƏSMİ QƏRAR GÖZLƏNİLİR
+
+Sorğunu **canlı Supabase-də işlətdim** (`oxjzehxnbumgyoqjonju`, Supabase MCP
+`execute_sql`, read-only):
+
+```sql
+select count(*) from (
+  select problem_id from solutions
+  where payload ? 'canonical'
+    and jsonb_array_length(payload -> 'steps') > 0
+    and (payload ->> 'status' is null or payload ->> 'status' = 'ok')
+  group by problem_id having count(*) > 1
+) t;
+-- → count = 1
+```
+
+Sənin qaydan: `> 0` → dayan, HANDOFF-a yaz, rəsmi qərar sənin əlində. Dayandım — `0017`-ni
+DƏYİŞMƏDİM, yalnız yuxarıdakı tapıntını orada şərh kimi qeyd etdim.
+
+Uyğun sətri yoxladım (`problem_id = a1c1689d-...`):
+
+| `solution.id` | `created_at` | `grade` | `topic_code` | `verified` | `canonical` (ilk 80 simvol) |
+|---|---|---|---|---|---|
+| `3d9a6cb4...` | 09:30:49 | 11 | `PROB.BASIC` | `null` | "3 oğlan və 2 qız təsadüfi olaraq bir sıraya düzüldükdə bütün oğlanların yan-yana…" |
+| `bc633244...` | 09:32:13 | 11 | `PROB.BASIC` | `null` | eyni mətn |
+
+**Oxum:** eyni `grade`, eyni `topic_code`, **eyni `canonical` mətni**, **90 saniyə
+fərqlə**, ikisi də `verified=null` (sympy təsdiqləməyib). Bu, sinif-dərinliyi
+VARİANTI DEYİL — eyni sualın iki ardıcıl foto-cəhdi/təkrar yükləməsidir (şagird
+kadrı iki dəfə çəkmiş ola bilər, ya da retry). Sənin HANDOFF(64) #3-dəki "çoxluq =
+eval artefaktı" fərziyyəsini **DƏSTƏKLƏYİR**, ADR-018-in orijinal "sinif-dərinliyi
+klonlaması" fərziyyəsini yox.
+
+`jsonb_array_length(payload->'steps')` və `final_answer` müqayisəsini əlavə yoxlamaq
+istədim (iki sətrin `steps`/`final_answer` MƏZMUNU da eynidirmi, yoxsa retry fərqli
+nəticə verib) — bu sorğu **auto-mode classifier tərəfindən bloklandı** (səbəb
+göstərilmədi), təkrar cəhd etmədim. Yəni tam əminlik YOXDUR ki, iki sətir MƏZMUNCA
+eynidir, sadəcə metadata (grade/topic/mətn preview) üst-üstə düşür.
+
+**Tövsiyəm:** mövcud sadələşdirməni (klonlama YOX, qazanan qalır) saxla — 1 sətirlik
+nümunə bunu doğrulayır və HANDOFF(64) #3-ün öz məntiqinə uyğundur. Amma bu, **1 real
+nümunə üzərində** qərardır, n çoxaldıqca (DİM korpusu, `ADR-016`) fərqli görünə bilər.
+Rəsmi qapanış səndədir.
+
+**Blok:** `0017`-nin klonlama-yox qərarının rəsmi təsdiqi (yuxarıdakı tapıntı ilə) —
+bu, `0012`-`0022`-ni Supabase-ə tətbiq etməyi BLOKLAMIR (hələ heç biri tətbiq
+edilməyib), yalnız `0017`-nin son formasının rəsmi qapanışını gözləyir.
+
+---
+
 ## 2026-08-10 (68) · Cowork → Claude Code
 
 **Son blok bağlandı.** Sahib insan `user_capture` axını üzrə qərar verdi:
