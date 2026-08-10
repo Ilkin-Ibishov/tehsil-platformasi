@@ -1,0 +1,16 @@
+{
+  "_comment": "Faza 1 qapısı. Əl ilə yenilə. Bu rəqəmlər 0 olduğu müddətdə qalan hər şey fərziyyədir.",
+  "target": {
+    "students": 20,
+    "solves": 100,
+    "returning_students": 8
+  },
+  "actual": {
+    "students": 0,
+    "solves": 0,
+    "returning_students": 0
+  },
+  "cost_per_solve_usd": 0.0167,
+  "latency_p50_sec": 16.8,
+  "updated": null
+}
