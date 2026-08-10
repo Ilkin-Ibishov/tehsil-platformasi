@@ -15,6 +15,71 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-10 (74) · Cowork sessiya sonu · HANDOVER
+
+Bu blok növbəti sessiyanın başlanğıc nöqtəsidir. Söhbətdə qalan heç nə yoxdur —
+hər qərar aşağıdakı fayllardadır.
+
+### Harada nə var
+
+| Qat | Yer |
+|---|---|
+| Test bankı sxemi | `.kiro/specs/test-bank/{requirements,design}.md` |
+| Kontent generasiya planı | `.kiro/specs/content-generation/design.md` **(yeni)** |
+| Layihə qaydaları (Kiro) | `.kiro/steering/test-bank.md` |
+| Qərarlar | `docs/decisions/ADR-001…019` |
+| İnkişaf metrikləri | `docs/metrics/` — `node scripts/metrics/snapshot.mjs` |
+| Biznes qatı | Notion → «Təhsil Platforması — Biznes və Məhsul» |
+| Növbə jurnalı | bu fayl |
+
+### Açıq PR-lər — birlikdə nəzərdən keçirilir
+
+| PR | Nə | Qeyd |
+|---|---|---|
+| #2 | `0012`–`0022` | **#4-ün alt-çoxluğudur**, ayrıca merge etməyə ehtiyac yoxdur |
+| #3 | ADR-019 + deploy checklist | Sənəd |
+| #4 | `0012`–`0023` + 6 route faylı | Tam yığın |
+
+Heç biri tək tətbiq oluna bilmir. HANDOFF(73)-dəki üç şərt ödənmədən merge yoxdur:
+`main`-ə rebase, `step_index` körpüsünün silinməsi, CI.
+
+**Diqqət:** HANDOFF #66, #69, #72 (Claude Code blokları) yalnız PR branch-lərindədir,
+`main`-də deyil. Merge-dən sonra gəlir. `main`-dəki nömrələmə boşluğu buna görədir.
+
+### Növbəti sessiyada ilk üç iş
+
+1. **Rebase + `step_index` körpüsü + CI** — HANDOFF(73), Claude Code-a göndərilib
+2. **Staging branch** — Supabase branching ilə `0012`–`0023` tətbiqi, `app_runtime`
+   qurulması, 6 endpoint-in real çağırılması. Produksiyaya bundan əvvəl çıxılmır
+3. **Faza 1 qapısı** — 15–20 şagird, 100+ real həll
+
+### Bu sessiyada tapılanlar
+
+- **Eval harness 7 avqustdan ölü idi** (`9ee8a9b` düzəltdi). `cli.mts` hər element
+  üçün yeni Node prosesi qaldırırdı; soyuq başlanğıc 15 san timeout-u keçirdi.
+  Heç kim işlətmədiyi üçün 3 gün görünmədi. Davamlı NDJSON işçisi: 27/27, 2 saniyə
+- **ClickUp tapşırığı köhnəlmişdir** — «final_answer golden set-i işlətmir» `e7bd56a`
+  (5 avqust) ilə düzəlib. 4 gün prioritet siyahısının başında həll olunmuş iş durub
+- **Metrik sistemi quruldu** — `doc/code = 2.31`, `fokus 37.8%`, `test 0`,
+  `açıq blok 17`, `qapı 0%`
+
+### Bağlanmamış — növbəti sessiyaya keçir
+
+| # | İş | Niyə indi edilmədi |
+|---|---|---|
+| 1 | ClickUp təmizliyi — Texo tapşırığı ADR-001 ilə ziddiyyətdədir, 8 tapşırıq arxivlik | Faza 1 qapısından sonra; indi vaxt itkisi |
+| 2 | HANDOFF rotasiyası — 3 932 sətir, hədd 2 500 | Eyni səbəb |
+| 3 | 17 açıq `Blok:` sətri — çoxu köhnə dövrələrdən | Nəzərdən keçirilməli |
+| 4 | Sıfır test faylı | CI ilk addımdır, sonra route testləri |
+
+### Dəyişməyən prinsip
+
+**Əvvəl plan, sonra kod.** Bu sessiyada Claude Code beş ardıcıl dövrədə spec
+səhvlərini kod yazılmadan tutdu: `Step.check` yoxluğu, addım cavablarının açıq
+qalması, `@>` istismarı, ADR-009 pozuntusu, `cost_usd` itkisi. Bu vərdiş pozulmur.
+
+---
+
 ## 2026-08-10 (73) · Cowork → Claude Code
 
 PR #2/#3/#4 nəzərdən keçirildi. **`cost_usd` tapıntın doğrudur və vacibdir.**
