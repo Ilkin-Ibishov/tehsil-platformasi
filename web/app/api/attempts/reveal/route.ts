@@ -11,6 +11,13 @@ import { pool } from "@/lib/db";
 // (`app_runtime`-in `private`-ə GRANT-ı yoxdur) — `reveal_answer(q, purpose, ai)` RPC-si
 // ilə oxunur, `purpose='reveal'` (bu, QƏSDƏN göstərmə axınıdır, `'verify'` YOX), hər çağırış
 // `private.answer_access_log`-a yazılır.
+//
+// HANDOFF (79) / gate-78 audit: `reveal_answer` `public`-dən `app` sxeminə köçürüldü —
+// `public`-də olanda `anon`/`authenticated` `EXECUTE` icazəsinə malik idi (Supabase-in
+// `public` üçün defolt ACL-i) və `SECURITY DEFINER` olduğu üçün bu, RLS-dən ASILI DEYİLDİ —
+// istənilən adam `anon` açarı ilə `/rest/v1/rpc/reveal_answer` çağırıb cavabı ala bilərdi.
+// `app` sxemi PostgREST-ə İFŞA OLUNMUR, çağırış `app.reveal_answer(...)` kimi AÇIQ
+// sxem-adlı olmalıdır (`app_runtime`-in defolt `search_path`-ində `app` yoxdur).
 
 type Body = {
   attempt_id?: unknown;
@@ -49,7 +56,7 @@ export async function POST(req: NextRequest) {
 
   const { item_id: itemId, question_id: questionId } = rows[0];
   const { rows: revealRows } = await pool.query<{ reveal_answer: RevealResult }>(
-    `select reveal_answer($1, 'reveal', $2) as reveal_answer`,
+    `select app.reveal_answer($1, 'reveal', $2) as reveal_answer`,
     [questionId, itemId]
   );
   const revealed = revealRows[0]?.reveal_answer;

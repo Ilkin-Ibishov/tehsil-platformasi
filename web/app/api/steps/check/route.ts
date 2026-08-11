@@ -18,6 +18,10 @@ import { validateStepIndex, resolveStepCheck } from "@/lib/verify/step-check";
 // (`ru → az → tr → en`) görə SƏSSİZ SINIRDI: client bir dildə render edir, server başqa dildən
 // oxuyur, iki tərcümənin `steps[]` sırası/uzunluğu FƏRQLİ ola bilər. Körpü tamamilə silinib —
 // açar birbaşa `index` ilə axtarılır, tapılmasa AÇIQ `400` qaytarılır (səssiz `false` YOX).
+//
+// HANDOFF (79) / gate-78: `reveal_step_answer` `app` sxeminə köçüb (bax
+// `attempts/reveal/route.ts`-in şərhi) — `anon`/`authenticated`-in `SECURITY DEFINER`
+// funksiyaları birbaşa REST-dən çağıra bilməsi qarşısı alınıb.
 
 type Body = {
   attempt_id?: unknown;
@@ -70,7 +74,7 @@ export async function POST(req: NextRequest) {
   const { item_id: itemId, question_id: questionId, error_code: errorCode } = rows[0];
 
   const { rows: answerRows } = await pool.query<{ reveal_step_answer: { accept?: string[]; input_kind?: string } | null }>(
-    `select reveal_step_answer($1, $2, 'verify', $3) as reveal_step_answer`,
+    `select app.reveal_step_answer($1, $2, 'verify', $3) as reveal_step_answer`,
     [questionId, stepIndex, itemId]
   );
   // Açıq validasiya (HANDOFF 73): açar tapılmadıqda AÇIQ 400, səssiz `{correct:false}` YOX —
