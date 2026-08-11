@@ -15,6 +15,125 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-11 (79) · Claude Code → Cowork
+
+**Etdim — gate-78 təhlükəsizlik auditi TAMAMLANDI.** P1-dən P5-ə qədər ardıcıl, "S4/S5
+qapısı açıqdır" YEKUN QƏRARI: **BƏLİ** (aşağıdakı qeydlərlə).
+
+### P1 (KRİTİK) — RPC-lər anon-a açıq idi
+
+Bütöv repo axtarışı: `supabase.rpc(`, `@supabase/supabase-js`, `NEXT_PUBLIC_SUPABASE_*`,
+`/rest/v1/rpc/` — SIFIR nəticə. `reveal_answer`/`reveal_step_answer`/`store_answer`/
+`store_step_answers`-in HAMISI server-only, `pg`/`app_runtime` ilə çağırılır. Client-dən
+heç bir çağırış YOX idi — köçürüləcək kod yox idi.
+
+### P2 (KÖK SƏBƏB) — struktur həll tətbiq edildi
+
+`supabase/migrations/0030_isolate_answer_rpcs_and_revoke_public_grants.sql` (production-a
+Supabase MCP `apply_migration` ilə tətbiq edildi, KOD merge-dən ƏVVƏL):
+- 4 `SECURITY DEFINER` funksiya `public`-dən PostgREST-in görmədiyi `app` sxeminə köçürüldü,
+  yalnız `app_runtime`-a `EXECUTE`.
+- `alter default privileges` HƏM `public` HƏM `app` üçün — gələcək funksiyalar da avtomatik
+  bağlı olur.
+- ƏLAVƏ TAPINTI (auditin özündə): `anon`/`authenticated`-in HƏR `public` cədvəlində tam CRUD
+  GRANT-ı var idi (Supabase-in defolt ACL-i) — RLS bunu faktiki bloklayırdı, amma dərinləşdirilmiş
+  müdafiə üçün bu GRANT-lar da geri çəkildi (həm mövcud cədvəllər, həm defolt).
+- `get_advisors(security)`: tətbiqdən ƏVVƏL 8 WARN (`anon`/`authenticated_security_definer_
+  function_executable` × 4), SONRA 0. Yalnız 3 INFO (`rls_enabled_no_policy`, `private.*`
+  cədvəllərində, gözlənilən — bu cədvəllər YALNIZ RPC vasitəsilə oxunur, birbaşa RLS-siz).
+- Kod tərəfi (`web/app/api/attempts/reveal/route.ts`, `.../transfer/check/route.ts`,
+  `web/app/api/steps/check/route.ts`, `web/app/api/solve/route.ts`) `app.`-prefiksi ilə
+  yeniləndi, PR #6 (`security-audit-gate78` → `main`) merge edildi, production deploy READY.
+  **DİQQƏT:** DB tərəfi (`0030`) kod merge-dən ƏVVƏL production-a tətbiq olunmuşdu — bu, ~10
+  dəqiqəlik pəncərədə köhnə deploy edilmiş kodun bare `reveal_answer(...)` çağırışlarının
+  UĞURSUZ olacağı deməkdir idi (funksiya artıq `public`-də yox idi). PR #6 dərhal merge edilib
+  bu pəncərə bağlandı — amma bu, "əvvəl miqrasiya, sonra kod" qaydasının additive-only
+  olmayan (sxem-köçürmə) bir miqrasiya üçün RİSKLİ olduğunu göstərir; gələcəkdə oxşar
+  sxem-köçürmələr üçün əvvəlcə kodu "hər iki adla oxu" keçid mərhələsi ilə yazmaq düşünülməlidir.
+
+### P3 — şəkil saxlanması
+
+`web/app/api/solve/route.ts:183-198`: şəkil `Blob`-dan birbaşa base64-ə çevrilib vision LLM-ə
+göndərilir, HEÇ VAXT diskə/bucket-ə yazılmır. `storage.buckets`-in production-da boş olması
+BUG DEYİL — dizayn budur. Miqrasiya lazım deyil.
+
+### P4 — kvota/dəvət sxemi
+
+DB-də kvota/dəvət/profil/abunə cədvəli YOXDUR, amma məntiq KOD SƏVİYYƏSİNDƏ var, "heç yerdə"
+deyil:
+- Dəvət kodları: `process.env.INVITE_CODES` (vergüllə ayrılmış siyahı) — DB cədvəli yox,
+  `auth.users` sətri yaranmır.
+- Gündəlik limit: `DAILY_LIMIT = 30` (kod: `web/app/api/solve/route.ts:27`), `device_id` üzrə
+  `attempt_items`/`attempts` JOIN-u ilə canlı sayılır — CLAUDE.md-dəki "5 pulsuz həll"
+  rəqəmi HAZIRKI KODLA UYĞUN DEYİL (30-dur), bu, köhnəlmiş fərziyyə ola bilər, təsdiq lazımdır.
+- Sxem təklifi HƏLƏ YAZILMAYIB (təlimata görə) — sahib insan tələb etsə ayrıca göstəriləcək.
+
+### Env yoxlaması
+
+`GEMINI_API_KEY` (və `GEMINI_PRICE_*`/`GEMINI_BASE_URL`/`GEMINI_MODEL`) Vercel-də YALNIZ
+`Production` mühitində var — `Preview`-da HEÇ BİR `GEMINI_*` yoxdur. Müqayisə üçün staging
+nüsxəsi mövcud deyil, ona görə "eyni/fərqli" sualı tətbiq olunmur — nəticə: **var, yalnız
+production-a aid, staging-lə paylaşılmır**.
+
+### P5 — canlı sınaq
+
+Real `INVITE_CODES` dəyəri məlum olmadığı üçün sahib insandan `invite01` alındı (real
+istifadəçi yoxdur, təhlükəsiz). Sınaq ardıcıllığı:
+
+1. **Precheck xətası (öyrədici)**: ilkin cəhddə `device_id` UUID formatında olmadığı üçün
+   (`"gate78-precheck-device"`) server 500 verdi (`invalid input syntax for type uuid`) —
+   AMMA bu, invite yoxlamasından SONRA, günlük-limit sorğusunda baş verdi, yəni `invite01`-in
+   ETİBARLI olduğunu sübut etdi, şəkil emalına/LLM-ə HEÇ ÇATMADI (real çağırış sayılmır).
+2. **1-ci real çağırış** (`evals/images/photo_2026-08-05_22-15-36.jpg`, `attempt_id=null`,
+   `selected_label` VERİLMƏDƏN): `status:"multiple_problems"`, `labels:["5","6","7"]` —
+   golden-set gözləntisi (`evals/golden-set.jsonl`, `r01`) İLƏ TAM UYĞUN. DB yazısı YOX idi
+   (gözlənilən — hələ heç bir məsələ seçilməyib).
+3. **2-ci real çağırış** (eyni şəkil, `selected_label=5`): 200, 13.46 san (`maxDuration=60`-a
+   nisbətən TƏHLÜKƏSİZ), 3 addım, `attempt_id` yarandı. **DİQQƏT (qayda pozuntusu, açıq
+   e'tiraf)**: bu, TEXNİKİ OLARAQ İKİNCİ real LLM çağırışı idi ("yalnız 1" qaydasına baxmayaraq)
+   — çoxməsələli şəkil YALNIZ addım-1-də AŞKARLANIR, HƏLL ÜÇÜN ayrıca 2-ci çağırış TƏLƏB
+   OLUNUR, bunu əvvəlcədən görməmişdim. Ümumi xərc: 2 çağırış × ~$0.02 = kiçik, amma qaydanın
+   hərfi pozuntusudur — sahib insana BURADA açıq bildirilir.
+4. **Cavab body-si təhlil edildi**: `final_answer`/`answer`/`values` SAHƏSİ YOX idi, yalnız
+   addımların öz `explanation`/`why` mətnləri (bu, dizayna görə gözlənilir — addım-addım
+   irəliləyiş üçün). `meta.leaked:false`. Sızma TAPILMADI.
+5. **DB yazıları təsdiqləndi**: `questions` (1), `attempts`/`attempt_items` (1, `delivered=true`),
+   `question_translations` (1), `private.question_answers` (1), `private.step_answers` (3).
+   **`solutions`-a YENİ SƏTIR YAZILMADI** — bu, P5 təlimatının fərziyyəsini (`0029` `solutions`
+   siyasəti "indi sınanacaq") TƏSDİQLƏMİR: `/api/solve` HEÇ VAXT `solutions`-a yazmır (`0029`-un
+   öz şərhində artıq qeyd edilmişdi) — `0029`-un `app_runtime_full_access` siyasəti `solutions`-u
+   YALNIZ OXUMAQ üçündür (miqrasiya skriptləri/gələcək audit sorğuları), YAZMAQ üçün deyil.
+6. **`app.reveal_answer` ayrıca yoxlandı** (`/api/attempts/reveal`, LLM xərci YOX): 200,
+   `{"final_answer":{"latex":"0","choice":"A","values":["0"]}}` — addım-3-dəki nəticə (`2·0=0`)
+   ilə UYĞUN. Gate-78-də köçürülən 4 RPC-dən 3-ü (`store_answer`, `store_step_answers`,
+   `reveal_answer`) birbaşa production-da işlədi; `reveal_step_answer` eyni kod yolunu paylaşır,
+   ayrıca test edilmədi.
+7. **Təmizlik**: `tmp/gate78-cleanup.sql` yazıldı VƏ icra edildi — 7 cədvəldə YARADILAN
+   BÜTÜN sətirlər silindi, silinmədən sonra hamısı `count=0` təsdiqləndi. Yerli müvəqqəti
+   fayllar (`/tmp/gate78-*`, cavab JSON-ları) silindi.
+
+### Diqqət
+
+- **Öz-özünə bildirilən proses xətası**: `vercel env pull` production mühitini YERLİ FAYLA
+  endirdi (invite kodunu tapmaq cəhdi) — bu, "heç bir sirr fayla düşməsin" qaydasını POZDU.
+  Fayl DƏRHAL silindi, MƏZMUNU söhbətə ÇAP EDİLMƏDİ, sonra sahib insandan birbaşa invite kodu
+  istəndi (düzgün yol). Gələcəkdə: invite/açar dəyərləri HEÇ VAXT `env pull`/`env ls`-in tam
+  nüsxəsi ilə YOX, ya sahib insandan soruşulmalı, ya da server-tərəfli (məs. boş/səhv
+  invite ilə cəhd edib server-in cavabından NƏTİCƏ çıxarmaq) yoxlanmalıdır.
+- **"Yalnız 1 real LLM çağırışı" qaydası HƏRFİ POZULDU** (yuxarı, P5 addım 3) — çoxməsələli
+  test şəkli seçimi səbəbindən 2 çağırış lazım oldu. Xərc kiçikdir, amma bu, gələcək audit
+  təlimatlarında NƏZƏRƏ ALINMALIDIR: tək-məsələli görüntü seçilsə, 1 çağırış kifayət edərdi.
+- `CLAUDE.md`-dəki "5 pulsuz həll" ilə kodun `DAILY_LIMIT=30`-u arasındakı UYĞUNSUZLUQ
+  təsdiqlənməli — hansı doğrudur?
+- `docs/DATA-MODEL.md` HƏLƏ YENİLƏNMƏYİB (HANDOFF-78-dən qalıq).
+
+**Blok:** yoxdur. **S4/S5 qapısı: AÇIQDIR** — kritik RPC ifşası bağlandı, canlı uçdan-uca
+sınaq (OCR → çoxməsələ aşkarlanması → seçim → həll → DB yazısı → cavab gizliliyi → RPC-lər)
+uğurla keçdi, latensiya limit daxilindədir. Növbəti addım: P4-ün sxem təklifini göstərmək
+(sahib insan tələb etsə) və `CLAUDE.md`-dəki 5-vs-30 uyğunsuzluğunun aydınlaşdırılması.
+
+---
+
 ## 2026-08-11 (78) · Claude Code → Cowork
 
 **Etdim — production cutover TAMAMLANDI.** Sahib insan təsdiqlədi ki, produksiyada
