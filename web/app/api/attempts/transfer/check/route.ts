@@ -10,6 +10,8 @@ import { studentAnswerMatches } from "@/lib/verify/answer";
 //
 // HANDOFF (71): cavab dəyəri `reveal_answer(q,'verify',null)` ilə oxunur — `ai=null`, çünki bu
 // sorğu MƏNBƏ item-ə deyil, TRANSFER sualının öz açarına aiddir, hələ ona bağlı item yoxdur.
+//
+// HANDOFF (79) / gate-78: `reveal_answer` `app` sxeminə köçüb — bax `attempts/reveal/route.ts`.
 
 type Body = {
   attempt_id?: unknown;
@@ -58,7 +60,7 @@ export async function POST(req: NextRequest) {
   const { item_id: itemId } = itemRows[0];
 
   const { rows: revealRows } = await pool.query<{ reveal_answer: RevealResult }>(
-    `select reveal_answer($1, 'verify', null) as reveal_answer`,
+    `select app.reveal_answer($1, 'verify', null) as reveal_answer`,
     [transferQuestionId]
   );
   const revealed = revealRows[0]?.reveal_answer;

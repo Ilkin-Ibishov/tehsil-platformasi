@@ -363,13 +363,18 @@ export async function POST(req: NextRequest) {
       // bu iki RPC. İkisi də insert-only (`ON CONFLICT DO NOTHING`) — eyni `question_id`-yə
       // ikinci çağırış səssiz no-op-dır (bu budaq elə YENİ `questionId` üçündür, ona görə
       // praktikada həmişə uğurlu olmalıdır; `false`/`0` qayıtsa DB-daxili tutarsızlıqdır).
-      await client.query(`select store_answer($1, $2::jsonb, 'exact')`, [
+      //
+      // HANDOFF (79) / gate-78: `store_answer`/`store_step_answers` `app` sxeminə köçüb —
+      // `public`-də olanda `anon`/`authenticated` `EXECUTE` ala bilirdi (bax
+      // `attempts/reveal/route.ts`-in şərhi, eyni sinif zəiflik — burada isə YAZI, yəni
+      // istənilən adam bankı özü bildiyi "cavabla" korlaya bilərdi).
+      await client.query(`select app.store_answer($1, $2::jsonb, 'exact')`, [
         questionId,
         JSON.stringify(finalAnswer),
       ]);
       const stepAnswerRows = buildStepAnswerRows(stepsForStorage);
       if (stepAnswerRows.length > 0) {
-        await client.query(`select store_step_answers($1, $2::jsonb)`, [
+        await client.query(`select app.store_step_answers($1, $2::jsonb)`, [
           questionId,
           JSON.stringify(stepAnswerRows),
         ]);
