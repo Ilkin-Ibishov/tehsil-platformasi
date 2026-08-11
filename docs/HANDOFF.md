@@ -15,6 +15,122 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-11 (80) · Claude Code → Cowork
+
+**Etdim — gate-78-in davamı: 0030-un regresiyası düzəldildi, T1-T6 icra edildi.**
+
+### T1 — regresiya düzəldildi
+
+`public.resolve_translation`-ın `app_runtime` EXECUTE-u `0030`-un blanket `revoke ... from
+public`-i ilə qopmuşdu (funksiya HEÇ VAXT açıq `grant ... to app_runtime` almamışdı, implicit
+PUBLIC-ə söykənirdi). `supabase/migrations/0031_restore_resolve_translation_grant.sql` yazıldı
+və production-a tətbiq edildi. `get_advisors(security)` yenidən işlədildi: dəyişməz — yalnız 3
+INFO (`rls_enabled_no_policy`, `private.*`, gözlənilən), 0 WARN.
+
+**T1b (tam grant matrisi audit)**: `app_runtime`-ın funksiya/sequence/cədvəl/sxem
+icazələri bir-bir yoxlandı (`has_function_privilege`/`has_sequence_privilege`/
+`information_schema.role_table_grants`/`has_schema_privilege`) — **YALNIZ
+`resolve_translation` qırılmışdı.** 13 public cədvəlin hamısında `INSERT,SELECT,UPDATE`
+saxlanılıb, `step_events_id_seq` (yeganə app_runtime-ın toxunduğu sequence) sağlamdır,
+`public`/`app` sxem `USAGE`-i pozulmayıb.
+
+**T1c (kök səbəb)**: repo-da bu nümunənin (implicit privilege-ə söykənən app_runtime obyekti)
+BAŞQA nümunəsi yoxdur — `0018`-in 4 answer-RPC-si HƏMİŞƏ açıq grant alıb (məhz buna görə
+`0030`-dan sağ çıxdılar). Qayda `CLAUDE.md`-ə yazıldı (4 bənd, "Miqrasiya və icazə dərsləri"
+bölməsi).
+
+**DÜZƏLİŞ (təlimatın öz fərziyyəsinə)**: T1-in "bu, S4/S5-də şagird sual ekranını açanda işə
+düşən yoldur" iddiası YOXLANDI VƏ YANLIŞ çıxdı — repo-da `resolve_translation`-ı çağıran BİR
+DƏ API route YOXDUR (`solve`, `steps/check`, `attempts/transfer` hamısı `qt.lang = 'az'`
+hardcode sorğusu işlədir). Funksiya DB-də var, amma tətbiqin heç bir canlı yolunda
+İSTİFADƏ OLUNMUR. Qrant düzəldildi (düzgün addım idi), amma bu spesifik funksiya HEÇ VAXT
+S4/S5-i bloklamırdı.
+
+### T2 — reveal_step_answer canlıda test edildi
+
+Mövcud sualdan (`ebc3ef01-874c-4d57-b7f2-f6360725527a`, `attempt_id=899df3e0-...`) istifadə
+edildi, YENİ LLM çağırışı YOX. `/api/steps/check`-ə YANLIŞ cavab → `{"correct":false}`, DÜZGÜN
+cavab (`"3"`) → `{"correct":true}` — hər iki halda body-də BAŞQA HEÇ NƏ (accept massivi, digər
+addımlar, final cavab) yoxdur. `app.reveal_step_answer` production-da TAM işləyir. Test
+zamanı yaranan 2 `step_events` sətri (`id=7,8`) silindi.
+
+### T3 — açar rotasiyası
+
+Yerli fayl (`vercel env pull` nəticəsi) artıq silinib idi. Əlavə yoxlamalar:
+- `git log --all -p` bütün tarixçə üzrə `GEMINI_API_KEY=`/`AIza...` pattern-i üçün skan edildi —
+  SIFIR nəticə, açar HEÇ VAXT commit olunmayıb.
+- Bash-alətinin komandaları interaktiv shell history-yə yazılmır (bu sessiyada işlədilən
+  alət növü) — təmizlənəcək fayl YOXDUR.
+- **`.gitignore`-da HƏQİQİ BOŞLUQ tapıldı**: yalnız `.env`/`.env.local` literal adları var idi,
+  `.env*` wildcard-ı YOX idi — `.env.production`/`.env.staging` kimi fayllar gələcəkdə TƏSADÜFƏN
+  commit oluna bilərdi. `.env*` + `!**/.env.example` (iki mövcud nümunə faylını saxlamaq üçün)
+  ilə düzəldildi, `git check-ignore` ilə təsdiqləndi.
+- **Açarın ÖZÜ ROTASİYA EDİLMƏYİB** — bu, Google AI Studio hesabına giriş tələb edir, mən edə
+  bilmərəm. Sahib insana AÇIQ tapşırıq: özü rotasiya etsin, sonra ÖZ terminalından
+  (mənim vasitəçiliyim OLMADAN, dəyər söhbətə düşməsin deyə) `vercel env rm GEMINI_API_KEY
+  production` + `vercel env add GEMINI_API_KEY production` işlətsin.
+
+### T4 — staging LLM açarı
+
+Google AI Studio-da yeni açar yaratmaq sahib insanın hesabına giriş tələb edir — mən edə
+bilmərəm. Tövsiyə: aşağı kvota limitli ayrıca açar yaradılsın, `vercel env add
+GEMINI_API_KEY preview` ilə (EYNİ dəyişən adı, Vercel-in mühit-üzrə dəyər ayırması sayəsində
+kod dəyişikliyi lazım deyil) əlavə edilsin.
+
+### T5 — xərc ölçüsü (qərar YOXDUR, yalnız ölçü)
+
+a) **1 solve = 1 LLM çağırışı** (kod: `for (let call = 1; call <= 2; call++)` — 2-ci cəhd
+   YALNIZ sxem-etibarsız çıxışda baş verir, dizayn NİYYƏTİ deyil). Çoxməsələli şəkil ÜÇÜN
+   şagird axını 2 AYRI `/api/solve` sorğusu tələb edir (aşkarlama + seçilmiş-etiketlə həll)
+   = 2 real LLM çağırışı YALNIZ BİR sualı həll etmək üçün.
+b) Ölçülmüş (2-ci, tam həll çağırışı): `tokens_in=8111, tokens_out=934`. 1-ci (aşkarlama)
+   çağırışının dəqiq token sayı YOXDUR — kod bu yolda `meta`/cost heç yerdə YAZMIR (aşağı bax).
+c) Ölçülmüş faktiki dəyər (1 çatdırılmış həll): **$0.0191715**. Aşkarlama-yalnız çağırışların da
+   real dəyəri var, amma TAM İZLƏNMİR (aşağı bax).
+d) `DAILY_LIMIT=30` × 30 gün × $0.0191715 ≈ **$17.25/ay** — YALNIZ çatdırılmış həllər üçün.
+   Faktiki maksimum bundan YUXARI ola bilər (aşağıdakı d/e tapıntısına görə).
+e) **Sayğac NƏYİ sayır**: `attempt_items.delivered=true` sətirlərini — yəni **çatdırılmış,
+   TƏK-məsələ HƏLL EDİLMİŞ** sayı. NƏ şəkil sayı, NƏ LLM çağırış sayı. Bir şəkil 3 məsələ ola
+   bilər (mənim test şəklim kimi) — student 1 şəkil göndərib, aşkarlama edib, 1 məsələ seçib
+   həll etdirsə, sayğac YALNIZ 1 artır (2 LLM çağırışına baxmayaraq).
+f) **KRİTİK TAPINTI (T5-in özündən, gözlənilməyən)**: sayğac VƏ qlobal xərc tavanı (§2b,
+   `DAILY_COST_CEILING_USD`) İKİSİ DƏ `attempt_items` cədvəlinə (`delivered=true`/`cost_usd`)
+   söykənir — bu sətir YALNIZ `status:"ok"` (tam uğurlu, tək-məsələ) yolunda yazılır
+   (`web/app/api/solve/route.ts:384-394`). `status:"multiple_problems"` (və `"unreadable"`)
+   ilə bitən İSTƏNİLƏN çağırış real LLM xərci yaradır, AMMA HEÇ BİR cədvələ YAZILMIR — nə
+   sayğaca, nə xərc tavanına düşür. Yəni: **çoxməsələli/aşkarlama-yalnız şəkilləri təkrar-təkrar
+   göndərməklə (heç vaxt `selected_label` seçmədən) həm gündəlik-say limitini, HƏM QLOBAL XƏRC
+   TAVANINI eyni anda, tam sərbəst keçmək mümkündür** — bu, real, ölçülməmiş pul itkisi yaradan
+   struktur boşluqdur. Kvota qərarı verilərkən (P4) bu NƏZƏRƏ ALINMALIDIR.
+   (Əlavə, əvvəldən sənədləşdirilmiş, YENİ OLMAYAN risk: `device_id` client-supplied olduğu
+   üçün sıfırlana bilər — bu, `web/app/api/solve/route.ts:107-110`-da ARTIQ qeyd edilib,
+   T1/T5 auditi bunu YENİDƏN tapmadı, sadəcə təsdiqlədi.)
+
+### T6 — CLAUDE.md-ə dərslər yazıldı
+
+4 bənd (expand-contract miqrasiyalar, app_runtime-a açıq grant, blanket-revoke-dan sonra tam
+matris yoxlaması, policy-dən əvvəl kod-yolu təsdiqi) `CLAUDE.md`-in "Miqrasiya və icazə
+dərsləri (gate-78, 2026-08-11)" bölməsinə yazıldı.
+
+### Diqqət
+
+- **T3/T4 tam bağlanmayıb** — açar rotasiyası və staging açarı sahib insanın Google AI Studio
+  girişini tələb edir, mən yerinə yetirə bilmərəm. Bloklayıcı deyil (S4/S5-i saxlamır), amma
+  açıq qalır.
+- **T5(f) yeni struktur boşluq** — kvota/xərc sayğacları YALNIZ tam-uğurlu tək-məsələ
+  yollarını sayır, aşkarlama-yalnız/uğursuz çağırışları YOX. P4-ün sxem qərarı bunu nəzərə
+  almalıdır (sxem HƏLƏ YAZILMAYIB, təlimata görə).
+- `CLAUDE.md`-dəki "5 pulsuz həll" ilə kodun `DAILY_LIMIT=30`-u arasındakı uyğunsuzluq
+  HƏLƏ aydınlaşdırılmayıb.
+
+**Blok:** T3 (açar rotasiyası) və T4 (staging açarı) sahib insanın əlində — mən edə bilmərəm.
+**S4/S5 qapısı: AÇIQDIR** (dəyişməyib) — T1 regresiyası bağlandı, `get_advisors` 0 WARN,
+`reveal_step_answer` canlıda təsdiqləndi. T5(f)-in tapdığı xərc-izləmə boşluğu S4/S5-i
+BLOKLAMIR (kiçik miqyaslı pilot üçün maliyyə riski aşağıdır), amma böyümədən əvvəl
+düzəldilməlidir.
+
+---
+
 ## 2026-08-11 (79) · Claude Code → Cowork
 
 **Etdim — gate-78 təhlükəsizlik auditi TAMAMLANDI.** P1-dən P5-ə qədər ardıcıl, "S4/S5
