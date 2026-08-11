@@ -123,15 +123,22 @@ export async function POST(req: NextRequest) {
   }
   const studentRef = inviteCode;
 
-  // 1b) Dəvət açılışı (HANDOFF 81, S4/S5) — kodun bu cihazda İLK dəfə görüldüyünü qeyd edir.
-  // `ON CONFLICT (code) DO NOTHING`: brauzer datası silinən şagird eyni kodu YENİDƏN
-  // göndərsə RƏDD EDİLMİR — yalnız `device_id` yenilənmir, sərt 1-cihaz kilidi YOXDUR
-  // (bax `0032`-nin şərhi). `invite_redeemed` YALNIZ həqiqi ilk sətirdə atılır.
+  // 1b) Dəvət açılışı (HANDOFF 81/82, S4/S5) — kodun bu (kod, cihaz) cütündə İLK dəfə
+  // görüldüyünü qeyd edir. PK `(code, device_id)`-dir (0033) — `ON CONFLICT (code,
+  // device_id) DO NOTHING`: EYNİ kodun EYNİ cihazdan TƏKRAR göndərilməsi no-op-dur, amma
+  // FƏRQLİ cihaz (brauzer datası silinib/yeni telefon) HƏR ZAMAN öz sətrini alır — 0032-nin
+  // tək-`code` PK-sı bunu udurdu, D1 retensiyasını yalan edirdi (0033-ün şərhi).
+  // `invite_redeemed` YALNIZ həqiqi ilk sətirdə atılır.
+  //
+  // Bura sükutla uduldan xəta İMKANSIZ olmalıdır: insert uğursuz olsa (məs. `app_runtime`
+  // grant-ı yenidən qırılsa, gate-78/T1 kimi), dəvət datası boş qalar və bu YALNIZ kohort
+  // bitəndən sonra görünərdi. `console.error`-dan ƏLAVƏ `events`-ə `invite_redemption_failed`
+  // yazılır ki, real-vaxt siqnal olsun — özü də uğursuz olsa belə axını BLOKLAMIR.
   try {
     const { rows: redemptionRows } = await pool.query<{ inserted: boolean }>(
       `insert into invite_redemptions (code, device_id)
        values ($1, $2)
-       on conflict (code) do nothing
+       on conflict (code, device_id) do nothing
        returning true as inserted`,
       [inviteCode, deviceId]
     );
@@ -145,8 +152,21 @@ export async function POST(req: NextRequest) {
         .catch((err) => console.error("[/api/solve] invite_redeemed telemetriya xətası:", err));
     }
   } catch (err) {
-    // Qeydiyyat yalnız ölçmədir — yazı uğursuz olsa da şagird həll almalıdır.
+    // Qeydiyyat yalnız ölçmədir — yazı uğursuz olsa da şagird həll almalıdır, amma
+    // SƏSSİZ deyil: events-ə siqnal, o da uğursuz olsa console.error-a düşür.
     console.error("[/api/solve] invite_redemptions yazı xətası:", err);
+    await pool
+      .query(
+        `insert into events (event_id, device_id, attempt_id, name, props)
+         values ($1,$2,$3,'invite_redemption_failed',$4)`,
+        [
+          randomUUID(),
+          deviceId,
+          null,
+          JSON.stringify({ code: inviteCode, error: err instanceof Error ? err.message : String(err) }),
+        ]
+      )
+      .catch((eventErr) => console.error("[/api/solve] invite_redemption_failed telemetriya xətası:", eventErr));
   }
 
   // 2) Gündəlik limit — YALNIZ çatdırılmış (delivered=true) həllər sayılır (S5 invariantı).

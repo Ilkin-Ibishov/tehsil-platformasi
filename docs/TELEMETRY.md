@@ -70,10 +70,14 @@ Düşənlər: `problem_id`, `topic_code`, `error_code`, ölçülər, müddətlə
 ```
 app.opened              props: {cold_start: bool, locale, grade, tone}
 app.backgrounded        props: {session_duration_sec}
-invite_redeemed         props: {code}                          ← HANDOFF (81): dəvət kodu bu cihazda
-                                                                  İLK dəfə görüldü (server yazır,
+invite_redeemed         props: {code}                          ← HANDOFF (81): dəvət kodu bu (kod, cihaz)
+                                                                  cütündə İLK dəfə görüldü (server yazır,
                                                                   `invite_redemptions` cədvəli, yalnız
-                                                                  ilk sətirdə atılır — təkrar açılışlarda YOX)
+                                                                  ilk sətirdə atılır — eyni cihazdan təkrar
+                                                                  açılışda YOX, fərqli cihazdan HƏR ZAMAN)
+invite_redemption_failed props: {code, error}                  ← HANDOFF (82): `invite_redemptions`-a yazı
+                                                                  uğursuz oldu (siqnal — axını bloklamır,
+                                                                  sükutla itməsin deyə)
 ```
 
 `S1` hesablanması: `device_id` üzrə fərqli günlərin sayı (`app.opened`). Retensiya (DAU/D1)
