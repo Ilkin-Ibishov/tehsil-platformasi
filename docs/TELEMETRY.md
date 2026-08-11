@@ -70,9 +70,16 @@ Düşənlər: `problem_id`, `topic_code`, `error_code`, ölçülər, müddətlə
 ```
 app.opened              props: {cold_start: bool, locale, grade, tone}
 app.backgrounded        props: {session_duration_sec}
+invite_redeemed         props: {code}                          ← HANDOFF (81): dəvət kodu bu cihazda
+                                                                  İLK dəfə görüldü (server yazır,
+                                                                  `invite_redemptions` cədvəli, yalnız
+                                                                  ilk sətirdə atılır — təkrar açılışlarda YOX)
 ```
 
-`S1` hesablanması: `device_id` üzrə fərqli günlərin sayı (`app.opened`).
+`S1` hesablanması: `device_id` üzrə fərqli günlərin sayı (`app.opened`). Retensiya (DAU/D1)
+`attempts.student_ref` (= dəvət kodu) üzrə hesablanır, `device_id` YOX (ADR-012) — `device_id`
+itsə/sıfırlansa bu ölçü qırılmır, yalnız `invite_redeemed`-in özü (diaqnostik, "hansı cihazdan
+ilk açıldı") köhnəlmiş qalır.
 
 ### Həll axını funnel-i → S2, S3, S7
 

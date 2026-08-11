@@ -123,6 +123,32 @@ export async function POST(req: NextRequest) {
   }
   const studentRef = inviteCode;
 
+  // 1b) Dəvət açılışı (HANDOFF 81, S4/S5) — kodun bu cihazda İLK dəfə görüldüyünü qeyd edir.
+  // `ON CONFLICT (code) DO NOTHING`: brauzer datası silinən şagird eyni kodu YENİDƏN
+  // göndərsə RƏDD EDİLMİR — yalnız `device_id` yenilənmir, sərt 1-cihaz kilidi YOXDUR
+  // (bax `0032`-nin şərhi). `invite_redeemed` YALNIZ həqiqi ilk sətirdə atılır.
+  try {
+    const { rows: redemptionRows } = await pool.query<{ inserted: boolean }>(
+      `insert into invite_redemptions (code, device_id)
+       values ($1, $2)
+       on conflict (code) do nothing
+       returning true as inserted`,
+      [inviteCode, deviceId]
+    );
+    if (redemptionRows.length > 0) {
+      await pool
+        .query(
+          `insert into events (event_id, device_id, attempt_id, name, props)
+           values ($1,$2,$3,'invite_redeemed',$4)`,
+          [randomUUID(), deviceId, null, JSON.stringify({ code: inviteCode })]
+        )
+        .catch((err) => console.error("[/api/solve] invite_redeemed telemetriya xətası:", err));
+    }
+  } catch (err) {
+    // Qeydiyyat yalnız ölçmədir — yazı uğursuz olsa da şagird həll almalıdır.
+    console.error("[/api/solve] invite_redemptions yazı xətası:", err);
+  }
+
   // 2) Gündəlik limit — YALNIZ çatdırılmış (delivered=true) həllər sayılır (S5 invariantı).
   // `delivered`/`created_at` indi `attempt_items`-dədir (ADR-018 §3a), `device_id` sessiya
   // cədvəlində (`attempts`) qalır — JOIN lazımdır.
