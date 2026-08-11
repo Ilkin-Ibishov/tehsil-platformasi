@@ -1,0 +1,24 @@
+-- gate-78 T1 — 0030-un blanket revoke-unun buraxdığı regresiya (HANDOFF 80).
+--
+-- `public.resolve_translation` (0016) HEÇ VAXT `app_runtime`-a açıq `grant execute`
+-- ALMAMIŞDI — Supabase-in `public` sxemi üçün implicit/default `EXECUTE` grant-ına
+-- söykənirdi (bax: `0018`-dəki 4 answer-RPC-nin əksinə, onlar 0018 §151-152-də AÇIQ
+-- grant alıb, ona görə 0030-un revoke+re-grant ardıcıllığından SAĞ ÇIXDI).
+--
+-- 0030 (`alter default privileges ... revoke execute on functions from anon,
+-- authenticated` + `revoke execute on function public.resolve_translation(...)
+-- from anon, authenticated, public`) `PUBLIC` psevdo-rolundan da EXECUTE-u geri
+-- çəkdi — `app_runtime` məhz bu PUBLIC-ə söykənən implicit yolla işləyirdi, ona görə
+-- öz EXECUTE-unu da itirdi. `anon`/`authenticated` üçün DÜZGÜN idi, `app_runtime`
+-- üçün YANLIŞLIQLA kollateral zərər oldu.
+--
+-- Kod-yolu: `resolve_translation` sualın az/ru/en/tr fallback zəncirini oxuyur —
+-- S4/S5-də şagird sual ekranını açanda işə düşən yoldadır (P5-in solve/tərcümə-YAZMA
+-- testi bunu tuta bilməzdi, YALNIZ oxuma yolunda sınanır).
+--
+-- Repo-da bu nümunənin (implicit/default privilege-ə söykənən app_runtime obyekti)
+-- BAŞQA nümunəsi TAPILMADI: `0016`-dan bəri yaradılan yeganə digər funksiyalar
+-- `0018`-in 4 answer-RPC-si idi, onlar HƏMİŞƏ açıq grant alıb. Qayda CLAUDE.md-ə
+-- yazılıb: app_runtime-ın istifadə etdiyi HƏR obyekt üçün grant AÇIQ olmalıdır.
+
+grant execute on function public.resolve_translation(uuid, text) to app_runtime;

@@ -17,6 +17,28 @@ Fərq: rəqiblər (Photomath, Gauth) **cavab** verir. Biz **harada ilişdiyini**
 Məhsulun bütün dəyəri `error_code` taksonomiyasına bağlıdır. Əgər bir dəyişiklik səhvin
 adlandırılmasını zəiflədirsə — o dəyişiklik səhvdir, nə qədər "təmiz kod" olsa da.
 
+## Miqrasiya və icazə dərsləri (gate-78, 2026-08-11)
+
+Production təhlükəsizlik auditindən (HANDOFF 79/80) çıxan, təkrarlanmaması üçün qeyd edilən qaydalar:
+
+1. **Sxem-köçürən miqrasiyalar expand-contract tələb edir.** "Əvvəl miqrasiya, sonra merge" yalnız
+   ADDITIVE miqrasiyalar üçün təhlükəsizdir. Bir obyekti (funksiya, sütun) başqa yerə köçürən/adını
+   dəyişən miqrasiya DB-ni tətbiq etdiyi andan köhnə deploy edilmiş kodu SINDIRIR. Düzgün ardıcıllıq:
+   yeni yerdə yarat → köhnəni keçid dövrü üçün saxla (shim) → kodu merge/deploy et → YALNIZ SONRA
+   köhnəni sil.
+2. **`app_runtime` üçün heç vaxt implicit/default privilege-ə güvənmə.** Hər obyekt (funksiya, cədvəl,
+   sequence) üçün `grant ... to app_runtime` AÇIQ yazılmalıdır. Implicit PUBLIC-ə söykənən istənilən
+   obyekt gələcək bir `revoke ... from public`-də (məs. `anon`/`authenticated` təmizliyi zamanı)
+   kollateral zərər çəkəcək.
+3. **Blanket REVOKE-dan sonra bütün `app_runtime` GRANT matrisini (funksiya EXECUTE, sequence
+   USAGE/SELECT, cədvəl CRUD, sxem USAGE) yenidən yoxla.** Supabase-in `get_advisors` lint-ləri
+   YALNIZ "çox açıq"-ı görür ("anon icazəsi var") — "çox bağlı"-nı ("app_runtime icazəsini itirdi")
+   GÖRMÜR. Advisors 0 WARN göstərməsi kifayət DEYİL.
+4. **Policy/grant əlavə etməzdən əvvəl həmin obyektin kod yolunda HƏQİQƏTƏN istifadə olunduğunu
+   yoxla.** Cədvəl/funksiya adına baxıb təsir çıxarmaq səhvdir — məs. `resolve_translation` (0016)
+   DB-də mövcuddur, amma HEÇ bir cari API route onu çağırmır (hamısı `qt.lang = 'az'` hardcode
+   sorğusu işlədir); onun ACL-i qırılsa da canlı S4/S5 yolu pozulmazdı.
+
 ## Fayl sahibliyi — tək mənbə qaydası
 
 | Data | Tək mənbə | Yazan |
