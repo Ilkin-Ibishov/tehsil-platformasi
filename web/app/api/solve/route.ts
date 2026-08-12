@@ -226,44 +226,70 @@ export async function POST(req: NextRequest) {
     userPrompt += `\n\nYalnız "${selectedLabel}" etiketli/nömrəli məsələni həll et, kadrdakı digərlərini görməzdən gəl.`;
   }
 
-  const imageBase64 = Buffer.from(await image.arrayBuffer()).toString("base64");
+  const imageBytes = Buffer.from(await image.arrayBuffer());
+  const imageHash = createHash("sha256").update(imageBytes).digest("hex");
+  const imageBase64 = imageBytes.toString("base64");
   const imageMime = image.type || "image/jpeg";
+  // Eyni foto (byte-byte) selected_label-a görə FƏRQLİ nəticə verə bilər (çoxməsələli
+  // kadrda aşkarlama-yalnız vs. seçilmiş məsələnin həlli) — keş açarı hər ikisini əhatə edir.
+  const cacheKey = typeof selectedLabel === "string" && selectedLabel ? selectedLabel : "";
 
   let parsed: StepSchemaOutput | null = null;
   let usage = null;
   let latencyMs = 0;
   let attempts = 0;
+  let cacheHit = false;
+  let timedOut = false;
 
-  const timeoutController = new AbortController();
-  const timeoutId = setTimeout(() => timeoutController.abort(), LLM_TIMEOUT_MS);
-  try {
-    for (let call = 1; call <= 2; call++) {
-      if (timeoutController.signal.aborted) break;
-      let result;
-      try {
-        result = await callVisionLLM({ systemPrompt: system, userPrompt, imageBase64, imageMime, signal: timeoutController.signal });
-      } catch (err) {
+  // Şəkil-hash keşi (HANDOFF 81, ClickUp): eyni şəkil TƏKRAR gəlsə (şəbəkə xətasından sonra
+  // retry, ikiqat toxunma) real LLM çağırışı ATLANIR. Keş `private` sxemində, YALNIZ bu 2
+  // RPC ilə əlçatandır (bax `0045`-in şərhi) — cavab burada saxlanır, adi `SELECT`-lə YOX.
+  const { rows: cacheRows } = await pool.query<{ reveal_cached_solve: StepSchemaOutput | null }>(
+    `select app.reveal_cached_solve($1, $2) as reveal_cached_solve`,
+    [imageHash, cacheKey]
+  );
+  if (cacheRows[0]?.reveal_cached_solve) {
+    parsed = cacheRows[0].reveal_cached_solve;
+    cacheHit = true;
+  } else {
+    const timeoutController = new AbortController();
+    const timeoutId = setTimeout(() => timeoutController.abort(), LLM_TIMEOUT_MS);
+    try {
+      for (let call = 1; call <= 2; call++) {
         if (timeoutController.signal.aborted) break;
-        console.error(`[/api/solve] LLM çağırışı xətası (cəhd ${call}):`, err);
-        continue;
-      }
-      usage = result.usage;
-      latencyMs = result.latencyMs;
-      attempts = result.attempts;
+        let result;
+        try {
+          result = await callVisionLLM({ systemPrompt: system, userPrompt, imageBase64, imageMime, signal: timeoutController.signal });
+        } catch (err) {
+          if (timeoutController.signal.aborted) break;
+          console.error(`[/api/solve] LLM çağırışı xətası (cəhd ${call}):`, err);
+          continue;
+        }
+        usage = result.usage;
+        latencyMs = result.latencyMs;
+        attempts = result.attempts;
 
-      const check = validateStep(result.parsed);
-      if (check.valid) {
-        parsed = result.parsed as StepSchemaOutput;
-        break;
+        const check = validateStep(result.parsed);
+        if (check.valid) {
+          parsed = result.parsed as StepSchemaOutput;
+          break;
+        }
+        console.error(`[/api/solve] sxem etibarsız (cəhd ${call}):`, check.errors, "xam çıxış:", result.rawText);
       }
-      console.error(`[/api/solve] sxem etibarsız (cəhd ${call}):`, check.errors, "xam çıxış:", result.rawText);
+    } finally {
+      clearTimeout(timeoutId);
     }
-  } finally {
-    clearTimeout(timeoutId);
+    timedOut = timeoutController.signal.aborted;
+
+    if (parsed) {
+      await pool
+        .query(`select app.store_cached_solve($1, $2, $3::jsonb)`, [imageHash, cacheKey, JSON.stringify(parsed)])
+        .catch((err) => console.error("[/api/solve] image_hash_cache yazı xətası:", err));
+    }
   }
 
   if (!parsed) {
-    if (timeoutController.signal.aborted) {
+    if (timedOut) {
       await pool
         .query(
           `insert into events (event_id, device_id, attempt_id, name, props)
@@ -284,7 +310,7 @@ export async function POST(req: NextRequest) {
 
   // status != "ok" → imtina/seçim, yoxlama və DB yazısı yoxdur (PHASE-1: yalnız çatdırılmış həll DB-yə düşür).
   if (parsed.status && parsed.status !== "ok") {
-    return NextResponse.json({ ...parsed, attempt_id: null, match_path: "llm" }, { status: 200 });
+    return NextResponse.json({ ...parsed, attempt_id: null, match_path: cacheHit ? "image_cache" : "llm" }, { status: 200 });
   }
 
   const finalAnswer = parsed.final_answer;
@@ -468,7 +494,7 @@ export async function POST(req: NextRequest) {
       ...parsedWithoutAnswers,
       steps: clientSteps,
       attempt_id: sessionId,
-      match_path: "llm",
+      match_path: cacheHit ? "image_cache" : "llm",
       verification: { verified: true, method: verificationMethod, verified_at: new Date().toISOString() },
       meta: {
         latency_ms: Math.round(latencyMs),
