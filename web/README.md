@@ -11,6 +11,10 @@ docker run --name th-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=tehsi
 # 2) miqrasiyalar (portativ SQL, Supabase-ə xas heç nə yoxdur)
 docker exec -i th-postgres psql -U postgres -d tehsil < ../supabase/migrations/0001_events.sql
 docker exec -i th-postgres psql -U postgres -d tehsil < ../supabase/migrations/0002_problems_solutions_attempts.sql
+# YALNIZ S1a (app.opened + events) üçün kifayətdir. S3-ün gözlədiyi CARİ sxem
+# (questions/question_translations/attempt_items, aşağıda) üçün supabase/migrations/-dəki
+# QALAN fayllar da sırayla tətbiq olunmalıdır — bir neçəsi (məs. 0018) `psql -v` ilə
+# dəyişən keçirilməsini tələb edir, bu README hələ tam yenilənməyib (ayrıca iş).
 
 # 3) env
 cp .env.example .env.local   # DATABASE_URL defolt dəyəri yuxarıdakı konteynerə uyğundur
@@ -60,8 +64,10 @@ cp .env.example .env.local
 
 Axın: dəvət kodu (yalnız bir dəfə, `localStorage`-da saxlanılır) → kamera → kəsmə →
 `/api/solve` (Gemini, `prompts/solve/core.md`+`math.md` fayldan oxunur — eval harness ilə TƏK MƏNBƏ) →
-sxem yoxlanışı (1 retry) → ədədi yoxlama (`lib/verify/`, `ADR-012`) → `problems`/`solutions`/
-`attempts`-a yazı. `verified===false` (QƏTİ ZİDDİYYƏT) olarsa → `status: "unreadable"`.
+sxem yoxlanışı (1 retry) → ədədi yoxlama (`lib/verify/`, `ADR-012`) → `questions`/
+`question_translations`/`private.question_answers`/`attempt_items`-ə yazı (ADR-018/019 —
+köhnə `problems`/`solutions`/`attempts` adları artıq YAZILMIR, `solutions` cədvəli DB-də
+qalır amma tərk edilib, heç bir kod ona toxunmur). `verified===false` (QƏTİ ZİDDİYYƏT) olarsa → `status: "unreadable"`.
 `verified===null` (yoxlanıla bilmədi — söz/parametr/ehtimal məsələləri, `ADR-012` Qərar 4)
 olarsa həll YENƏ DƏ çatdırılır, `verification.method="none"` ilə.
 
@@ -85,7 +91,7 @@ app/
   page.tsx           Ana ekran (S1) — app.opened atəşləyir
   kamera/page.tsx    S2/S3: dəvət kodu → çəkiliş → kəsmə → /api/solve axını
   api/events/         POST — telemetriya upsert (event_id üzrə, həmişə 200)
-  api/solve/           POST — S3: Gemini + sxem/ədədi yoxlama + problems/solutions/attempts yazısı
+  api/solve/           POST — S3: Gemini + sxem/ədədi yoxlama + questions/question_translations/attempt_items yazısı
 components/kamera/    CaptureView, CropView, InviteGate (dəvət kodu, ADR-012)
 lib/
   db.ts               pg Pool, DATABASE_URL-dən (S1a lokal, S1b Supabase — kod dəyişmir)
