@@ -15,6 +15,60 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-12 (82) · Claude Code → Cowork
+
+**Etdim — ClickUp-dakı kod-yönümlü tapşırıqların qalanı (sahib insanın "eyni sıra ilə
+davam et" seçimi ilə).**
+
+1. **`web/README.md`** — `solutions` vs `question_translations.steps` araşdırması: `solutions`
+   TAM tərk edilib (heç bir kod ona toxunmur, yalnız şərh/README qalığı) — cədvəlin özü
+   ADR-018 §6-ya görə saxlanılır, dəyişmədim. README-nin köhnə sxem təsvirini düzəltdim.
+2. **`web/lib/image.ts`** — qri-şkala çevirmə əlavə edildi, **defolt SÖNÜKDÜR** (qəsdən —
+   ADR-001-in 9/10 dəqiqliyi RƏNGLİ pipeline ilə ölçülüb, qri-şkalanın DİM şəkillərində
+   rəngli mürəkkəb/vurğu siqnallarını itirmə riski var, `golden-set` üzərində A/B TƏSDİQLƏNMƏDƏN
+   default açılmamalıdır).
+3. **Şəkil-hash keşi** (`0045`, production-a tətbiq edilib) — `/api/solve` `match_path`
+   HƏMİŞƏ `"llm"` idi, heç bir keş-hit yolu yox idi. İndi eyni foto (byte-byte) TƏKRAR
+   gəlsə real LLM çağırışı ATLANIR. **Təhlükəsizlik qeydi**: keşlənən LLM çıxışı cavabın
+   ÖZÜNÜ daşıyır — sadə `public` cədvəldə saxlansaydı, `app_runtime`-ın adi `SELECT`-lə
+   bunu oxuya bilməsi gate-78-in bütün RPC-təcridini keçərdi. Ona görə keş `private`
+   sxemindədir, YALNIZ 2 yeni RPC (`app.reveal_cached_solve`/`app.store_cached_solve`) ilə
+   əlçatandır — eyni naxış `reveal_answer`/`store_answer`. Canlıda TAM yoxlanıldı: real
+   şəklin hash-i ilə saxta keş sətri yazılıb (`app.store_cached_solve`), sonra HƏMİN
+   şəkil göndərilib — `match_path:"image_cache"` qayıtdı, SIFIR LLM xərci. Test sətri
+   silindi.
+4. **Klient xətalarının görünürlüyü** — `window.error`/`unhandledrejection` mövcud
+   `events` boru xəttinə (üçüncü tərəf aləti YOX) bağlandı (`client.error`/
+   `client.unhandled_rejection`, `docs/TELEMETRY.md`).
+
+**Artıq həll edilmiş çıxan tapşırıqlar** (kod baxışında təsdiqləndi, ClickUp-da
+BAĞLANMADI — rate-limit hələ açılmayıb):
+- `Gündəlik 5 həll limiti` — kodda `DAILY_LIMIT=30` var (əvvəlki HANDOFF-79).
+- `/api/solve uçdan-uca production yoxlaması` — gate-78 P5-də edilib.
+- `final_answer yoxlaması golden-set-i istifadə etmir` — `report.py`/`verify.py`-da ARTIQ
+  düzgün (`item.get("final_answer_values")`), `27/27` selftest keçdi.
+- `canonical boşdur — dedup işləmir` — YARIM DOĞRU: `canonical` (mətn) 9 köhnə sualda
+  qəsdən boşdur (`0009`, hüquqi səbəb), AMMA `canonical_hash` (əsl dedup açarı) 226
+  sualın HAMISINDA doludur — `questions_dedup_idx` FAKTİKİ İŞLƏYİR.
+
+**Toxunulmadı** (məzmun/qərar tələb edir, kod bugı deyil):
+- `standards taksonomiyası boşdur` — 0 sətir, DOĞRU tapıntı, AMMA heç bir kod ona
+  toxunmur (hesabat/adaptiv məşq hələ YAZILMAYIB) — həqiqi Azərbaycan kurikulum
+  kodları lazımdır, mən uydura bilmərəm.
+
+### Diqqət
+
+- ClickUp API rate-limit-i hələ açılmayıb (HANDOFF-81-də qeyd edilmiş 5 saat) — yuxarıdakı
+  4 "artıq həll" tapşırığı və bu sessiyanın öz tapşırıqları (migrasiya sinxronu, RPC
+  dublikatı, S4/S5) ClickUp-da BAĞLANMALIDIR limit açılanda.
+- Qalan tapşırıqlar (dizayn: kəsmə/seçim ekranı, kaskad interfeys, transkripsiya təsdiqi;
+  fiziki: 30 DİM səhifə, Capacitor test; qərar: scraping lisenziyası, mətn-idxal həcmi)
+  BU SESSİYADA TOXUNULMADI — kod-yönümlü siyahı tükənib.
+
+**Blok:** yoxdur. Push: `f28f50b` (main, birbaşa, PR-sız — tapşırığın öz təlimatına görə).
+
+---
+
 ## 2026-08-12 (81) · Claude Code → Cowork
 
 **Etdim — ClickUp-dakı 29 tapşırıqdan kod-yönümlü olanlarla başladım (sahib insanın seçimi).**
