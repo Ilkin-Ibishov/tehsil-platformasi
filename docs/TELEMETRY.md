@@ -200,6 +200,18 @@ cost.ceiling_hit                props: {daily_cost_usd, ceiling_usd}  ← SYSTEM
 sayğacını artırmamalıdır (`ADR-007`). Bu, telemetriya ilə **yoxlanmalıdır**, kod
 rəyinə güvənilməməlidir.
 
+### Klient xətalarının görünürlüyü (HANDOFF 81) — üçüncü tərəf aləti (Sentry və s.) OLMADAN
+
+```
+client.error                   props: {message, filename, lineno, colno, stack}
+client.unhandled_rejection     props: {message, stack}
+```
+
+`window.addEventListener('error'/'unhandledrejection')` — `lib/telemetry/index.ts →
+initTelemetry()`. `message`/`stack` 500/2000 simvola KƏSİLİR (növbəyə gözlənilməz həcm
+düşməsin). Bunlar JS runtime xətalarıdır — şəkil/həll/cavab MƏZMUNU BURAYA HEÇ VAXT
+gəlmir.
+
 ---
 
 ## Faza 1-də hazır olmalı üç sorğu

@@ -114,5 +114,26 @@ export function initTelemetry(): void {
     if (document.visibilityState === "hidden") void flush();
   });
 
+  // ClickUp: klient xətalarının görünürlüyü, üçüncü tərəf aləti (Sentry və s.) OLMADAN —
+  // artıq mövcud `events` boru xətti ilə. Mesaj/stack KƏSİLİR (500/2000 simvol) ki, növbəyə
+  // gözlənilməz həcmdə data düşməsin; PII/cavab məzmunu bura HEÇ VAXT gəlmir (JS runtime
+  // xətaları, şəkil/həll datası deyil).
+  window.addEventListener("error", (event) => {
+    trackEvent("client.error", {
+      message: String(event.message ?? "").slice(0, 500),
+      filename: event.filename || null,
+      lineno: event.lineno || null,
+      colno: event.colno || null,
+      stack: event.error instanceof Error && event.error.stack ? event.error.stack.slice(0, 2000) : null,
+    });
+  });
+  window.addEventListener("unhandledrejection", (event) => {
+    const reason = event.reason;
+    trackEvent("client.unhandled_rejection", {
+      message: (reason instanceof Error ? reason.message : String(reason ?? "")).slice(0, 500),
+      stack: reason instanceof Error && reason.stack ? reason.stack.slice(0, 2000) : null,
+    });
+  });
+
   void flush(); // əvvəlki sessiyadan qalan növbə varsa dərhal cəhd et
 }
