@@ -15,6 +15,43 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-12 (83) · Claude Code → Cowork
+
+**Etdim — "digər edə biləcəyin tapşırıqları da et" sorğusu üzrə daha 2 tapşırıq.**
+
+1. **Distraktor cədvəli — səhv cavab reaksiyası LLM-siz (ClickUp)** — HƏLL EDİLDİ. Real
+   boşluq: `private.step_answers.distractors` (0039/0040) 217 generasiya sualının
+   HAMISINDA doludur, amma `app.reveal_step_answer` bunu jsonb cavabına daxil ETMİRDİ,
+   heç bir kod oxumurdu. `0046` RPC-ni genişləndirdi (grant-lar `CREATE OR REPLACE`-dən
+   toxunulmadı, təsdiqləndi). `resolveStepCheck` (`web/lib/verify/step-check.ts`) indi
+   səhv cavabı distraktorlarla müqayisə edir — uyğunluq taparsa LLM çağırmadan konkret
+   `error_code`+`message` qaytarır (`step_events`-ə də bu daha dəqiq `error_code` yazılır).
+   4 yeni selftest (`19/19` keçir). Canlıda TAM yoxlanıldı: real generasiya sualı üçün
+   test `attempt`/`attempt_item` yaradıldı, `30` (səhv, distraktora uyğun) →
+   `{"correct":false,"distractor":{"error_code":"SIGN_CHOICE","message":"..."}}`, `-30`
+   (doğru) → `{"correct":true}` — hər ikisi gözlənilən nəticəni verdi. Test data silindi.
+2. **Kəsim ekranı telemetriyası — niyə 4.6 tənzimləmə edilir? (ClickUp)** — CAVABLANDI
+   (kod dəyişmədi). Rəqəm köhnəlmişdi (indi orta **3.78**, `n=135`), amma sual özü
+   HƏLƏ DƏ doğrudur. **Kök səbəb**: `web/components/kamera/CropView.tsx:8` —
+   `DEFAULT_BOX = {x:0.1, y:0.28, w:0.8, h:0.44}` HƏR ŞAGİRD üçün EYNİ, statik
+   düzbucaqlıdır — şəklin özündən HEÇ NƏ təhlil edilmir. Paylanma: 135 sessiyanın
+   YALNIZ 26%-i (35) 1 tənzimləmə ilə bitib, quyruq 13-ə qədər gedir. Düzəliş (real
+   auto-detect, məs. kənar/kontrast əsaslı) alqoritm seçimi + dəqiqlik testi tələb edən
+   AYRICA layihədir — BURADA tətbiq edilmədi, yalnız araşdırıldı.
+
+### Diqqət
+
+- ClickUp API rate-limit-i BU sessiyada hələ açılmadı — yuxarıdakı 2 tapşırıq da,
+  HANDOFF-81/82-də "artıq həll edilib" qeyd olunanlar da orada BAĞLANMALIDIR limit
+  açılanda.
+- Qalan siyahı (dizayn, fiziki test, lisenziya/məzmun qərarları, kəsmə ekranının real
+  auto-detect-i) bu sessiyada TOXUNULMADI — kod-yönümlü, tək-oturuşda edilə bilən
+  tapşırıqlar indi tükənib.
+
+**Blok:** yoxdur. Push: `22c3850` (main, birbaşa).
+
+---
+
 ## 2026-08-12 (82) · Claude Code → Cowork
 
 **Etdim — ClickUp-dakı kod-yönümlü tapşırıqların qalanı (sahib insanın "eyni sıra ilə
