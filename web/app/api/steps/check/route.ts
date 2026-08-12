@@ -73,7 +73,9 @@ export async function POST(req: NextRequest) {
 
   const { item_id: itemId, question_id: questionId, error_code: errorCode } = rows[0];
 
-  const { rows: answerRows } = await pool.query<{ reveal_step_answer: { accept?: string[]; input_kind?: string } | null }>(
+  const { rows: answerRows } = await pool.query<{
+    reveal_step_answer: { accept?: string[]; input_kind?: string; distractors?: unknown } | null;
+  }>(
     `select app.reveal_step_answer($1, $2, 'verify', $3) as reveal_step_answer`,
     [questionId, stepIndex, itemId]
   );
@@ -84,6 +86,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
   const correct = result.correct;
+  // HANDOFF 83: distraktor tapılıbsa, onun `error_code`-u ÜMUMİ addım error_code-undan DAHA
+  // DƏQİQDİR (şagirdin KONKRET səhvini əks etdirir) — step_events-ə bu yazılır.
+  const effectiveErrorCode = correct ? null : (result.distractor?.error_code ?? errorCode);
 
   try {
     const { rows: countRows } = await pool.query<{ c: number }>(
@@ -94,12 +99,15 @@ export async function POST(req: NextRequest) {
     await pool.query(
       `insert into step_events (attempt_id, step_index, error_code, attempts_count)
        values ($1,$2,$3,$4)`,
-      [attemptId, stepIndex, correct ? null : errorCode, attemptsCount]
+      [attemptId, stepIndex, effectiveErrorCode, attemptsCount]
     );
   } catch (err) {
     // step_events yalnız ölçmədir — yazı uğursuz olsa da şagird cavabı almalıdır.
     console.error("[/api/steps/check] step_events yazı xətası:", err);
   }
 
-  return NextResponse.json({ correct }, { status: 200 });
+  return NextResponse.json(
+    result.distractor ? { correct, distractor: result.distractor } : { correct },
+    { status: 200 }
+  );
 }

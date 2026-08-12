@@ -62,7 +62,47 @@ check(
   { ok: true, correct: false }
 );
 
-const TOTAL = 15;
+// --- resolveStepCheck: distraktor (HANDOFF 83) — LLM-siz diaqnostik mesaj ---
+check(
+  "resolveStepCheck(distraktora uyğun səhv cavab)",
+  resolveStepCheck(
+    {
+      accept: ["3"],
+      distractors: [{ match: ["4"], error_code: "SIGN_CHOICE", message: "İşarəni unutmusan." }],
+    },
+    "4"
+  ),
+  { ok: true, correct: false, distractor: { error_code: "SIGN_CHOICE", message: "İşarəni unutmusan." } }
+);
+check(
+  "resolveStepCheck(distraktor SİYAHISINDA olmayan səhv cavab) — sadə correct:false",
+  resolveStepCheck(
+    {
+      accept: ["3"],
+      distractors: [{ match: ["4"], error_code: "SIGN_CHOICE", message: "İşarəni unutmusan." }],
+    },
+    "99"
+  ),
+  { ok: true, correct: false }
+);
+check(
+  "resolveStepCheck(doğru cavab, distractors mövcuddur) — distraktor yoxlanmır",
+  resolveStepCheck(
+    {
+      accept: ["3"],
+      distractors: [{ match: ["3"], error_code: "SHOULD_NOT_MATCH", message: "..." }],
+    },
+    "3"
+  ),
+  { ok: true, correct: true }
+);
+check(
+  "resolveStepCheck(distractors YOXDUR, LLM-authored sual) — köhnə davranış dəyişmir",
+  resolveStepCheck({ accept: ["3"] }, "4"),
+  { ok: true, correct: false }
+);
+
+const TOTAL = 19;
 if (fails > 0) {
   console.error(`\n${fails}/${TOTAL} uğursuz.`);
   process.exit(1);
