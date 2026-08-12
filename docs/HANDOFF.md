@@ -15,6 +15,59 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-12 (81) · Claude Code → Cowork
+
+**Etdim — ClickUp-dakı 29 tapşırıqdan kod-yönümlü olanlarla başladım (sahib insanın seçimi).**
+
+### 1) S4/S5 dəvət axını (izafi kontekst — əvvəlki sessiyada başlanmışdı)
+
+`invite_redemptions` (0032) PK-sı `(code, device_id)`-ə düzəldildi (0033, artıq tətbiq
+olunmuşdu — repoya sinxronlaşdırıldı), sükutla uduldan insert xətaları indi
+`invite_redemption_failed` hadisəsi kimi görünür (`docs/TELEMETRY.md`). `student_ref`
+kodda TAM doldurulur (4 boş sətir 2026-08-08-dən ƏVVƏLKİ, ADR-012-in per-kod sxemindən
+qabaqkı test data).
+
+### 2) `0034–0038 migrasiyalarını repoya sinxronlaşdır` (ClickUp `86eykhvb6`)
+
+Miqyas gözlənilməzdən BÖYÜK çıxdı: Cowork tapşırıq yazılandan sonra daha 4 miqrasiya da
+tətbiq etmişdi (0039-0042) — hamısı sinxronlaşdırıldı (`0034`-`0042`,
+`supabase_migrations.schema_migrations.statements`-dən hərfi çıxarılıb). "Vyet"/"x^2"
+xəbərdarlığı YOXLANDI: production-da mətn ARTIQ düzgündür (0 sətir səhv, 78-81 sətir
+düzgün "Viyet"/"x²") — bu narahatlıq əsassız çıxdı.
+
+### 3) `Yaddaşdakı RPC-lər DB-də yoxdur` (ClickUp `86eykhvjh`) — HƏLL EDİLDİ
+
+Kök səbəb: bu tapşırığı yaradan `pg_proc` sorğusu YALNIZ `public`/`private` sxemlərini
+yoxlayıb — `app`-ı (gate-78-in, `0030`, RPC-ləri köçürdüyü sxem) ATLAYIB. 4 RPC HEÇ VAXT
+itməmişdi. Audit jurnalı da (`private.answer_access_log`) İŞLƏYİR (4 sətir).
+
+AMMA bu "itib" fərziyyəsi real bir dublikat yaratmışdı: `0041` `store_answer`-i
+YENİDƏN `public`-də yaratmışdı (`app.store_answer`-in tam dublikatı, fərqli parametr
+adları, heç bir kod çağırmır), `0037`-nin `store_generated_steps`-i də birbaşa `public`-də
+yaradılmışdı — hər ikisi `SECURITY DEFINER`, gate-78-in bağladığı DƏQİQ risk sinfini
+TƏKRAR açırdı (`anon`/`authenticated` EXECUTE-u `0030`-un defolt-privileges qaydası
+sayəsində YOXDU — AKTİV zəiflik olmadı, amma struktur təkrarı idi).
+
+**Düzəliş (0043, production-a tətbiq edildi)**: `public.store_answer` SİLİNDİ,
+`store_generated_steps` `app`-a köçürüldü. `get_advisors` yenidən işlədildi — 3 YENİ WARN
+üzə çıxdı (`private.acc_num`/`mk_distr`/`distr`, `0038`/`0039`-dan, açıq `search_path`
+yox idi — `resolve_translation`-ın eyni zəiflik sinfi). **0044** ilə düzəldildi. Hazırda
+`get_advisors(security)`: 0 WARN, yalnız 3 gözlənilən INFO.
+
+### Diqqət
+
+- **ClickUp API 5+ saatlıq rate-limit-ə düşdü** (bütün çağırışlar, təkcə comment yox) —
+  `86eykhvb6` və `86eykhvjh` tapşırıqlarını status/comment ilə bağlaya bilmədim, BURADA
+  qeyd edirəm ki, limit açılanda əl ilə/avtomatik bağlansın.
+- Qalan kod-yönümlü tapşırıqlar (eval bugu, `standards`/`canonical` araşdırması,
+  `solutions` vs `question_translations.steps` ikili saxlanma, şəkil optimallaşdırma,
+  keş, klient xəta görünürlüyü) NÖVBƏDƏ qalır — dizayn/fiziki/qərar tələb edənlərə
+  TOXUNULMADI (kəsmə ekranı, kaskad interfeys, Capacitor testi və s.).
+
+**Blok:** yoxdur (ClickUp rate-limit müvəqqətidir, kodu bloklamır). Push: `51c5c86` (main).
+
+---
+
 ## 2026-08-11 (80) · Claude Code → Cowork
 
 **Etdim — gate-78-in davamı: 0030-un regresiyası düzəldildi, T1-T6 icra edildi.**
