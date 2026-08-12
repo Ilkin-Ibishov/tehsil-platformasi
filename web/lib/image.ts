@@ -12,7 +12,13 @@ export async function cropAndResize(
   naturalHeight: number,
   cropPct: CropRectPct,
   maxPx: number,
-  quality = 0.85
+  quality = 0.85,
+  // Defolt `false` — QƏSDƏN. ADR-001-in 9/10 dəqiqliyi RƏNGLİ pipeline ilə ölçülüb;
+  // qri-şkala xərc/latensiya üçün faydalı ola bilər (daha kiçik JPEG), amma DİM
+  // şəkillərində qırmızı mürəkkəblə düzəliş/vurğulanmış mətn kimi siqnalları itirə bilər.
+  // `evals/golden-set.jsonl` üzərində A/B (bax `scripts/eval.py`) TƏSDİQLƏNMƏDƏN default
+  // AÇILMASIN.
+  grayscale = false
 ): Promise<{ blob: Blob; width: number; height: number }> {
   const sx = Math.round(cropPct.x * naturalWidth);
   const sy = Math.round(cropPct.y * naturalHeight);
@@ -45,6 +51,20 @@ export async function cropAndResize(
     rctx.imageSmoothingQuality = "high";
     rctx.drawImage(cropCanvas, 0, 0, outW, outH);
     finalCanvas = resized;
+  }
+
+  if (grayscale) {
+    const gctx = finalCanvas.getContext("2d");
+    if (!gctx) throw new Error("2d context alınmadı");
+    const { width: w, height: h } = finalCanvas;
+    const imgData = gctx.getImageData(0, 0, w, h);
+    const px = imgData.data;
+    for (let i = 0; i < px.length; i += 4) {
+      // ITU-R BT.601 luma çəkiləri — sadə (r+g+b)/3-dən qəbul olunmuş standartdır.
+      const luma = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+      px[i] = px[i + 1] = px[i + 2] = luma;
+    }
+    gctx.putImageData(imgData, 0, 0);
   }
 
   const blob = await new Promise<Blob | null>((resolve) => finalCanvas.toBlob(resolve, "image/jpeg", quality));
