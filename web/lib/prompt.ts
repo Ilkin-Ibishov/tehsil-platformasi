@@ -9,6 +9,10 @@ import path from "node:path";
 
 const CORE_PATH = path.join(process.cwd(), "..", "prompts", "solve", "core.md");
 const MATH_PATH = path.join(process.cwd(), "..", "prompts", "solve", "math.md");
+// ADR-020 / ClickUp 86eykj7tu — kaskadın Qat 1 promptu. AYRI fayldır, `core.md`-ə şərt kimi
+// əlavə edilməyib: Qat 1-in bütün dəyəri promptun KİÇİK olmasındadır (kiçik model onu tam icra
+// etsin), `ADR-013` isə ölçdü ki, prompt böyüdükcə məna tələb edən qayda itir.
+const TRANSCRIBE_PATH = path.join(process.cwd(), "..", "prompts", "solve", "transcribe.md");
 
 function extractBlock(text: string, heading: string, sourcePath: string): string {
   const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -26,6 +30,17 @@ export function loadPromptTemplates(): { system: string; userTemplate: string } 
   const system = extractBlock(coreText, "System", CORE_PATH).replace("{{MATH_EXAMPLE}}", mathExample);
   const userTemplate = extractBlock(coreText, "User (dəyişənlərlə)", CORE_PATH);
   return { system, userTemplate };
+}
+
+// Qat 1 (transkripsiya) şablonları — `loadPromptTemplates` ilə EYNİ çıxarma məntiqi, ayrı fayl.
+// `{{MATH_EXAMPLE}}` yer tutucusu BURADA YOXDUR: Qat 1 addım nümunəsi görmür (nümunəni görsə
+// həll etməyə başlayır — v2→v3 dərsi, "model qaydadan çox nümunəni təqlid edir").
+export function loadTranscribeTemplates(): { system: string; userTemplate: string } {
+  const text = fs.readFileSync(TRANSCRIBE_PATH, "utf-8");
+  return {
+    system: extractBlock(text, "System", TRANSCRIBE_PATH),
+    userTemplate: extractBlock(text, "User (dəyişənlərlə)", TRANSCRIBE_PATH),
+  };
 }
 
 // scripts/lib/prompt_loader.py::render_user_prompt-un hərfi portu. `{{#if image}}` bloku

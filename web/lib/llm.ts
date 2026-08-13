@@ -30,19 +30,32 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// ADR-020 (kaskad): `image*` sahələri artıq OPTIONAL-dır və `model` override edilə bilir.
+//   Qat 1 → şəkil VAR, ucuz model (`TRANSCRIBE_MODEL`)
+//   Qat 5 → şəkil YOX (sırf mətn), bahalı model (`GEMINI_MODEL`)
+// Şəkil verilməyəndə `content` massiv deyil, sadə sətir kimi göndərilir — bu, OpenAI-uyğun
+// endpointlərdə mətn-yalnız sorğunun standart formasıdır və vision tokeni ödənilmir.
 export async function callVisionLLM(opts: {
   systemPrompt: string;
   userPrompt: string;
-  imageBase64: string;
-  imageMime: string;
+  imageBase64?: string;
+  imageMime?: string;
+  model?: string;
   signal?: AbortSignal;
 }): Promise<LLMResult> {
-  const model = process.env.GEMINI_MODEL;
+  const model = opts.model || process.env.GEMINI_MODEL;
   const apiKey = process.env.GEMINI_API_KEY;
   const baseUrl = process.env.GEMINI_BASE_URL;
   if (!model || !apiKey || !baseUrl) {
     throw new Error("GEMINI_MODEL, GEMINI_API_KEY, GEMINI_BASE_URL env dəyişənləri lazımdır.");
   }
+
+  const userContent = opts.imageBase64
+    ? [
+        { type: "text", text: opts.userPrompt },
+        { type: "image_url", image_url: { url: `data:${opts.imageMime || "image/jpeg"};base64,${opts.imageBase64}` } },
+      ]
+    : opts.userPrompt;
 
   const payload = {
     model,
@@ -50,13 +63,7 @@ export async function callVisionLLM(opts: {
     response_format: { type: "json_object" },
     messages: [
       { role: "system", content: opts.systemPrompt },
-      {
-        role: "user",
-        content: [
-          { type: "text", text: opts.userPrompt },
-          { type: "image_url", image_url: { url: `data:${opts.imageMime};base64,${opts.imageBase64}` } },
-        ],
-      },
+      { role: "user", content: userContent },
     ],
   };
 

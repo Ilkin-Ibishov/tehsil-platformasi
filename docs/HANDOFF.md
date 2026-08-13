@@ -15,6 +15,199 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-13 (84) · Claude Code → Cowork
+
+**Etdim — kaskad interfeysinin Qat 1/2/5-i quruldu (ClickUp 22 tapşırıqdan başlanan zəncirin
+onurğası).** İstifadəçinin seçimi ilə: kod-yönümlü tapşırıqlar arasından "kaskad onurğası"
+seçildi (86eykj7tu → 86eykj7x2 → 86eymfg85 → 86eykqb1c zənciri).
+
+### 1) Kaskad interfeysi (`86eykj7tu`, `ADR-020`) — QURULDU, DEFOLT SÖNÜK
+
+Yeni `web/lib/cascade/` modulu: `types.ts` (qat müqaviləsi), `transcribe.ts` (Qat 1),
+`bank.ts` (Qat 2a/2b), `solve-text.ts` (Qat 5), `persist.ts` (DB yazısı), `run.ts` (sıra).
+`/api/solve` `CASCADE_ENABLED=1` olanda kaskadı işlədir, YOXDURSA monolit yol **bayt-bayt**
+dəyişməz qalır (`web/app/api/solve/route.ts` — kaskad budağı `return` edir, aşağıdaki köhnə
+kod toxunulmadı). Qat 3 (şablon tanıyıcı) və Qat 4 (sympy+izah) **qəsdən qurulmadı** — səbəb
+ADR-020-də: Qat 3 üçün şablon-tanıma məntiqi yazılmayıb, Qat 4 üçün server-tərəfi sympy
+mövcud deyil (`answer.ts` yalnız məhdud port). Boş TODO qoyulmadı, `run.ts`-də şərhlə
+qeyd edildi.
+
+Yeni fayl: `docs/TRANSCRIBE-SCHEMA.json` (Qat 1-in AYRI cavab müqaviləsi — STEP-SCHEMA-nın
+`final_answer`/`steps` məcburiyyəti Qat 1-ə tətbiq edilə bilməz), `prompts/solve/
+transcribe.md` (Qat 1 promptu, `core.md`-dən KİÇİK, ADR-013 dərsi). 24 selftest yazıldı
+(`web/lib/cascade/cascade.selftest.mts`) — fingerprint, dedup hash, sxem interpretasiyası,
+`stripAccept`/`buildStepAnswerRows`, `runCascade` sıra/imtina/xəta davranışı. Mövcud 3
+selftest reqressiyasız (19/19, 18/18, 30/30).
+
+**Miqrasiya `0047`** (tətbiq edildi): `questions.fingerprint_digits` GENERATED sütunu +
+indeks. Additive, köhnə sütun/indeks/kod toxunulmadı.
+
+### 2) Ölçülmüş tapıntı — Qat 2 heç vaxt işləyə bilməzdi (T1, ADR-020-də ətraflı)
+
+`numeric_fingerprint`-də iki uyğunsuz namespace: bankın 217 sualı `'FAIZ.OF|300,5'`
+(şablon prefiksli), `/api/solve`-un hesabladığı `'300,5'` (`DATA-MODEL.md` formatı).
+Bərabərlik HEÇ VAXT tutmurdu. `0047` bunu düzəltdi.
+
+**İkinci qat problem** (T2/T3): rəqəm izi tək başına unikal deyil (`-1,-2` + 9-cu sinif →
+2 fərqli sual, fərqli cavab), `topic_code` bərabərlik-pozucu kimi əlavə edildi. Bankın
+`FAIZ.PERCENT_OF`/`FAIZ.INCREASE` kodları `ADR-008`-i pozurdu (Azərbaycanca, prompt isə
+`ARITH.*` domenini öyrədir) — model bu kodları YAZMIRDI, pozucu işləmirdi.
+
+### 3) FAIZ.\* düzəlişi (sahib insanın qərarı — indi, gözləmədən) — TƏTBİQ EDİLDİ
+
+**Miqrasiya `0048`** (tətbiq edildi): `FAIZ.PERCENT_OF` → `ARITH.PERCENT_OF`,
+`FAIZ.INCREASE` → `ARITH.PERCENT_INCREASE`, `topic_code` VƏ `problem_type` SİNXRON
+yeniləndi (91 sətir). `prompts/solve/transcribe.md` yeniləndi — yeni kod cütü `QUAD.MIN`/
+`QUAD.SUM` nümunəsi ilə YANAŞI açıq göstərilir. Yolüstü aşkarlanan, AMMA bu miqrasiyanın
+ƏHATƏSİ XARİCİNDƏ qalan tapıntı: `0036`-nın seed INSERT-i BÜTÜN 217 sətrin `problem_type`
+sütununa (STEP-SCHEMA enum-u yerinə) elə `topic_code`-un özünü yazıb — YALNIZ FAIZ-ə aid
+deyil, ALG/GEO/PROB/STAT sətirlərinin hamısına aiddir. Toxunulmadı (backlog, ADR-020-də qeyd
+edilib).
+
+**Ölçülmüş nəticə (0048-dən sonra):** 224 bank sualından **120-sinin** rəqəm izi mətnlə
+uyğun gəlir, **hamısı əlçatandır** (112 tək-namizəd + 8 `ARITH.PERCENT_OF`/
+`ARITH.PERCENT_INCREASE` bərabərlik-pozucu ilə) — Qat 2 indi bankın **54%-inə** sıfır LLM
+xərci ilə cavab verir (əvvəl 0%). Qalan 104 sətir bankın öz şablon-parametr semantikasından
+qaynaqlanır (mətndəki rəqəmlərlə üst-üstə düşməyən) — sahib insanın qərarı ilə **backlog**,
+real şagird şəkilləri gələnə qədər toxunulmayacaq (hansı şablonun lazım olduğu bilinmir).
+
+### `solve.cascade` telemetriya sahələri (Cowork `TELEMETRY.md`-yə əlavə etsin)
+
+Sahib insan bu hadisənin sənədləşdirilməsini öz üzərinə götürdü. Kodun (`web/app/api/solve/
+route.ts`-in kaskad budağı) YAZDIĞI TAM sahə siyahısı:
+
+```
+solve.cascade   props: {
+  layer                    — hansı SolveLayer cavab verdi: bank_hash | bank_fingerprint | llm_text
+                              (Qat 1 imtina edibsə hadisə YOXDUR, layer="none" olub heç bir qat
+                              cavab vermədikdə)
+  match_path               — hash | fingerprint | llm | image_cache (mövcud S6 taksonomiyası)
+  declined                 — vergüllə ayrılmış, sıra ilə imtina edən qatların id-si
+                              (xəta veriblərsə "id:error" formatında)
+  transcribe_cache_hit     — bool, Qat 1 keşdən gəldimi
+  transcribe_cost_usd      — Qat 1-in xərci (null = qiymət env-i yoxdur)
+  transcribe_latency_ms    — Qat 1-in gecikməsi (keş-hitdə 0)
+  layer_cost_usd           — cavab verən qatın xərci
+  layer_latency_ms         — cavab verən qatın gecikməsi
+  total_cost_usd           — transcribe_cost_usd + layer_cost_usd (hər ikisi null-dursa null)
+  has_figure               — Qat 1-in transkripsiyası (ADR-020 R1 ölçüsü)
+  ocr_confidence            — Qat 1-in özünə əminliyi
+}
+```
+
+İmtina/xəta budağında (`layer=none`) YALNIZ `layer`, `declined`, `transcribe_cache_hit`,
+`transcribe_cost_usd` yazılır — digər sahələr cavab olmadığı üçün mənasızdır.
+
+### 4) Transkripsiya təsdiq ekranı + OCR korpusu (`86eykj7x2`, `86eymfg85`) — QURULDU
+
+Sahib insanın qərarı: bu, zəncirin ən vacib halqasıdır (`ocr_captures` korpusu ona bağlıdır).
+Server və klient tərəfi tam quruldu, `NEXT_PUBLIC_CASCADE_ENABLED=1` (server `CASCADE_ENABLED`
+ilə EYNİ vəziyyətdə) arxasında, defolt sönük.
+
+**Memarlıq qərarı — əvvəlki ADR-020-nin "iki ardıcıl POST YOX" bəndinin YENİLƏNMƏSİ:** o bənd
+streaming/tək-çağırış güman edirdi; real UI tələbi isə Qat 1 bitən kimi (ARTIQ ~1-3 san-da)
+məzmun göstərməyi, Qat 2-5-i isə FONDA davam etdirməyi tələb edir — hazırkı stekdə (Next.js
+route handler, streaming JSON klienti yoxdur) bu YALNIZ iki ayrı sorğu ilə mümkündür. ADR-020
+bu qeydlə YENİLƏNDİ.
+
+**Yeni server tərəfi:**
+- `POST /api/solve/transcribe` — Qat 1-i TƏK BAŞINA ifşa edir, `ocr_captures.ocr_raw`
+  təsdiq ekranından **ƏVVƏL** yazır (`web/lib/cascade/ocr-capture.ts`).
+- `POST /api/solve/finish` — Qat 2-5-i (transkripsiya ilə, şəkilsiz) işlədir, DB-yə yazır,
+  `ocr_captures.ocr_final`/`corrected`/`correction_kind`/`edit_distance` FİNALİZƏ edir.
+  `rejected:true` budağı — şagird "bu düz deyil, yenidən çəkirəm" deyəndə (heç bir LLM/DB
+  yazısı, yalnız korpus qeydi, gündəlik limit SAYILMIR).
+- `web/lib/cascade/guards.ts` — invite/limit/xərc-tavanı yoxlamaları, monolitdən **TƏKRAR
+  yazılıb** (import EDİLMƏYİB) — səbəb: monolitin "bayt-bayt dəyişməz" invariantını qorumaq,
+  paylaşılan refaktorinq riski.
+- `edit_distance`/`correction_kind` Levenshtein DP ilə hesablanır (`ocr-capture.ts`),
+  `correction_kind` həddi (`≤15% fərq → minor`) HEÇ BİR QAPI DEYİL — sadə başlanğıc heuristik,
+  `v_ocr_corpus` datası yığılandan sonra tənzimlənə bilər.
+
+**Yeni klient tərəfi** (`web/app/kamera/page.tsx`, additiv — mövcud `submitSolve` toxunulmadı,
+`runSolve = CASCADE_UI_ENABLED ? submitSolveCascade : submitSolve` seçir):
+- `web/components/hell/TranscriptConfirmView.tsx` — redaktə edilə bilən mətn, "Düzdür"/"Düz
+  deyil — yenidən çək" düymələri.
+- Fon davranışı: transkripsiya qayıdan kimi `/finish` DƏRHAL (fon, `AbortController` ilə)
+  başladılır. Şagird DƏYİŞMƏDƏN təsdiqləsə həmin fon nəticəsi gözlənilir (təkrar sorğu YOX).
+  Düzəltsə köhnə sorğu `abort()` edilir, düzəldilmiş mətnlə YENİ sorğu gedir — 86eykj7x2-nin
+  "dayandırılsın" tələbi bununla ödənilir.
+- `LoadingView`-in `questionText` sahəsi (HANDOFF 49 §3a-dan bəri, ADR-014 üçün HAZIRLANMIŞ,
+  amma HEÇ VAXT işlədilməmiş) İNDİ istifadə olunur — confirm-dən sonrakı gözləmədə canonical
+  görünür.
+
+**Tam Next build keçdi** (yeni 2 route qeydə alındı), `npm run lint` təmiz, yeni 10 selftest
+(`web/lib/cascade/ocr-capture.selftest.mts`) əlavəsi ilə 24+10=34 kaskad selftesti, mövcud 3
+selftest reqressiyasız. Real DB-də smoke-test edildi: `ocr_captures` insert/update/delete,
+bank sorğusu `200,15` (`ARITH.PERCENT_OF`/`ARITH.PERCENT_INCREASE` cütü) — nəticə DÜZGÜN
+ayrıldı, test sətirləri silindi.
+
+**Bu sessiyada yazılmayan `ocr_captures` sahələri** (ayrı ClickUp tapşırıqlarının əhatəsi):
+`storage_path` (şəkil Storage-a yüklənmir), `image_phash` (86eymfgbv), `width`/`height`/`bytes`
+(86eymfg9z). `v_ocr_corpus` görünüşü bunlara EHTİYAC DUYMUR (yoxlanıldı). İmtina hallarında
+(`unreadable`/`not_a_problem`/`multiple_problems`) `ocr_captures`-a YAZILMIR — bu sessiyanın
+əhatə qərarı, `ocr_raw`-ın imtina üçün semantikası (nə yazılsın?) heç yerdə təyin olunmayıb.
+
+### Yeni telemetriya adları (Cowork sənədləşdirsin)
+
+`solve.cascade` (əvvəlki bölmədəki sxem) İNDİ HƏM `/api/solve/finish`-dən yazılır (əvvəllər
+yalnız monolitin daxili kaskad budağından). Əlavə YENİ adlar (heç birinin sahəsi mürəkkəb
+deyil, sadə props):
+
+```
+transcript.shown       props: {ocr_confidence}          ← təsdiq ekranı göstərildi
+transcript.confirmed   props: {corrected: bool}          ← şagird "Düzdür" basdı
+transcript.corrected   props: {}                         ← düzəliş edilib (edit_distance server-də)
+transcript.rejected    props: {}                         ← "bu düz deyil, yenidən çək"
+```
+
+### Diqqət / Blok
+
+- **ADR-014-ün qapısı hələ İCRA EDİLMƏYİB** — bayraq sönük qalır. Açmaq üçün 10 real kəsilmiş
+  DİM şəkli + golden-set müqayisəsi lazımdır (dəqiqlik ≥8/10, hallüsinasiya 0, `has_figure=true`
+  alt dəstinin ayrıca dəqiqliyi — ADR-020-nin R1 qeydinə bax). Bu, kodla əvəz edilə bilməz.
+- **`86eykj7x2` və `86eymfg85` BİTDİ** (4-cü bölmə, aşağıda) — server+klient tam quruldu,
+  `NEXT_PUBLIC_CASCADE_ENABLED` arxasında sönük. Fiziki telefonda SINANMADI (bu, "Uçdan-uca
+  telefon keçidi" `86eykm8ja` tapşırığının əhatəsidir) — yalnız `npm run build`/`lint`/
+  selftest/real-DB SQL smoke-test ilə doğrulandı.
+- Qalan 16 tapşırıq (bank UI, şəkil ön emalı, pHash, ADR-007 kəsmə ekranı, `86eykqb1c` model
+  bölgüsü və s.) BU SESSİYADA TOXUNULMADI.
+
+### 5) Tapıntı (sahib insan, `0048`-dən sonra) — `numeric_fingerprint` prefiksi köhnə qalıb
+
+`0048` `topic_code`/`problem_type`-i `ARITH.PERCENT_OF`/`ARITH.PERCENT_INCREASE`-ə köçürdü,
+AMMA eyni 91 sətrin `numeric_fingerprint` sütununu TOXUNULMAZ buraxdı — prefiks HƏLƏ DƏ
+`FAIZ.OF|...`/`FAIZ.INC|...`-dir. Bu, `0047`-in özünün aşkarladığı sinifdən (iki sütun eyni
+şeyi fərqli yazır) **ÜÇÜNCÜ təkrardır**.
+
+**Niyə BU SESSİYANIN kodu qırılmır:** `web/lib/cascade/bank.ts` heç vaxt xam
+`numeric_fingerprint`-i oxumur — `fingerprint_digits` (GENERATED sütun, `0047`) İLK `|`-dən
+SONRAKI hissəni götürür, prefiksin MƏTNİ nə olursa olsun. Tie-break `topic_code` SÜTUNUNDAN
+gəlir (`0048`-in düzəltdiyi yer). Real DB smoke-testi (bax 4-cü bölmə) bunu təsdiqlədi: `200,15`
++ 6-cı sinif → iki namizəd, `ARITH.PERCENT_OF`/`ARITH.PERCENT_INCREASE` DÜZGÜN ayrıldı.
+
+**Niyə YENƏ DƏ real problem:** `numeric_fingerprint` sütununun ÖZÜ indi DAXİLİ UYĞUNSUZDUR —
+prefiksi (`FAIZ.OF`) `topic_code`-u (`ARITH.PERCENT_OF`) ilə TUTMUR. Gələcək hər hansı kod
+(Qat 3 "şablon tanıyıcı" ən ehtimallısı) prefiksi `topic_code`-dan İSTEHSAL EDİB xam
+`numeric_fingerprint`-lə müqayisə edərsə (təbii fərziyyə — ADR-020-nin öz T2 qeydi bunu
+"şablon parametr semantikası" kimi adlandırıb), 91 sətir SƏSSİZCƏ uyğun gəlməyəcək.
+
+**Növbəti Claude Code sessiyasının tapşırığı** (BURADA edilmədi, sahib insanın qərarı):
+1. Prefiks qaydasını KODDA yaz (`topic_code → prefiks` map, məs. `web/lib/cascade/` daxilində)
+   — SQL-də hardcode string literalı YOX, test edilə bilən funksiya.
+2. Selftest: bazadakı HƏR `numeric_fingerprint`-in prefiksi öz `topic_code`-undan HƏMİN
+   funksiya ilə YENİDƏN İSTEHSAL edilə bilməlidir. Uyğunsuzluq TAPILSA test QIRILSIN (indiki
+   91 sətir daxil).
+3. Miqrasiya (prefiksi düzəldən) EYNİ sessiyada yazılsın — "prefiks qaydası kodda yaşayır"
+   (sahib insanın öz sözü), ona görə kodu yazan sessiya miqrasiyanı da yazmalıdır.
+
+**Blok:** yoxdur (ADR-014 qapısı bloklayıcı deyil — bayraq sönükdə production toxunulmaz).
+`numeric_fingerprint` prefiks uyğunsuzluğu da bloklayıcı deyil (yuxarıya bax — cari kod ondan
+asılı deyil), amma NÖVBƏTİ sessiya BAŞLAMAZDAN ƏVVƏL bu bölməni oxumalıdır.
+Push: aşağıya bax.
+
+---
+
 ## 2026-08-12 (83) · Claude Code → Cowork
 
 **Etdim — "digər edə biləcəyin tapşırıqları da et" sorğusu üzrə daha 2 tapşırıq.**

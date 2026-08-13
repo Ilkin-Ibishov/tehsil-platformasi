@@ -37,7 +37,11 @@
     "refusedBody": "Kəsmə çərçivəsini dəyişib yenidən sına.",
     "refusedRetake": "Yenidən kəs",
     "candidatesTitle": "Hansını həll edim?",
-    "candidatesNoneOfThese": "heç biri — yenidən kəs"
+    "candidatesNoneOfThese": "heç biri — yenidən kəs",
+    "confirmTitle": "Bu məsələni oxudum",
+    "confirmQuestion": "Düzdürmü? Səhvsə düzəlt.",
+    "confirmYes": "Düzdür",
+    "confirmReject": "Düz deyil — yenidən çək"
   },
   "invite": {
     "title": "Dəvət kodu",

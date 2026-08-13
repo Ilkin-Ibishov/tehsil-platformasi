@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tehsil.az/schemas/transcribe-v1.json",
+  "title": "Kaskad Qat 1 — transkripsiya cavab müqaviləsi",
+  "description": "ADR-020. Qat 1 məsələni HƏLL ETMİR — şəkli maşın formasına köçürür və rədd qapısı rolunu oynayır. STEP-SCHEMA.json bu iş üçün İSTİFADƏ EDİLƏ BİLMƏZ: onun allOf qaydası status='ok' halında `final_answer` və `steps` sahələrini MƏCBURİ edir, Qat 1 isə qəsdən heç birini istehsal etmir. Ona görə ayrı, DAHA KİÇİK müqavilə. Enum dəyərləri STEP-SCHEMA ilə HƏRFİ EYNİDİR — sapma yaranarsa Qat 2/5-ə ötürülən dəyər sxem validasiyasından keçməz.",
+  "type": "object",
+  "required": ["schema_version"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ok", "unreadable", "not_a_problem", "multiple_problems", "cut_off", "unsupported"],
+      "description": "Yoxdursa 'ok' sayılır. STEP-SCHEMA.status ilə eyni enum — Qat 1-in imtinası klientə mövcud imtina/seçim ekranlarından KEÇİR, yeni UI vəziyyəti yaranmır (ADR-007)."
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 160,
+      "description": "status != 'ok' olduqda istifadəçiyə göstərilən bir cümlə, giriş `locale` dilində (ADR-008)."
+    },
+    "canonical": {
+      "type": "string",
+      "minLength": 3,
+      "description": "Məsələnin maşın forması. Saf düsturdursa ASCII-math (x^2-5x+6=0). Mətn məsələsidirsə orijinal mətn + düsturlar $...$ içində. Həndəsədirsə fiqur SÖZLƏ təsvir edilir (bax has_figure) — ADR-020 R1."
+    },
+    "subject": {
+      "type": "string",
+      "enum": ["math", "physics", "chemistry"]
+    },
+    "grade": {
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 11
+    },
+    "topic_code": {
+      "type": "string",
+      "description": "SAHƏ.MÖVZU, İNGİLİSCƏ BÖYÜK HƏRFLƏ (ADR-008). Qat 2-nin bank açarının BİR HİSSƏSİDİR — rəqəm izi tək başına unikal deyil (0047 miqrasiyasının ambiguity qeydi).",
+      "examples": ["ALG.QUADRATIC_EQUATION", "ALG.VIETA_SUM", "ARITH.PERCENTAGE", "GEO.AREA"]
+    },
+    "problem_type": {
+      "type": "string",
+      "enum": ["formula", "word_problem", "geometry", "mixed"]
+    },
+    "ocr_confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low"],
+      "description": "Qat 1-in öz oxunuşuna əminliyi. Transkripsiya təsdiq ekranı (ClickUp 86eykj7x2) 'low' olanda düzəlişi ÖNƏ çıxarır."
+    },
+    "detected_language": {
+      "type": "string",
+      "enum": ["az", "ru", "en", "tr", "other"]
+    },
+    "has_figure": {
+      "type": "boolean",
+      "description": "ADR-014 R1-in ölçülən forması: şəkildə mətnə TAM çevrilə bilməyən məzmun (çertyoj, cədvəl, qrafik) var. true olanda `canonical` fiqurun sözlü təsvirini daşıyır və sonrakı qatlar şəkli GÖRMÜR — ADR-020 bu riski qəsdən qəbul edir və qapıda ölçür."
+    },
+    "candidates": {
+      "type": "array",
+      "maxItems": 5,
+      "description": "YALNIZ status='multiple_problems'. Formatı ADR-007 ilə eynidir — mövcud seçim ekranı dəyişmədən işləyir.",
+      "items": {
+        "type": "object",
+        "required": ["label", "preview"],
+        "additionalProperties": false,
+        "properties": {
+          "label": { "type": "string", "maxLength": 24 },
+          "preview": { "type": "string", "maxLength": 90 }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "anyOf": [
+          { "not": { "required": ["status"] } },
+          { "properties": { "status": { "const": "ok" } }, "required": ["status"] }
+        ]
+      },
+      "then": { "required": ["canonical", "subject", "grade", "topic_code"] },
+      "else": { "required": ["status", "reason"] }
+    }
+  ]
+}

@@ -7,6 +7,10 @@ import { computeCostUsd } from "@/lib/cost";
 import { validateStep } from "@/lib/verify/schema";
 import { verifyFinalAnswer } from "@/lib/verify/answer";
 import { detectLeak } from "@/lib/verify/leak";
+import { transcribe, imageSha256 } from "@/lib/cascade/transcribe";
+import { buildLayers, runCascade } from "@/lib/cascade/run";
+import { persistSolution } from "@/lib/cascade/persist";
+import { sumCostUsd } from "@/lib/cost";
 
 // POST /api/solve — S3 (docs/PHASE-1.md). Server qaydaları:
 // 1. verified=false həll istifadəçiyə göstərilmir → status:"unreadable".
@@ -27,6 +31,18 @@ import { detectLeak } from "@/lib/verify/leak";
 const DAILY_LIMIT = 30;
 export const maxDuration = 60;
 const LLM_TIMEOUT_MS = 45_000;
+
+// ADR-020 / ClickUp 86eykj7tu — kaskad interfeysi. **DEFOLT SÖNÜKDÜR.**
+//
+// Niyə bayraq arxasında: `ADR-014` bu memarlıq dəyişikliyi üçün ÖNCƏDƏN QEYD EDİLMİŞ ölçmə
+// qapısı təyin edib (10 kəsilmiş şəkil, dəqiqlik ≥8/10, hallüsinasiya 0, xərc AZALSIN,
+// triaj ≤6 san) və açıq yazıb: "Şərtlərin hamısı ödənilmirsə tək çağırış qalır. Ölçülmədən
+// qərar verilmir." Həmin ölçmə real DİM şəkilləri + golden-set tələb edir — kod yazmaqla
+// əvəz edilə bilməz. Eyni intizam HANDOFF 82-də qri-şkala üçün tətbiq edilib (defolt sönük,
+// A/B təsdiqlənmədən açılmır).
+//
+// `CASCADE_ENABLED=1` → kaskad. Təyin edilməyibsə mövcud monolit yol, BAYT-BAYT dəyişməz.
+const CASCADE_ENABLED = process.env.CASCADE_ENABLED === "1";
 
 type StepSchemaOutput = {
   status?: string;
@@ -78,6 +94,31 @@ function buildStepAnswerRows(steps: NonNullable<StepSchemaOutput["steps"]>) {
       accept: step.check!.accept,
       input_kind: step.check?.input_kind ?? "number",
     }));
+}
+
+// Telemetriya yazısı HEÇ VAXT axını bloklamamalıdır — `events` cədvəli ölçmədir, məhsul
+// deyil. Uğursuzluq `console.error`-a düşür (HANDOFF 81-in `invite_redemption_failed`
+// dərsi: səssiz uduş qəbuledilməzdir, amma şagirdin həllini də udmamalıdır).
+async function logEvent(
+  deviceId: string,
+  attemptId: string | null,
+  name: string,
+  props: Record<string, unknown>
+): Promise<void> {
+  await pool
+    .query(
+      `insert into events (event_id, device_id, attempt_id, name, props)
+       values ($1,$2,$3,$4,$5)`,
+      [randomUUID(), deviceId, attemptId, name, JSON.stringify(props)]
+    )
+    .catch((err) => console.error(`[/api/solve] ${name} telemetriya xətası:`, err));
+}
+
+// İki qatın token sayı. Hər ikisi bilinmirsə `null` — `0` yazmaq token hesabatını yalan
+// edərdi (keş-hit-də `usage` qəsdən `null`-dur, sıfır token işlədilməyib deməkdir).
+function sumTokens(a: number | undefined, b: number | undefined): number | null {
+  if (a === undefined && b === undefined) return null;
+  return (a ?? 0) + (b ?? 0);
 }
 
 export async function POST(req: NextRequest) {
@@ -219,6 +260,173 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Klient telemetriya ID-si (aşağıda sessiya PK-sı kimi işlədilir) — kaskad yolu da onu
+  // istifadə etdiyi üçün BURADA, budaqlanmadan ƏVVƏL hesablanır.
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const sessionId = typeof clientAttemptId === "string" && UUID_RE.test(clientAttemptId) ? clientAttemptId : randomUUID();
+
+  // ══════════════════════════════════════════════════════════════════════════════════════
+  // 3-KASKAD) ADR-020 yolu — Qat 1 (transkripsiya) → Qat 2 (bank) → Qat 5 (mətn LLM).
+  // Defolt SÖNÜKDÜR (bax `CASCADE_ENABLED` şərhi). Bu budaq `return` edir, yəni aşağıdaki
+  // monolit yol bayraq sönükdə BAYT-BAYT dəyişməz qalır.
+  // ══════════════════════════════════════════════════════════════════════════════════════
+  if (CASCADE_ENABLED) {
+    const cascadeBytes = Buffer.from(await image.arrayBuffer());
+    const cascadeHash = imageSha256(cascadeBytes);
+    const label = typeof selectedLabel === "string" && selectedLabel ? selectedLabel : "";
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), LLM_TIMEOUT_MS);
+    try {
+      // ── Qat 1 — ŞƏKLİ GÖRƏN YEGANƏ ÇAĞIRIŞ ───────────────────────────────────────────
+      const t1 = await transcribe({
+        pool,
+        imageBytes: cascadeBytes,
+        imageMime: image.type || "image/jpeg",
+        imageHash: cascadeHash,
+        selectedLabel: label,
+        grade,
+        subject,
+        locale,
+        signal: controller.signal,
+      });
+
+      if (t1.kind === "error") {
+        if (t1.timedOut) {
+          await logEvent(deviceId, sessionId, "solve.timeout", { timeout_ms: LLM_TIMEOUT_MS, stage: "transcribe" });
+        }
+        return NextResponse.json(
+          { schema_version: 1, status: "unreadable", reason: "Server cavab vermədi, yenidən cəhd et." },
+          { status: 200 }
+        );
+      }
+
+      // Qat 1-in rədd qapısı. DB-yə HEÇ NƏ yazılmır (PHASE-1: yalnız çatdırılmış həll düşür),
+      // gündəlik limit SAYĞACI da artmır (ADR-007: imtina/seçim limitdən sayılmır).
+      // Bahalı Qat 5 çağırışı ÜMUMİYYƏTLƏ icra olunmur — ADR-014-ün "iki dəfə ödənilir"
+      // problemi məhz burada həll olunur.
+      if (t1.kind === "refusal") {
+        await logEvent(deviceId, sessionId, "solve.cascade", {
+          layer: "transcribe_refusal",
+          status: t1.refusal.status,
+          transcribe_cache_hit: t1.cacheHit,
+          transcribe_cost_usd: t1.costUsd,
+          transcribe_latency_ms: Math.round(t1.latencyMs),
+        });
+        return NextResponse.json(
+          {
+            schema_version: 1,
+            status: t1.refusal.status,
+            reason: t1.refusal.reason,
+            ...(t1.refusal.candidates ? { candidates: t1.refusal.candidates } : {}),
+            attempt_id: null,
+            match_path: t1.cacheHit ? "image_cache" : "llm",
+          },
+          { status: 200 }
+        );
+      }
+
+      // ── Qat 2..5 — şəkil ARTIQ YOXDUR, yalnız mətn ────────────────────────────────────
+      const { solution, declinedLayers } = await runCascade(buildLayers(pool), {
+        transcript: t1.transcript,
+        locale,
+        requestedGrade: grade,
+        requestedSubject: subject,
+        signal: controller.signal,
+      });
+
+      if (!solution) {
+        await logEvent(deviceId, sessionId, "solve.cascade", {
+          layer: "none",
+          declined: declinedLayers.join(","),
+          transcribe_cache_hit: t1.cacheHit,
+          transcribe_cost_usd: t1.costUsd,
+        });
+        return NextResponse.json(
+          { schema_version: 1, status: "unreadable", reason: "Həll qurula bilmədi, yenidən cəhd et." },
+          { status: 200 }
+        );
+      }
+
+      const totalCostUsd = sumCostUsd(t1.costUsd, solution.costUsd);
+      const persisted = await persistSolution({
+        pool,
+        solution,
+        transcript: t1.transcript,
+        sessionId,
+        deviceId,
+        studentRef,
+        requestedSubject: subject,
+        locale,
+        totalCostUsd,
+      });
+
+      if (!persisted.ok) {
+        return NextResponse.json(
+          {
+            schema_version: 1,
+            status: "unreadable",
+            reason:
+              persisted.kind === "rejected"
+                ? "Həll yoxlanışdan keçmədi."
+                : "Server xətası, yenidən cəhd et.",
+          },
+          { status: 200 }
+        );
+      }
+
+      // Qat paylanması — taskın açıq tələbi ("hansı qatın cavab verdiyini events-ə yaz").
+      // Ölçülməsə hansı qata investisiya etmək lazım olduğu heç vaxt bilinməyəcək.
+      await logEvent(deviceId, sessionId, "solve.cascade", {
+        layer: solution.layer,
+        match_path: solution.matchPath,
+        declined: declinedLayers.join(","),
+        transcribe_cache_hit: t1.cacheHit,
+        transcribe_cost_usd: t1.costUsd,
+        transcribe_latency_ms: Math.round(t1.latencyMs),
+        layer_cost_usd: solution.costUsd,
+        layer_latency_ms: Math.round(solution.latencyMs),
+        total_cost_usd: totalCostUsd,
+        has_figure: t1.transcript.hasFigure,
+        ocr_confidence: t1.transcript.ocrConfidence,
+      });
+
+      return NextResponse.json(
+        {
+          schema_version: 1,
+          status: "ok",
+          // `canonical` klientə QAYTARILIR — transkripsiya təsdiq ekranının (ClickUp
+          // 86eykj7x2) girişi budur. O task UI-ı əlavə edəndə server tərəfi HAZIRDIR.
+          canonical: t1.transcript.canonical,
+          subject: t1.transcript.subject,
+          grade: t1.transcript.grade,
+          topic_code: t1.transcript.topicCode,
+          ...(t1.transcript.problemType ? { problem_type: t1.transcript.problemType } : {}),
+          ...(t1.transcript.ocrConfidence ? { ocr_confidence: t1.transcript.ocrConfidence } : {}),
+          ...(t1.transcript.detectedLanguage ? { detected_language: t1.transcript.detectedLanguage } : {}),
+          // `final_answer` və `check.accept` ŞƏBƏKƏYƏ DÜŞMÜR (SYSTEM-REVIEW §2) — addım
+          // yoxlaması `/api/steps/check`, son cavab `/api/attempts/reveal`-dədir.
+          steps: persisted.steps,
+          attempt_id: persisted.sessionId,
+          match_path: solution.matchPath,
+          verification: { ...persisted.verification, verified_at: new Date().toISOString() },
+          meta: {
+            latency_ms: Math.round(t1.latencyMs + solution.latencyMs),
+            cost_usd: totalCostUsd,
+            tokens_in: sumTokens(t1.usage?.prompt_tokens, solution.usage?.prompt_tokens),
+            tokens_out: sumTokens(t1.usage?.completion_tokens, solution.usage?.completion_tokens),
+            attempts: 1,
+            leaked: persisted.leaked,
+            layer: solution.layer,
+          },
+        },
+        { status: 200 }
+      );
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
   // 3) Prompt — TƏK MƏNBƏ prompts/solve-step.md-dən (ADR-012).
   const { system, userTemplate } = loadPromptTemplates();
   let userPrompt = renderUserPrompt(userTemplate, grade, subject, locale);
@@ -350,8 +558,7 @@ export async function POST(req: NextRequest) {
   // S4-də "son addıma çatdı" yeniləməsi (/api/attempts/progress) əlavə round-trip data
   // saxlamadan bu sətri tapa bilsin. Format etibarsızdırsa (köhnə klient, boş sahə) server öz
   // ID-sini yaradır. `attempt_items.id` isə HƏMİŞƏ server-generasiyalıdır (aşağıda).
-  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const sessionId = typeof clientAttemptId === "string" && UUID_RE.test(clientAttemptId) ? clientAttemptId : randomUUID();
+  // (`sessionId` yuxarıda, kaskad budağından ƏVVƏL hesablanır — hər iki yol onu paylaşır.)
   const itemId = randomUUID();
   const hash = canonicalHash(parsed.canonical);
   const fingerprint = numericFingerprint(parsed.canonical);

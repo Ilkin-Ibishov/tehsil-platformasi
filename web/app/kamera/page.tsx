@@ -10,11 +10,34 @@ import { CropView } from "@/components/kamera/CropView";
 import { InviteGate, getStoredInviteCode, clearStoredInviteCode } from "@/components/kamera/InviteGate";
 import { LoadingView } from "@/components/hell/LoadingView";
 import { SolveView, type SolveResult } from "@/components/hell/SolveView";
+import { TranscriptConfirmView } from "@/components/hell/TranscriptConfirmView";
 
-type Stage = "invite" | "capture" | "crop" | "submitting" | "solved" | "refused" | "candidates" | "done";
+// ADR-020 / ClickUp 86eykj7x2 — transkripsiya təsdiq ekranı YALNIZ server kaskadı açıq
+// olanda mənalıdır (o, `/api/solve/transcribe`+`/api/solve/finish` iki-endpoint axınına
+// EHTİYAC DUYUR, monolit `/api/solve` bunu dəstəkləmir). Server bayrağı `CASCADE_ENABLED`
+// ilə EYNİ qərarı əks etdirməlidir — ADR-014 qapısı keçilməyib, defolt SÖNÜKDÜR.
+const CASCADE_UI_ENABLED = process.env.NEXT_PUBLIC_CASCADE_ENABLED === "1";
+
+type Stage = "invite" | "capture" | "crop" | "submitting" | "solved" | "refused" | "candidates" | "done" | "confirm";
 
 type Candidate = { label: string; preview: string };
 type CroppedResult = { blob: Blob; width: number; height: number };
+
+// `/api/solve/transcribe`-in "ok" cavabı — TranscriptConfirmView-ə və fon `/finish`
+// çağırışına ötürülən forma.
+type CascadeTranscript = {
+  captureId: string | null;
+  canonical: string;
+  subject: string;
+  grade: number;
+  topicCode: string;
+  problemType: string | null;
+  ocrConfidence: string | null;
+  detectedLanguage: string | null;
+  hasFigure: boolean;
+  meta: { latencyMs: number; costUsd: number | null };
+  matchPath: string;
+};
 
 export default function KameraPage() {
   const t = useTranslations("solve");
@@ -28,6 +51,13 @@ export default function KameraPage() {
   const [refusalReason, setRefusalReason] = useState<string | null>(null);
   const [refusalStatus, setRefusalStatus] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<Candidate[] | null>(null);
+  const [cascadeTranscript, setCascadeTranscript] = useState<CascadeTranscript | null>(null);
+  // ADR-020 / 86eykj7x2: "fon prosesi davam etsin, şagird səhv görüb müdaxilə edərsə
+  // dayandırılsın". Təsdiq ekranı göstərilən KİMİ `/api/solve/finish` FONDA başladılır
+  // (`AbortController` ilə) — şagird düzəliş etsə `abort()` çağırılır, əvəzinə düzəldilmiş
+  // mətnlə YENİ çağırış gedir. `promise` `handleConfirm`-in "düzəliş yoxdur" budağında
+  // GÖZLƏNİLİR — belə desək, fon işi TƏSDİQ üçün lazım olan işin ÖZÜDÜR, təkrar edilmir.
+  const backgroundFinishRef = useRef<{ controller: AbortController; promise: Promise<Record<string, unknown>> } | null>(null);
   // ADR-007 Qat 2/3: kəsilmiş şəkil şagird namizəd seçəndə TƏKRAR göndərilir (`selected_label`
   // ilə) — yeni çəkiliş/kəsmə tələb OLUNMUR. Son uğurlu kəsmə nəticəsini saxlamaq lazımdır ki,
   // `/api/solve`-ə ikinci çağırışda eyni bloblanmış şəkli göndərə bilək.
@@ -74,6 +104,9 @@ export default function KameraPage() {
     setRefusalStatus(null);
     setCandidates(null);
     setCaptured(null);
+    setCascadeTranscript(null);
+    backgroundFinishRef.current?.controller.abort();
+    backgroundFinishRef.current = null;
     lastCroppedRef.current = null;
     const id = uuidv4();
     currentAttemptIdRef.current = id;
@@ -90,6 +123,9 @@ export default function KameraPage() {
     setRefusalReason(null);
     setRefusalStatus(null);
     setCandidates(null);
+    setCascadeTranscript(null);
+    backgroundFinishRef.current?.controller.abort();
+    backgroundFinishRef.current = null;
     setStage("crop");
   }
 
@@ -106,7 +142,7 @@ export default function KameraPage() {
       backToCrop();
       return;
     }
-    void submitSolve(result, candidate.label);
+    void runSolve(result, candidate.label);
   }
 
   async function submitSolve(result: CroppedResult, selectedLabel?: string) {
@@ -209,6 +245,247 @@ export default function KameraPage() {
     }
   }
 
+  // ══════════════════════════════════════════════════════════════════════════════════════
+  // ADR-020 / ClickUp 86eykj7x2 — kaskad UI axını. `submitSolve`-in YANINDA, onu ƏVƏZ
+  // ETMİR (`CASCADE_UI_ENABLED` sönükdə heç vaxt çağırılmır — bax `runSolve` aşağıda).
+  // ══════════════════════════════════════════════════════════════════════════════════════
+
+  function transcriptPayload(t: CascadeTranscript) {
+    return {
+      canonical: t.canonical,
+      subject: t.subject,
+      grade: t.grade,
+      topic_code: t.topicCode,
+      problem_type: t.problemType,
+      ocr_confidence: t.ocrConfidence,
+      detected_language: t.detectedLanguage,
+      has_figure: t.hasFigure,
+    };
+  }
+
+  // `/api/solve/finish`-ə çağırış. `signal` klientdə ləğv edilə bilməsi üçün (şagird
+  // düzəliş edəndə köhnə fon sorğusu DAYANDIRILIR — ClickUp 86eykj7x2-nin məcburi tələbi).
+  async function callFinish(
+    t: CascadeTranscript,
+    canonicalOverride: string,
+    signal: AbortSignal
+  ): Promise<Record<string, unknown>> {
+    const res = await fetch("/api/solve/finish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal,
+      body: JSON.stringify({
+        device_id: getDeviceId(),
+        invite_code: inviteCode ?? "",
+        locale: "az",
+        attempt_id: currentAttemptIdRef.current ?? null,
+        capture_id: t.captureId,
+        transcribe_meta: { cache_hit: t.matchPath === "image_cache", cost_usd: t.meta.costUsd, latency_ms: t.meta.latencyMs },
+        transcript: { ...transcriptPayload(t), canonical: canonicalOverride },
+      }),
+    });
+    return res.json();
+  }
+
+  // Server tərəfi Qat 2-5-i həll edə bilmədi (`status !== "ok"`) VƏ ya şəbəkə xətası —
+  // mövcud "refused" ekranına yönləndirir (backToCrop invariantı ORADA artıq qorunur).
+  function handleFinishFailure(reasonKey: "unreadable" | "network_error") {
+    trackEvent("solve.failed", { reason: reasonKey, http_status: null, attempts: 1 });
+    setRefusalReason(null);
+    setRefusalStatus("unreadable");
+    setStage("refused");
+  }
+
+  function applyFinishResult(body: Record<string, unknown>) {
+    if (body.status && body.status !== "ok") {
+      handleFinishFailure("unreadable");
+      return;
+    }
+    if (!body.canonical || !Array.isArray(body.steps) || body.steps.length === 0) {
+      trackEvent("solve.failed", { reason: "empty_solution", http_status: 200, attempts: 1 });
+      setStage("done");
+      return;
+    }
+    trackEvent("solve.response", {
+      status: "ok",
+      ocr_confidence: cascadeTranscript?.ocrConfidence ?? null,
+      latency_ms: (body.meta as { latency_ms?: number } | undefined)?.latency_ms ?? null,
+      match_path: body.match_path ?? null,
+      cost_usd: (body.meta as { cost_usd?: number | null } | undefined)?.cost_usd ?? null,
+      tokens_in: (body.meta as { tokens_in?: number | null } | undefined)?.tokens_in ?? null,
+      tokens_out: (body.meta as { tokens_out?: number | null } | undefined)?.tokens_out ?? null,
+      step_count: (body.steps as unknown[]).length,
+    });
+    setSolution({ canonical: body.canonical as string, steps: body.steps as SolveResult["steps"] });
+    setSolutionAttemptId(typeof body.attempt_id === "string" ? body.attempt_id : currentAttemptIdRef.current ?? null);
+    setStage("solved");
+  }
+
+  async function submitSolveCascade(result: CroppedResult, selectedLabel?: string) {
+    lastCroppedRef.current = result;
+    setStage("submitting");
+    // eslint-disable-next-line react-hooks/purity -- eyni izah, submitSolve-in üstündəki şərhə bax
+    pendingSince.current = Date.now();
+    trackEvent("solve.requested", { image_bytes: result.blob.size, selected_label: selectedLabel ?? null });
+
+    try {
+      const form = new FormData();
+      form.append("image", result.blob, "problem.jpg");
+      form.append("device_id", getDeviceId());
+      form.append("invite_code", inviteCode ?? "");
+      form.append("grade", "11");
+      form.append("locale", "az");
+      form.append("subject", "math");
+      if (selectedLabel) form.append("selected_label", selectedLabel);
+
+      const res = await fetch("/api/solve/transcribe", { method: "POST", body: form });
+
+      if (res.status === 403) {
+        clearStoredInviteCode();
+        trackEvent("solve.failed", { reason: "invalid_invite", http_status: 403, attempts: 1 });
+        pendingSince.current = null;
+        setInviteError(true);
+        setStage("invite");
+        return;
+      }
+      if (res.status === 429) {
+        const body = await res.json().catch(() => null);
+        trackEvent("limit.blocked", { daily_count: body?.daily_count ?? null });
+        pendingSince.current = null;
+        setStage("done");
+        return;
+      }
+      if (!res.ok) {
+        trackEvent("solve.failed", { reason: "http_error", http_status: res.status, attempts: 1 });
+        pendingSince.current = null;
+        setStage("done");
+        return;
+      }
+
+      const body = await res.json();
+      pendingSince.current = null;
+
+      if (body.status && body.status !== "ok") {
+        trackEvent("refusal.shown", { status: body.status, reason_code: body.status });
+        if (body.status === "multiple_problems" && Array.isArray(body.candidates) && body.candidates.length > 0) {
+          trackEvent("candidates.shown", {
+            count: body.candidates.length,
+            labels_present: body.candidates.every((c: Candidate) => Boolean(c?.label)),
+          });
+          // eslint-disable-next-line react-hooks/purity -- eyni izah, submitSolve-in içindədir.
+          candidatesShownAtRef.current = Date.now();
+          setCandidates(body.candidates);
+          setStage("candidates");
+          return;
+        }
+        setRefusalReason(typeof body.reason === "string" ? body.reason : null);
+        setRefusalStatus(body.status);
+        setStage("refused");
+        return;
+      }
+
+      if (!body.canonical || typeof body.subject !== "string" || typeof body.grade !== "number" || typeof body.topic_code !== "string") {
+        trackEvent("solve.failed", { reason: "empty_solution", http_status: res.status, attempts: 1 });
+        setStage("done");
+        return;
+      }
+
+      const transcript: CascadeTranscript = {
+        captureId: typeof body.capture_id === "string" ? body.capture_id : null,
+        canonical: body.canonical,
+        subject: body.subject,
+        grade: body.grade,
+        topicCode: body.topic_code,
+        problemType: typeof body.problem_type === "string" ? body.problem_type : null,
+        ocrConfidence: typeof body.ocr_confidence === "string" ? body.ocr_confidence : null,
+        detectedLanguage: typeof body.detected_language === "string" ? body.detected_language : null,
+        hasFigure: body.has_figure === true,
+        meta: {
+          latencyMs: body.meta?.latency_ms ?? 0,
+          costUsd: typeof body.meta?.cost_usd === "number" ? body.meta.cost_usd : null,
+        },
+        matchPath: typeof body.match_path === "string" ? body.match_path : "llm",
+      };
+      setCascadeTranscript(transcript);
+      trackEvent("transcript.shown", { ocr_confidence: transcript.ocrConfidence });
+
+      // Fon çağırışı — DƏRHAL, şagird HƏLƏ mətni oxumamış başlayır. `handleConfirm`-in
+      // "düzəliş yoxdur" budağı bunu GÖZLƏYİR, TƏKRAR sorğu GÖNDƏRMİR.
+      const controller = new AbortController();
+      const promise = callFinish(transcript, transcript.canonical, controller.signal).catch(
+        (err) => ({ status: "network_error", __error: err instanceof Error ? err.message : String(err) })
+      );
+      backgroundFinishRef.current = { controller, promise };
+
+      setStage("confirm");
+    } catch {
+      trackEvent("solve.failed", { reason: "network_error", http_status: null, attempts: 1 });
+      pendingSince.current = null;
+      setStage("done");
+    }
+  }
+
+  async function handleConfirm(finalText: string) {
+    if (!cascadeTranscript) return;
+    const corrected = finalText !== cascadeTranscript.canonical;
+    trackEvent("transcript.confirmed", { corrected });
+
+    if (!corrected) {
+      const inFlight = backgroundFinishRef.current;
+      setStage("submitting");
+      if (!inFlight) {
+        // Nəzəri: "confirm" mərhələsinə YALNIZ fon çağırışı başladıqdan sonra keçilir.
+        handleFinishFailure("network_error");
+        return;
+      }
+      try {
+        const body = await inFlight.promise;
+        if (body.__error) {
+          handleFinishFailure("network_error");
+          return;
+        }
+        applyFinishResult(body);
+      } catch {
+        handleFinishFailure("network_error");
+      }
+      return;
+    }
+
+    // Düzəliş edilib — köhnə fon sorğusu artıq YARARSIZDIR, DAYANDIRILIR (86eykj7x2-nin
+    // məcburi tələbi), düzəldilmiş mətnlə YENİ sorğu gedir.
+    trackEvent("transcript.corrected", {});
+    backgroundFinishRef.current?.controller.abort();
+    const controller = new AbortController();
+    setStage("submitting");
+    try {
+      const body = await callFinish(cascadeTranscript, finalText, controller.signal);
+      applyFinishResult(body);
+    } catch {
+      handleFinishFailure("network_error");
+    }
+  }
+
+  function handleReject() {
+    trackEvent("transcript.rejected", {});
+    backgroundFinishRef.current?.controller.abort();
+    if (cascadeTranscript?.captureId) {
+      // Best-effort korpus qeydi — axını BLOKLAMIR (`void`), ClickUp 86eymfg85.
+      void fetch("/api/solve/finish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          device_id: getDeviceId(),
+          invite_code: inviteCode ?? "",
+          capture_id: cascadeTranscript.captureId,
+          rejected: true,
+        }),
+      }).catch(() => {});
+    }
+    backToCrop();
+  }
+
+  const runSolve = CASCADE_UI_ENABLED ? submitSolveCascade : submitSolve;
+
   if (stage === "invite") {
     return (
       <>
@@ -242,12 +519,20 @@ export default function KameraPage() {
 
   if (stage === "crop" && captured) {
     return (
-      <CropView canvas={captured.canvas} onConfirmed={submitSolve} onCancel={() => setStage("capture")} />
+      <CropView canvas={captured.canvas} onConfirmed={runSolve} onCancel={() => setStage("capture")} />
     );
   }
 
   if (stage === "submitting") {
-    return <LoadingView />;
+    // ADR-020: "confirm"-dən sonrakı gözləmə (fon /finish) canonical-ı ARTIQ bilir —
+    // LoadingView-in `questionText` sahəsi (HANDOFF 49 §3a-dan bəri hazır) məhz bunun üçün.
+    return <LoadingView questionText={cascadeTranscript?.canonical} />;
+  }
+
+  if (stage === "confirm" && cascadeTranscript) {
+    return (
+      <TranscriptConfirmView canonical={cascadeTranscript.canonical} onConfirm={handleConfirm} onReject={handleReject} />
+    );
   }
 
   if (stage === "solved" && solution && solutionAttemptId) {
