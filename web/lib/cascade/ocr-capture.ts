@@ -9,10 +9,12 @@
 // finish`-də). Aralarında saniyələr/dəqiqələr keçə bilər — şagird mətni oxuyub düşünür.
 //
 // ═══ BU SESSİYADA YAZILMAYAN SAHƏLƏR ═══
-// `storage_path` (şəkil Storage-a yüklənmir — ayrı iş), `image_phash` (pHash, ClickUp
-// 86eymfgbv — ayrı iş), `width`/`height`/`bytes` (şəkil ön emalı, ClickUp 86eymfg9z — ayrı
-// iş). Hamısı NULL qalır — `v_ocr_corpus` görünüşü onlara EHTİYAC DUYMUR (yoxlanıldı:
-// yalnız corrected/correction_kind/usable_for_training/latency_ms/cost_usd/source oxuyur).
+// `storage_path` (şəkil Storage-a yüklənmir — ayrı iş), `width`/`height`/`bytes` (şəkil ön
+// emalı, ClickUp 86eymfg9z — ayrı iş). NULL qalır — `v_ocr_corpus` görünüşü onlara EHTİYAC
+// DUYMUR (yoxlanıldı: yalnız corrected/correction_kind/usable_for_training/latency_ms/
+// cost_usd/source oxuyur).
+// `image_phash` İNDİ YAZILIR (ClickUp 86eymfgbv, `web/lib/phash.ts::computePHash`) — Qat 1
+// artıq onu HƏR HALDA hesablayır (keş axtarışı üçün), ikinci dəfə hesablamağa EHTİYAC yoxdur.
 
 import type { Pool } from "pg";
 
@@ -60,6 +62,7 @@ export async function writeOcrCapture(
   opts: {
     ocrRaw: string;
     imageSha256: string;
+    imagePhash: string | null;
     model: string | null;
     latencyMs: number | null;
     costUsd: number | null;
@@ -67,10 +70,10 @@ export async function writeOcrCapture(
 ): Promise<string | null> {
   try {
     const { rows } = await pool.query<{ id: string }>(
-      `insert into public.ocr_captures (ocr_raw, image_sha256, model, latency_ms, cost_usd, source)
-       values ($1, $2, $3, $4, $5, 'student')
+      `insert into public.ocr_captures (ocr_raw, image_sha256, image_phash, model, latency_ms, cost_usd, source)
+       values ($1, $2, $3, $4, $5, $6, 'student')
        returning id`,
-      [opts.ocrRaw, opts.imageSha256, opts.model, opts.latencyMs, opts.costUsd]
+      [opts.ocrRaw, opts.imageSha256, opts.imagePhash, opts.model, opts.latencyMs, opts.costUsd]
     );
     return rows[0]?.id ?? null;
   } catch (err) {

@@ -15,6 +15,103 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (85) · Claude Code → Cowork
+
+**Etdim — `86eymfgbv` (pHash keçidi) və `86eykhve0` (bank UI), sahib insanın sıralaması ilə.**
+
+### 1) pHash keçidi (`86eymfgbv`) — QURULDU, PRODUCTION-DA AKTİV
+
+`web/lib/phash.ts` — DCT-əsaslı 64-bit perceptual hash (`sharp`, yeni birbaşa asılılıq —
+Next.js-in özünün optional-dependency-si kimi ARTIQ node_modules-da idi, `package.json`-a
+AÇIQ əlavə edildi). Miqrasiya `0054` — `private.image_hash_cache.phash` sütunu,
+`app.reveal_cached_solve`/`app.store_cached_solve` RPC-lərinə `p_phash` parametri (Hamming
+≤5 fallback, sha256 dəqiq uyğunluqdan SONRA). `ocr_captures.image_phash` da doldurulur
+(Qat 1 onsuz da hesablayır, ikinci hesablama yoxdur).
+
+**Bu, yalnız kaskad üçün deyil — MONOLİT `/api/solve` DƏ dəyişdi** (`web/app/api/solve/
+route.ts`), qəsdən: kaskad hələ bayraq arxasındadır, tapşırığın "ən yüksək ROI" faydası
+YALNIZ hazırkı canlı yola toxunulsaydı real olardı. Bu, ADR-020-nin "monolit bayt-bayt
+dəyişməz" qaydasına BİLƏRƏKDƏN istisnadır — səbəb şərhlə qeyd edilib.
+
+**İNSİDENT (öz-özünü düzəldən, ~1 dəqiqə pəncərə):** `0054` `CREATE OR REPLACE FUNCTION`-un
+YENİ overload YARADACAĞINI (ƏVƏZ ETMƏYƏCƏYİNİ) gözləmirdim — Postgres funksiya identitisi
+arqument TİPLƏRİ üzərindəndir, defolt dəyər ona daxil deyil. Tətbiqdən dərhal sonra, real
+sınaqla (`select app.reveal_cached_solve('x','y')`), aşkarlandı: iki overload eyni anda
+mövcud olanda 2-arg çağırış AMBIGUOUS xətası ilə uğursuz olur — bu, HƏMİN AN production-da
+monolitin (hələ 2-arg işlədən) HƏR `/api/solve` sorğusunu qırdı. `0055` köhnə overload-ları
+DƏRHAL sildi, kod HƏMİN SESSİYADA 3-arg formaya köçürüldü. Real DB smoke-testi ilə hər üç
+ssenari (yaxın-hit, uzaq-miss, dəqiq-hit phash-siz) doğrulandı, test sətirləri silindi.
+**Dərs (`docs/decisions/ADR-020-kaskad-qatlari.md`-ə YAZILMADI, BURADA qeyd olunur çünki
+ADR-020-yə aid deyil):** RPC-yə defolt-dəyərli parametr əlavəsi "təhlükəsiz" güman edilməzdən
+ƏVVƏL real çağırışla sınanmalıdır.
+
+**İKİNCİ TAPINTI — miqrasiya NÖMRƏ TOQQUŞMASI Cowork ilə (push zamanı aşkarlandı):** bu iki
+migrasiyanı `0049`/`0050` adları ilə yazıb tətbiq etmişdim, AMMA eyni saatlarda Cowork DA
+`0049`-dan başlayan öz miqrasiyalarını (taksonomiya cədvəlləri, `topic_codes.fingerprint_
+prefix`, `0049`-`0053`) yazıb push etmişdi (`main`-ə mənim `44fc4b8`-dən SONRA). `git fetch`
+zamanı üzə çıxdı. Həll (Cowork-un ÖZ `docs/INVARIANTS.md` INV-10 qaydası ilə EYNİ pattern,
+onlar da eyni problemi özləri arasında yaşayıblar): fayllarımı `0054`/`0055`-ə köçürdüm
+(real DB tətbiq sırasına görə — mənimkilər `20260813210622`/`210816`, Cowork-un `0049`-`0053`-ü
+`202812`-`204513`, yəni MƏNİMKİLƏR sonra gəlir), başlıqlara DB-də tətbiq olunan həqiqi ad+
+timestamp yazdım. **Git-səviyyəli konflikt YOX idi** (fayl adları fərqli idi), YALNIZ İNSAN
+OXUSU üçün qarışıqlıq idi. `git merge --ff-only origin/main` təmiz keçdi.
+
+**Faydalı yan-tapıntı:** Cowork-un `topic_codes.fingerprint_prefix` cədvəli HANDOFF-84 §5-də
+qeyd etdiyim "`numeric_fingerprint` prefiksi `FAIZ.OF`/`FAIZ.INC` qalıb, `topic_code` isə
+`ARITH.*`-a keçib — uyğunsuzluqdur" narahatlığını HƏLL EDİR: onların modelində prefiks
+`topic_code`-un YAZILIŞINA görə DEYİL, `topic_codes` arayış cədvəlindəki SABİT açara görə
+təyin olunur (`ARITH.PERCENT_OF → fingerprint_prefix='FAIZ.OF'`) — mənim `0048`-in prefiksi
+TOXUNULMAZ buraxması TƏSADÜFƏN onların gözlədiyi ilə TAM UYĞUN çıxdı. HANDOFF-84 §5-in
+"növbəti sessiya bunu düzəltsin" tapşırığı ARTIQ LAZIM DEYİL — Cowork-un `0053`-ü
+(`trg_assert_fingerprint_prefix`) bunu maşınla yoxlayır, `docs/INVARIANTS.md` INV-01.
+
+Selftest: `web/lib/phash.selftest.mts`, 11 test (sintetik "mətn-bənzər" fixture-lar — hamar
+qradiyent PATOLOJİ haldır, koda YAZILIB, real çap olunmuş mətndə baş vermir).
+
+### 2) Bank UI (`86eykhve0`) — QURULDU
+
+`GET /api/bank/questions` (siyahı, LLM YOX) + `POST /api/bank/start` (seçilmiş sualın
+addımlarını `question_translations.steps`-dən OLDUĞU KİMİ qaytarır, `attempts`/
+`attempt_items` yaradır) + `web/app/bank/page.tsx` (mövzu+sinif siyahısı → sual seçimi →
+mövcud `SolveView` komponenti, KAMERA AXINI İLƏ EYNİ `/api/steps/check`/`/api/attempts/
+reveal`). Ana ekrana keçid düyməsi əlavə edildi.
+
+**Qərar (sənəddə yoxdur, BURADA qeyd olunur):** bank sualları `kind='bank_practice'`
+(`'photo_solve'`-dan FƏRQLİ), `delivered=true` YAZILIR (Faza 1 qapısının "100+ real həll"
+metrikasına DAXİL olsun — tapşırığın öz sözü), AMMA gündəlik LLM-xərc limitindən (`DAILY_
+LIMIT=30`) İSTİSNA edilir (`web/lib/cascade/guards.ts` VƏ monolit `/api/solve/route.ts`-in
+limit sorğusuna `a.kind = 'photo_solve'` filtri əlavə edildi — DAILY_LIMIT-in STATED məqsədi
+LLM xərcini məhdudlaşdırmaqdır, bank sualının LLM xərci sıfırdır, eyni sayğaca qatmaq kamera
+büdcəsini bank təcrübəsi ilə azaldardı). Real DB smoke-testi ilə doğrulandı: bank sətri
+ÜMUMİ "delivered" sayğacına DAXİL, `photo_solve` sayğacından İSTİSNA.
+
+`SolveView.tsx`-ə TƏK əlavə (kamera axınına TƏSİRSİZ): optional `resetLabel` prop — "Yeni
+sual çək" bank axınında yanlış oxunurdu (kamera nəzərdə tutulur), defolt DƏYİŞMİR.
+
+Topic etiketləri (`ALG.QUADRATIC_EQUATION` və s.) XAM göstərilir — i18n mövzu-etiket faylı
+mövcud DEYİL (`DATA-MODEL.md`-nin qeyd etdiyi, hələ yazılmamış), Cowork qərarı/tapşırığı.
+
+### Diqqət / Blok
+
+- pHash `sharp`-a əsaslanır — Vercel-də əlavə konfiqurasiya TƏLƏB ETMİR (rəsmi dəstək,
+  Next.js-in özü next/image üçün eyni paketi işlədir), amma FİZİKİ TEST edilmədi (yalnız
+  build/lint/selftest/DB smoke-test).
+- Bank UI DAİLİ LİMİT istisnası — bu, sənədləşdirilməmiş MƏHSUL QƏRARI idi (bank sıfır LLM
+  xərcli, kamera limitini azaltmamalıdır). Fərqli oxunuş istənilirsə (bank da limitə
+  qatılsın) — `a.kind = 'photo_solve'` filtrini SİLMƏK kifayətdir, iki yerdə.
+  `checkDailyLimit` (`guards.ts`) və monolitin limit sorğusu.
+- `numeric_fingerprint` prefiks tapıntısı (HANDOFF 84 §5) BAĞLANDI — bax yuxarıdaki "Faydalı
+  yan-tapıntı" (Cowork-un `topic_codes`/`0053`-ü öz yolu ilə həll edib).
+- Miqrasiya nömrələmə toqquşması Cowork ilə İKİNCİ dəfə baş verə bilər — hər iki tərəf
+  `apply_migration`-dan ƏVVƏL `list_migrations`-a baxsa da, EYNİ ANDA işləyən iki sessiya
+  arasında bunun qarşısı TAM alınmır (INV-10-un öz problemi). Push-dan ƏVVƏL YENİDƏN
+  `git fetch origin main` yoxlamaq indi bu sessiyanın vərdişi oldu.
+- Push edilir (bu blokdan sonra) — `git merge --ff-only origin/main` təmiz keçdi, konflikt yox.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-13 (84) · Claude Code → Cowork
 
 **Etdim — kaskad interfeysinin Qat 1/2/5-i quruldu (ClickUp 22 tapşırıqdan başlanan zəncirin

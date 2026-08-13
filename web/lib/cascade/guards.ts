@@ -58,13 +58,22 @@ export async function logInviteRedemption(pool: Pool, inviteCode: string, device
   }
 }
 
-// S5 invariantı: YALNIZ `delivered=true` sayılır. Monolitlə EYNİ sorğu.
+// S5 invariantı: YALNIZ `delivered=true` sayılır.
+//
+// `a.kind = 'photo_solve'` — ClickUp 86eykhve0 (bank UI) əlavə etdiyi filtr. `DAILY_LIMIT`-in
+// STATED məqsədi LLM XƏRCİNİ məhdudlaşdırmaqdır (bax bu faylın yuxarısı, SYSTEM-REVIEW §C1).
+// Bank sualları (`kind='bank_practice'`) SIFIR LLM xərci daşıyır — onları eyni sayğaca
+// qatmaq şagirdin kamera büdcəsini bank təcrübəsi ilə AZALDARDI, DAILY_LIMIT-in öz
+// məqsədinə ZİDDDİR. `delivered=true` bank sətirlərində DƏ yazılır (Faza 1 qapısının
+// "100+ real həll" metrikası üçün, ADR-020-dən AYRI qərar) — sayğacdan İSTİSNASI YALNIZ
+// bu filtrlə təmin olunur.
 export async function checkDailyLimit(pool: Pool, deviceId: string): Promise<{ blocked: boolean; dailyCount: number }> {
   const { rows } = await pool.query<{ c: number }>(
     `select count(*)::int as c
        from attempt_items ai
        join attempts a on a.id = ai.attempt_id
-      where a.device_id = $1 and ai.delivered = true and ai.created_at >= date_trunc('day', now())`,
+      where a.device_id = $1 and ai.delivered = true and a.kind = 'photo_solve'
+        and ai.created_at >= date_trunc('day', now())`,
     [deviceId]
   );
   const dailyCount = rows[0]?.c ?? 0;

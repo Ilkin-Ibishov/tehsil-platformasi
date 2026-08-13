@@ -14,6 +14,7 @@ import { loadTranscribeTemplates, renderUserPrompt } from "../prompt";
 import { callVisionLLM, type LLMUsage } from "../llm";
 import { computeCostUsd } from "../cost";
 import { validateTranscript } from "../verify/transcribe-schema";
+import { computePHash } from "../phash";
 import type { Refusal, Transcript, Candidate } from "./types";
 
 // Qat 1 üçün ucuz/sürətli model (ClickUp 86eykqb1c). Təyin edilməyibsə bahalı modelə düşür —
@@ -34,8 +35,8 @@ function cacheKeyForTranscript(selectedLabel: string): string {
 }
 
 export type TranscribeOutcome =
-  | { kind: "transcript"; transcript: Transcript; costUsd: number | null; latencyMs: number; usage: LLMUsage | null; cacheHit: boolean }
-  | { kind: "refusal"; refusal: Refusal; costUsd: number | null; latencyMs: number; usage: LLMUsage | null; cacheHit: boolean }
+  | { kind: "transcript"; transcript: Transcript; costUsd: number | null; latencyMs: number; usage: LLMUsage | null; cacheHit: boolean; imagePhash: string | null }
+  | { kind: "refusal"; refusal: Refusal; costUsd: number | null; latencyMs: number; usage: LLMUsage | null; cacheHit: boolean; imagePhash: string | null }
   // Model/sxem uğursuzluğu — imtina DEYİL, XƏTA. Klientə "yenidən cəhd et" göstərilir.
   | { kind: "error"; timedOut: boolean };
 
@@ -109,13 +110,21 @@ export async function transcribe(opts: {
   const { pool, imageHash, selectedLabel } = opts;
   const cacheKey = cacheKeyForTranscript(selectedLabel);
 
-  // --- Keş: eyni foto TƏKRAR gəlsə vision çağırışı ATLANIR (şəbəkə retry-si, ikiqat toxunma,
-  // "yenidən kəs"-dən sonra eyni çərçivə). Keş `private`-dədir, yalnız RPC ilə əlçatandır.
+  // ClickUp 86eymfgbv — pHash, best-effort. Deşifrə uğursuz olsa (korlanmış şəkil, dəstəklənməyən
+  // format) `null` qalır — axtarış AVTOMATIK sha256-yalnız rejiminə düşür (RPC-nin öz defoltu),
+  // axın HEÇ VAXT bunun üstündə BLOKLANMIR.
+  const imagePhash = await computePHash(opts.imageBytes).catch((err) => {
+    console.error("[cascade/transcribe] pHash hesablama xətası (sha256-yalnız keşə davam edilir):", err);
+    return null;
+  });
+
+  // --- Keş: eyni foto TƏKRAR gəlsə (bayt-bayt) VƏ ya VİZUAL OXŞAR gəlsə (pHash Hamming ≤5)
+  // vision çağırışı ATLANIR. Keş `private`-dədir, yalnız RPC ilə əlçatandır.
   const cached = await pool
-    .query<{ reveal_cached_solve: RawTranscript | null }>(`select app.reveal_cached_solve($1, $2) as reveal_cached_solve`, [
-      imageHash,
-      cacheKey,
-    ])
+    .query<{ reveal_cached_solve: RawTranscript | null }>(
+      `select app.reveal_cached_solve($1, $2, $3) as reveal_cached_solve`,
+      [imageHash, cacheKey, imagePhash]
+    )
     .catch((err) => {
       console.error("[cascade/transcribe] keş oxuma xətası:", err);
       return null;
@@ -128,8 +137,8 @@ export async function transcribe(opts: {
       // Keş-hit: LLM çağırılmadı → xərc 0, gecikmə ~DB round-trip. `usage` `null` qalır ki,
       // token hesabatı saxta rəqəmlə çirklənməsin.
       return "transcript" in interpreted
-        ? { kind: "transcript", transcript: interpreted.transcript, costUsd: 0, latencyMs: 0, usage: null, cacheHit: true }
-        : { kind: "refusal", refusal: interpreted.refusal, costUsd: 0, latencyMs: 0, usage: null, cacheHit: true };
+        ? { kind: "transcript", transcript: interpreted.transcript, costUsd: 0, latencyMs: 0, usage: null, cacheHit: true, imagePhash }
+        : { kind: "refusal", refusal: interpreted.refusal, costUsd: 0, latencyMs: 0, usage: null, cacheHit: true, imagePhash };
     }
     console.error("[cascade/transcribe] keşdəki obyekt oxunmadı, LLM-ə keçilir");
   }
@@ -185,12 +194,12 @@ export async function transcribe(opts: {
   // Keşə YAZ — imtinalar da keşlənir (qəsdən): eyni bulanıq şəkil təkrar gəlsə ikinci dəfə
   // pul ödəməyə səbəb yoxdur, cavab dəyişməyəcək.
   await pool
-    .query(`select app.store_cached_solve($1, $2, $3::jsonb)`, [imageHash, cacheKey, JSON.stringify(raw)])
+    .query(`select app.store_cached_solve($1, $2, $3::jsonb, $4)`, [imageHash, cacheKey, JSON.stringify(raw), imagePhash])
     .catch((err) => console.error("[cascade/transcribe] keş yazı xətası:", err));
 
   const costUsd = computeCostUsd(usage, "TRANSCRIBE");
 
   return "transcript" in interpreted
-    ? { kind: "transcript", transcript: interpreted.transcript, costUsd, latencyMs, usage, cacheHit: false }
-    : { kind: "refusal", refusal: interpreted.refusal, costUsd, latencyMs, usage, cacheHit: false };
+    ? { kind: "transcript", transcript: interpreted.transcript, costUsd, latencyMs, usage, cacheHit: false, imagePhash }
+    : { kind: "refusal", refusal: interpreted.refusal, costUsd, latencyMs, usage, cacheHit: false, imagePhash };
 }

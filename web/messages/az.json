@@ -2,7 +2,8 @@
   "home": {
     "greeting": "Salam! Bugün hansı məsələ ilə ilişdin?",
     "cta": "Tapşırığı çək",
-    "ctaSub": "şəkil çək, addım-addım izah al"
+    "ctaSub": "şəkil çək, addım-addım izah al",
+    "bankCta": "Sual bankından məşq et"
   },
   "kamera": {
     "close": "Bağla",
@@ -42,6 +43,16 @@
     "confirmQuestion": "Düzdürmü? Səhvsə düzəlt.",
     "confirmYes": "Düzdür",
     "confirmReject": "Düz deyil — yenidən çək"
+  },
+  "bank": {
+    "title": "Sual bankı",
+    "loading": "yüklənir…",
+    "errorTitle": "Yüklənmədi",
+    "errorRetry": "Yenidən cəhd et",
+    "backToTopics": "mövzulara qayıt",
+    "backHome": "ana ekrana qayıt",
+    "empty": "Hələ heç bir sual yoxdur.",
+    "gradeLabel": "{grade}-ci sinif"
   },
   "invite": {
     "title": "Dəvət kodu",

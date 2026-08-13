@@ -109,6 +109,7 @@ export async function POST(req: NextRequest) {
   const captureId = await writeOcrCapture(pool, {
     ocrRaw: outcome.transcript.canonical,
     imageSha256: imageHash,
+    imagePhash: outcome.imagePhash,
     model: process.env.TRANSCRIBE_MODEL || process.env.GEMINI_MODEL || null,
     latencyMs: Math.round(outcome.latencyMs),
     costUsd: outcome.costUsd,

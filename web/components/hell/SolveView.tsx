@@ -92,7 +92,20 @@ async function checkTransferAnswer(attemptId: string, transferProblemId: string,
 
 type TransferState = "loading" | "shown" | "checking" | "answered" | "unavailable" | "error";
 
-export function SolveView({ solution, attemptId, onReset }: { solution: SolveResult; attemptId: string; onReset: () => void }) {
+export function SolveView({
+  solution,
+  attemptId,
+  onReset,
+  // ClickUp 86eykhve0: bank UI eyni komponenti kamerasız işlədir — "Yeni sual çək" (kameranı
+  // nəzərdə tutur) bank axınında YANLIŞ oxunur. Optional, defolt DƏYİŞMİR — kamera axını
+  // TOXUNULMUR.
+  resetLabel,
+}: {
+  solution: SolveResult;
+  attemptId: string;
+  onReset: () => void;
+  resetLabel?: string;
+}) {
   const t = useTranslations("hell");
   const steps = solution.steps;
   const total = steps.length;
@@ -455,7 +468,7 @@ export function SolveView({ solution, attemptId, onReset }: { solution: SolveRes
               padding: "0 20px",
             }}
           >
-            <span>{t("answer.newProblem")}</span>
+            <span>{resetLabel ?? t("answer.newProblem")}</span>
             <span style={{ fontFamily: "var(--font-mono)" }}>＋</span>
           </button>
         </div>

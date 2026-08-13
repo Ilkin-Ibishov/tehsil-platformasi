@@ -11,6 +11,7 @@ import { transcribe, imageSha256 } from "@/lib/cascade/transcribe";
 import { buildLayers, runCascade } from "@/lib/cascade/run";
 import { persistSolution } from "@/lib/cascade/persist";
 import { sumCostUsd } from "@/lib/cost";
+import { computePHash } from "@/lib/phash";
 
 // POST /api/solve — S3 (docs/PHASE-1.md). Server qaydaları:
 // 1. verified=false həll istifadəçiyə göstərilmir → status:"unreadable".
@@ -213,11 +214,19 @@ export async function POST(req: NextRequest) {
   // 2) Gündəlik limit — YALNIZ çatdırılmış (delivered=true) həllər sayılır (S5 invariantı).
   // `delivered`/`created_at` indi `attempt_items`-dədir (ADR-018 §3a), `device_id` sessiya
   // cədvəlində (`attempts`) qalır — JOIN lazımdır.
+  //
+  // `a.kind = 'photo_solve'` — ClickUp 86eykhve0 (bank UI): DAILY_LIMIT-in STATED məqsədi
+  // LLM xərcini məhdudlaşdırmaqdır (SYSTEM-REVIEW §C1). Bank sualları (`kind='bank_practice'`,
+  // `web/app/api/bank/start/route.ts`) SIFIR LLM xərci daşıyır — eyni sayğaca qatmaq bank
+  // təcrübəsini kamera büdcəsindən ÇALARDI. `web/lib/cascade/guards.ts::checkDailyLimit`-lə
+  // EYNİ filtr (monolit "bayt-bayt dəyişməz" qaydasına pHash-lə EYNİ sinif istisna —
+  // sayğacın öz STATED məqsədini düzəldir, davranışı özbaşına genişləndirmir).
   const { rows: limitRows } = await pool.query(
     `select count(*)::int as c
        from attempt_items ai
        join attempts a on a.id = ai.attempt_id
-      where a.device_id = $1 and ai.delivered = true and ai.created_at >= date_trunc('day', now())`,
+      where a.device_id = $1 and ai.delivered = true and a.kind = 'photo_solve'
+        and ai.created_at >= date_trunc('day', now())`,
     [deviceId]
   );
   const dailyCount = limitRows[0]?.c ?? 0;
@@ -442,6 +451,17 @@ export async function POST(req: NextRequest) {
   // kadrda aşkarlama-yalnız vs. seçilmiş məsələnin həlli) — keş açarı hər ikisini əhatə edir.
   const cacheKey = typeof selectedLabel === "string" && selectedLabel ? selectedLabel : "";
 
+  // ClickUp 86eymfgbv (pHash) — ADR-020-nin "monolit bayt-bayt dəyişməz qalır" qaydasına
+  // QƏSDƏN İSTİSNA: bu qayda kaskad SPLİTİNİN (CASCADE_ENABLED) risk idarəsi üçün idi, pHash
+  // isə HAZIRKI YEGANƏ CANLI yolun (bu route) öz keş dəyərini artırır — kaskad hələ bayraq
+  // arxasındadır, ona görə bura toxunmasaydıq tapşırığın "ən yüksək ROI" faydası HEÇ VAXT
+  // real istifadəçiyə çatmazdı. Dəyişiklik ƏLAVƏLİDİR (yeni parametr, defolt NULL) — sxem
+  // pozulmur, `reveal`/`store` RPC-ləri geriyə-uyğundur (bax `0054`/`0055`).
+  const imagePhash = await computePHash(imageBytes).catch((err) => {
+    console.error("[/api/solve] pHash hesablama xətası (sha256-yalnız keşə davam edilir):", err);
+    return null;
+  });
+
   let parsed: StepSchemaOutput | null = null;
   let usage = null;
   let latencyMs = 0;
@@ -450,11 +470,12 @@ export async function POST(req: NextRequest) {
   let timedOut = false;
 
   // Şəkil-hash keşi (HANDOFF 81, ClickUp): eyni şəkil TƏKRAR gəlsə (şəbəkə xətasından sonra
-  // retry, ikiqat toxunma) real LLM çağırışı ATLANIR. Keş `private` sxemində, YALNIZ bu 2
-  // RPC ilə əlçatandır (bax `0045`-in şərhi) — cavab burada saxlanır, adi `SELECT`-lə YOX.
+  // retry, ikiqat toxunma) VƏ ya VİZUAL OXŞAR gəlsə (pHash Hamming ≤5, ClickUp 86eymfgbv)
+  // real LLM çağırışı ATLANIR. Keş `private` sxemində, YALNIZ bu 2 RPC ilə əlçatandır
+  // (bax `0045`-in şərhi) — cavab burada saxlanır, adi `SELECT`-lə YOX.
   const { rows: cacheRows } = await pool.query<{ reveal_cached_solve: StepSchemaOutput | null }>(
-    `select app.reveal_cached_solve($1, $2) as reveal_cached_solve`,
-    [imageHash, cacheKey]
+    `select app.reveal_cached_solve($1, $2, $3) as reveal_cached_solve`,
+    [imageHash, cacheKey, imagePhash]
   );
   if (cacheRows[0]?.reveal_cached_solve) {
     parsed = cacheRows[0].reveal_cached_solve;
@@ -491,7 +512,7 @@ export async function POST(req: NextRequest) {
 
     if (parsed) {
       await pool
-        .query(`select app.store_cached_solve($1, $2, $3::jsonb)`, [imageHash, cacheKey, JSON.stringify(parsed)])
+        .query(`select app.store_cached_solve($1, $2, $3::jsonb, $4)`, [imageHash, cacheKey, JSON.stringify(parsed), imagePhash])
         .catch((err) => console.error("[/api/solve] image_hash_cache yazı xətası:", err));
     }
   }

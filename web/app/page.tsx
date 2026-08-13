@@ -74,6 +74,32 @@ export default function HomePage() {
         </span>
         <span style={{ fontFamily: "var(--font-mono)", fontSize: 22 }}>→</span>
       </button>
+
+      {/* ClickUp 86eykhve0: bankın 217 sualı kameraDAN AYRI giriş nöqtəsi tələb edir —
+          onsuz Faza 1 qapısının "100+ real həll" metrikası yalnız kamera axınından yığılır. */}
+      <button
+        type="button"
+        onClick={() => router.push("/bank")}
+        style={{
+          width: "100%",
+          minHeight: 56,
+          border: "1px solid var(--bor)",
+          borderRadius: "var(--rad)",
+          background: "transparent",
+          color: "var(--t1)",
+          fontFamily: "inherit",
+          fontSize: 15,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 20px",
+          marginBottom: "12px",
+        }}
+      >
+        <span>{t("bankCta")}</span>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 18, color: "var(--t3)" }}>→</span>
+      </button>
     </main>
   );
 }
