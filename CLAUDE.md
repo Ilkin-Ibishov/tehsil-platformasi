@@ -38,6 +38,13 @@ Production təhlükəsizlik auditindən (HANDOFF 79/80) çıxan, təkrarlanmamas
    yoxla.** Cədvəl/funksiya adına baxıb təsir çıxarmaq səhvdir — məs. `resolve_translation` (0016)
    DB-də mövcuddur, amma HEÇ bir cari API route onu çağırmır (hamısı `qt.lang = 'az'` hardcode
    sorğusu işlədir); onun ACL-i qırılsa da canlı S4/S5 yolu pozulmazdı.
+5. **Constraint/trigger yazmazdan əvvəl həmin cədvələ YAZAN kodu oxu** (2026-08-13, 0049→0050).
+   `questions`-a `topic_code` FK-si və fingerprint prefiks trigger-i əlavə edildi — `persist.ts`
+   oxunmadan. Halbuki `user_capture` sətirləri prefiksiz fingerprint yazır və `topic_code` LLM-dən
+   gəlir (AÇIQ çoxluq). Hər ikisi produksiyada 500 verərdi. Kodu oxumaq miqrasiya yazmaqdan ucuzdur.
+6. **Şagird axınında olan cədvəldə sərt rədd etmə — öz-özünü sağaldan qeydiyyat işlət.** Naməlum
+   `topic_code`/`error_code` insert-i dağıtmır; `active=false, needs_review=true` ilə qeydə alınır
+   və `v_taxonomy_review`-da görünür. Anomaliya görünür qalır, şagird isə qırılmır.
 
 ## Fayl sahibliyi — tək mənbə qaydası
 
@@ -56,6 +63,7 @@ Production təhlükəsizlik auditindən (HANDOFF 79/80) çıxan, təkrarlanmamas
 | Gələcək ideyalar | `docs/FUTURE-IDEAS.md` | Cowork — **tapşırıq deyil, kod yazma** |
 | Faza 1 planı və API müqaviləsi | `docs/PHASE-1.md` | Cowork |
 | Telemetriya hadisələri | `docs/TELEMETRY.md` | Cowork — **dəyişməz taksonomiya** |
+| Maşınla yoxlanan invariantlar | `docs/INVARIANTS.md` | Cowork |
 
 **Heç vaxt:** dizayn tokenini komponentin içində hardcode etmə. `DESIGN-TOKENS.json` → CSS custom
 property → komponent. Səbəb: mövcud 9 dizayn faylında eyni token 3 fərqli dəyərdə idi
