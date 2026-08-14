@@ -4,3 +4,4 @@ httpx>=0.27
 python-dotenv>=1.0
 pillow>=10.0
 pillow-heif>=0.15
+pymupdf>=1.24  # scripts/pdf_to_golden_set.py — PDF-dən golden-set qurma (HANDOFF 104/105)

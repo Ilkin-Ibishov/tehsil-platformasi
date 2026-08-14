@@ -86,6 +86,33 @@ Hər sətir bir JSON obyekti:
 | **Xərc / həll** | token sayı × qiymət | ölçülüb qeyd edilir |
 | **Latensiya** | uçdan-uca, YALNIZ son cəhd (retry gözləməsi daxil deyil) | ölçülüb qeyd edilir |
 
+## PDF-dən avtomatlaşdırılmış golden-set (HANDOFF 104/105, 2026-08-15)
+
+Əl ilə 30 şəkil çəkmək (yuxarıdakı bölmə) YEGANƏ yol deyil — Ilkin real DIM test toplusu PDF-i
+tapdı (`100 test. Riyaziyyat..pdf`, 100 sual + cavab açarı). `scripts/pdf_to_golden_set.py`
+bunu **LLM çağırışı OLMADAN** (tamamilə mətn-mövqeyi əsaslı proqram məntiqi) sual-sual kəsib
+`evals/golden-set-<ad>.jsonl` + `evals/images/<ad>/qNNN.png` yaradır. Yalnız FAKTIKI
+`--pipeline B` çağırışı token xərcləyir.
+
+```bash
+pip install pymupdf
+python scripts/pdf_to_golden_set.py \
+  --pdf "path/to/test-toplusu.pdf" \
+  --question-pages 0-7 --answer-key-pages 8-9 \
+  --out-name dim-100test-2025 --grade 11 --subject math
+python scripts/eval.py --pipeline B --set evals/golden-set-dim-100test-2025.jsonl
+```
+
+`evals/golden-set-dim-100test-2025.jsonl` (99 sual — `q098` xaric edildi, fiqurların öz
+koordinatları mətn axınından kənara düşüb, kəsmə natamam çıxdı, `scripts/pdf_to_golden_set.py`-in
+öz başlığındakı məhdudiyyət qeydinə bax) commit edilib. Şəkillər (`evals/images/`) HƏMİŞƏ
+gitignored — orijinal PDF-in ÖZÜ də repo-ya qoyulmur (ADR-003).
+
+**Xərc:** ~99 sual × 1 vision çağırışı (tək-çağırış memarlığı, ADR-001) — əvvəlki ölçmələrə
+görə (`~$0.013/sual`) tam dəst ~$1.3. Böyük dəyişiklikdən sonra hamısını YOX, əvvəlcə kiçik
+partiya (`--set` faylını əl ilə bölərək və ya gələcək bir `--limit` bayrağı ilə) işlətmək
+tövsiyə olunur.
+
 ## Müqayisə ediləcək boru xətləri
 
 1. **A** — Texo (ONNX) → LaTeX → mətn LLM → sxem

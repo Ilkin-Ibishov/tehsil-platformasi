@@ -15,6 +15,51 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (105) · Claude Code → Cowork
+
+**Etdim — Ilkin PDF tapdı (`100 test. Riyaziyyat..pdf`, öz Downloads qovluğundan), Scribd-in
+əvəzinə avtomatlaşdırılmış golden-set boru xəttini QURDUM VƏ İCRA ETDİM.**
+
+- **`scripts/pdf_to_golden_set.py`** — YENİ, təkrar istifadə oluna bilən CLI. PyMuPDF ilə
+  PDF-i açır, sual nömrələrini (1..N) İKİ SÜTUNLU səhifə düzülüşündə mətn-mövqeyi əsasında
+  (LLM YOX) ARDICIL tapır, hər sualı öz sütununda NÖVBƏTİ sualın mövqeyinə qədər kəsir,
+  cavab açarı səhifələrini `\d{1,3}-[A-E]` naxışı ilə parse edir, `evals/golden-set-<ad>.
+  jsonl` + `evals/images/<ad>/qNNN.png` yazır. **Sıfır LLM çağırışı bu mərhələdə** — token
+  xərci YALNIZ sonrakı `scripts/eval.py --pipeline B` addımında yaranır.
+- **İcra edildi:** `100 test. Riyaziyyat..pdf` (10 səhifə, 100 sual, cavab açarı səh. 8-9) →
+  100/100 sual nömrəsi ARDICIL tapıldı, 100/100 cavab HƏRFİ ziddiyyətsiz parse edildi. Kəsmə
+  99/100 sualda TƏMİZ çıxdı (əl ilə 5 nümunə yoxlanıldı: sadə funksiya, qrafik-seçimli
+  (`y=|x-1|+1`), Venn diaqramı, konus/silindr kəsiyi). **`q098` XARİC EDİLDİ** — kəsik
+  konusun A-E fiqurları mətn axınının kənarına düşüb, kəsmə qutusu boş çıxdı (script-in öz
+  başlığındakı bilinən məhdudiyyət, avtomatik aşkarlanmır).
+- **`evals/golden-set-dim-100test-2025.jsonl`** (99 sual) commit edildi — `id`/`image`/
+  `expected_choice`/`grade`/`subject`/`source` (yalnız fayl adı+sual№, sual MƏTNİ YOX).
+  `evals/images/dim-100test-2025/` (99 PNG) gitignored qalır, ORİJİNAL PDF repo-ya
+  KOPYALANMADI (ADR-003-ün ruhu — DİM mətni saxlanmır, yalnız hansı variantın düzgün
+  olduğu).
+- **`evals/README.md`** yeni bölmə: işə salma əmri, xərc təxmini (~99×$0.013 ≈ $1.3 tam
+  dəst, kiçik partiyalarla başlamaq tövsiyəsi).
+
+**Doğrulama:** 5 nümunə əl ilə vizual yoxlanıldı (screenshot-la), sual nömrələri 1-100 heç
+bir boşluq/təkrar olmadan tapıldı, cavab açarı 0 ziddiyyətlə parse edildi.
+
+**Diqqət:**
+- Bu, YALNIZ dataset HAZIRLIĞIDIR — real `scripts/eval.py --pipeline B --set evals/
+  golden-set-dim-100test-2025.jsonl` çağırışı bu sessiyada EDİLMƏDİ (bu sandbox-da real
+  `GEMINI_API_KEY` yoxdur, HANDOFF 92-dən bəri məlum məhdudiyyət). **Ilkin özü işlətməlidir**
+  (əsas checkout-dakı `.env`-lə, blok 93-dəki A/B test kimi) VƏ ya mənə API açarı təqdim
+  etməlidir.
+- `q098` xaric edilməsi MÜVƏQQƏTİDİR — istəyən kim isə PDF-in özündən əl ilə bir dəfə kəsib
+  geri əlavə edə bilər (`evals/images/dim-100test-2025/q098.png`-i düzəldib jsonl-a bir sətir
+  əlavə etməklə).
+- Bu 99 sual n≥30 qapı guard-ını KEÇİR (`scripts/eval.py`-in öz "QAPI ÖLÇÜLƏ BİLMƏZ" xəbərdarlığı
+  ARTIQ ÇIXMAYACAQ) — Faza 0-ın ilk REAL statistik əhəmiyyətli ölçməsi ola bilər, əgər
+  Ilkin bunu işlədərsə.
+
+**Blok:** real eval run Ilkin-in əl işidir (API açar sandbox-da yoxdur).
+
+---
+
 ## 2026-08-15 (104) · Claude Code → Cowork
 
 **Etdim — Ilkin-in birbaşa tapşırığı (blok 103-ün davamı olaraq): case-sensitivity bug-ı,
