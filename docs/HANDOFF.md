@@ -15,6 +15,45 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (101) · Claude Code → Cowork
+
+**Etdim — S7 (86eymwgmk), iki kiçik mina.**
+
+**1) `app_config.active_transcribe_model` boş sətir — TƏKRAR YOXLANILDI, KOD DƏYİŞMƏDİ.**
+`web/lib/models.ts::getActiveTranscribeModel` oxundu: `if (fromDb) return fromDb;` —
+JS-də boş sətir (`""`) FALSY-dir, bu şərt onsuz da `env` fallback-ına düşür. `models.
+selftest.mts`-də bu HAL DƏQİQ test edilib ("DB sətri boşdursa TRANSCRIBE_MODEL env-ə
+düşür") və keçir. `app_config.value` sütunu `NOT NULL`-dur (boş sətri `NULL`-a çevirmək
+cəhdi constraint-lə RƏDD OLUNDU) — yəni boş sətir DB-nin ÖZ SENTINEL-idir ("override
+yoxdur"), bug DEYİL, dizayn qərarıdır. **Blok 95-in "boş model ID API-yə gedə bilər"
+qorxusu yoxlanıldı və TƏSDİQLƏNMƏDİ** — kod artıq (bu sessiyadan ƏVVƏL) düzgün yazılıb.
+
+**2) `topic_codes`/`error_codes` RLS — DÜZƏLDİLDİ.** `supabase/migrations/
+0061_taxonomy_tables_rls.sql`, production-a tətbiq edildi:
+- Hər iki cədvəldə RLS aktivləşdirildi.
+- `app_runtime` üçün TAM (select+insert+update) policy — `0052`-nin öz-özünü sağaldan
+  trigger-ləri (`register_topic_code`/`register_error_code`) hər naməlum kod gələndə bu
+  cədvəllərə INSERT edir, policy olmadan RLS bunu BLOKLAYARDI.
+- **`anon`/`authenticated` üçün policy ƏLAVƏ EDİLMƏDİ** — CLAUDE.md gate-78 dərsi 4-ə görə
+  (spekulyativ genişləndirmə yox) yoxlandı: `information_schema.role_table_grants`-da bu
+  iki rola HEÇ bir GRANT yoxdur, yəni RLS söndürülməsi advisor-un ancaq DEFANS-DƏRİNLİYİ
+  tövsiyəsi idi (gələcək bir `grant select...to anon` RLS backstop-suz dərhal açardı),
+  hazırda real giriş yolu yoxdur. `get_advisors(security)` ilə təsdiqləndi: hər iki
+  cədvəlin "RLS disabled" xəbərdarlığı ARTIQ SİYAHIDA YOXDUR.
+
+**Doğrulama:** Supabase advisors (security) yenidən çağırıldı — `topic_codes`/`error_codes`
+üçün heç bir RLS xəbərdarlığı qalmadı (qalan xəbərdarlıqlar bu tapşırığa AİD DEYİL —
+`function_search_path_mutable` 3 funksiyada, `rls_enabled_no_policy` 4 `private.*` cədvəldə,
+hər ikisi ayrı, əvvəldən mövcud, kiçik səviyyəli tapıntılardır).
+
+**Diqqət:**
+- `function_search_path_mutable` (`assert_fingerprint_prefix`, `register_topic_code`,
+  `register_error_code`) və `private.*`-də 4 "RLS enabled no policy" (bunlar YALNIZ RPC
+  ilə əlçatandır, INFO səviyyəli, gözlənilən) bu tapşırığın ƏHATƏSİNDƏN KƏNARDIR —
+  toxunulmadı, qeyd üçün yazılır ki, gələcək bir təhlükəsizlik keçidi bunları görsün.
+
+---
+
 ## 2026-08-14 (100) · Claude Code → Cowork
 
 **Etdim — S6 (86eymwgma), `check.ask` öz addımına uyğunlaşdırılması (prompt).**
