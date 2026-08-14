@@ -47,9 +47,18 @@ Bu ayrım paywall dizaynını təyin edir: şagird "Valideynə göndər" düymə
 | Break-even | keş hit-i olmadan belə ~600 həll/ay |
 
 ⚠️ **BU HESABLAMA SƏHV İDİ — `ADR-001` hökmü (2026-08-06) onu ləğv etdi.**
-Real ölçmə: **$0.0167/həll** (`gemini-3.6-flash`, giriş 5234 token, çıxış thinking daxil).
-Abunə 200 həlldən sonra zərərə keçir. Keş **xərc üçün də lazımdır** — keyfiyyət və
-latensiya üçün olduğu qədər. Detallar və azaldıcılar: `ADR-001` → "İki açıq risk".
+Real ölçmə: **$0.0167/həll** (`gemini-3.6-flash`, giriş 5234 token, çıxış thinking daxil,
+**$1.50/$7.50 per-1M qiymətilə hesablanıb**). Abunə 200 həlldən sonra zərərə keçir. Keş
+**xərc üçün də lazımdır** — keyfiyyət və latensiya üçün olduğu qədər. Detallar və azaldıcılar:
+`ADR-001` → "İki açıq risk".
+
+⚠️ **QİYMƏT KÖHNƏLDİ (2026-08-14 əlavəsi, `ADR-022`):** Google-un rəsmi qiymət səhifəsi
+birbaşa yoxlanıldı — `gemini-3.6-flash`-ın HAZIRKI (2026-12-31-ə qədər) qiyməti $0.75/$3.75,
+YOX yuxarıdakı $1.50/$7.50. Eyni token sayı ilə real hazırkı xərc **~$0.0084/həll** —
+break-even nöqtəsi ~400 həll/aya qalxır. **2027-01-01-də qiymət ikiqat olur, $0.0167 yenidən
+düzgün olur.** Model seçimi artıq bu faylda deyil, DB-də (`public.app_config.active_model`,
+`ADR-023`) — redeploy-suz dəyişdirilə bilər, bu köhnə ölçmə fərqli model üçün etibarsız ola
+bilər. Cari xərci `attempt_items.cost_usd`-dan real ölç, bu faylın rəqəminə güvənmə.
 
 ---
 

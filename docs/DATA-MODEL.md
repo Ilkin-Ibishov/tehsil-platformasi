@@ -2,6 +2,15 @@
 
 Supabase / Postgres. Miqrasiyalar `supabase/migrations/` altında (Faza 1-də yaradılacaq).
 
+> ⚠️ **KÖHNƏLMƏ XƏBƏRDARLIĞI (2026-08-14 əlavəsi):** bu fayl ERKƏN DİZAYN sənədidir —
+> `problems`/`solutions` adları faktiki miqrasiyalarda (`0014`, `0020`) `questions`/
+> `question_translations`/`attempt_items` kimi YENİDƏN ADLANDIRILIB, `match_path`
+> siyahısına sonradan `template`/`image_cache` əlavə olunub (`ADR-021`, `0045`). Bu sənəd
+> HƏLƏ real sxemlə tam sinxronlaşdırılmayıb — konkret sütun adı/tip lazımdırsa
+> `supabase/migrations/*.sql`-ə birbaşa bax, bura yalnız KONSEPSIYA üçün etibarlıdır.
+> Tam yenidən yazma ayrı iş kimi qalır, bu əlavə yalnız gələcək sessiyanın kor-koranə
+> köhnə ad işlətməsinin qarşısını almaq üçündür.
+
 ## Prinsip
 
 Bazada **iki ayrı şey** var və qarışdırılmamalıdır:
@@ -128,16 +137,34 @@ Səhv xəritəsinin və valideyn hesabatının **yeganə** mənbəyi.
 
 ---
 
+## `app_config` — runtime konfiqurasiya (`ADR-023`, `0056`, real sxem)
+
+Key/value cədvəli, `public` sxemində (sirr deyil, `error_codes`/`topic_codes` kimi arayış
+datası). Redeploy-suz dəyişdirilə bilən dəyərlər üçün — indi yalnız model seçimi:
+
+| `key` | `value` nümunəsi | qeyd |
+|---|---|---|
+| `active_model` | `gemini-3.7-flash` | `web/lib/models.ts`-in `getActiveModel`-i oxuyur, boşdursa `GEMINI_MODEL` env-ə düşür |
+| `active_transcribe_model` | `` (boş = `active_model`-i işlət) | Qat 1 üçün, `TRANSCRIBE_MODEL` env-dən sonra sıradadır |
+
+`app_runtime`-ın YALNIZ `SELECT`-i var (gate-78 dərsi) — yazı birbaşa SQL-lə (Claude Code/
+Cowork) və ya gələcək admin RPC-lə. Bax `ADR-022` (qiymət registrisi) + `ADR-023` (bu cədvəl).
+
 ## Uyğunlaşdırma axını (`match_path`)
 
 ```
+şəkil hash/pHash keşdə var?          → image_cache (0 xərc, `0045`)
 canonical_hash bərabər?              → hash        (0 xərc, <50ms)
 numeric_fingerprint + type bərabər?  → fingerprint (0 xərc, <80ms)
-embedding oxşarlığı > 0.90?          → embedding   (~0 xərc, <200ms)
+tənlik şablonuna oturur (3 tip)?     → template    (0 xərc, `ADR-021`, hələ Cowork təsdiqi gözləyir)
+embedding oxşarlığı > 0.90?          → embedding   (~0 xərc, qurulmayıb)
 heç biri                             → llm         (yeni həll, verified=false → sympy → true)
 ```
 
-`attempts.match_path` paylanması **əsas xərc metrikasıdır**. Hədəf: 3 aydan sonra `llm` payı < 30%.
+`attempt_items.match_path` paylanması **əsas xərc metrikasıdır**. Hədəf: 3 aydan sonra `llm`
+payı < 30%. (Sütun/cədvəl adı `attempts`→`attempt_items` dəyişib, yuxarıdakı köhnəlmə
+xəbərdarlığına bax — `image_cache`/`template` real `MatchPath` enum-unda var, `web/lib/
+cascade/types.ts`, embedding hələ kodda YOXDUR.)
 
 ## Ölçmə — birinci həlldən əvvəl qurulmalıdır
 

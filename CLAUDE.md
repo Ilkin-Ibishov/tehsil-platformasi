@@ -106,7 +106,12 @@ Folder: `901815897469` · Space: `901810230629` · Workspace: `90182536078`
 - **Vercel** — deploy
 - **sympy** — cavab yoxlanışı. **Eval və istehsalat eyni məntiqi işlətməlidir** —
   iki nüsxə olarsa, ölçdüyümüz şeylə buraxdığımız şey ayrılır.
-- **Vision LLM** — `gemini-3.6-flash`, OpenAI-uyğun endpoint. Açar **YALNIZ serverdə**.
+- **Vision LLM** — Gemini ailəsi, OpenAI-uyğun endpoint. Açar **YALNIZ serverdə**. Model adı
+  artıq koddan/env-dən HARDCODE DEYİL — `ADR-022`/`ADR-023`: `public.app_config.active_model`
+  (DB, redeploy-suz dəyişdirilir) → yoxdursa `GEMINI_MODEL` env → registri defoltu. Qiymət
+  (`web/lib/models.ts`) modelin ÖZÜ ilə eyni yerdə yaşayır ki, model dəyişəndə unudulmasın.
+  Cari aktiv modeli bilmək üçün DB-yə bax (`select value from public.app_config where
+  key='active_model'`), bu faylı YOX — həmişə köhnəlmə riski var.
 - ~~Texo (ONNX)~~ — **silindi**, `ADR-001` HÖKM. B tək çağırışda OCR+həll edir; latensiyanın
   səbəbi OCR deyil, modelin thinking rejimidir, Texo onu həll etmir.
 

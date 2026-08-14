@@ -149,3 +149,12 @@ uğursuzluq deyil.
   Texo yalnız ölçülmüş fayda verərsə qalır.
 - **Mathpix + mətn LLM:** iki server gedişi, əlavə xərc, Texo-nun məxfilik üstünlüyü yoxdur.
 - **Öz modelini öyrətmək:** bu mərhələdə absurd. Heç vaxt qayıtma.
+
+## Əlavə 2026-08-14 — model artıq hardcode deyil
+
+Yuxarıdakı ölçmə (`gemini-3.6-flash`) hələ də doğru TARİXİ qeyddir — silinmir. Amma o vaxt
+"vision LLM" = "gemini-3.6-flash, kod/env-ə yazılıb" demək idi, indi belə DEYİL: `ADR-022`/
+`ADR-023` model seçimini DB-yə (`public.app_config.active_model`) köçürüb, redeploy-suz
+dəyişdirilə bilir. Bu ADR-in "Faza 0 qapısı" ölçüləri (dəqiqlik ≥85% və s.) HANSI modellə
+ölçülübsə yalnız O model üçün etibarlıdır — model DB-də dəyişəndə həmin qapı YENİDƏN
+ölçülməli, köhnə nəticəyə güvənilməməlidir.

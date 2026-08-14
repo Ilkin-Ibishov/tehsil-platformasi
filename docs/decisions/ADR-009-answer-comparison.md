@@ -100,3 +100,8 @@ başlayacaqdıq.
 `c03`-də model yalnız `["D"]` qaytardı, riyazi ifadəni yox. `choice` sahəsi ilə bu,
 `expected_choice`-a qarşı yoxlanacaq — amma **`values` boş qalmamalıdır**. Prompt
 indi bunu tələb edir; növbəti run-da yoxlanacaq.
+
+## Əlavə 2026-08-14
+
+Bu sənəddəki `gemini-3.6-flash` qeydi tarixi test run-un TƏSVİRİDİR, cari konfiqurasiya
+DEYİL — `ADR-023`-dən sonra aktiv model `public.app_config`-dədir, redeploy-suz dəyişə bilər.

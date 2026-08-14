@@ -42,7 +42,15 @@ a secondary concern relative to this one.
 > Xərc — $0.0167/həll, abunə 200 həlldən sonra zərərdə.
 
 Marginal cost per LLM-solved problem, and the break-even point stated directly by the
-product owner. Two mitigations already exist in the codebase — check their actual
+product owner. **This number is stale as of 2026-08-14 (`ADR-022`)** — it was computed at
+$1.50/$7.50 per-1M-token pricing; Google's actual current price (verified directly against
+their pricing page) is $0.75/$3.75 through 2026-12-31, so real current marginal cost is
+roughly half (~$0.0084/solve), doubling back on 2027-01-01. **More importantly, the active
+model is no longer fixed in code** — `ADR-023` moved model selection to
+`public.app_config.active_model` (DB, changeable without a redeploy). Don't quote
+"gemini-3.6-flash" as the current model without checking that table first; don't quote
+$0.0167 as current cost without checking `attempt_items.cost_usd` for the actual active
+model's real usage. Two mitigations already exist in the codebase — check their actual
 effectiveness rather than assuming they work:
 - **Bank cache** (`questions`/`question_translations`, `web/lib/cascade/bank.ts`) — a
   solve that matches an existing bank question costs $0 in LLM calls. `ADR-020`

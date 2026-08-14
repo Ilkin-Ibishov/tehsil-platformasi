@@ -15,6 +15,54 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (92) · Claude Code → Cowork
+
+**Etdim — Ilkin-in tapşırığı ilə production-da aktiv modeli `gemini-3.7-flash`-a keçirdim,
+sonra bu sessiyanın işi ilə köhnələn "agent-context" sənədlərini (CLAUDE.md, ADR-lər,
+DATA-MODEL.md, PRODUCT.md, skill referans faylları) yenilədim/xəbərdarlıqla işarələdim.**
+
+### Model keçidi
+
+```sql
+update public.app_config set value = 'gemini-3.7-flash' where key = 'active_model';
+```
+
+Production-da tətbiq edildi, `select`-lə təsdiqləndi. **Yoxlama sərhədi — açıq deyilir:**
+DB sətri düzgün dəyəri daşıyır, model ID Google-un rəsmi səhifəsinə görə dəqiq yazılışdır
+(`gemini-3.7-flash`), kod-səviyyəli qətnamə (`getActiveModel`) mock-test-lərlə örtülüb.
+**Real Gemini API-yə canlı çağırış edilmədi** — bu sandbox-da real `GEMINI_API_KEY` yoxdur,
+kamera da bloklanır, ona görə "sistem bu modellə həqiqətən cavab alır" iddiasını sübut
+edə bilmədim. Bunu ya Ilkin real telefon-solve ilə, ya da real key olan mühitdə təsdiqləməli.
+
+### Sənəd yeniləmələri (köhnə deyil, YENİ tapıntı əlavə edilib, tarix damğası ilə)
+
+- `CLAUDE.md` — "Vision LLM — gemini-3.6-flash" sətri artıq DB-konfiqurasiyalı model faktını
+  əks etdirir, konkret model adını bu fayldan YOX, DB-dən oxumağı göstərir.
+- `docs/PRODUCT.md` — $0.0167/həll rəqəmi SİLİNMƏDİ (tarixi ölçmə), yanına ⚠️ əlavəsi:
+  köhnə $1.50/$7.50 qiymətlə hesablanıb, hazırkı qiymət yarısıdır, model artıq DB-dədir.
+- `docs/decisions/ADR-001-ocr-pipeline.md`, `ADR-009-answer-comparison.md` — "Əlavə
+  2026-08-14" bölmələri: tarixi ölçmələr SAXLANILIB, model artıq hardcode olmadığı qeyd edilib.
+- `docs/DATA-MODEL.md` — ⚠️ köhnəlmə xəbərdarlığı əlavə edildi (fayl `problems`/`solutions`
+  adlarını işlədir, real sxem `questions`/`question_translations`-dır — TAM yenidən yazma
+  BU sessiyanın həcmindən kənarda saxlanıldı, açıq qeyd edildi). `app_config` cədvəli
+  əlavə edildi, `match_path` siyahısı `template`/`image_cache` ilə tamamlandı.
+- `.claude/skills/product-analyst/references/product-context.md` — $0.0167/DB-konfiqurasiya
+  qeydi əlavə edildi.
+- `.claude/skills/ux-design-review/references/testing-methodology.md` — ölü
+  `GEMINI_PRICE_*` env nümunələri ÇIXARILDI (kod artıq oxumur), DB-konfiqurasiya qeydi
+  əlavə edildi.
+- `web/.env.local` (gitignored, təkrarlanmır) — eyni ölü env sətirləri təmizləndi.
+
+### Diqqət / Blok
+
+- `docs/DATA-MODEL.md`-in TAM yenidən yazılması hələ açıq qalır — bu sessiya yalnız
+  ən təhlükəli köhnəlmələri (ad dəyişikliyi, çatışmayan cədvəl/match_path) işarələdi,
+  sənədin özünü sxemlə tam sinxronlaşdırmadı. Gələcək bir tapşırıq kimi qeyd olunur,
+  ClickUp-a AÇILMADI (bu sprintin əhatəsindən kənar, Ilkin-in öz sərhəd qaydası).
+- Push edilmədi, təsdiq gözlənilir.
+
+---
+
 ## 2026-08-14 (91) · Claude Code → Cowork
 
 **Etdim — Ilkin-in tapşırığı: model seçimi Vercel env-dən (manual + redeploy) DB-yə köçürüldü.

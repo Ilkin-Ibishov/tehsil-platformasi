@@ -92,12 +92,23 @@ INVITE_CODES=test-01,test-02
 GEMINI_MODEL=gemini-3.6-flash
 GEMINI_API_KEY=<real key if testing the actual LLM path, otherwise leave blank>
 GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
-GEMINI_PRICE_INPUT_PER_1M=1.50
-GEMINI_PRICE_OUTPUT_PER_1M=7.50
 CASCADE_ENABLED=1
 NEXT_PUBLIC_CASCADE_ENABLED=1
 NEXT_PUBLIC_APP_VERSION=dev-audit
 ```
+
+**`GEMINI_PRICE_*` env vars are gone (2026-08-14, `ADR-022`)** — don't add them back, the
+code no longer reads them. Price now ships hardcoded with each model in `web/lib/models.ts`'s
+registry (`gemini-3.6-flash` already covered, zero config needed). If a future session tests
+a model not in that registry, set `MODEL_<MODEL_ID_UPPERCASED>_PRICE_INPUT_PER_1M`/
+`_OUTPUT_PER_1M` instead (see `models.ts`'s `priceEnvKey`).
+
+**Model selection is DB-driven, not just env (2026-08-14, `ADR-023`)** — `GEMINI_MODEL`
+above is only the bootstrap fallback. The real active model lives in
+`public.app_config.active_model`; if this table doesn't exist yet on your local Postgres
+(migration `0056` — check whether it was applied since Docker was flaky in past sessions),
+either apply it or expect the code to silently fall back to the `GEMINI_MODEL` env value
+above (that fallback is intentional, not a bug — see `models.ts`'s `getActiveModel`).
 
 Set both `CASCADE_ENABLED` flags to `1` to reach the transcription-confirm/candidates
 flow (still gated off in production pending `ADR-014`'s measurement gate) — leave them
