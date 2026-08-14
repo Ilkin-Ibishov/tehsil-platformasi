@@ -15,6 +15,66 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (94) · Claude Code → Cowork
+
+**Etdim — blok 93-ün A/B nəticəsinə əsasən Ilkin `active_model`-i geri qaytarmağı seçdi.**
+
+```sql
+update public.app_config set value = 'gemini-3.6-flash' where key = 'active_model';
+```
+
+Production-da tətbiq edildi, `select`-lə təsdiqləndi (`updated_at` 2026-08-14 16:51 UTC).
+`gemini-3.7-flash` `≥30`-luq düzgün ölçmə keçmədən aktiv olmayacaq — blok 93-dəki tapıntı
+(çoxməsələli kadr aşkarlamasında xəta) hələ açıqdır, yenidən qiymətləndirilməyib.
+
+**Blok:** yoxdur — qərar icra edildi.
+
+---
+
+## 2026-08-14 (93) · Claude Code → Cowork
+
+**Etdim — Ilkin-in tapşırığı: `gemini-3.6-flash` vs `gemini-3.7-flash` real A/B, `scripts/
+eval.py` ilə, əsas checkout-dakı real `.env`/API açarı ilə (mənim worktree-min DEYİL —
+`C:\Programming\Tehsil-Platformasi` kökündə). 2 dəst × 2 model = 4 canlı run.**
+
+| Metrik | fixtures (n=3, mətn) 3.6 | 3.7 | golden-set (n=10, real şəkil) 3.6 | 3.7 |
+|---|---|---|---|---|
+| Sxem validliyi | 3/3 | 3/3 | 10/10 | 8/10* |
+| Cavab sızması | 1/3 | 2/3 | 0/1 | 0/1 |
+| Hallüsinasiya | — | — | **0/9** | **1/9** |
+| status_match (informativ) | — | — | 9/9 | 7/8 |
+| Orta xərc | $0.01355 | $0.01356 | $0.01320 | $0.01334 |
+| Orta gecikmə | 13837ms | **7263ms** | 9955ms | **7833ms** |
+
+*8/10 — 2 sətir (`r02`,`r05`) 503 Service Unavailable ilə uğursuz oldu (Google-un tərəfi,
+sxem səhvi DEYİL) — uğurlu 8/8 arasında sxem 100%-dir, "80%" başlığı tək başına yanıldıcıdır.
+
+**Real tapıntı (n kiçikdir, amma konkret və izlənilə bilər):** `r03` (golden-set) — 2 məsələli
+kadr (`expected_status: multiple_problems`, `31,32`) idi, `gemini-3.7-flash` bunu SƏHV
+tutub birbaşa BİR məsələni (tərs funksiya) həll etdi, seçim siyahısı qaytarmadı. `gemini-
+3.6-flash` eyni 10 şəkildə 9/9 status-u düz tapdı. Bu, `ADR-007`-in bütün kəsmə+seçim
+memarlığının qorumaq istədiyi məhz bu sinif xətadır.
+
+**Şərh:** `gemini-3.7-flash` **~1.4-1.9x sürətlidir** (tutarlı, hər iki dəstdə), xərc
+demək olar EYNİDİR (`ADR-022`-nin tapdığı kimi). Amma bu tək run-da 2 real siqnal əleyhinədir:
+(1) çoxməsələli kadr aşkarlamasında 1 real xəta (3.6-da YOX), (2) mətn dəstində daha yüksək
+sızma nisbəti. n=9/n=3 statistik cəhətdən HEÇ NƏ SÜBUT ETMİR (bu layihənin öz qapı qaydası:
+n≥30) — amma `ADR-001`-in qapısı yalnız `gemini-3.6-flash` üçün keçilib, `3.7-flash` üçün
+YOX.
+
+**Tövsiyə (qərar deyil, Ilkin-ə buraxılır):** `active_model`-i `gemini-3.6-flash`-a geri
+qaytarmaq, TA Kİ ≥30-luq düzgün ölçmə `3.7-flash`-ı təsdiqləsin — sürət qazancı real,
+amma çoxməsələli-kadr detektasiyası `Qızıl qayda`-nın (`error_code` xəritəsinin
+düzgünlüyü) əsasında dayanır, sürətə görə risk etmək bu mərhələdə vaxtından əvvəldir.
+
+**Nəticə faylları** (əsas checkout-da, `evals/results/`, MƏNİM worktree-mdə DEYİL,
+gitignored, commit edilmədi — bu, Ilkin-in canlı Kiro sessiyasının direktoriyasıdır,
+oradan mən git əməliyyatı aparmadım): `B-2026-08-14-{fixtures,golden}-gemini{36,37}.json`.
+
+**Blok:** `active_model`-i geri qaytarmaq/saxlamaq qərarı Ilkin-dədir.
+
+---
+
 ## 2026-08-14 (92) · Claude Code → Cowork
 
 **Etdim — Ilkin-in tapşırığı ilə production-da aktiv modeli `gemini-3.7-flash`-a keçirdim,
