@@ -10,26 +10,25 @@
 //                                                                   kaskaddan AYRI çağırılır —
 //                                                                   o, şəkil alır, bu qatlar mətn)
 //   Qat 2  canonical_hash / rəqəm izi  LLM YOX             <100 ms  QURULDU (bank.ts)
-//   Qat 3  şablona oturur → generasiya LLM YOX             ~300 ms  YOX — aşağıdaki qeyd
+//   Qat 3  şablona oturur → generasiya LLM YOX             ~10 ms   QURULDU (template.ts,
+//                                                                   YALNIZ 3 topic_code —
+//                                                                   ADR-021)
 //   Qat 4  sympy həll edir, LLM izah   yalnız izah         ~3 s     YOX — aşağıdaki qeyd
 //   Qat 5  tam həll (mətn üzərində)    tam                 ~10 s    QURULDU (solve-text.ts)
 //
-// ═══ NİYƏ QAT 3 VƏ 4 BURADA YOXDUR ═══
+// ═══ NİYƏ QAT 4 BURADA YOXDUR ═══
 //
-// Qəsdən. Taskın özü onları "sonra"/"tezliklə" kimi işarələyir və hər ikisi bu qatın
-// ölçüsündən BÖYÜK ayrı işdir:
-//   Qat 3 — `app.store_generated_steps` RPC-si (`0037`) MÖVCUDDUR, amma şablon TANINMASI
-//           (hansı canonical hansı şablona oturur) yoxdur — `0038`-in şablonları SQL-də
-//           generasiya edilib, TS tərəfdə tanıyıcı yazılmayıb.
-//   Qat 4 — sympy SERVERDƏ YOXDUR. `scripts/lib/verify.py` python-dur, `web/lib/verify/
-//           answer.ts` isə onun MƏHDUD portudur (yalnız tək dəyişənli tənlik krossyoxlaması,
-//           bax route.ts-dəki `verified === null` şərhi). "Cavabı sympy tapır" tələbi
-//           python xidməti və ya WASM sympy qərarı deməkdir — ADR tələb edir.
-// Boş TODO qoymaq CLAUDE.md qayda 4-ün pozulmasıdır; ona görə qatlar sadəcə massivdə YOXDUR
+// Qəsdən (ADR-021 §"Qərar 2"). sympy SERVERDƏ YOXDUR. `scripts/lib/verify.py` python-dur,
+// `web/lib/verify/answer.ts` isə onun MƏHDUD portudur (yalnız tək dəyişənli tənlik
+// krossyoxlaması, bax route.ts-dəki `verified === null` şərhi). "Cavabı sympy tapır" tələbi
+// python xidməti və ya WASM sympy qərarı deməkdir — YENİ infrastruktur, ADR-021 iki seçimi
+// qiymətləndirib, HEÇ BİRİNİ indi seçmir (ayrı ClickUp tapşırığı gözləyir).
+// Boş TODO qoymaq CLAUDE.md qayda 4-ün pozulmasıdır; ona görə qat sadəcə massivdə YOXDUR
 // və HANDOFF-a yazılır.
 
 import type { Pool } from "pg";
 import { makeBankLayers } from "./bank";
+import { makeTemplateLayer } from "./template";
 import { makeTextSolveLayer } from "./solve-text";
 import type { CascadeContext, LayerSolution, SolveLayer } from "./types";
 
@@ -37,8 +36,8 @@ export function buildLayers(pool: Pool): SolveLayer[] {
   return [
     // Sıra UCUZDAN BAHAYA — `ARCHITECTURE.md`-in uyğunlaşdırma sırası.
     ...makeBankLayers(pool), // Qat 2a: hash, Qat 2b: fingerprint
-    // ← Qat 3 (şablon) BURAYA girir
-    // ← Qat 4 (sympy + izah) BURAYA girir
+    makeTemplateLayer(), // Qat 3: yalnız ALG.LINEAR_EQUATION/QUADRATIC_EQUATION/VIETA_SUM (ADR-021)
+    // ← Qat 4 (sympy + izah) BURAYA girir — ADR-021-in gələcək davamı
     makeTextSolveLayer(), // Qat 5
   ];
 }

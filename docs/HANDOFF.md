@@ -15,6 +15,93 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (88) · Claude Code → Cowork
+
+**Etdim — sahib insanın (Ilkin) blok 87-ə birbaşa çatdırdığı təsdiqləri qeyd edirəm.**
+
+**Tapşırıq:** yoxdur, bu, sırf koordinasiya yazısıdır.
+
+**Diqqət (Cowork üçün, əlində olan zaman):**
+- **`match_path='template'` TƏSDİQLƏNDİ** (Ilkin, canlı söhbətdə) — "telemetriyada ayrıca
+  dəyər kimi qalsın, Qat 2 və 5 ilə qarışdırma; yoxsa 'LLM-siz neçə faiz həll olunur'
+  metriki ölçülə bilməz." `docs/TELEMETRY.md`-in `match_path` taksonomiyasına `template`
+  dəyərini ƏLAVƏ ETMƏK Cowork-un işidir (fayl sahibliyi, `CLAUDE.md`) — mən kodda
+  (`web/lib/cascade/types.ts`) artıq əlavə etmişdim (blok 87), sənəd tərəfi sizi gözləyir.
+- Blok 87-dəki dəyişikliklər `main`-ə push edildi (aşağıda). Səbəb: kaskad hələ
+  `CASCADE_ENABLED` bayrağı arxasında, 0 real istifadəçi, 89 selftest təmiz — gözləmənin
+  dəyəri yox idi (Ilkin-in öz sözü).
+- `86eyhpf2f` (kəsmə+seçim ekranı) ClickUp-da `complete` edildi — kod artıq tam qurulmuşdu
+  (blok 87), Ilkin təsdiqlədi.
+
+---
+
+## 2026-08-14 (87) · Claude Code → Cowork
+
+**Etdim — sahib insanın tapşırığı ilə ClickUp backlog-unu real kod vəziyyətinə görə
+auditlədim, sonra kaskadın Qat 3-ünü (şablon tanıyıcısı) qurdum.**
+
+### ClickUp auditi — bir çox "açıq" tapşırıq artıq görülüb
+
+`86eyhpf2f` (urgent, "kəsmə+seçim ekranı, MVP-nin ən vacib UI qərarı") — kod-baxışı VƏ
+canlı brauzer testi ilə TAM QURULMUŞ tapıldı (`CropView.tsx` + `kamera/page.tsx`-in
+`candidates` ekranı, ADR-007-ə tam uyğun). ClickUp-da statusu dəyişmədim (sahib insan
+qərar versin), amma bu, `ux-design-review`/`product-analyst` skill-lərinin bu sessiyada
+apardığı auditin bir hissəsi kimi qeyd olunur.
+
+`86eymfg9z` (şəkil ön emalı, ~50% xərc↓) — əsas boru xətti (`web/lib/image.ts`: kəs→
+kiçilt→JPEG 0.85) artıq var. Qalan lever (boz-şkala) `86eymek8f`-in A/B testi olmadan
+QƏSDƏN söndürülüb (kodun öz şərhi) — yəni "low" prioritetli backlog maddəsi "high"
+prioritetli Faza-1 maddəsinin blokeridir. Toxunmadım.
+
+`86eykqb1c` (ucuz model Qat 1) — mexanizm var (`TRANSCRIBE_MODEL` env), model seçilməyib.
+Ölçmə infrastrukturu olmadan model dəyişmək riskli idi, toxunmadım.
+
+### Qat 3 (şablon) quruldu — `ADR-021`
+
+`docs/decisions/ADR-021-kaskad-qat3-sablon-taniyici.md` yazıldı, sonra icra edildi:
+
+- `web/lib/cascade/template.ts` — YENİ. 3 topic_code üçün (`ALG.LINEAR_EQUATION`,
+  `ALG.QUADRATIC_EQUATION`, `ALG.VIETA_SUM`) canonical-dan regex ilə əmsal çıxarır, addımları
+  qurur, LLM ÇAĞIRMIR. Tanıma uğursuz olarsa (uyğunsuz format, qeyri-tam nəticə,
+  faktorlaşmayan kvadratik) → `null`, Qat 5-ə (LLM) düşür — HEÇ VAXT TƏXMİN EDİLMİR.
+  `FAIZ.*` (mətn-məsələsi sinfi) ADR-021-ə görə QƏSDƏN kənarda qalıb (səbəb ADR-də).
+- **Tapıntı:** `0038`-in istifadə etdiyi `TRANSPOSE_SIGN`/`DIVISION`/`ROOT_SELECTION`
+  `docs/STEP-SCHEMA.json`-un DƏYIŞMƏZ enum-unda YOXDUR — bu, ClickUp `86eymfgd9`-un
+  ("ARITHMETIC error_code uyğunsuzluğu") dediyi problemin konkret nümunəsidir. Yeni
+  şablonda YALNIZ mövcud enum dəyərləri işlədilib (SIGN_LOST/ARITHMETIC/FACTOR_PAIR-ə
+  remap edilib) — `86eymfgd9` bağlanmır, amma bu konkret sızma qapalıdır.
+- `web/lib/cascade/types.ts` — `MatchPath`-a `"template"` əlavə edildi. **AÇIQ SUAL
+  COWORK-A:** bu, `docs/TELEMETRY.md`-nin sahib olduğu taksonomiyaya toxunur — mən faylı
+  DƏYİŞMƏDİM (sizin sahibliyinizdir), yalnız kodda dəyəri əlavə etdim. Kaskad hələ
+  `CASCADE_ENABLED` bayrağı arxasında olduğu üçün bu, production-a TƏSİRSİZDİR.
+- `web/lib/cascade/run.ts` — massivə düzgün yerə (Qat 2-dən sonra, Qat 5-dən əvvəl) əlavə
+  edildi. Qat 4 yeri şərhlə qeyd olunmuş halda boş qalır (`ADR-021` §"Qərar 2" — Python
+  mikroservis vs. WASM sympy, YENİ ADR/tapşırıq gözləyir).
+- `web/lib/cascade/template.selftest.mts` — 21 test, LLM/DB YOX. Yazarkən özüm 2 real bug
+  tapdım (kvadrat regex `b=0` halını tutmurdu, öz test datamda bir gözləmə səhvi idi) —
+  ikisi də düzəldildi, `references/testing-methodology.md`-dəki "əvvəlcə repro, sonra fix"
+  intizamına uyğun.
+
+### Doğrulama
+
+`npx tsx lib/cascade/template.selftest.mts` (21/21) + mövcud 4 selftest paketi
+(cascade/answer/step-check/math-format, reqressiyasız) + `tsc --noEmit` + `eslint` + `npm
+run build` — hamısı təmiz. Canlı `/api/solve` uçdan-uca YOXLANMADI (kamera bu mühitdə
+bloklanır, kaskad bayraq arxasında) — yalnız selftest səviyyəsində doğrulanıb, bunu açıq
+deyirəm.
+
+### Diqqət / Blok
+
+- `tsconfig.json`-un `exclude` siyahısına `lib/cascade/template.selftest.mts` əlavə edildi
+  (mövcud `.selftest.mts` konvensiyası — `.mts` uzantılı import-lar əsas tsconfig ilə
+  uyğun deyil).
+- Push EDİLMƏDİ, təsdiq gözlənilir.
+
+**Blok:** `MatchPath`-ə `template` dəyərinin `docs/TELEMETRY.md`-ə əlavə edilməsi Cowork
+qərarı gözləyir (yuxarı bax).
+
+---
+
 ## 2026-08-14 (86) · Claude Code → Cowork
 
 **Etdim — sahib insanın tapşırığı ilə canlı UI/UX auditi + tapılan 7 bugun düzəlişi.**

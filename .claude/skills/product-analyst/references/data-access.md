@@ -34,27 +34,40 @@ question.
 select count(*) from attempt_items where delivered = true;
 ```
 
-**Retention** (≥8 of 20 devices return ≥3 times within 7 days of their first solve) —
-this needs a per-device first-solve anchor, not a calendar week:
+**Retention** (≥8 of 20 students return ≥3 times within 7 days of their first solve) —
+this needs a per-STUDENT first-solve anchor, not a calendar week, and **must group by
+`attempts.student_ref` (the invite code), not `device_id`**. `docs/DATA-MODEL.md`'s own
+schema table is explicit about this: "retensiya BUNUN üzrə hesablanır, `device_id` YOX"
+(retention is computed by `student_ref`, NOT `device_id`) — `device_id` resets under iOS
+Safari ITP and is a diagnostic/session signal, not the identity the gate is defined
+against (`ADR-012`). A `device_id`-grouped version of this query (an earlier version of
+this file had one) will overcount: confirmed on 2026-08-14 against the real production
+DB (`oxjzehxnbumgyoqjonju`) — the same 15 `attempts` rows contain **2** distinct
+`device_id` values but only **1** distinct `student_ref`, which would misreport this
+tiny sample as "2 students" instead of the correct "1 student" if grouped the wrong way.
+At real pilot scale this is the difference between an accurate gate readout and a wrong
+one — verify which column any retention query (yours or one you're handed) actually
+groups by before trusting its output.
+
 ```sql
 with first_solve as (
-  select a.device_id, min(ai.created_at) as first_at
+  select a.student_ref, min(ai.created_at) as first_at
   from attempt_items ai join attempts a on a.id = ai.attempt_id
-  where ai.delivered = true
-  group by a.device_id
+  where ai.delivered = true and a.student_ref is not null
+  group by a.student_ref
 ),
 returns_in_window as (
-  select fs.device_id, count(*) as solves_in_7d
+  select fs.student_ref, count(*) as solves_in_7d
   from first_solve fs
-  join attempts a on a.device_id = fs.device_id
+  join attempts a on a.student_ref = fs.student_ref
   join attempt_items ai on ai.attempt_id = a.id
   where ai.delivered = true
     and ai.created_at >= fs.first_at
     and ai.created_at < fs.first_at + interval '7 days'
-  group by fs.device_id
+  group by fs.student_ref
 )
-select count(*) filter (where solves_in_7d >= 3) as retained_devices,
-       count(*) as total_devices
+select count(*) filter (where solves_in_7d >= 3) as retained_students,
+       count(*) as total_students
 from returns_in_window;
 ```
 

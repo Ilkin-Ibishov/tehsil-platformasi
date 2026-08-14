@@ -79,27 +79,77 @@ re-discover)
 - Onboarding, subscription/paywall, parent report, feed/streak/quiz ("Test.dc.html")
   are explicitly out of Phase 1 scope per `docs/PHASE-1.md`. Don't flag their absence.
 
+## Found, NOT yet fixed (2026-08-14, second pass — invite gate + solve-flow stress test,
+live-browser-verified)
+
+10. **"Cavabı göstər" ("Show the answer") is available from every step and always jumps
+    to the FINAL answer, silently forfeiting all remaining steps' `error_code` data — no
+    warning, no confirmation.** `SolveView.tsx`'s `reveal()` (called by the `t("step.showAnswer")`
+    button, `messages/az.json`'s `hell.step.showAnswer` = "Cavabı göstər") always calls
+    `fetchFinalAnswer`/sets `revealed=true` regardless of `stepIndex`, per the documented
+    HANDOFF-49 §3d intent ("ilişmiş şagirdin çıxış yolu" — an intentional stuck-student
+    escape hatch). The bug is not that this exists — it's that nothing distinguishes it
+    from `t("step.abandon")` = "Bu addımı başa düşmədim →" ("I didn't understand THIS
+    step"), which only advances one step. Live repro: on a 2-step question, at step 1/2,
+    clicking "Cavabı göstər" jumped straight to the `CAVAB` final-answer screen — step
+    2 was never shown or attempted, `reportAttemptProgress` fires with `completed:false,
+    abandonedAtStep:0`. A student who taps this expecting "show me how to do this step"
+    (a reasonable reading of the label) instead ends the whole problem with fewer steps'
+    worth of diagnostic data collected — directly cuts against CLAUDE.md's "Qızıl qayda"
+    (the product's whole value is the `error_code` map). Severity 🟠 Serious. Fix
+    direction: either (a) reword the button so it's unambiguous it ends the problem
+    ("Bütün cavabı göstər" / similar), or (b) gate it behind a one-tap confirm when
+    `stepIndex < total - 1`, or (c) add a real per-step reveal that doesn't forfeit
+    remaining steps, with THIS button reserved for the true give-up case.
+
+**Re-confirmed still present (live-verified again this pass, not re-fixed):**
+- Item 9 above (invite code never validated at the gate) — both the kamera 403-after-
+  full-capture-flow path and the bank silent-return-to-blank-form path reproduced
+  exactly as described. Network trace for the bank case:
+  `GET /api/bank/questions?invite_code=totally-wrong-code → 403`, then UI returns to
+  the identical blank `Dəvət kodu` form, no error text rendered anywhere in the DOM.
+
+**Confirmed still fixed (re-verified, no regression):** items 1, 6, 8 from the list
+above — "Növbəti addım" disabled with no/incorrect answer, `inputMode="decimal"` present
+on the step-answer input, home-screen bottom padding present at 360×640.
+
+## Newly checked, no issues found (2026-08-14)
+
+- **Cross-viewport spot-check**: 360×640 (small Android) and 812×375 (landscape) —
+  no horizontal overflow, no zero-margin-below-fold on either, home screen renders
+  correctly at both.
+- **`solution.reported_wrong` and "yeni sual" reset flow**: both work as expected —
+  report-wrong swaps to a thank-you message and doesn't re-arm, reset returns cleanly
+  to the topic list with no stale state.
+- **ADR-007 "always back to crop, never a new photo" invariant**: confirmed enforced
+  in code, not just in the ADR text — `TranscriptConfirmView`'s reject path
+  (`handleReject` in `kamera/page.tsx`) calls `backToCrop()`, never a camera re-open.
+  This is a deliberate, correctly-implemented design decision, not a gap.
+- **`CropView.tsx`** (code-review only, still camera-gated in this sandbox): the
+  corner-handle event-bubbling bug mentioned in the file's own HANDOFF comment is
+  already fixed (`stopPropagation` present on each handle's down-handler). 44px touch
+  targets on all four resize handles. No new issues found on read-through.
+- **`TranscriptConfirmView.tsx`** (code-review only): confirm button correctly disabled
+  on empty/whitespace-only text; reject path is clean. No issues found.
+
 ## Not yet audited at all (the actual frontier — start here on the next pass)
 
-- **Invite gate** (`components/kamera/InviteGate.tsx`) — only smoke-tested (code
-  entered, submit worked). Never deep-reviewed: error states (wrong code, network
-  failure), copy tone, whether the PWA-install hint actually appears at the right
-  moment.
-- **Crop screen** (`components/kamera/CropView.tsx`) — code-reviewed only (camera-gated,
-  can't drive live in this sandbox). The default crop box, drag/resize ergonomics on an
-  actual touchscreen, and the ADR-007 "no new photo, ever" invariant's actual
-  enforcement have never been checked against running code, only against the ADR's
-  stated intent.
+- **Invite gate copy/tone and whether the PWA-install hint appears at the right
+  moment** — the error-state bug itself is now documented (item 9), but nobody has
+  judged whether showing the PWA hint immediately on first gate view (before the
+  student has gotten any value yet) is the right moment, or whether it should appear
+  later (e.g. after a first successful solve).
+- **Invite gate accessibility**: input has no `aria-label` (placeholder-only label,
+  a known a11y antipattern — text disappears once typing starts) and no `autoFocus`
+  (student must tap the field before typing). Neither confirmed as a real problem for
+  this audience, both worth a deliberate look rather than assumption either way.
 - **Candidates screen** (`multiple_problems` state, inline in `kamera/page.tsx`, no
   live test — needs the cascade flag + a way to trigger `multiple_problems` without a
   real camera capture, e.g. mocking the `/api/solve/transcribe` response).
-- **Transcript confirm screen** (`TranscriptConfirmView.tsx`) — built this session,
-  never live-tested at all (camera-gated). Code-reviewed only.
-- **`solution.completed`/final-answer screen and "yeni sual" reset flow** — partially
-  exercised via the bank flow's happy path, never stress-tested (reporting wrong,
-  revealing without answering all steps, abandoning mid-flow then returning).
-- **Full home-screen review** beyond the one layout bug already fixed — copy, first-run
-  vs. returning-user state (`app.opened`'s `cold_start` telemetry exists; nothing in the
-  UI currently differentiates the two visually).
-- **Cross-device/viewport spot-check** — everything so far tested at exactly 375×812
-  (iPhone-ish). Never checked a smaller Android viewport (360×640-class) or landscape.
+- **Full home-screen review** beyond the layout bug already fixed and the cross-viewport
+  check now done — copy, first-run vs. returning-user state (`app.opened`'s
+  `cold_start` telemetry exists; nothing in the UI currently differentiates the two
+  visually).
+- **Drag/resize ergonomics on an actual touchscreen for `CropView.tsx`** — code read
+  clean (see above) but real touch-drag feel has never been observed, only simulated
+  via source reading (camera-gated, can't drive live in this sandbox).

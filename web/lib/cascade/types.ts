@@ -19,7 +19,10 @@ import type { LLMUsage } from "../llm";
 // docs/TELEMETRY.md-dəki `match_path` taksonomiyası — YENİ dəyər əlavə etmək telemetriya
 // müqaviləsini dəyişməkdir (CLAUDE.md: TELEMETRY.md Cowork-un sahibliyindədir).
 // `image_cache` HANDOFF 82-də (`0045`) əlavə edilib.
-export type MatchPath = "hash" | "fingerprint" | "embedding" | "llm" | "image_cache";
+// `template` ADR-021-də (Qat 3) əlavə edilib — Cowork-un `docs/TELEMETRY.md`-i HƏLƏ
+// YENİLƏMƏYİB (bax ADR-021 §"Yeni match_path dəyəri"). Kaskad özü bayraq arxasında olduğu
+// üçün bu dəyər hələ heç bir real telemetriya sətrinə düşmür — production-a təsirsizdir.
+export type MatchPath = "hash" | "fingerprint" | "embedding" | "llm" | "image_cache" | "template";
 
 export type LayerId = "bank_hash" | "bank_fingerprint" | "template" | "sympy" | "llm_text";
 
