@@ -98,6 +98,14 @@ Folder: `901815897469` · Space: `901810230629` · Workspace: `90182536078`
    `.kiro/specs/test-bank/design.md`, `.kiro/steering/test-bank.md`,
    `docs/decisions/ADR-017-answer-isolation.md`. `design.md`-dəki SQL sxemi mənbə
    həqiqətdir — ondan sapma ADR tələb edir.
+8. **Ayrı feature branch açma.** Həmişə birbaşa `main`-də işlə (və ya işlədiyin branch-i
+   işi bitirən kimi DƏRHAL `main`-ə merge et — açıq PR gözləyən/unudulan branch YOXDUR).
+   Vercel `main`-i izləyir — kod başqa branch-də qaldıqca DB miqrasiyaları/SQL dəyişiklikləri
+   tətbiq olunsa belə, onları OXUYAN kod production-a heç vaxt çatmır (2026-08-14 dərsi:
+   `app_config`-ə iki SQL `update` edildi, təsiri sıfır oldu, çünki `getActiveModel()`-i
+   yazan kod 5 commit bir feature branch-də ilişib qalmışdı, `main`-ə heç vaxt getmədi).
+   Qayda 5-in "əvvəl miqrasiya, sonra merge" ardıcıllığı YALNIZ merge həqiqətən baş verəndə
+   mənalıdır.
 
 ## Texniki stack (qərar verilib)
 
