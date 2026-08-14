@@ -1,24 +1,22 @@
-// scripts/lib/cost.py-ın hərfi TS portu. Qiymətlər env-dən, hardcode edilmir.
+// scripts/lib/cost.py-ın hərfi TS portu, ADR-022-də model registrisinə köçürüldü.
 import type { LLMUsage } from "./llm";
+import { resolvePrice } from "./models";
 
-// ADR-020 (kaskad): hər qat FƏRQLİ model işlədir, yəni fərqli qiymət cədvəli. `prefix` env
-// dəyişənlərinin önlüyünü seçir — `TRANSCRIBE_PRICE_*_PER_1M` təyin edilməyibsə `GEMINI_*`-ə
-// düşür (dev/tək-model konfiqurasiyası sınmasın).
+// ADR-022: qiymət MODEL İD-inə görə axtarılır (əvvəllər qatın MƏQSƏDİNƏ görə axtarılırdı —
+// `86eymrm8j` auditi bunun səssiz-yanlış-qiymət riski yaratdığını aşkarladı: model dəyişib
+// qiyməti yeniləməsən, xərc başqa modelin qiymətiylə hesablanardı).
 //
-// NİYƏ `null` QAYTARILIR (0 YOX): qiymət env-i yoxdursa xərc BİLİNMİR. `0` yazmaq gündəlik
+// NİYƏ `null` QAYTARILIR (0 YOX): qiymət bilinmirsə xərc BİLİNMİR. `0` yazmaq gündəlik
 // xərc tavanını (`DAILY_COST_CEILING_USD`) səssizcə yalan edərdi — `attempt_items.cost_usd`
 // `null` qalanda `sum()` onu ATLAYIR, sıfır kimi saymır, amma heç olmasa yalan hesabat vermir.
-export function computeCostUsd(usage: LLMUsage | null, prefix?: string): number | null {
+export function computeCostUsd(usage: LLMUsage | null, modelId: string): number | null {
   if (!usage) return null;
-  const priceIn =
-    (prefix ? process.env[`${prefix}_PRICE_INPUT_PER_1M`] : undefined) ?? process.env.GEMINI_PRICE_INPUT_PER_1M;
-  const priceOut =
-    (prefix ? process.env[`${prefix}_PRICE_OUTPUT_PER_1M`] : undefined) ?? process.env.GEMINI_PRICE_OUTPUT_PER_1M;
-  if (!priceIn || !priceOut) return null;
+  const price = resolvePrice(modelId);
+  if (!price) return null;
 
   const promptTokens = usage.prompt_tokens ?? 0;
   const completionTokens = usage.completion_tokens ?? 0;
-  return (promptTokens / 1_000_000) * Number(priceIn) + (completionTokens / 1_000_000) * Number(priceOut);
+  return (promptTokens / 1_000_000) * price.inputPer1M + (completionTokens / 1_000_000) * price.outputPer1M;
 }
 
 // İki qatın xərcini birləşdirir. Hər ikisi `null`-dursa nəticə `null` (bilinmir),

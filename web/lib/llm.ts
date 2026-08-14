@@ -5,6 +5,12 @@
 //
 // API_KEY YALNIZ SERVERDƏ (CLAUDE.md) — bu modul "use client" DEYİL, App Router route
 // handler-lərindən (server-only) çağırılır.
+//
+// ADR-022: hansı model İSTİFADƏ OLUNDUĞU nəticədə (`LLMResult.model`) qaytarılır — çağıran
+// bunu `computeCostUsd`-a ötürməlidir. Bu, `opts.model`in `undefined` qalıb `GEMINI_MODEL`-ə
+// düşdüyü halları da əhatə edir; çağıran özü hansı modelin işlədiyini TƏXMİN ETMƏMƏLİDİR.
+
+import { resolveConnection } from "./models";
 
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 const MAX_ATTEMPTS = 3;
@@ -24,6 +30,9 @@ export type LLMResult = {
   usage: LLMUsage | null;
   latencyMs: number;
   attempts: number;
+  // ADR-022: HƏQİQƏTƏN çağırılan model ID-si — `opts.model` verilməyibsə `GEMINI_MODEL`-in
+  // öz dəyəridir, çağıran bunu təxmin etmək əvəzinə buradan oxumalıdır.
+  model: string;
 };
 
 function sleep(ms: number) {
@@ -44,10 +53,19 @@ export async function callVisionLLM(opts: {
   signal?: AbortSignal;
 }): Promise<LLMResult> {
   const model = opts.model || process.env.GEMINI_MODEL;
-  const apiKey = process.env.GEMINI_API_KEY;
-  const baseUrl = process.env.GEMINI_BASE_URL;
-  if (!model || !apiKey || !baseUrl) {
-    throw new Error("GEMINI_MODEL, GEMINI_API_KEY, GEMINI_BASE_URL env dəyişənləri lazımdır.");
+  if (!model) {
+    throw new Error("GEMINI_MODEL env dəyişəni (və ya opts.model) lazımdır.");
+  }
+  // ADR-022: TANINAN model üçün registrinin bağlantı env-ləri işlədilir, naməlum model üçün
+  // (registridə olmayan, sərbəst-mətn override) `GEMINI_*`-ə geri düşür — çoxprovayderli hal
+  // BU ADR-in həcmindən KƏNARDIR, bir provayder daxilində model azadlığı buradadır.
+  const connection = resolveConnection(model) ?? {
+    baseUrl: process.env.GEMINI_BASE_URL,
+    apiKey: process.env.GEMINI_API_KEY,
+  };
+  const { baseUrl, apiKey } = connection;
+  if (!apiKey || !baseUrl) {
+    throw new Error(`Model '${model}' üçün bağlantı env-ləri tapılmadı (GEMINI_API_KEY/GEMINI_BASE_URL və ya registrinin öz env-ləri).`);
   }
 
   const userContent = opts.imageBase64
@@ -105,5 +123,5 @@ export async function callVisionLLM(opts: {
     parsed = null;
   }
 
-  return { parsed, rawText, usage, latencyMs, attempts };
+  return { parsed, rawText, usage, latencyMs, attempts, model };
 }

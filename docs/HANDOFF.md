@@ -15,6 +15,89 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (90) · Claude Code → Cowork
+
+**Etdim — block 89-da təklif edilən "LLM-i model-agnostik et" ideyasını Ilkin-in
+tapşırığı ilə implementə etdim. `ADR-022-model-registry.md` yazıldı, sonra icra edildi.**
+
+- **`web/lib/models.ts`** — YENİ. Kiçik registri: `gemini-3.6-flash`-ın qiyməti
+  ($1.50/$7.50 per 1M) KODDA yaşayır, modeldən AYRILA BİLMƏZ. Naməlum model üçün
+  `MODEL_<SLUG>_PRICE_INPUT_PER_1M`/`_OUTPUT_PER_1M` env açarı (modelin ÖZ ID-sindən
+  deterministik hesablanır) — açar səhv modelin qiymətini oxuya BİLMƏZ.
+- **`web/lib/llm.ts`** — `callVisionLLM` artıq HƏQİQƏTƏN çağırılan modeli (`result.model`)
+  qaytarır, çağıran onu təxmin etmək məcburiyyətində qalmır. Tanınan model üçün bağlantı
+  env-i registridən, naməlum model üçün köhnə `GEMINI_API_KEY`/`GEMINI_BASE_URL`-ə geri düşür.
+- **`web/lib/cost.ts`** — `computeCostUsd(usage, prefix?)` → `computeCostUsd(usage, modelId)`.
+  Köhnə `prefix`-əsaslı (qatın MƏQSƏDİNƏ görə) axtarış TAM ÇIXARILDI — bu, `86eymrm8j`
+  auditinin aşkarladığı "model dəyişib qiyməti unutsan, xərc SƏSSİZCƏ YANLIŞ modelin
+  qiyməti ilə hesablanır" bugini struktur olaraq mümkünsüz edir.
+- Çağıran yerlər (`transcribe.ts`, `solve-text.ts`, `app/api/solve/route.ts`) HƏQİQƏTƏN
+  işlədilən modeli (`result.model`) izləyib `computeCostUsd`-a ötürür.
+- **`web/.env.example`** yeniləndi — köhnə `GEMINI_PRICE_*`/`TRANSCRIBE_PRICE_*` açarları
+  artıq KOD TƏRƏFİNDƏN OXUNMUR (registri onları əvəz edir), izahla qeyd edildi.
+
+**VACİB — production Vercel env-inə dair:** `86eymrm8j` auditində Ilkin `GEMINI_PRICE_
+INPUT_PER_1M`/`GEMINI_PRICE_OUTPUT_PER_1M` açarlarının Vercel-də mövcud olduğunu, dəyərlərin
+olmadığını dedi, dəyərləri təyin etməyi planlaşdırırdı. **Bu dəyişiklikdən sonra bu artıq
+LAZIM DEYİL** — `gemini-3.6-flash` üçün qiymət indi koddan (registridən) gəlir, o iki köhnə
+env-in dəyəri olsa da, olmasa da fərq etmir (kod onları oxumur). Köhnə açarlar Vercel-də
+saxlanıla bilər (zərərsizdir, sadəcə oxunmur) və ya təmizlik üçün silinə bilər.
+
+**Həcm — nə DAXİL DEYİL (ADR-022-də açıq qeyd olunub):** fərqli PROVAYDERLƏR arasında keçid
+(Gemini ↔ OpenAI ↔ Claude, fərqli `base_url`) — hazırkı arxitektura tək provayder bağlantısına
+əsaslanır, bunu dəyişmək ayrı, geniş bir iş (provayder-abstraksiya qatı) tələb edir, bu ADR-in
+həcmindən KƏNARDIR. Bu dəyişiklik yalnız EYNİ provayder daxilində (Gemini-nin OpenAI-uyğun
+endpoint-i) model versiyaları arasında (məs. `gemini-3.6-flash` ↔ `gemini-3.7-flash`) rahat
+keçidi həll edir.
+
+**Doğrulama:** 13 yeni selftest (`web/lib/models.selftest.mts`) + mövcud 7 selftest paketi
+(reqressiyasız, ~113 test cəmi) + `tsc --noEmit` + `eslint` + `npm run build` — hamısı təmiz.
+Canlı `/api/solve` uçdan-uca yoxlanmadı (kamera bu mühitdə bloklanır) — yalnız selftest
+səviyyəsində doğrulanıb.
+
+**Diqqət:** `tsconfig.json`-un `exclude` siyahısına `lib/models.selftest.mts` əlavə edildi
+(mövcud `.selftest.mts` konvensiyası).
+
+**Blok:** Push edilmədi, təsdiq gözlənilir.
+
+---
+
+## 2026-08-14 (89) · Claude Code → Cowork
+
+**Etdim — Ilkin-in birbaşa tapşırığı ilə "LLM axınlarını model-agnostik et" ideyasının
+mövcud olub-olmadığını yoxladım, yoxdur — tapşırıq təklifi kimi BURADA qeyd edirəm (ClickUp
+API 5 saatlıq rate-limit-də, `86eymrm8j` audit sessiyasına bax).**
+
+**Motivasiya (Ilkin-in öz sözü):** model/provayder arasında rahat keçid, cost/effektivlik
+müqayisəsi aparmaq üçün.
+
+**Kod-baxışı ilə tapılan İKİ konkret boşluq (`86eymrm8j`-lə birbaşa bağlı):**
+1. `web/lib/llm.ts:46-51` — model adı `opts.model` ilə override edilə bilir (`TRANSCRIBE_MODEL`
+   buna əsaslanır), AMMA `GEMINI_API_KEY`/`GEMINI_BASE_URL` TƏK cütdür — iki provayderi eyni
+   anda saxlamaq mümkün deyil, provayder dəyişmək = redeploy.
+2. `web/lib/cost.ts:11-22` — qiymət axtarışı `prefix`-ə (qatın MƏQSƏDİNƏ, "TRANSCRIBE" vs
+   defolt) görədir, model KİMLİYİNƏ görə YOX. `GEMINI_MODEL`-i dəyişib qiymət env-lərini
+   yeniləməsən, xərc SƏSSİZCƏ YANLIŞ hesablanır (`null` yox — bu, `86eymrm8j`-dən də
+   təhlükəlidir, çünki nəticə görünür, sadəcə səhvdir).
+
+**Real analoq artıq var:** `scripts/lib/llm_client.py` (Faza 0 eval harness-i) tam
+provider-agnostikdir — `MODEL`/`API_KEY`/`BASE_URL` `.env`-dən oxunur, istənilən OpenAI-uyğun
+endpoint işləyir (bax 2026-08-05 (3) blokunun öz qeydi). Production `web/` yolu bu paritetə
+çatmır.
+
+**Təklif olunan həcm (qərar deyil, müzakirə üçün):** tək qlobal `GEMINI_*` env dəstini bir
+"model registry"-yə çevirmək — `{model_id: {base_url_env, api_key_env, price_in, price_out}}`
+map-i, seçim bir açarla (`ACTIVE_MODEL=gemini-3.6-flash` kimi) aparılsın ki, qiymət HƏMİŞƏ
+seçilən modellə BİRLİKDƏ, eyni yerdə dəyişsin (ayrılıq riski struktur olaraq mümkün olmasın).
+
+**ClickUp-a köçürüləndə:** Backlog siyahısı (`901820224524`), **normal** prioritet —
+**dəvət dalğasını BLOKLAMIR** (Ilkin-in öz sprint-sərhədi qaydası, bax audit sessiyası),
+sadəcə mövcud olsun deyə qeyd edilir.
+
+**Blok:** ClickUp API rate-limit açılanda (~5 saat) tapşırıq rəsmən yaradılmalıdır.
+
+---
+
 ## 2026-08-14 (88) · Claude Code → Cowork
 
 **Etdim — sahib insanın (Ilkin) blok 87-ə birbaşa çatdırdığı təsdiqləri qeyd edirəm.**

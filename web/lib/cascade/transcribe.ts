@@ -152,6 +152,7 @@ export async function transcribe(opts: {
   let raw: RawTranscript | null = null;
   let usage: LLMUsage | null = null;
   let latencyMs = 0;
+  let usedModel = model ?? process.env.GEMINI_MODEL ?? "";
 
   for (let call = 1; call <= 2; call++) {
     if (opts.signal?.aborted) break;
@@ -172,6 +173,7 @@ export async function transcribe(opts: {
     }
     usage = result.usage;
     latencyMs = result.latencyMs;
+    usedModel = result.model; // ADR-022: HƏQİQƏTƏN çağırılan model, təxmin yox
 
     const check = validateTranscript(result.parsed);
     if (check.valid) {
@@ -197,7 +199,7 @@ export async function transcribe(opts: {
     .query(`select app.store_cached_solve($1, $2, $3::jsonb, $4)`, [imageHash, cacheKey, JSON.stringify(raw), imagePhash])
     .catch((err) => console.error("[cascade/transcribe] keş yazı xətası:", err));
 
-  const costUsd = computeCostUsd(usage, "TRANSCRIBE");
+  const costUsd = computeCostUsd(usage, usedModel);
 
   return "transcript" in interpreted
     ? { kind: "transcript", transcript: interpreted.transcript, costUsd, latencyMs, usage, cacheHit: false, imagePhash }

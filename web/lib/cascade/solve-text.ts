@@ -72,6 +72,7 @@ export function makeTextSolveLayer(): SolveLayer {
       let parsed: StepSchemaOutput | null = null;
       let usage: LLMUsage | null = null;
       let latencyMs = 0;
+      let usedModel = process.env.GEMINI_MODEL ?? "";
 
       for (let call = 1; call <= 2; call++) {
         if (ctx.signal?.aborted) break;
@@ -86,6 +87,7 @@ export function makeTextSolveLayer(): SolveLayer {
         }
         usage = result.usage;
         latencyMs = result.latencyMs;
+        usedModel = result.model; // ADR-022: HƏQİQƏTƏN çağırılan model, təxmin yox
 
         const check = validateStep(result.parsed);
         if (check.valid) {
@@ -119,7 +121,7 @@ export function makeTextSolveLayer(): SolveLayer {
           stepAnswerRows: buildStepAnswerRows(rawSteps),
           rawSteps,
         },
-        costUsd: computeCostUsd(usage),
+        costUsd: computeCostUsd(usage, usedModel),
         latencyMs,
         usage,
       };

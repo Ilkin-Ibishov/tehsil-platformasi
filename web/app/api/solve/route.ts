@@ -468,6 +468,7 @@ export async function POST(req: NextRequest) {
   let attempts = 0;
   let cacheHit = false;
   let timedOut = false;
+  let usedModel = process.env.GEMINI_MODEL ?? ""; // ADR-022: HƏQİQƏTƏN çağırılan model
 
   // Şəkil-hash keşi (HANDOFF 81, ClickUp): eyni şəkil TƏKRAR gəlsə (şəbəkə xətasından sonra
   // retry, ikiqat toxunma) VƏ ya VİZUAL OXŞAR gəlsə (pHash Hamming ≤5, ClickUp 86eymfgbv)
@@ -497,6 +498,7 @@ export async function POST(req: NextRequest) {
         usage = result.usage;
         latencyMs = result.latencyMs;
         attempts = result.attempts;
+        usedModel = result.model;
 
         const check = validateStep(result.parsed);
         if (check.valid) {
@@ -573,7 +575,7 @@ export async function POST(req: NextRequest) {
   // capture + təsdiqsiz → draft (görünmür, yalnız çəkən şagird görür — client tərəfi
   // ayrıca sorğu ilə deyil, elə bu cavabın özü ilə göstərir, bank görünürlüyünə aid deyil).
   const reviewStatus = verified === true ? "auto_verified" : "draft";
-  const costUsd = computeCostUsd(usage);
+  const costUsd = computeCostUsd(usage, usedModel);
   // Klient telemetriya üçün bu ID-ni artıq kamera ekranı açılanda yaradıb (lib/telemetry
   // setAttemptId) — həmin ID-ni burada SESSİYA (`attempts`) sətrinin PK-sı kimi işlədirik ki,
   // S4-də "son addıma çatdı" yeniləməsi (/api/attempts/progress) əlavə round-trip data
