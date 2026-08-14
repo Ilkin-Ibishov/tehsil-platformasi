@@ -30,6 +30,11 @@ type StepAnswerState = {
   status: StepStatus;
   attemptNo: number;
   startedAt: number;
+  // UX audit tapıntısı (2026-08-14): server-in hesabladığı distraktor mesajı/başlıq
+  // ƏVVƏLLƏR TAMAMİLƏ ATILIRDI (checkStepAnswer-in tipi yalnız `correct`-i saxlayırdı) —
+  // HANDOFF-83-ün "LLM-siz konkret diaqnostik mesaj" məqsədi bununla itirilirdi.
+  errorTitle?: string | null;
+  distractorMessage?: string | null;
 };
 
 // SYSTEM-REVIEW-2026-08-07 §2 (HANDOFF 45): addım yoxlaması indi SERVERDƏDİR
@@ -43,7 +48,13 @@ type StepAnswerState = {
 // mövqeyi ilə çağırmaq dil fallback ssenarisində (fərqli tərcümələr fərqli `steps[]`
 // uzunluğu/sırası daşıya bilər) səssiz yanlış nəticəyə gətirirdi. Çağıran `currentStep.index`
 // göndərməlidir, `stepIndex` (React state, massiv mövqeyi) YOX — bax aşağıda `submitAnswer`.
-async function checkStepAnswer(attemptId: string, stepSchemaIndex: number, answer: string): Promise<{ correct: boolean }> {
+type StepCheckResponse = {
+  correct: boolean;
+  distractor?: { error_code: string; message: string };
+  error_title?: string;
+};
+
+async function checkStepAnswer(attemptId: string, stepSchemaIndex: number, answer: string): Promise<StepCheckResponse> {
   const res = await fetch("/api/steps/check", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -222,9 +233,13 @@ export function SolveView({
     setAnswers((prev) => ({ ...prev, [stepIndex]: { ...currentAnswer, status: "checking" } }));
 
     let correct: boolean;
+    let errorTitle: string | null = null;
+    let distractorMessage: string | null = null;
     try {
       const result = await checkStepAnswer(attemptId, currentStep.index, submittedInput);
       correct = result.correct;
+      errorTitle = result.error_title ?? null;
+      distractorMessage = result.distractor?.message ?? null;
     } catch {
       // SYSTEM-REVIEW §2 diqqəti: şəbəkə yoxdursa AYDIN mesaj, səssiz "səhv" yox.
       setAnswers((prev) => ({ ...prev, [stepIndex]: { ...currentAnswer, status: "network_error" } }));
@@ -244,7 +259,14 @@ export function SolveView({
 
     setAnswers((prev) => ({
       ...prev,
-      [stepIndex]: { ...prev[stepIndex], input: submittedInput, status: correct ? "correct" : "wrong", attemptNo },
+      [stepIndex]: {
+        ...prev[stepIndex],
+        input: submittedInput,
+        status: correct ? "correct" : "wrong",
+        attemptNo,
+        errorTitle,
+        distractorMessage,
+      },
     }));
   }
 
@@ -535,6 +557,12 @@ export function SolveView({
               <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
                 <input
                   type="text"
+                  // UX audit tapıntısı (2026-08-14): `check.input_kind` YALNIZ telemetriyada
+                  // işlədilirdi, real `<input>`-a heç vaxt ötürülmürdü — mobil klaviatura
+                  // rəqəm sualında da tam hərf klaviaturası açırdı. `inputMode="decimal"`
+                  // ("numeric" YOX) — mənfi ədəd/onluq vergül də yazıla bilməlidir (az
+                  // lokalı), "decimal" klaviaturası bunu buraxır, "numeric" isə YOX.
+                  inputMode={currentStep.check.input_kind === "number" ? "decimal" : undefined}
                   value={currentAnswer.input}
                   placeholder={t("step.inputPlaceholder")}
                   onChange={(e) => setInput(e.target.value)}
@@ -590,23 +618,33 @@ export function SolveView({
 
           {currentAnswer.status === "wrong" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "12px 16px", borderRadius: "var(--rad)", background: "var(--warnsoft)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 12,
-                    letterSpacing: "0.06em",
-                    padding: "4px 8px",
-                    borderRadius: "var(--radsm)",
-                    border: "1px solid var(--warn)",
-                    color: "var(--warn)",
-                  }}
-                >
-                  {currentStep.error_code}
-                </span>
-                <span style={{ fontSize: 12, color: "var(--t3)" }}>{t("step.errorRecorded")}</span>
-              </div>
-              <span style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>{currentStep.hint}</span>
+              {/* UX audit tapıntısı (2026-08-14): BURADA əvvəllər xam `currentStep.error_code`
+                  (`PERCENT_TO_FRACTION` kimi) göstərilirdi — şagird üçün oxunmaz taksonomiya
+                  açarı. İndi server-in tapdığı `error_codes.title_az` (Azərbaycanca insan
+                  etiketi) göstərilir, TAPILMASA HEÇ NƏ göstərilmir (xam koda GERİ DÜŞMÜR). */}
+              {currentAnswer.errorTitle && (
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      letterSpacing: "0.01em",
+                      padding: "4px 8px",
+                      borderRadius: "var(--radsm)",
+                      border: "1px solid var(--warn)",
+                      color: "var(--warn)",
+                    }}
+                  >
+                    {currentAnswer.errorTitle}
+                  </span>
+                  <span style={{ fontSize: 12, color: "var(--t3)" }}>{t("step.errorRecorded")}</span>
+                </div>
+              )}
+              {/* Distraktor konkret mesajı (HANDOFF 83: "LLM-siz konkret diaqnostik mesaj")
+                  ARTIQ göstərilir — əvvəllər checkStepAnswer-in tipi onu atırdı, HƏMİŞƏ
+                  ümumi addım hint-i göstərilirdi, uyğun gələn distraktor olsa belə. */}
+              <span style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>
+                {currentAnswer.distractorMessage ?? currentStep.hint}
+              </span>
               <button
                 type="button"
                 onClick={retryAnswer}
@@ -657,7 +695,13 @@ export function SolveView({
         <button
           type="button"
           onClick={advance}
-          disabled={revealing}
+          // UX audit tapıntısı (2026-08-14): əvvəlki şərt YALNIZ `revealing` idi — şagird
+          // heç bir sahəyə toxunmadan "Növbəti addım"a spam edib bütün suala 0 cavabla
+          // sondan-sona keçə bilirdi (`error_code` heç vaxt yazılmır, CLAUDE.md Qızıl qaydası
+          // pozulur). `currentAnswer.status !== "correct"` əlavə edildi. QƏSDƏN `advance()`-in
+          // ÖZÜ dəyişmədi — `abandonStep`/"Bu addımı başa düşmədim" AYRI, AÇIQ etiketli bir
+          // çıxış yoludur (HANDOFF 49 §3d), o, cavabsız irəli getməyə İCAZƏ VERMƏLİDİR.
+          disabled={revealing || (stepIndex < total - 1 && currentAnswer.status !== "correct")}
           style={{
             width: "100%",
             minHeight: 56,
@@ -668,12 +712,12 @@ export function SolveView({
             fontFamily: "inherit",
             fontSize: 17,
             fontWeight: 700,
-            cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0 20px",
-            opacity: revealing ? 0.6 : 1,
+            opacity: revealing || (stepIndex < total - 1 && currentAnswer.status !== "correct") ? 0.5 : 1,
+            cursor: revealing || (stepIndex < total - 1 && currentAnswer.status !== "correct") ? "not-allowed" : "pointer",
           }}
         >
           <span>{stepIndex >= total - 1 ? (revealing ? t("step.checking") : t("step.showAnswer")) : t("step.next")}</span>

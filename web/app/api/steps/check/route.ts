@@ -106,8 +106,38 @@ export async function POST(req: NextRequest) {
     console.error("[/api/steps/check] step_events yazı xətası:", err);
   }
 
+  // UX audit tapıntısı (2026-08-14): əvvəllər klient `error_code`-u (`PERCENT_TO_FRACTION`
+  // kimi taksonomiya açarını) XAM mətn kimi göstərirdi — şagird üçün mənasızdır. Cowork-un
+  // `public.error_codes.title_az`-ı (0051) buradan oxunur.
+  //
+  // `needs_review = false` ŞƏRTİ MƏCBURİDİR: Cowork-un öz-özünü sağaldan qeydiyyat trigger-i
+  // (0052, `register_error_code`) naməlum koda RASTLAŞANDA `title_az = code` (məs.
+  // `COEFFICIENT_READ` → "COEFFICIENT_READ") YAZIR, `needs_review=true` ilə — bu, canlıda
+  // TƏSDİQLƏNDİ (`COEFFICIENT_READ`/`PERCENT_TO_FRACTION` bu cür qeydə alınıb, çünki Cowork-un
+  // 10 kodluq əl ilə kurasiya edilmiş siyahısında YOXDUR). Bu şərti YOXLAMASAYDIQ, düzəliş
+  // ELƏ HƏMİN bugu (xam kod görünməsi) TƏKRAR YARADARDI — sadəcə "title_az" adı altında.
+  // Tapılmasa (və ya hələ nəzərdən keçirilməyibsə) `error_title` `null` qalır — klient bu
+  // halda ETİKET GÖSTƏRMİR (heç vaxt xam koda geri DÜŞMÜR).
+  let errorTitle: string | null = null;
+  if (!correct && effectiveErrorCode) {
+    const { rows: titleRows } = await pool
+      .query<{ title_az: string }>(
+        `select title_az from public.error_codes where code = $1 and needs_review = false`,
+        [effectiveErrorCode]
+      )
+      .catch((err) => {
+        console.error("[/api/steps/check] error_codes oxuma xətası:", err);
+        return { rows: [] as { title_az: string }[] };
+      });
+    errorTitle = titleRows[0]?.title_az ?? null;
+  }
+
   return NextResponse.json(
-    result.distractor ? { correct, distractor: result.distractor } : { correct },
+    {
+      correct,
+      ...(result.distractor ? { distractor: result.distractor } : {}),
+      ...(errorTitle ? { error_title: errorTitle } : {}),
+    },
     { status: 200 }
   );
 }

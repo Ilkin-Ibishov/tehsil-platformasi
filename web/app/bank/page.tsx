@@ -13,9 +13,22 @@ import { SolveView, type SolveResult } from "@/components/hell/SolveView";
 // `question_translations.steps`-dən OLDUĞU KİMİ qaytarır, sonra kamera axını ilə EYNİ
 // `SolveView` işə düşür (`/api/steps/check`, `/api/attempts/reveal` dəyişmədən işləyir).
 
-type BankQuestion = { id: string; subject: string; grade: number; topic_code: string; preview: string };
+type BankQuestion = {
+  id: string;
+  subject: string;
+  grade: number;
+  topic_code: string;
+  topic_title: string | null;
+  preview: string;
+};
 type Stage = "invite" | "loading" | "topics" | "questions" | "starting" | "solved" | "error";
-type TopicGroup = { subject: string; grade: number; topicCode: string; questions: BankQuestion[] };
+type TopicGroup = { subject: string; grade: number; topicCode: string; topicTitle: string | null; questions: BankQuestion[] };
+
+// UX audit tapıntısı (2026-08-14): 46-55 demək olar eyni sualı BİR EKRANDA göstərmək
+// (3.5 ekran scroll, seçim üçün heç bir məntiqli əsas) — bu, "sual bankı" DEYİL, "diferensiasiya
+// edilməmiş divar"dır. Server ARTIQ mənalı sırada verir (fingerprint_digits üzrə), klient
+// bunu KİÇİK PORSİYALARLA açır ki, şagird bir anda 55 sətirlə üzləşməsin.
+const PAGE_SIZE = 12;
 
 export default function BankPage() {
   const t = useTranslations("bank");
@@ -24,6 +37,7 @@ export default function BankPage() {
   const [inviteCode, setInviteCode] = useState<string | null>(() => getStoredInviteCode());
   const [questions, setQuestions] = useState<BankQuestion[] | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<TopicGroup | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [solution, setSolution] = useState<SolveResult | null>(null);
   const [solutionAttemptId, setSolutionAttemptId] = useState<string | null>(null);
 
@@ -60,7 +74,7 @@ export default function BankPage() {
       const key = `${q.subject}|${q.grade}|${q.topic_code}`;
       const existing = map.get(key);
       if (existing) existing.questions.push(q);
-      else map.set(key, { subject: q.subject, grade: q.grade, topicCode: q.topic_code, questions: [q] });
+      else map.set(key, { subject: q.subject, grade: q.grade, topicCode: q.topic_code, topicTitle: q.topic_title, questions: [q] });
     }
     return [...map.values()].sort((a, b) => a.grade - b.grade || a.topicCode.localeCompare(b.topicCode));
   }, [questions]);
@@ -96,6 +110,7 @@ export default function BankPage() {
     setSelectedTopic(null);
     setSolution(null);
     setSolutionAttemptId(null);
+    setVisibleCount(PAGE_SIZE);
     setStage("topics");
   }
 
@@ -154,10 +169,13 @@ export default function BankPage() {
           </button>
         </div>
         <h1 style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: "var(--hsize)", margin: 0 }}>
-          {selectedTopic.topicCode}
+          {selectedTopic.topicTitle ?? selectedTopic.topicCode}
         </h1>
+        <span style={{ fontSize: 13, color: "var(--t3)" }}>
+          {t("questionCount", { count: selectedTopic.questions.length })}
+        </span>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {selectedTopic.questions.map((q) => (
+          {selectedTopic.questions.slice(0, visibleCount).map((q) => (
             <button
               key={q.id}
               type="button"
@@ -180,6 +198,26 @@ export default function BankPage() {
             </button>
           ))}
         </div>
+        {visibleCount < selectedTopic.questions.length && (
+          <button
+            type="button"
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            style={{
+              alignSelf: "center",
+              minHeight: "var(--tap)",
+              padding: "0 22px",
+              border: "1px solid var(--bor)",
+              borderRadius: "var(--rad)",
+              background: "transparent",
+              color: "var(--t2)",
+              fontFamily: "inherit",
+              fontSize: 14,
+              cursor: "pointer",
+            }}
+          >
+            {t("showMore", { count: Math.min(PAGE_SIZE, selectedTopic.questions.length - visibleCount) })}
+          </button>
+        )}
       </main>
     );
   }
@@ -209,6 +247,7 @@ export default function BankPage() {
               type="button"
               onClick={() => {
                 setSelectedTopic(g);
+                setVisibleCount(PAGE_SIZE);
                 setStage("questions");
               }}
               style={{
@@ -228,7 +267,7 @@ export default function BankPage() {
               }}
             >
               <span style={{ display: "grid", rowGap: 4 }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>{g.topicCode}</span>
+                <span style={{ fontSize: 15 }}>{g.topicTitle ?? g.topicCode}</span>
                 <span style={{ fontSize: 12, color: "var(--t3)" }}>{t("gradeLabel", { grade: g.grade })}</span>
               </span>
               <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--t2)" }}>{g.questions.length}</span>

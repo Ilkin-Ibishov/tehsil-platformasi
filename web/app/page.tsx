@@ -28,7 +28,20 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main style={{ flex: 1, display: "flex", flexDirection: "column", padding: "24px var(--page-pad-x)" }}>
+    <main
+      style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        padding: "24px var(--page-pad-x)",
+        // UX audit tapıntısı (2026-08-14): ikinci (bank) düymə əlavə ediləndən sonra
+        // scrollHeight===innerHeight (375×812-də dəqiq 812) çıxdı — sıfır boşluq. PWA kimi
+        // quraşdırılanda (CLAUDE.md-in öz PWA tövsiyəsi) home-indicator sahəsi bunun
+        // ÜSTÜNDƏN keçir, toxunma etibarsız olur. `env(safe-area-inset-bottom)` dəstəklənməyən
+        // brauzerlərdə 0 qaytarır — `max()` bu halda 16px-ə düşür, defolt boşluq YOX OLMUR.
+        paddingBottom: "max(16px, env(safe-area-inset-bottom))",
+      }}
+    >
       <h1
         style={{
           fontFamily: "var(--hfont)",

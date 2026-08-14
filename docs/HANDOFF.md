@@ -15,6 +15,81 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (86) · Claude Code → Cowork
+
+**Etdim — sahib insanın tapşırığı ilə canlı UI/UX auditi + tapılan 7 bugun düzəlişi.**
+
+Yerli staging mühiti quruldu (Docker Postgres, `.claude/launch.json` — `npm run dev`), BÜTÜN
+53 miqrasiya sıfırdan tətbiq edildi (bir neçə drift/əvvəldən mövcud sxem uyğunsuzluğu əl ilə
+düzəldildi — `0018`-in `psql -v` dəyişəni, `source_template` sütunu, `subjects.id` production
+UUID-i ilə uyğunlaşdırma), brauzerdə real klik axını ilə kamera-BAŞQA (invite/bank/solve)
+ekranlar sınandı. Kamera icazəsi bu mühitdə mümkün olmadı (getUserMedia bloklanır).
+
+### Tapılan və DÜZƏLDİLƏN 7 bug (severity sırası ilə)
+
+1. **KRİTİK — "Növbəti addım" cavab olmadan işləyirdi.** `SolveView.tsx`-in `advance()`
+   düyməsi YALNIZ `disabled={revealing}` şərtinə malik idi — şagird heç bir sahəyə toxunmadan
+   4 addımlı sualı 3 kliklə sona çatdıra bilirdi, `error_code` HEÇ VAXT yazılmırdı. Bu, CLAUDE.md
+   Qızıl qaydasının (`error_code` taksonomiyası = məhsulun bütün dəyəri) FAKTİKİ işləməməsi
+   demək idi. Düzəliş: `disabled={revealing || (stepIndex < total-1 && status !== "correct")}`.
+   `abandonStep`/"Bu addımı başa düşmədim" AYRI, AÇIQ etiketli çıxış yolu olaraq TOXUNULMADI.
+
+2. **`error_code` xam mətn kimi göstərilirdi** (`PERCENT_TO_FRACTION` kimi). `/api/steps/
+   check` indi Cowork-un `public.error_codes.title_az`-ını (0051) qaytarır. **VACİB nüans**:
+   Cowork-un öz-özünü sağaldan qeydiyyat trigger-i (0052) naməlum koda rastlaşanda
+   `title_az = code` yazır (`needs_review=true`) — bunu YOXLAMASAM eyni bug "title_az" adı
+   altında TƏKRARLANARDI. `and needs_review = false` şərti əlavə edildi. Tapılmasa/nəzərdən
+   keçirilməyibsə klient HEÇ NƏ göstərmir (xam koda geri düşmür).
+
+3. **Distraktor mesajı (HANDOFF 83) client-də TAMAMİLƏ ATILIRDI.** `checkStepAnswer`-in tipi
+   `{correct: boolean}` idi — server-in hesabladığı konkret `distractor.message` HEÇ VAXT
+   göstərilmirdi, əvəzinə həmişə ümumi addım `hint`-i göstərilirdi. İndi `distractor.message`
+   varsa o göstərilir (HANDOFF-83-ün "LLM-siz konkret diaqnostik mesaj" məqsədi bərpa olundu).
+
+4. **Bank mövzu adları xam kod idi** (`ARITH.PERCENT_INCREASE`). `/api/bank/questions` indi
+   `public.topic_codes.title_az`-a LEFT JOIN edir → "Faizlə artım", "Kvadrat tənlik" və s.
+
+5. **Bank siyahısı — 46-55 demək olar eyni sual, təsadüfi sırada, say/sıralama yox.**
+   Server `fingerprint_digits`-in birinci ədədinə görə RİYAZİ sıralayır, klient mövzu
+   başlığında sayı göstərir ("47 sual") və siyahını 12-lik porsiyalarla açır ("daha 12 sual
+   göstər") — 3.5 ekranlıq scroll-u əvvəldən göstərmək əvəzinə.
+
+6. **Rəqəm cavabı mobil TAM QWERTY açırdı.** `check.input_kind` telemetriyada işlədilirdi,
+   real `<input>`-a heç vaxt ötürülmürdü. `input_kind==="number"` olanda `inputMode="decimal"`.
+
+7. **`\%` LaTeX artığı ekranda qalırdı** ("1\% = (200)/(100)"). `math-format.ts`-ə
+   `\%`/`\&`/`\_`/`\#` təmizləməsi əlavə edildi. `findUnformattedLatex`-in öz reqex-i
+   (`\[a-zA-Z]+`) bu sinif bugu TUTA BİLMİR (`%` hərf deyil) — məhsulun öz QA-ölçməsi bunu
+   görməzdən gəlir, dərs kimi qeyd olunur.
+
+8. **Ana ekranın yeni bank düyməsi safe-area-sız dib kənara sıxılırdı** (scrollHeight===
+   innerHeight, sıfır boşluq). `paddingBottom: max(16px, env(safe-area-inset-bottom))`.
+
+### Doğrulama
+
+Hər 8 düzəliş EYNİ bug ssenarisini TƏKRARLAYARAQ brauzerdə yenidən sınandı (cavabsız
+"Növbəti addım" klikləndi → bloklandı; səhv cavab verildi → `error_title`/`distractor.message`
+göründü, xam kod YOX; düzgün cavab → kilid açıldı; bank sual sayı/sıralama/pagination
+təsdiqləndi; `inputMode` DOM-da yoxlandı). `tsc`/`eslint`/6 selftest paketi (93 test,
+`math-format`-a 2 yeni test əlavə edildi) təmiz, `npm run build` təmiz.
+
+### Diqqət / Blok
+
+- **`error_codes.needs_review=true` qalan kodlar** (`COEFFICIENT_READ`, `PERCENT_TO_FRACTION`
+  və real istifadədə üzə çıxacaq digərləri) — bunlar üçün badge HEÇ VAXT görünməyəcək (yalnız
+  ümumi hint). `select * from v_taxonomy_review` Cowork üçün kurasiya siyahısıdır (öz
+  sahibliyi, mən title_az uydurmadım).
+- Bank UI-da `check.input_kind` yalnız ƏSAS addım input-una tətbiq edildi — "EYNİSİNİ SƏN
+  HƏLL ET" transfer sualının input-u toxunulmadı (orada `input_kind` DATASI YOXDUR, təxminlə
+  dəyişiklik etmədim).
+- Yerli Docker Postgres (port 5433, `tehsil` bazası) və dev server hələ İŞLƏYİR — sahib
+  insan özü baxmaq istəsə davam edə bilər.
+- Push EDİLMƏDİ, təsdiq gözlənilir.
+
+**Blok:** yoxdur.
+
+---
+
 ## 2026-08-14 (85) · Claude Code → Cowork
 
 **Etdim — `86eymfgbv` (pHash keçidi) və `86eykhve0` (bank UI), sahib insanın sıralaması ilə.**

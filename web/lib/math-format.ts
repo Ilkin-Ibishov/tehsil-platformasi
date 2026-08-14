@@ -45,6 +45,12 @@ export function formatMath(src: string, locale: string = "az"): string {
   text = text.replace(/\\ /g, " ");
   text = text.replace(/\\quad/g, " ");
 
+  // UX audit tapıntısı (2026-08-14): `\%` (LaTeX-də escape-lənmiş literal `%`) TƏMİZLƏNMİRDİ —
+  // ekranda hərfi "1\%" görünürdü. `findUnformattedLatex`-in öz reqex-i (`\\[a-zA-Z]+`) bunu
+  // TUTA BİLMİR, çünki `%` hərf deyil — bu sinif bug ölçmədən keçib gedirdi. `\&`/`\_`/`\#`
+  // eyni sinifdəndir (LaTeX-in escape-lənmiş xüsusi simvolları) — hamısı burada təmizlənir.
+  text = text.replace(/\\([%&_#])/g, "$1");
+
   // \text{...} → içindəki mətn (mötərizə silinir), \mathbb{N} → ℕ (R/Z/Q oxşar)
   text = text.replace(/\\text\{([^{}]*)\}/g, "$1");
   text = text.replace(/\\mathbb\{([A-Z])\}/g, (_m, l: string) => BLACKBOARD[l] ?? l);

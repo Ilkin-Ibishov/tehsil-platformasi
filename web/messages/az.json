@@ -52,7 +52,9 @@
     "backToTopics": "mövzulara qayıt",
     "backHome": "ana ekrana qayıt",
     "empty": "Hələ heç bir sual yoxdur.",
-    "gradeLabel": "{grade}-ci sinif"
+    "gradeLabel": "{grade}-ci sinif",
+    "questionCount": "{count} sual",
+    "showMore": "daha {count} sual göstər"
   },
   "invite": {
     "title": "Dəvət kodu",

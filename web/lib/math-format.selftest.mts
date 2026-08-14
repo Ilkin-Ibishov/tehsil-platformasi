@@ -37,6 +37,10 @@ const CASES: [string, string][] = [
   ["x_1 = 3.5, x_2 = 2.5", "x₁ = 3,5; x₂ = 2,5"],
   // onluq YOXdursa siyahı vergülü toxunulmur (birmənalıdır)
   ["x_1 = 3, x_2 = 2", "x₁ = 3, x₂ = 2"],
+  // UX audit tapıntısı (2026-08-14): \% əvvəllər TƏMİZLƏNMİRDİ — "1\% = (200)/(100)" kimi
+  // ekranda görünürdü. findUnformattedLatex-in reqex-i (\[a-zA-Z]+) bunu tuta bilmirdi.
+  ["1\\% = \\frac{200}{100}", "1% = (200)/(100)"],
+  ["50\\%", "50%"],
 ];
 
 let fails = 0;
