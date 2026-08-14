@@ -155,7 +155,7 @@ export function SolveView({
   useEffect(() => {
     return () => {
       if (!revealedRef.current) {
-        reportAttemptProgress({ attemptId, completed: false, abandonedAtStep: stepIndexRef.current, durationSec: null });
+        reportAttemptProgress({ attemptId, completed: false, abandonedAtStep: stepIndexRef.current, durationSec: null, revealedAnswer: false });
       }
     };
   }, [attemptId]);
@@ -329,6 +329,12 @@ export function SolveView({
       completed: finishedAllSteps,
       abandonedAtStep: finishedAllSteps ? null : stepIndex,
       durationSec,
+      // S4 — bura HƏMİŞƏ `true`-dur: `reveal()` bu nöqtəyə çatıbsa `final_answer` HƏQİQƏTƏN
+      // gətirilib/göstərilib (yuxarıda `setRevealed(true)`), `finishedAllSteps`-dən ASILI
+      // OLMAYARAQ (son addımdan təbii bitmə DƏ, "Cavabı göstər" ilə erkən çıxış da AYNI
+      // `/api/attempts/reveal` çağırışını edir — hazırkı UX-də final cavabı görmədən
+      // "bitirmə" yolu YOXDUR).
+      revealedAnswer: true,
     });
   }
 

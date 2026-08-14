@@ -15,6 +15,48 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (98) · Claude Code → Cowork
+
+**Etdim — S4 (86eymwgk7), `attempt_items.completed`/`revealed_answer` yazılması.**
+
+- **Kəşf:** `attempt_items.self_solved` artıq `GENERATED ALWAYS AS ((revealed_answer = false)
+  AND (hints_used = 0)) STORED` sütundur — heç bir sənəddə YOX idi,
+  `information_schema.columns`-dan tapıldı. Birbaşa yazmaq cəhdi Postgres-in özündən rədd
+  aldı ("can only be updated to DEFAULT"). Bu, dizaynı DƏYİŞDİ: `self_solved`-i əl ilə
+  hesablamağa EHTİYAC YOXDUR, `revealed_answer`-i düzgün yazmaq kifayətdir. `hints_used`
+  kodda HEÇ YERDƏ yazılmır (defolt 0-da qalır) — praktikada düstur hazırda `NOT
+  revealed_answer`-ə bərabərdir, S4-ün tələb etdiyi tərif ilə TAM UYĞUNDUR.
+- **`web/lib/attempts.ts`** — `reportAttemptProgress` yeni `revealedAnswer: boolean`
+  parametri qəbul edir, `/api/attempts/progress`-a `revealed_answer` sahəsi kimi göndərir.
+- **`web/components/hell/SolveView.tsx`** — iki çağırış yeri: unmount-cleanup
+  (`revealedAnswer: false`, reveal heç vaxt çağırılmayıb) və `reveal()`-in özü
+  (`revealedAnswer: true` — HƏMİŞƏ, `finishedAllSteps`-dən ASILI OLMAYARAQ: hazırkı UX-də
+  "Cavabı göstər" düyməsi VƏ son addımdan təbii bitmə eyni `reveal()` funksiyasını çağırır,
+  final cavabı görmədən bitirmə yolu yoxdur).
+- **`web/app/api/attempts/progress/route.ts`** — indi `completed`/`revealed_answer`/
+  `duration_sec` sütunlarını da yazır (əvvəllər YALNIZ `steps_revealed`/`time_ms`). Hər ikisi
+  `or`-la monoton (bir dəfə `true` olan geriyə düşmür).
+- **`supabase/migrations/0059_backfill_attempt_items_completion.sql`** — production-a tətbiq
+  edildi. Mövcud 16 sətir `events` tarixçəsindən (`solution.completed`/`solution.
+  answer_revealed`, `attempt_id` üzrə) bir dəfəlik geriyə hesablandı: 6 sətir
+  `completed=true`, 6 sətir `revealed_answer=true` (və nəticədə `self_solved=false`) oldu.
+  Blok 95-in referans etdiyi attempt (`47800463-3413-4505-9ad7-c6478d33caae`) yoxlanıldı:
+  `completed=true, revealed_answer=true, self_solved=false, duration_sec=193` — S4-ün öz
+  qəbul şərti HƏRFİ TUTUR.
+
+**Doğrulama:** `tsc --noEmit`/`eslint` təmiz (yeni `layout.tsx` xətası yoxdur, mövcud
+köhnəlik istisna).
+
+**Diqqət:**
+- `hints_used` HEÇ YERDƏ yazılmır — "niyə belədir" düyməsinin klikləri hazırda bu sütuna
+  ƏLAQƏLƏNDİRİLMİR. `self_solved`-in düsturuna daxildir, amma hazırkı praktikada təsirsizdir
+  (həmişə 0). Bu, S4-ün əhatəsindən KƏNARDIR (ayrı tapşırıq ola bilər — "hint istifadəsi
+  self_solved-u korlayır" gələcək bir dəqiqlik məsələsidir, indi YOX).
+- Real foto-solve ilə UÇDAN-UCA yoxlanmadı (kamera bloklanıb) — backfill VƏ mövcud `events`
+  datası üzərində doğrulandı, YENİ solve axını sınanmadı.
+
+---
+
 ## 2026-08-14 (97) · Claude Code → Cowork
 
 **Etdim — S3 (86eymwgju), error_code taksonomiyasının birləşdirilməsi.**
