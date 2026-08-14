@@ -15,6 +15,43 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (97) · Claude Code → Cowork
+
+**Etdim — S3 (86eymwgju), error_code taksonomiyasının birləşdirilməsi.**
+
+- **`supabase/migrations/0058_error_codes_step_schema_merge.sql`** — YENİ, production-a
+  tətbiq edildi. `public.error_codes`-ə `deprecated` sütunu, `docs/STEP-SCHEMA.json`-un 8
+  çatışmayan kodu (`SIGN_LOST`, `SQUARE_FORGOTTEN`, `SUBSTITUTION_SKIPPED`, `FACTOR_PAIR`,
+  `ORDER_OF_OPS`, `COEFFICIENT_READ`, `UNIT_MISMATCH`, `TRANSCRIPTION`) — etiket/izah SXEMİN
+  ÖZÜNDƏN (`$defs.error_code_labels_az`) köçürülüb, uydurulmayıb. DB-də olub sxemdə olmayan
+  7 köhnə kod (`INCOMPLETE_ANSWER`, `OPERATION_CONFUSION`, `PLACE_VALUE`, `ROOT_SELECTION`,
+  `SCOPE_CONFUSION`, `TRANSPOSE_SIGN`, `UNKNOWN`) SİLİNMƏDİ, `deprecated=true` işarələndi.
+  Production-da yoxlanıldı: 11/11 STEP-SCHEMA kodu indi `needs_review=false`.
+- **`web/lib/cascade/template.ts` yoxlanıldı, DƏYİŞMƏDİ** — remap artıq düzgün idi (kod
+  şərhindəki "TRANSPOSE_SIGN→SIGN_LOST" kimi köhnə cədvəl faktiki koddan İCRA OLUNMUR, bütün
+  `makeStep` çağırışları birbaşa STEP-SCHEMA kodlarını yazır: `SIGN_LOST`, `ARITHMETIC`,
+  `SUBSTITUTION_SKIPPED`, `COEFFICIENT_READ`, `SIGN_CHOICE`, `FACTOR_PAIR`,
+  `FORMULA_MISAPPLIED`). Şərh köhnəlmişdi (0038-in TARİXİ remap-ından bəhs edir), koda TOXUNMADIM.
+- **UI xəritəsi** — `web/app/api/steps/check/route.ts` artıq `public.error_codes.title_az`-ı
+  `needs_review=false` şərtilə oxuyur, tapılmasa xam kod GÖSTƏRMİR (mövcud kod, dəyişmədi).
+  8 kodun DB-yə əlavəsi ilə bu yol İNDİ 11/11 kod üçün etiket tapır — əvvəllər 8-i "heç nə
+  göstərmə" budağına düşürdü.
+
+**Doğrulama:** `ocr-capture`/`template`/`step-check` selftest-ləri işə salınır (fon tapşırığı,
+nəticə gözlənilir).
+
+**Diqqət:**
+- **Distraktor bankı yoxlanılmadı** (`private.step_answers.distractors`, `0039`/`0040`
+  seed-i) — əgər orada STEP-SCHEMA-nın 11 kodundan KƏNAR bir `error_code` varsa, öz-özünü
+  sağaldan trigger (`0052`) onu `needs_review=true` ilə qeydə alacaq və UI-da etiket
+  GÖRÜNMƏYƏCƏK (xam kod da yox — `step-check.ts`-in qəsdən belə davranan qaydası). Bu, S3-ün
+  əhatəsindən KƏNARDIR (tapşırıq YALNIZ `public.error_codes`↔STEP-SCHEMA uyğunluğunu istədi),
+  amma `v_taxonomy_review`-u vaxtaşırı yoxlamaq faydalı olardı.
+- `active=false` YOX, `deprecated=true` YALNIZ — köhnə 7 kod hələ `active=true` qalır (tapşırıq
+  bunu tələb etmirdi, yalnız "silinməsin, işarələnsin" dedi).
+
+---
+
 ## 2026-08-14 (96) · Claude Code → Cowork
 
 **Etdim — S1 (86eymwght), blok 95-in valideyn tapşırığının birinci addımı: çəkilmiş
