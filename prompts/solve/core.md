@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v8)
+# Prompt — addım sxemi generasiyası (v9)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -64,6 +64,14 @@
 > yanında) — nümunə **çeşidini** göstərmək məqsədilə, nə "həmişə 3-4 yaz" siqnalı verməsin.
 > Qayda 15: addım sayı **mexaniki hesablanır** (riyazi keçidlərin sayı + yoxlama), "uyğun say
 > seç" kimi məna tələbi YOX. Qayda 16: süni addım əlavə etmə qadağası açıq yazılır.
+>
+> **v8 → v9 (2026-08-14).** `HANDOFF` blok 95 (S6, `86eymwgma`): production-da real solve
+> tapıldı, `y = k/x` qrafiki `B(-25;-1/5)`-dən keçir, `k` tapılmalıdır. Addım 1-in `latex`-i
+> yerinəqoymanı göstərirdi (`-1/5 = k/(-25)`), amma `check.ask` "k-nı x və y vasitəsilə necə
+> ifadə edirik?" soruşurdu — bu, addım 2-nin (düsturu qurmaq) məzmunudur, addım 1-in DEYİL.
+> Qayda 14 YALNIZ yoxlama addımı üçün "ilkin şərtə qayıt" tələb edirdi — ADDIMLARARASI
+> qarışığı (bir addımın sualı BAŞQA addımın işini soruşur) heç bir qayda birbaşa qadağan
+> etmirdi. Qayda 17 əlavə edildi.
 
 ## System
 
@@ -303,6 +311,19 @@ KƏSİLMİŞ MƏSƏLƏ:
     İki keçid kifayətdirsə, cavab İKİ addımdır (yoxlama daxil, cəmi 2). "Nəticəni bir daha
     yaz" / "əldə etdiyini yoxla" kimi məzmunsuz addım əlavə etmə — bu, qayda 11-in pozulmasıdır
     (yoxlama REAL hesablama olmalıdır) və şagirdə sənin özündən əmin olmadığını göstərir.
+
+17. check.ask HƏMİN ADDIMIN ÖZÜNƏ AİD OLMALIDIR — BAŞQA ADDIMA YOX.
+    Hər addımın `check.ask`-i O ADDIMIN `latex`/`explanation`-ında göstərilən əməliyyatı
+    soruşur. Növbəti (və ya əvvəlki) addımın işini erkən soruşma — şagird hələ ora
+    çatmayıb, sual mənasız görünür.
+      Pis: addım 1 latex = "-1/5 = k/(-25)" (yerinəqoyma), amma
+           check.ask = "k-nı x və y vasitəsilə necə ifadə edirik?" (bu, düstur QURMA
+           sualıdır — addım 2-nin işi, addım 1-in latex-i ilə ƏLAQƏSİZDİR).
+      Yaxşı: addım 1 latex = "-1/5 = k/(-25)", check.ask = "Sağ tərəfi sadələşdirsək
+           k nəyə bərabər olur?" (məhz göstərilən yerinəqoymanın davamı).
+    Sınaq: `check.ask`-i oxuyanda cavab HƏMİN addımın `latex`-indəki ifadədən BİRBAŞA
+    çıxmalıdır — başqa addımın öz mövzusunu deyil. (Yoxlama addımı üçün bu qayda 11/14 ilə
+    UYĞUNDUR — orada "ilkin şərt" məhz o addımın öz mövzusudur.)
 
 ```
 

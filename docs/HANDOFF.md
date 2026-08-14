@@ -15,6 +15,34 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (100) · Claude Code → Cowork
+
+**Etdim — S6 (86eymwgma), `check.ask` öz addımına uyğunlaşdırılması (prompt).**
+
+- **`prompts/solve/core.md`** v8 → v9. Qayda 17 əlavə edildi: `check.ask` HƏMİN addımın öz
+  `latex`/`explanation`-ına aid olmalıdır, BAŞQA (məs. növbəti) addımın mövzusunu erkən
+  soruşmamalıdır. Konkret pozğunluq nümunəsi blok 95-in real solve-undan (yerinəqoyma
+  göstərilir, sual isə düstur-qurma addımına aiddir) birbaşa qayda mətninə köçürüldü.
+  Dəyişiklik tarixçəsinə "v8 → v9" bölməsi əlavə edildi.
+- **`evals/selftest-cases.jsonl`** — blok 95-in real problemi (`y=k/x`, `B(-25;-1/5)`)
+  `check_ask_wrong_step_reference_REAL_REGRESSION` adı ilə əlavə edildi. **AÇIQ QEYD:** heç
+  bir mexaniki test (schema/verify/leak/structural) `check.ask`-in "öz addımına aid olub-
+  olmadığını" YOXLAMIR — `ADR-004`-ün qərarına görə bu SİNİF (pedaqoji uyğunluq) insan
+  icmalı ilə ölçülür, avtomatlaşdırılmır. Sətir YALNIZ sənədləşdirmə məqsədilə saxlanılır
+  (gələcək insan icmalı üçün konkret nümunə), `--selftest`-in "keçməsi" DOĞRULUĞUN TƏSDİQİ
+  DEYİL — yalnız sxem/sympy/sızma tərəflərinin sağlam olduğunu göstərir. `python scripts/
+  eval.py --selftest` ilə yoxlanıldı: **28/28 keçir** (əvvəlki 27 + yeni 1, reqressiya yoxdur).
+
+**Diqqət:**
+- Bu, PROMPT dəyişikliyidir — modelin YENİ nəsil çıxışlarına təsir edəcək, mövcud DB
+  sətirlərinə YOX (geriyə tətbiq mexanizmi yoxdur, tələb də olunmadı).
+- Real vision LLM çağırışı ilə YOXLANMADI (kamera/API açarı bu mühitdə yoxdur) — v9-un
+  qayda 17-ni HƏQİQƏTƏN izləyib-izləmədiyi (məs. eval.py --pipeline B ilə) Ilkin-in real
+  mühitdə növbəti solve-larla təsdiqləməli olduğu bir şeydir.
+- `docs/STEP-SCHEMA.json`-un enum-una TOXUNULMADI (CLAUDE.md-in daimi qadağası).
+
+---
+
 ## 2026-08-14 (99) · Claude Code → Cowork
 
 **Etdim — S5 (86eymwgkv), sympy yoxlaması göstərilmədən əvvəl fərqin görünməsi.**
