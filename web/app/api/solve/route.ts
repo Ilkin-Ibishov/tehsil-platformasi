@@ -13,6 +13,8 @@ import { buildLayers, runCascade } from "@/lib/cascade/run";
 import { persistSolution } from "@/lib/cascade/persist";
 import { sumCostUsd } from "@/lib/cost";
 import { computePHash } from "@/lib/phash";
+import { writeOcrCapture, reserveCaptureId } from "@/lib/cascade/ocr-capture";
+import { uploadCaptureImages } from "@/lib/storage";
 
 // POST /api/solve — S3 (docs/PHASE-1.md). Server qaydaları:
 // 1. verified=false həll istifadəçiyə göstərilmir → status:"unreadable".
@@ -123,6 +125,48 @@ function sumTokens(a: number | undefined, b: number | undefined): number | null 
   return (a ?? 0) + (b ?? 0);
 }
 
+// S1 (86eymwght) / ADR-024 — hər iki monolit budaq (kaskad-daxili və köhnə tək-çağırışlı)
+// eyni upload+insert ardıcıllığını paylaşır: id əvvəlcədən ayrılır (Storage path üçün),
+// crop+raw yüklənir, sonra ocr_captures sətri storage sahələri ilə yazılır. Best-effort —
+// xəta axını BLOKLAMIR (`writeOcrCapture`/`uploadCaptureImages`-in özləri artıq belədir).
+async function captureAndStore(
+  pool: import("pg").Pool,
+  opts: {
+    cropBytes: Buffer;
+    cropMime: string;
+    rawBytes: Buffer | null;
+    rawMime: string | null;
+    ocrRaw: string;
+    imageSha256: string;
+    imagePhash: string | null;
+    model: string | null;
+    latencyMs: number | null;
+    costUsd: number | null;
+  }
+): Promise<void> {
+  const captureId = reserveCaptureId();
+  const uploaded = await uploadCaptureImages({
+    idHint: captureId,
+    cropBytes: opts.cropBytes,
+    cropMime: opts.cropMime,
+    rawBytes: opts.rawBytes,
+    rawMime: opts.rawMime,
+  });
+  await writeOcrCapture(pool, {
+    id: captureId,
+    ocrRaw: opts.ocrRaw,
+    imageSha256: opts.imageSha256,
+    imagePhash: opts.imagePhash,
+    model: opts.model,
+    latencyMs: opts.latencyMs,
+    costUsd: opts.costUsd,
+    storagePath: uploaded?.storagePath ?? null,
+    width: uploaded?.width ?? null,
+    height: uploaded?.height ?? null,
+    bytes: uploaded?.bytes ?? null,
+  });
+}
+
 export async function POST(req: NextRequest) {
   let form: FormData;
   try {
@@ -132,6 +176,7 @@ export async function POST(req: NextRequest) {
   }
 
   const image = form.get("image");
+  const imageRaw = form.get("image_raw"); // S1 (86eymwght) — orijinal kəsilməmiş kadr, ADR-024
   const deviceId = form.get("device_id");
   const clientAttemptId = form.get("attempt_id");
   const inviteCode = form.get("invite_code");
@@ -335,6 +380,21 @@ export async function POST(req: NextRequest) {
           { status: 200 }
         );
       }
+
+      // S1 (86eymwght) — uğurlu transkripsiya, ADR-024. `image_raw` bura da (kaskad-daxili
+      // monolit budaq) çatır — `/api/solve/transcribe`-in eyni davranışı, imtinalar YOX.
+      await captureAndStore(pool, {
+        cropBytes: cascadeBytes,
+        cropMime: image.type || "image/jpeg",
+        rawBytes: imageRaw instanceof Blob && imageRaw.size > 0 ? Buffer.from(await imageRaw.arrayBuffer()) : null,
+        rawMime: imageRaw instanceof Blob ? imageRaw.type || "image/jpeg" : null,
+        ocrRaw: t1.transcript.canonical,
+        imageSha256: cascadeHash,
+        imagePhash: t1.imagePhash,
+        model: t1.model || null,
+        latencyMs: Math.round(t1.latencyMs),
+        costUsd: t1.costUsd,
+      }).catch((err) => console.error("[/api/solve] capture/storage xətası (kaskad budağı):", err));
 
       // ── Qat 2..5 — şəkil ARTIQ YOXDUR, yalnız mətn ────────────────────────────────────
       const { solution, declinedLayers } = await runCascade(buildLayers(pool), {
@@ -555,6 +615,25 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   }
+
+  // S1 (86eymwght) / ADR-024 — BURADA, `verified===false` rədd budağından ƏVVƏL: blok 95-in
+  // şikayəti məhz "yoxlanışdan keçmiş, amma yanlış görünən" bir həll idi — sübut YALNIZ
+  // hansısa nəticə şagirdə çatanda deyil, model canonical/steps çıxardığı HƏR halda lazımdır.
+  // `ocr_raw`/`ocr_final` eyni dəyərdir (monolit yolda ayrı təsdiq mərhələsi yoxdur).
+  const imageRawBytes =
+    imageRaw instanceof Blob && imageRaw.size > 0 ? Buffer.from(await imageRaw.arrayBuffer()) : null;
+  await captureAndStore(pool, {
+    cropBytes: imageBytes,
+    cropMime: imageMime,
+    rawBytes: imageRawBytes,
+    rawMime: imageRaw instanceof Blob ? imageRaw.type || "image/jpeg" : null,
+    ocrRaw: parsed.canonical,
+    imageSha256: imageHash,
+    imagePhash,
+    model: usedModel || null,
+    latencyMs: Math.round(latencyMs),
+    costUsd: computeCostUsd(usage, usedModel),
+  }).catch((err) => console.error("[/api/solve] capture/storage xətası (monolit budaq):", err));
 
   const { verified } = verifyFinalAnswer(parsed.canonical, finalAnswer.values);
   const leaked = detectLeak(parsed.steps ?? [], finalAnswer.values);

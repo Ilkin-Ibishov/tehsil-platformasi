@@ -17,7 +17,7 @@ export function CropView({
   onCancel,
 }: {
   canvas: HTMLCanvasElement;
-  onConfirmed: (result: { blob: Blob; width: number; height: number }) => void;
+  onConfirmed: (result: { blob: Blob; width: number; height: number; rawBlob: Blob | null }) => void;
   onCancel: () => void;
 }) {
   const t = useTranslations("crop");
@@ -150,7 +150,16 @@ export function CropView({
         px_w: result.width,
         px_h: result.height,
       });
-      onConfirmed(result);
+      // S1 (86eymwght) — orijinal kəsilməmiş kadr, ADR-024: kəsmə bug-larını YALNIZ orijinal
+      // sübut edə bilər. Tam çərçivə (crop rekt {0,0,1,1}), eyni maxPx qaydası — çəkiliş
+      // özündən böyük saxlamağa ehtiyac yoxdur, server storage limiti 2MB-dir.
+      const raw = await cropAndResize(canvas, canvas.width, canvas.height, { x: 0, y: 0, w: 1, h: 1 }, MAX_PX).catch(
+        (err) => {
+          console.error("[CropView] orijinal kadr encode xətası (best-effort, davam edilir):", err);
+          return null;
+        }
+      );
+      onConfirmed({ ...result, rawBlob: raw?.blob ?? null });
     } finally {
       setBusy(false);
     }

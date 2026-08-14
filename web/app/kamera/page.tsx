@@ -21,7 +21,9 @@ const CASCADE_UI_ENABLED = process.env.NEXT_PUBLIC_CASCADE_ENABLED === "1";
 type Stage = "invite" | "capture" | "crop" | "submitting" | "solved" | "refused" | "candidates" | "done" | "confirm";
 
 type Candidate = { label: string; preview: string };
-type CroppedResult = { blob: Blob; width: number; height: number };
+// S1 (86eymwght): `rawBlob` — kəsilməmiş orijinal kadr, ADR-024. `null` ola bilər (encode
+// uğursuz olub, best-effort) — server bu halda yalnız kəsilmiş şəkli saxlayır.
+type CroppedResult = { blob: Blob; width: number; height: number; rawBlob: Blob | null };
 
 // `/api/solve/transcribe`-in "ok" cavabı — TranscriptConfirmView-ə və fon `/finish`
 // çağırışına ötürülən forma.
@@ -155,6 +157,7 @@ export default function KameraPage() {
     try {
       const form = new FormData();
       form.append("image", result.blob, "problem.jpg");
+      if (result.rawBlob) form.append("image_raw", result.rawBlob, "problem-raw.jpg");
       form.append("device_id", getDeviceId());
       form.append("invite_code", inviteCode ?? "");
       form.append("grade", "11");
@@ -331,6 +334,7 @@ export default function KameraPage() {
     try {
       const form = new FormData();
       form.append("image", result.blob, "problem.jpg");
+      if (result.rawBlob) form.append("image_raw", result.rawBlob, "problem-raw.jpg");
       form.append("device_id", getDeviceId());
       form.append("invite_code", inviteCode ?? "");
       form.append("grade", "11");

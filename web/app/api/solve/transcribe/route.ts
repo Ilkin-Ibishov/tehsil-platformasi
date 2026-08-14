@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { transcribe, imageSha256 } from "@/lib/cascade/transcribe";
-import { writeOcrCapture } from "@/lib/cascade/ocr-capture";
+import { writeOcrCapture, reserveCaptureId } from "@/lib/cascade/ocr-capture";
+import { uploadCaptureImages } from "@/lib/storage";
 import { checkInviteCode, checkCostCeiling, checkDailyLimit, logInviteRedemption } from "@/lib/cascade/guards";
 
 // POST /api/solve/transcribe — ClickUp 86eykj7x2 / ADR-020.
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   const image = form.get("image");
+  const imageRaw = form.get("image_raw");
   const deviceId = form.get("device_id");
   const inviteCode = form.get("invite_code");
   const grade = Number(form.get("grade") ?? 11);
@@ -56,6 +58,7 @@ export async function POST(req: NextRequest) {
   }
 
   const imageBytes = Buffer.from(await image.arrayBuffer());
+  const imageRawBytes = imageRaw instanceof Blob && imageRaw.size > 0 ? Buffer.from(await imageRaw.arrayBuffer()) : null;
   const imageHash = imageSha256(imageBytes);
   const label = typeof selectedLabel === "string" && selectedLabel ? selectedLabel : "";
 
@@ -106,13 +109,31 @@ export async function POST(req: NextRequest) {
   // Keş-hitdə DƏ yazılır (eyni şəkil təkrar gəlsə belə, hər çəkiliş öz korpus sətrini alır —
   // `v_ocr_corpus`-un "neçə çəkiliş" statistikası kamera istifadəsini əks etdirməlidir,
   // yalnız unikal şəkilləri yox).
+  // S1 (86eymwght) / ADR-024 — id ƏVVƏLCƏDƏN ayrılır ki, Storage path-i (`<id>-{crop,raw}.jpg`)
+  // insert-dən ƏVVƏL bilinsin, DB sətri və bucket obyekti eyni ID-ni paylaşsın. Keş-hitdə
+  // (`outcome.cacheHit`) belə şəkil YENƏ yüklənir — hər çəkiliş öz sübutunu saxlamalıdır
+  // (ocr-capture.ts-in "hər çəkiliş öz korpus sətrini alır" prinsipi ilə eyni).
+  const captureIdHint = reserveCaptureId();
+  const uploaded = await uploadCaptureImages({
+    idHint: captureIdHint,
+    cropBytes: imageBytes,
+    cropMime: image.type || "image/jpeg",
+    rawBytes: imageRawBytes,
+    rawMime: imageRaw instanceof Blob ? imageRaw.type || "image/jpeg" : null,
+  });
+
   const captureId = await writeOcrCapture(pool, {
+    id: captureIdHint,
     ocrRaw: outcome.transcript.canonical,
     imageSha256: imageHash,
     imagePhash: outcome.imagePhash,
     model: outcome.model || null, // ADR-023: HƏQİQƏTƏN işlədilən model, env-dən təxmin YOX
     latencyMs: Math.round(outcome.latencyMs),
     costUsd: outcome.costUsd,
+    storagePath: uploaded?.storagePath ?? null,
+    width: uploaded?.width ?? null,
+    height: uploaded?.height ?? null,
+    bytes: uploaded?.bytes ?? null,
   });
 
   return NextResponse.json(

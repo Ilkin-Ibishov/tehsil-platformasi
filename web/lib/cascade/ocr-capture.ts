@@ -8,15 +8,18 @@
 // ƏVVƏL, `/api/solve/transcribe`-də) və `finalizeOcrCapture` (təsdiqdən SONRA, `/api/solve/
 // finish`-də). Aralarında saniyələr/dəqiqələr keçə bilər — şagird mətni oxuyub düşünür.
 //
-// ═══ BU SESSİYADA YAZILMAYAN SAHƏLƏR ═══
-// `storage_path` (şəkil Storage-a yüklənmir — ayrı iş), `width`/`height`/`bytes` (şəkil ön
-// emalı, ClickUp 86eymfg9z — ayrı iş). NULL qalır — `v_ocr_corpus` görünüşü onlara EHTİYAC
-// DUYMUR (yoxlanıldı: yalnız corrected/correction_kind/usable_for_training/latency_ms/
-// cost_usd/source oxuyur).
-// `image_phash` İNDİ YAZILIR (ClickUp 86eymfgbv, `web/lib/phash.ts::computePHash`) — Qat 1
-// artıq onu HƏR HALDA hesablayır (keş axtarışı üçün), ikinci dəfə hesablamağa EHTİYAC yoxdur.
+// ═══ ADR-024 (S1, 86eymwght) YENİLƏMƏSİ ═══
+// `storage_path`/`width`/`height`/`bytes` İNDİ YAZILIR — çağıran (`transcribe/route.ts`,
+// monolit `/api/solve`) `web/lib/storage.ts::uploadCaptureImages`-i ƏVVƏLCƏDƏN çağırıb
+// nəticəni `writeOcrCapture`-a ötürür (sətir ARTIQ mövcuddur, `id` gen_random_uuid ilə
+// generasiya olunur — path ondan asılıdır, ona görə upload insert-dən SONRA baş verir, path
+// isə əvvəlcədən HESABLANIR: `idHint` client-tərəfi generasiya olunan `captureId`-dir, insert
+// bunu `id` kimi AÇIQ yazır ki, upload path-i ilə DB sətri eyni ID-ni paylaşsın).
+// `image_phash` (ClickUp 86eymfgbv, `web/lib/phash.ts::computePHash`) — Qat 1 artıq onu HƏR
+// HALDA hesablayır (keş axtarışı üçün), ikinci dəfə hesablamağa EHTİYAC yoxdur.
 
 import type { Pool } from "pg";
+import { randomUUID } from "node:crypto";
 
 export type CorrectionKind = "none" | "minor" | "major" | "rejected";
 
@@ -57,29 +60,60 @@ export function classifyCorrection(ocrRaw: string, ocrFinal: string, editDistanc
 // Qat 1 qayıtdıqdan DƏRHAL SONRA çağırılır — təsdiq ekranı göstərilməzdən ƏVVƏL. Best-effort:
 // uğursuzluq axını BLOKLAMIR (`null` qaytarır), çünki korpus ölçmədir, məhsul deyil — eyni
 // prinsip `logEvent`/`invite_redemption` yazılarında da tətbiq olunub (HANDOFF 81 dərsi).
+// `id` burada (DB defolt `gen_random_uuid()`-dan FƏRQLİ olaraq) ƏVVƏLCƏDƏN client-tərəfdə
+// generasiya olunur ki, çağıran (`transcribe/route.ts`) Storage-a yükləməni HƏMİN ID ilə
+// (`captures/<yyyy>/<mm>/<id>-{crop,raw}.jpg`) eyni sorğu içində, insert-dən ƏVVƏL apara
+// bilsin — iki ayrı round-trip (insert, sonra update storage_path) əvəzinə tək insert.
 export async function writeOcrCapture(
   pool: Pool,
   opts: {
+    id?: string; // verilməzsə burada generasiya olunur — `reserveCaptureId()` YALNIZ Storage
+    // path-i insert-dən ƏVVƏL lazım olanda (S1) çağırılır.
     ocrRaw: string;
     imageSha256: string;
     imagePhash: string | null;
     model: string | null;
     latencyMs: number | null;
     costUsd: number | null;
+    storagePath?: string | null;
+    width?: number | null;
+    height?: number | null;
+    bytes?: number | null;
   }
 ): Promise<string | null> {
+  const id = opts.id ?? randomUUID();
   try {
     const { rows } = await pool.query<{ id: string }>(
-      `insert into public.ocr_captures (ocr_raw, image_sha256, image_phash, model, latency_ms, cost_usd, source)
-       values ($1, $2, $3, $4, $5, $6, 'student')
+      `insert into public.ocr_captures
+         (id, ocr_raw, image_sha256, image_phash, model, latency_ms, cost_usd, source,
+          storage_path, width, height, bytes)
+       values ($1, $2, $3, $4, $5, $6, $7, 'student', $8, $9, $10, $11)
        returning id`,
-      [opts.ocrRaw, opts.imageSha256, opts.imagePhash, opts.model, opts.latencyMs, opts.costUsd]
+      [
+        id,
+        opts.ocrRaw,
+        opts.imageSha256,
+        opts.imagePhash,
+        opts.model,
+        opts.latencyMs,
+        opts.costUsd,
+        opts.storagePath ?? null,
+        opts.width ?? null,
+        opts.height ?? null,
+        opts.bytes ?? null,
+      ]
     );
     return rows[0]?.id ?? null;
   } catch (err) {
     console.error("[cascade/ocr-capture] yazı xətası:", err);
     return null;
   }
+}
+
+// `writeOcrCapture`-ın ÖZÜNDƏN ƏVVƏL çağırılır — `id`-ni əvvəlcədən ayırıb Storage path-i
+// üçün istifadə etmək məqsədilə. Bax yuxarıdakı şərh.
+export function reserveCaptureId(): string {
+  return randomUUID();
 }
 
 // Təsdiq ekranından SONRA — şagird "Düzdür" deyib (dəyişməklə/dəyişmədən) davam edəndə.

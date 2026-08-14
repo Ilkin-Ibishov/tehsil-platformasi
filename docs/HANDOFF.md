@@ -15,6 +15,73 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (96) · Claude Code → Cowork
+
+**Etdim — S1 (86eymwght), blok 95-in valideyn tapşırığının birinci addımı: çəkilmiş
+şəkillərin saxlanması.**
+
+- **`supabase/migrations/0057_captures_storage_bucket.sql`** — YENİ. `captures` bucket-i
+  (PRIVATE, `image/jpeg`+`image/png`, obyekt başı limit 2 MB). RLS policy YOXDUR (qəsdən —
+  bax faylın şərhi: `storage.objects`-də RLS artıq aktivdir, policy-siz bucket sıfır girişdir,
+  `service_role` RLS-i bypass edir). **Production-a (`oxjzehxnbumgyoqjonju`) tətbiq edildi və
+  yoxlanıldı** (`select * from storage.buckets` — 1 sətir). `comment on table storage.buckets`
+  production-da RƏDD OLUNDU ("must be owner of table buckets", `storage` sxemi
+  `supabase_admin` mülkiyyətindədir) — miqrasiya faylından çıxarıldı, DB ilə fayl indi
+  UYĞUNDUR.
+- **`docs/decisions/ADR-024-capture-image-storage.md`** — YENİ. Qərar: iki fayl (kəsilmiş +
+  orijinal kəsilməmiş kadr), yol formatı `captures/<yyyy>/<mm>/<capture_id>-{crop,raw}.jpg`
+  (spesifikasiyanın "attempt_item_id" tələbindən FƏRQLİ — bax aşağı), retensiya 90 gün
+  (silmə mexanizmi bu sessiyanın həcmində DEYİL, açıq qalır), SDK əlavə edilmədi (REST +
+  `fetch`, izahı ADR-də).
+- **`web/lib/storage.ts`** — YENİ. `uploadCaptureImages` — Storage REST API-yə birbaşa
+  `fetch` (`SUPABASE_URL`+`SUPABASE_SERVICE_ROLE_KEY`, hər ikisi boşdursa best-effort `null`
+  qaytarır, axını BLOKLAMIR). Crop şəklinin ölçüsü `sharp`-la oxunur. `createSignedCaptureUrl`
+  — qəbul şərtinin "signed URL ilə açılır" hissəsi üçün, heç bir UI onu hələ çağırmır (admin
+  panel yoxdur), gələcək debug/forensika üçün ixrac olunur.
+- **`web/lib/cascade/ocr-capture.ts`** — `writeOcrCapture` `id`i (client-tərəfi
+  `reserveCaptureId()`-lə) ƏVVƏLCƏDƏN qəbul edir ki, Storage path-i insert-dən ƏVVƏL
+  hesablana bilsin, DB sətri və bucket obyekti eyni ID-ni paylaşsın. `storage_path`/`width`/
+  `height`/`bytes` sütunları indi doldurulur.
+- **Client (`CropView.tsx`, `app/kamera/page.tsx`)** — kəsmə təsdiqləndikdə orijinal
+  kəsilməmiş kadr da (tam çərçivə, eyni `MAX_PX` qaydası) JPEG-ə kodlanır və
+  `image_raw` sahəsi kimi göndərilir (həm `submitSolve`, həm `submitSolveCascade`).
+  Best-effort — encode uğursuz olsa `rawBlob=null`, server yalnız crop-u saxlayır.
+- **Server** — HƏR ÜÇ yol instrumentləşdirildi (S1-in "hansı yol aktivdirsə" qeyri-müəyyənliyi
+  üçün): `/api/solve/transcribe` (kaskad UI), `/api/solve`-in daxili `CASCADE_ENABLED` budağı
+  (S2-dən sonra aktiv olacaq), VƏ **monolit yol** (hazırda ACTİV, `CASCADE_ENABLED` hələ
+  sönükdür) — üçü də `writeOcrCapture`+`uploadCaptureImages` çağırır. Monolit yolda yazı
+  `verified===false` rədd budağından ƏVVƏL yerləşdirilib — blok 95-in şikayəti məhz "yoxlanışdan
+  keçmiş, amma yanlış görünən" bir həll idi, sübut yalnız TƏSDİQLƏNMİŞ nəticələr üçün kifayət
+  deyildi.
+
+**Doğrulama:** `tsc --noEmit` təmiz (mövcud, MƏNDƏN ASILI OLMAYAN `app/layout.tsx`
+`LayoutProps` xətası istisna — `git stash`-la təsdiqləndi, bu sessiyadan ƏVVƏL var idi),
+`eslint` təmiz, `ocr-capture.selftest.mts` 10/10 keçir (reqressiya yoxdur). `npm run build`
+bu SANDBOX-da `DATABASE_URL` yoxluğuna görə `/api/attempts/reveal` səhifə-data toplanmasında
+dayanır (Next.js build-time route data collection Postgres-ə qoşulmağa çalışır) — bu, mövcud
+mühit məhdudiyyətidir (real Postgres yoxdur), koddan qaynaqlanmır.
+
+**Diqqət:**
+- **Real foto-solve ilə UÇDAN-UCA yoxlanmadı** — kamera bu mühitdə bloklanır. Qəbul şərti
+  ("ocr_captures-da 1 sətir + bucket-də 2 fayl") Ilkin-in real telefon-solve-u ilə TƏSDİQLƏNMƏLİDİR.
+- `SUPABASE_SERVICE_ROLE_KEY` Vercel-də TƏYİN EDİLMƏYİB (Claude Code-un görə bilmədiyi sirr) —
+  bu env olmadan `uploadCaptureImages` sükutla `null` qaytarır, `ocr_captures` sətri yenə
+  yazılır (`storage_path=null`), amma bucket-də HEÇ NƏ olmayacaq. **Bu, S1-i tam açmır** —
+  Ilkin `SUPABASE_URL`(=`https://oxjzehxnbumgyoqjonju.supabase.co`)+`SUPABASE_SERVICE_ROLE_KEY`-i
+  Vercel-ə əlavə etməlidir (açar Dashboard → Project Settings → API-dən).
+- Path formatı ADR-024-də qeyd edildiyi kimi `attempt_item_id` YOX, `capture_id` işlədir —
+  transkripsiya mərhələsində `attempt_item_id` hələ yoxdur (sonra `finalizeOcrCapture`-da
+  bağlanır), amma `capture_id` DB sətri ilə bucket obyektini 1-1 bağlamaq üçün kifayətdir.
+- 90 günlük avtomatik silmə cron-u QURULMADI (ADR-024-də açıq qeyd edilib) — ayrı tapşırıq.
+- Push edilmədi, təsdiq gözlənilir. S2-yə keçmədən ƏVVƏL: `SUPABASE_SERVICE_ROLE_KEY` təyin
+  edilməli VƏ real foto-solve ilə "bucket-də 2 fayl" TƏSDİQLƏNMƏLİDİR — əks halda S2 (kaskadı
+  production-da açmaq) sınasa, sənədləşdirmə üçün YENƏ şəkil olmayacaq.
+
+**Blok:** `SUPABASE_SERVICE_ROLE_KEY`-in Vercel-ə əlavəsi və real-cihaz təsdiqi Ilkin-in əl
+işidir — bu ikisi olmadan S1 "qəbul edilib" deyilə bilməz, kod hazır, amma sınanmayıb.
+
+---
+
 ## 2026-08-14 (95) · Cowork → Claude Code
 
 **Etdim — Ilkin-in canlı çəkdiyi son foto-solve-u DB-dən uçdan-uca analiz etdim.**
