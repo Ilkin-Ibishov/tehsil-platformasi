@@ -15,6 +15,62 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (102) · Claude Code → Cowork
+
+**Etdim — S8 (86eymwgmv), `canonical` saxlanılsın, `ADR-003`-ün boşaltma qərarı LƏĞV EDİLDİ.
+Bununla S1-S8-in HAMISI bitdi (Valideyn 86eymwggu).**
+
+- **`web/lib/cascade/persist.ts`** (Qat 5 yeni sual yolu) və **`web/app/api/solve/route.ts`**
+  (monolit yol) — hər ikisində `insert into questions (...)` artıq `canonical` sütununa
+  `transcript.canonical`/`parsed.canonical` yazır, `''` YOX. `canonical_hash`/
+  `numeric_fingerprint` toxunulmadı (onsuz da `parsed.canonical`-ın özündən hesablanır) —
+  keş davranışı DƏYİŞMƏDİ.
+- **`docs/decisions/ADR-003-dim-dataset-legal.md`** — "Ləğv 2026-08-14" bölməsi: Ilkin-in
+  qərarı (sürət > hüquqi ehtiyat, pre-launch, 0 istifadəçi), səbəb (blok 95: `canonical`
+  boşaldılsa da eyni mətn `question_translations.stem`-də hərfi qalırdı, boşaltmaq YALNIZ
+  forensika/debug qabiliyyətini itirirdi, hüquqi qazanc olmadan). "Açıq məsələlər"
+  siyahısındakı `solutions.payload` maddəsi bağlandı (indi qəsdən belədir) — hüquqşünas rəyi
+  maddəsi daha AKTUAL kimi işarələndi (indi HƏM `canonical`, HƏM `stem` DİM mətnini saxlayır).
+- **`supabase/migrations/0062_restore_canonical_from_stem.sql`** — production-a tətbiq
+  edildi. Mövcud 10 `user_capture` sətri `question_translations.stem.blocks[0].v`-dən
+  (eyni mətn artıq ORADA idi) bir dəfəlik geri dolduruldu. Doğrulandı:
+  `source='user_capture'`-da 0/10 boş `canonical` qaldı.
+
+**Doğrulama:** `tsc --noEmit`/`eslint` təmiz, `cascade.selftest.mts` (bütün hallar,
+reqressiya yoxdur).
+
+**Diqqət:**
+- Real foto-solve ilə UÇDAN-UCA yoxlanmadı (kamera bloklanıb) — qəbul şərti ("yeni
+  foto-solve-dan sonra `questions.canonical` boş deyil") kod səviyyəsində təmin edilib,
+  Ilkin-in real solve ilə TƏSDİQLƏMƏSİ lazımdır.
+- `question_translations.stem`-in özü DƏYİŞMƏDİ (artıq düz idi) — yalnız `questions.
+  canonical` düzəldi.
+
+---
+
+## Valideyn 86eymwggu — S1-S8 YEKUNU
+
+Bütün 8 subtask kod səviyyəsində bitdi, production-a tətbiq edildi (miqrasiyalar `0057`–
+`0062`), HANDOFF-a yazıldı, ClickUp-da şərh edildi. Aşağıdakılar Ilkin-in TƏSDİQİ/əl işi
+gözləyir (heç biri kodun "bitməməsi" demək DEYİL, hamısı bu mühitin öz məhdudiyyətindəndir —
+kamera/real API açarı yoxdur):
+
+| # | Kodun vəziyyəti | Ilkin-dən gözlənilən |
+|---|---|---|
+| S1 | Tam | `SUPABASE_SERVICE_ROLE_KEY`/`SUPABASE_URL` Vercel-ə əlavə + real solve ilə "2 fayl" təsdiqi |
+| S2 | Vercel env dəyişikliyi HƏLƏ EDİLMƏYİB | `CASCADE_ENABLED=1` özün əlavə et (heç bir Vercel MCP alətim yoxdur), real solve ilə `match_path`/`cost_usd=0` təsdiqi |
+| S3 | Tam, production-da yoxlanıldı | — |
+| S4 | Tam, backfill edildi və yoxlanıldı | — |
+| S5 | Tam, ölçmə HANDOFF-dadır (9/10 `none`) | — |
+| S6 | Prompt dəyişdi, real LLM ilə YOXLANMADI | növbəti solve-larda qayda 17-nin işlədiyini izlə |
+| S7 | Tam, advisor təmizləndi | — |
+| S8 | Tam, backfill edildi və yoxlanıldı | real solve ilə `canonical` boş olmadığını təsdiqlə |
+
+**Push edilmədi** — 8 commit bu branch-də (`claude/clickup-handoff-migration-56373f`) yığılıb,
+CLAUDE.md qayda 8-ə görə (açıq branch qalmasın) main-ə merge ediləcək, təsdiq gözlənilir.
+
+---
+
 ## 2026-08-14 (101) · Claude Code → Cowork
 
 **Etdim — S7 (86eymwgmk), iki kiçik mina.**

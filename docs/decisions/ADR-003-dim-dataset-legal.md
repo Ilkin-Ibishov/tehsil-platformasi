@@ -110,13 +110,43 @@ prosasını GÖSTƏRMİR (riyazi ifadə "zəif qorunur", ADR-003-ün yuxarıdak�
 Amma `solutions.payload`-ın ÖZÜ hüquqi baxımdan hələ açıq məsələdir — **ayrıca qərar
 tələb edir**, bu düzəlişin əhatəsində deyil.
 
+## Ləğv 2026-08-14 — `canonical` boşaltma qərarı GERİ ALINDI (S8, ClickUp 86eymwgmv)
+
+**Ilkin-in qəti qərarı:** DİM mətninin hüquqi riski bu mərhələdə (pre-launch, 0 real
+istifadəçi) maneə sayılmır — sürət hüquqi ehtiyatdan üstün tutulur. `questions.canonical`
+artıq boşaldılmır, `2026-08-08 §D1`-in qərarı LƏĞV EDİLİR. Bu bölmə SİLİNMİR (tarixi qərar
+niyə verildiyini izah edir), sadəcə artıq QÜVVƏDƏ DEYİL.
+
+**Səbəb (blok 95-in tapıntısı):** `ADR-003`-ün özünün "məqsədi onsuz da pozulurdu" —
+`canonical` boşaldılsa da eyni DİM mətni `question_translations.stem.blocks[0].v`-də HƏRFİ
+saxlanılırdı (§D1-in "açıq qalan boşluq" bölməsi bunu qismən görmüşdü, amma `stem`-i
+düzəltmək əvəzinə `canonical`-ı saxlamağı seçmək daha sadə/tutarlı qərardır — məhsulun
+DEBUG-a olan ehtiyacı da bunu dəstəkləyir: `canonical` boş olanda forensika, S1-in şəkil
+saxlanması kimi, "nə oldu" sualına cavab verə bilmirdi).
+
+**Dəyişikliklər:**
+- `web/lib/cascade/persist.ts` (Qat 5 yeni sual yolu) və `web/app/api/solve/route.ts`
+  (monolit yol) — `insert into questions (...)`-dakı `canonical` sütununa artıq `transcript.
+  canonical`/`parsed.canonical` yazılır, `''` YOX.
+- `canonical_hash`/`numeric_fingerprint` onsuz da boşaltmadan ƏVVƏL, `parsed.canonical`-ın
+  ÖZÜNDƏN hesablanırdı — keş davranışı DƏYİŞMİR, reqressiya gözlənilmir.
+- **Geriyə doldurma:** mövcud `source='user_capture'` sətirlərin `canonical`-ı bərpa OLUNA
+  BİLMƏZ (mətn heç yerdə ARI HALDA saxlanmayıb) — `question_translations.stem.blocks[0].v`-dən
+  (eyni mətn, artıq orada idi) bir dəfəlik geri dolduruldu, `supabase/migrations/
+  0062_restore_canonical_from_stem.sql`.
+
+**Nəticə:** yeni foto-solve-dan sonra `questions.canonical` boş DEYİL. `solutions.payload`-ın
+(indiki `question_translations.steps` JSONB-i) DİM mətnini saxlaması artıq AYRI açıq məsələ
+DEYİL — bu ADR-in özü artıq `canonical`-ın saxlanmasını QƏBUL EDİR.
+
 ## Açıq məsələlər
 
-- [ ] Miqyaslanmadan əvvəl 1 saatlıq hüquqşünas rəyi (ucuzdur, gecikdirmə)
+- [ ] Miqyaslanmadan əvvəl 1 saatlıq hüquqşünas rəyi (ucuzdur, gecikdirmə) — **2026-08-14
+      ləğvindən sonra daha AKTUALDIR**, DİM mətni indi HƏM `canonical`-da, HƏM `stem`-də saxlanılır.
 - [ ] **DİM ilə rəsmi lisenziya danışığı** — alınsa kopyalana bilməyən üstünlükdür.
       Ən azı bir e-poçt göndərməyə dəyər.
-- [ ] **`solutions.payload` hələ DİM mətnini tam saxlayır** (2026-08-08 əlavəsinə bax) —
-      `problems.canonical` düzəldi, `payload` düzəlmədi. Ayrıca qərar tələb edir.
+- [x] ~~`solutions.payload` hələ DİM mətnini tam saxlayır~~ — 2026-08-14 ləğvi ilə bu artıq
+      QƏSDƏN belədir, açıq məsələ olmaqdan çıxdı (bax yuxarı bölmə).
 
 ## Pulsuz və təhlükəsiz mənbə
 

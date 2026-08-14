@@ -706,18 +706,18 @@ export async function POST(req: NextRequest) {
       );
     } else {
       questionId = randomUUID();
-      // ADR-003 (2026-08-08 əlavəsi) / HANDOFF (56) §2: `canonical` mətn məsələlərində DİM
-      // mətnini demək olar hərfi saxlayırdı (§D1) — artıq YAZILMIR, keş açarı yalnız
-      // `canonical_hash`/`numeric_fingerprint`-dir. `question_translations.stem` (aşağıda)
-      // hələ tam mətni saxlayır — bu, AYRICA açıq hüquqi məsələdir, bax ADR-003.
+      // ADR-003 Ləğv (2026-08-14) / S8 (86eymwgmv): Ilkin-in qəti qərarı ilə `canonical`
+      // artıq BOŞALDILMIR (bax `lib/cascade/persist.ts`-in eyni dəyişikliyi, monolit yol
+      // eyni qərarı təkrarlayır). Keş davranışı DƏYİŞMİR.
       await client.query(
         `insert into questions
            (id, canonical, canonical_hash, numeric_fingerprint, problem_type, subject_id,
             grade, topic_code, type, payload, difficulty_static, source, review_status,
             attempt_count, root_id)
-         values ($1,'',$2,$3,$4,$5,$6,$7,'open','{}'::jsonb,3,'user_capture',$8,1,$1)`,
+         values ($1,$2,$3,$4,$5,$6,$7,$8,'open','{}'::jsonb,3,'user_capture',$9,1,$1)`,
         [
           questionId,
+          parsed.canonical,
           hash,
           fingerprint,
           parsed.problem_type ?? null,

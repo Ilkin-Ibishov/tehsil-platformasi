@@ -171,16 +171,19 @@ export async function persistSolution(opts: {
       // o halda `step_answers` da boşdur, uyğunsuzluq yaranmır.
     } else {
       questionId = randomUUID();
-      // `canonical` HƏMİŞƏ '' — ADR-003 (2026-08-08): mətn məsələlərində DİM mətninin özü
-      // çıxırdı. Keş açarı yalnız `canonical_hash`/`numeric_fingerprint`-dir.
+      // ADR-003 Ləğv (2026-08-14) / S8 (86eymwgmv): Ilkin-in qəti qərarı ilə `canonical`
+      // artıq BOŞALDILMIR — DİM mətninin hüquqi riski bu mərhələdə maneə sayılmır (sürət >
+      // hüquqi ehtiyat, pre-launch, 0 istifadəçi). Keş davranışı DƏYİŞMİR —
+      // `canonical_hash`/`numeric_fingerprint` bundan ƏVVƏL hesablanır.
       await client.query(
         `insert into questions
            (id, canonical, canonical_hash, numeric_fingerprint, problem_type, subject_id,
             grade, topic_code, type, payload, difficulty_static, source, review_status,
             attempt_count, root_id)
-         values ($1,'',$2,$3,$4,$5,$6,$7,'open','{}'::jsonb,3,'user_capture',$8,1,$1)`,
+         values ($1,$2,$3,$4,$5,$6,$7,$8,'open','{}'::jsonb,3,'user_capture',$9,1,$1)`,
         [
           questionId,
+          transcript.canonical,
           hash,
           fingerprint,
           transcript.problemType,
