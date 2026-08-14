@@ -15,6 +15,151 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (95) · Cowork → Claude Code
+
+**Etdim — Ilkin-in canlı çəkdiyi son foto-solve-u DB-dən uçdan-uca analiz etdim.**
+Şikayət: "həll məntiqsiz, yanlış addımlarla göstərildi."
+
+**Obyekt:** `attempts.id = f29036b4-b8db-40a6-922a-1f02fb4cf131`,
+`attempt_items.id = 47800463-3413-4505-9ad7-c6478d33caae`,
+`questions.id = a03f46ad-75ee-4743-a4e2-8231494d95d8`, 2026-08-14 17:30:13Z.
+
+### Birinci nəticə: riyaziyyat DÜZGÜNDÜR
+
+Məsələ: `y = k/x` qrafiki `B(-25; -1/5)` nöqtəsindən keçir, `k` tapılmalıdır.
+Hər üç addımın LaTeX-i düzdür, `k = (-25)·(-1/5) = 5`, yoxlama addımı `y = 5/(-25) = -1/5`
+doğrudur. **Şikayətin mənbəyi riyaziyyat deyil, göstərmə və taksonomiya qatıdır.**
+
+### ÖZ ANALİZİMİN DÜZƏLİŞİ — əvvəlki mesajımda iki səhv dedim
+
+1. **SƏHV demişdim:** "`COEFFICIENT_READ`/`SUBSTITUTION_SKIPPED` enum-da yoxdur, LLM səhv
+   yazıb." **Həqiqət:** hər ikisi `docs/STEP-SCHEMA.json`-un DƏYİŞMƏZ enum-undadır (11 kod).
+   LLM çıxışı müqaviləyə TAM UYĞUNDUR. Uyğunsuz olan `public.error_codes` cədvəlidir
+   (miqrasiya `0049`/`0050`) — orada 10 kod var və bunlar **tamamilə fərqli taksonomiyadır**:
+   - Hər ikisində olan: `ARITHMETIC`, `FORMULA_MISAPPLIED`, `SIGN_CHOICE` — **cəmi 3**.
+   - Yalnız STEP-SCHEMA-da (8): `SIGN_LOST`, `SQUARE_FORGOTTEN`, `SUBSTITUTION_SKIPPED`,
+     `FACTOR_PAIR`, `ORDER_OF_OPS`, `COEFFICIENT_READ`, `UNIT_MISMATCH`, `TRANSCRIPTION`.
+   - Yalnız DB-də (7): `INCOMPLETE_ANSWER`, `OPERATION_CONFUSION`, `PLACE_VALUE`,
+     `ROOT_SELECTION`, `SCOPE_CONFUSION`, `TRANSPOSE_SIGN`, `UNKNOWN`.
+   Bu, ClickUp `86eymfgd9`-un düşündüyümüzdən qat böyük halıdır — "bir kod uyğunsuzluğu"
+   deyil, **iki paralel taksonomiya**. Steps JSON-a FK tətbiq olunmadığı üçün səssiz keçir.
+
+2. **SƏHV demişdim:** "`canonical` boşdur — sistem bug-ıdır, Qat 3 ölü koddur."
+   **Həqiqət:** `canonical = ''` QƏSDƏNDİR — `web/lib/cascade/persist.ts:174` və
+   `ADR-003` (2026-08-08): DİM mətninin hərfi saxlanması hüquqi riskdir, keş açarı yalnız
+   `canonical_hash`/`numeric_fingerprint`-dir. Üstəlik `template.ts:267` DB sütunundan yox,
+   **yaddaşdakı `ctx.transcript.canonical`-dan** oxuyur — Qat 3 işləkdir. Geri götürürəm.
+
+### NƏZƏRİMDƏN QAÇAN ƏSAS TAPINTI — kaskad production-da İŞLƏMİR
+
+`web/app/api/solve/route.ts:47` — `CASCADE_ENABLED = process.env.CASCADE_ENABLED === "1"`,
+defolt SÖNÜK. Telemetriya bunu təsdiqləyir: bu solve-da `transcribe`/təsdiq ekranı hadisəsi
+YOXDUR, axın `crop.confirmed → solve.requested → solve.response` (monolit yol), `match_path=llm`.
+
+**Nəticə:** Qat 1/2/3 (transkripsiya, `canonical_hash`+pHash keşi, şablon tanıyıcısı),
+transkripsiya təsdiq ekranı və `ocr_captures` yazısı — **heç biri real istifadəçi yolunda
+işləmir.** `public.ocr_captures` = 0 sətir bunun nəticəsidir, ayrı bug deyil.
+Son 3 sessiyanın kaskad işinin production dəyəri hazırda SIFIRDIR.
+
+### Digər təsdiqlənmiş tapıntılar (DB-dən)
+
+- **Şəkil heç yerdə saxlanmır.** `storage.buckets` = **0 sətir**. `ocr_captures.storage_path`
+  sütunu var, yazan kod yoxdur. Yanlış həlli debug etmək mümkün deyil — nə şəkil, nə `ocr_raw`.
+- **Kəsmə şübhəlidir:** `crop.confirmed` = **152×474 px** (nisbət 0.428), defolt qutu 1.818 idi,
+  `crop.adjusted` **7 dəfə** işə düşüb. 480×640 şəkildən dar şaquli zolaq kəsilib. Modelin nəyi
+  oxuduğu yoxlanıla bilmir (yuxarıdakı bənd).
+- **Yoxlama aparılmayıb:** `question_translations.verified = false`,
+  `verification_method = 'none'` — sympy təsdiqi olmadan həll şagirdə göstərilib.
+- **Metrik korrupsiyası:** `solution.answer_revealed` və `solution.completed` hadisələri işə
+  düşüb, amma `attempt_items.revealed_answer = false`, `completed = false`, `self_solved = true`.
+  Hadisə yazılır, sətir yenilənmir → `solved_unaided` YALAN danışır.
+- **Addım 1-in check.ask öz addımına aid deyil:** ekran `-1/5 = k/(-25)` yerinəqoymasını
+  göstərir, sual isə "k-nı x və y vasitəsilə necə ifadə edirik?" — bu, addım 2-nin məzmunudur.
+- **`ADR-003`-ün məqsədi onsuz da pozulur:** `canonical` boşaldılır, amma eyni DİM mətni
+  `question_translations.stem.blocks[0].v`-də hərfi saxlanılır (`persist.ts:201`).
+- **Kiçik minalar:** `app_config.active_transcribe_model` = **boş sətir** (null deyil — null
+  yoxlaması keçir, API-yə boş model ID gedə bilər). `topic_codes` və `error_codes` cədvəllərində
+  **RLS söndürülüb** (Supabase advisor, critical) — anon açarla oxunur/yazılır.
+- **Yaxşı xəbər:** `cost_usd = 0.00967` yazılıb (`86eymrm8j` real datada BAĞLANDI),
+  `question_translations.model = gemini-3.6-flash` — DB-dən model oxunuşu zənciri CANLIDIR.
+
+---
+
+## Tapşırıq — 1 valideyn + 7 subtask
+
+**Valideyn:** *Foto-solve axınının izlənilə bilməsi və doğruluğu — dəvət dalğasından əvvəl*
+Məqsəd: real istifadəçi yanlış həll bildirəndə onu **bərpa edib sübut edə bilmək**, və
+kaskadın qurulmuş dəyərini production-a çıxarmaq. Sıra bağlayıcıdır — S1 və S2 qalanların şərtidir.
+
+**S1 — Çəkilmiş şəkillərin saxlanması (ƏN YÜKSƏK PRİORİTET, Ilkin-in tələbi)**
+- Supabase Storage-da `captures` bucket-i (PRIVATE, `image/jpeg`+`image/png`, limit 2 MB).
+- Miqrasiya: bucket + RLS siyasətləri. Yazı YALNIZ `app_runtime`-ın service yolu ilə, anon YOX
+  (gate-78 dərsi). Oxu yalnız signed URL ilə.
+- Yükləmə: kəsilmiş (LLM-ə göndərilən) şəkil + **orijinal kəsilməmiş kadr** — kəsmə bug-larını
+  yalnız orijinal sübut edir. Yol formatı: `captures/<yyyy>/<mm>/<attempt_item_id>-{raw,crop}.jpg`.
+- `ocr_captures.storage_path` doldurulsun; `width`/`height`/`bytes`/`image_sha256`/`image_phash`
+  artıq sxemdədir, hamısı yazılsın.
+- Saxlama müddəti (retention): 90 gün, sonra silinsin — miqrasiyada və ya cron-da qeyd et,
+  qərarı `ADR-024`-ə yaz (şagird şəkli = şəxsi data, müddətsiz saxlama yolverilməzdir).
+- **Qəbul şərti:** yeni foto-solve-dan sonra `ocr_captures`-da 1 sətir + bucket-də 2 fayl olur,
+  signed URL ilə açılır.
+
+**S2 — `CASCADE_ENABLED` production-da açılsın (S1-dən dərhal sonra)**
+- Vercel production env-inə `CASCADE_ENABLED=1`, sonra bir real foto-solve ilə təsdiq.
+- Gözlənilən: `match_path` artıq `llm` deyil (`template`/`hash`/`phash`/`bank` ola bilər),
+  `ocr_captures` dolur, transkripsiya təsdiq ekranı görünür.
+- **Diqqət:** bu, UX axınına yeni ekran əlavə edir. Sınmış görünsə flag-i geri qaytar —
+  bayraq məhz bunun üçündür. Nəticəni HANDOFF-a yaz.
+- **Qəbul şərti:** iki ardıcıl eyni şəkil → ikincisi `match_path='hash'` və `cost_usd=0`.
+
+**S3 — `error_code` taksonomiyasının birləşdirilməsi (`86eymfgd9`)**
+- **Mənbə həqiqət `docs/STEP-SCHEMA.json`-dur** (dəyişməz enum, 11 kod). `public.error_codes`
+  ona uyğunlaşdırılsın, əksi YOX.
+- Miqrasiya `0057`: 8 çatışmayan kod əlavə edilsin (`az` etiketləri ilə). DB-də olub sxemdə
+  olmayan 7 kod SİLİNMƏSİN (`0049`-a istinad edən sətirlər ola bilər) — `deprecated = true`
+  sütunu ilə işarələnsin.
+- `web/lib/cascade/template.ts`-in remap-ı yenidən yoxlansın — indi birbaşa sxem kodlarını
+  yaza bilər.
+- UI-də `error_code → az mətn` xəritəsi tam olsun; naməlum kod gələrsə xam kod YOX,
+  neytral fallback mətn göstərilsin.
+- **Qəbul şərti:** bu sualın 3 addımının hamısı ekranda azərbaycanca etiketlə görünür.
+
+**S4 — `attempt_items` tamamlanma/açılma sətrinin yazılması (`86eymrkjn` ilə eyni kök)**
+- `solution.completed` və `solution.answer_revealed` hadisələri `attempt_items`-in
+  `completed`, `revealed_answer`, `duration_sec`, `self_solved` sütunlarını YENİLƏSİN.
+- `self_solved` tərifi bir yerdə sabitlənsin: cavab açılıbsa `self_solved = false`.
+- Geriyə düzəliş: mövcud 16 `attempt_items` sətri hadisələrdən bir dəfəlik yenidən hesablansın.
+- **Qəbul şərti:** bu attempt-də `revealed_answer = true`, `completed = true`, `self_solved = false`.
+
+**S5 — Həll göstərilməzdən əvvəl sympy yoxlaması**
+- `verification_method = 'none'` olan həll şagirdə göstərilməməlidir və ya "yoxlanılmadı"
+  işarəsi ilə göstərilməlidir — hazırda fərq bilinmir.
+- `verifyFinalAnswer` niyə `none` qaytardığını `question_translations`-a səbəb kodu ilə yaz.
+- **Qəbul şərti:** son 10 solve üçün `verification_method` paylanması ölçülüb HANDOFF-a yazılır.
+
+**S6 — Addımın `check.ask`-i öz addımına uyğun olsun (prompt)**
+- `prompts/solve/…` — qayda: `check.ask` HƏMİŞƏ həmin addımın `latex`-ində göstərilən əməliyyatı
+  soruşmalıdır, növbəti addımın məzmununu YOX.
+- Selftest halı: bu sualın addım 1-i (yerinəqoyma göstərilir, "k-nı ifadə et" soruşulur) mənfi
+  nümunə kimi əlavə edilsin.
+- **Qəbul şərti:** eyni məsələ təkrar solve edildikdə addım 1-in sualı yerinəqoymaya aiddir.
+
+**S7 — İki kiçik mina (birlikdə, ~20 dəq)**
+- `app_config.active_transcribe_model` boş sətirdir → ya real dəyər, ya `null`. `getActive…`
+  boş sətri də fallback saymalıdır.
+- `topic_codes` və `error_codes`-da RLS söndürülüb (Supabase advisor, critical).
+  `enable row level security` + `select` üçün `app_runtime`/anon oxu siyasəti, yazı qapalı.
+
+**Diqqət:**
+- `docs/STEP-SCHEMA.json`-un enum-una TOXUNMA. S3-də dəyişən DB cədvəlidir.
+- `ADR-003`-ün `canonical=''` qərarına toxunma — amma `stem`-in eyni mətni saxladığını
+  `ADR-003`-ə "Əlavə 2026-08-14" kimi qeyd et ki, qərar sonra kimisə çaşdırmasın.
+- S2 bayraq dəyişikliyidir, kod dəyişikliyi deyil — sınarsa geri qaytar, saatlarla debug etmə.
+
+**Blok:** yoxdur. S1 → S2 sırası bağlayıcıdır, qalanı paraleldir.
+
+---
+
 ## 2026-08-14 (94) · Claude Code → Cowork
 
 **Etdim — blok 93-ün A/B nəticəsinə əsasən Ilkin `active_model`-i geri qaytarmağı seçdi.**
