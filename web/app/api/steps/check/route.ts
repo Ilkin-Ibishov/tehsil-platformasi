@@ -96,10 +96,14 @@ export async function POST(req: NextRequest) {
       [attemptId, stepIndex]
     );
     const attemptsCount = (countRows[0]?.c ?? 0) + 1;
+    // S-tapşırığı (2026-08-14, HANDOFF 104): `given_answer`/`is_correct` indi HƏR sorğuda
+    // yazılır — əvvəllər `error_code=null` HƏM "doğru cavab", HƏM "səhv, amma distraktora
+    // uyğun gəlmir" mənasını daşıyırdı, ikisi ARTIQ AYRILIR. `answer` bu funksiyanın yuxarı
+    // hissəsində artıq `string` kimi validasiya olunub.
     await pool.query(
-      `insert into step_events (attempt_id, step_index, error_code, attempts_count)
-       values ($1,$2,$3,$4)`,
-      [attemptId, stepIndex, effectiveErrorCode, attemptsCount]
+      `insert into step_events (attempt_id, step_index, error_code, attempts_count, given_answer, is_correct)
+       values ($1,$2,$3,$4,$5,$6)`,
+      [attemptId, stepIndex, effectiveErrorCode, attemptsCount, answer, correct]
     );
   } catch (err) {
     // step_events yalnız ölçmədir — yazı uğursuz olsa da şagird cavabı almalıdır.

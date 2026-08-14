@@ -208,6 +208,17 @@ export function SolveView({
     if (shownSteps.current.has(stepIndex)) return;
     shownSteps.current.add(stepIndex);
     trackEvent("step.shown", { index: stepIndex, total, error_code: currentStep.error_code });
+    // S-tapşırığı (2026-08-14, HANDOFF 104) — server-timestamp əsaslı addım vaxtı üçün.
+    // `currentStep.index` (STEP-SCHEMA-nın öz sahəsi) göndərilir, `stepIndex` (massiv
+    // mövqeyi) YOX — `step_events`-in özü ilə EYNİ konvensiya (HANDOFF 73).
+    fetch("/api/steps/shown", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ attempt_id: attemptId, device_id: getDeviceId(), step_index: currentStep.index }),
+      keepalive: true,
+    }).catch(() => {
+      // Telemetriya kimi — şəbəkə xətası UI-a heç vaxt çıxmır.
+    });
     if (currentStep.latex) {
       // HANDOFF (55): `formatMath` cədvəli modelin lüğətindən geri qalır — çıxışda hələ
       // tanınmayan `\əmr` qalıbsa ÖLÇÜRÜK (mətni pozmuruq, `render.latex_missing` ilə eyni prinsip).

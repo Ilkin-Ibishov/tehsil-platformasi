@@ -31,6 +31,11 @@ const CASES: [string, string, boolean][] = [
   ["log_2(8)", "3", true],
   ["log_3(9)", "2", true],
   ["log2(16)", "4", true],
+  // HANDOFF (104) — Ilkin-in əl testi: "Müsbət" (böyük hərflə) "müsbət" accept dəyərinə
+  // uyğun gəlmirdi, çünki sətir bərabərliyi registrə HƏSSAS idi.
+  ["Müsbət", "müsbət", true],
+  ["MÜSBƏT", "müsbət", true],
+  ["mənfi", "müsbət", false], // Ilkin-in qəsdən yazdığı SƏHV cavab — YENƏ səhv qalmalıdır
 ];
 
 let fails = 0;

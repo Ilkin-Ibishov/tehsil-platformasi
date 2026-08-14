@@ -15,6 +15,76 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (104) · Claude Code → Cowork
+
+**Etdim — Ilkin-in birbaşa tapşırığı (blok 103-ün davamı olaraq): case-sensitivity bug-ı,
+tam addım-loqlaması, qrafik-oxuma hallüsinasiyasının sənədləşməsi.**
+
+### 1) Real bug tapıldı və düzəldildi — cavab yoxlaması hərf böyüklüyünə həssas idi
+
+Ilkin əl ilə test etdi: "müsbət" gözlənilən yerdə "Müsbət"/"MÜSBƏT" YAZDI, 5 cəhddən yalnız
+sonuncusu (dəqiq kiçik hərflə) qəbul edildi. Kök səbəb: `web/lib/verify/answer.ts::normalize`
+heç vaxt registr çevirmirdi, sətir bərabərliyi HƏRFİ idi. `toLocaleLowerCase("az")` əlavə
+edildi (sadə `.toLowerCase()` YOX — Azərbaycan "İ" hərfini səhv çevirər).
+`answer.selftest.mts`-ə 3 yeni hal (`Müsbət`/`MÜSBƏT` → uyğun, qəsdən yazılan "mənfi" → YENƏ
+uyğunsuz) — 21/21 keçir. Diakritik səhvlər ("musbet", "musbed" — ü/ə hərfləri dəyişib) BU
+DÜZƏLİŞLƏ HƏLLƏ OLUNMUR (registr məsələsi deyil, fərqli hərflər) — qərəzli genişləndirilmədi
+(fuzzy-matching yalançı-müsbət riski daşıyır, ölçülmədən əlavə edilmədi).
+
+### 2) Tam addım-loqlaması — `given_answer`/`is_correct` + server-timestamp vaxt
+
+Ilkin-in tələbi: hər addımın HƏR cəhdi (səhv daxil) tam loqlanmalı, vaxt server
+timestamp-lərinin fərqindən (klient taymerindən YOX) hesablanmalı.
+
+- **`supabase/migrations/0063_step_logging_and_timing.sql`** — production-a tətbiq edildi.
+  `step_events`-ə `given_answer text`/`is_correct boolean` (əvvəllər `error_code=null` HƏM
+  doğru cavabı, HƏM "səhv amma distraktora uyğun gəlmir" halını eyni cür göstərirdi — İNDİ
+  AYRILIR). Yeni `step_views` cədvəli (`attempt_id, step_index, shown_at default now()`) +
+  `v_step_timing` view (`lead()` pəncərə funksiyası ilə hər addımın müddətini NÖVBƏTİ addımın
+  `shown_at`-ına qədər hesablayır — server-tərəfli, klient saatından ASILI DEYİL).
+- **`web/app/api/steps/check/route.ts`** — insert-ə `given_answer`/`is_correct` əlavə edildi.
+- **`web/app/api/steps/shown/route.ts`** — YENİ endpoint, hər addım göstəriləndə çağırılır,
+  `step_views`-ə damğa yazır. Telemetriya kimi (best-effort, axını bloklamır).
+- **`web/components/hell/SolveView.tsx`** — `step.shown` trackEvent-in YANINDA (əvəz YOX) bu
+  yeni endpoint-i çağırır, `currentStep.index` (massiv mövqeyi YOX, HANDOFF 73 konvensiyası).
+
+**Açıq qalan:** SON addımın müddəti `v_step_timing`-də NULL qalır (növbəti "shown" hadisəsi
+yoxdur — reveal-ə ayrıca marker əlavə etmək gələcək bir addımdır, bu sessiyanın həcmində
+DEYİL, ADR-də qeyd olunub).
+
+### 3) `ADR-025-graph-reading-hallucination.md` — YENİ, ölçmə tələb edir, kod DƏYİŞMƏDİ
+
+Ilkin-in göndərdiyi real şəkli (11 saylı sual, `y=kx+b` qrafiki) ƏL İLƏ yoxladım: xətt
+AZALANDIR, y-kəsişməsi MÜSBƏTDİR → düzgün cavab **D**. Sistem **B** qaytarmışdı. `ocr_captures.
+ocr_raw` yoxlanıldı: Qat 1 (transkripsiya) qrafikin İSTİQAMƏTİNİ VƏ İŞARƏSİNİ TƏRS oxumuşdu —
+sonrakı bütün addımlar bu YANLIŞ girişdən DÜZGÜN riyazi məntiqlə qurulmuşdu. Bu, `ADR-001`-in
+ölçdüyü mətn-oxuma dəqiqliyindən FƏRQLİ bir bacarıq sinfidir (qrafik İSTİQAMƆTİ/İŞARƏSİNİ
+YOZMA), heç vaxt ayrıca ölçülməyib. **n=1 — ADR-004 intizamı ilə kod dəyişikliyi EDİLMƏDİ,
+YALNIZ sənədləşdirildi**, ClickUp-da "Bloklar və qərarlar"a əlavə edilir.
+
+**Əlaqəli tapıntı:** bu solve-un şəklini yalnız Ilkin-in birbaşa göndərməsi ilə yoxlaya
+bildim — `ocr_captures.storage_path` bu attempt-də DƏ `null`-dur, S1 (blok 103-ün tapdığı
+`SUPABASE_SERVICE_ROLE_KEY` problemi) HƏLƏ HƏLL OLUNMAYIB. Bucket-də hələ 0 fayl.
+
+### 4) Avtomatlaşdırılmış test boru xətti — Scribd MƏNBƏ kimi ƏLÇATAN DEYİL
+
+Ilkin `scribd.com/document/972096164`-dən (2025 II Hissə Riyaziyyat Test Toplusu, cavab
+açarı son səhifələrdə) sual şəkillərini kəsib avtomatlaşdırılmış test dəsti qurmağı təklif
+etdi. Brauzerlə yoxladım: səhifə "Download to read ad-free" ilə TAM ÖRTÜLÜ (pullu/download
+divarı), heç bir real mətn/şəkil çıxarıla bilmədi. Kütləvi qazıma (300+ səhifə) bu şəraitdə
+etibarlı DEYİL və ADR-003-ün öz hüquqi diqqətinə görə DƏ diqqətli yanaşılmalıdır (üçüncü
+tərəf paywall-lı məzmunu geniş miqyasda çıxarmaq). **Alternativ plan Ilkin-ə TƏQDİM
+OLUNACAQ** (bu sessiyada YOX, ayrıca cavab) — böyük miqyaslı, token-həssas bir iş olduğu üçün
+tikməzdən əvvəl planı təsdiqlətmək daha ucuzdur.
+
+**Doğrulama:** `tsc --noEmit`/`eslint` təmiz, `answer.selftest.mts` 21/21,
+`step-check.selftest.mts` 19/19 (reqressiya yoxdur).
+
+**Blok:** ADR-025-in ölçmə addımı (qrafikli golden-set genişləndirilməsi) Cowork/Ilkin-in
+qərarını gözləyir. Avtomatlaşdırılmış test boru xəttinin planı Ilkin-ə TƏQDİM ediləcək.
+
+---
+
 ## 2026-08-14 (103) · Claude Code → Cowork
 
 **Etdim — S1-S8 deploy olunandan SONRA Ilkin-in birinci real solve-unu (blok 95-in eyni

@@ -59,7 +59,13 @@ function convertLogBase(text: string): string {
 }
 
 function normalize(raw: string): string {
-  let text = raw.trim();
+  // HANDOFF 104 (2026-08-14, Ilkin-in əl testi): "Müsbət" DB-dəki accept dəyəri "müsbət"-ə
+  // BƏRABƏR SAYILMIRDI — sətir bərabərliyi HƏRF BÖYÜKLÜYÜNƏ HƏSSAS idi, ədədi-ekvivalent yol
+  // isə söz-cavabları (riyazi ifadə deyil) heç vaxt tuta bilmir. `toLocaleLowerCase("az")`
+  // (sadə `.toLowerCase()` YOX — JS-in defolt reyestri Azərbaycan/Türk "İ" hərfini "i̇" kimi
+  // (nöqtəli, iki simvol) çevirir, "I"-ni "i" yox "ı" olmalıdır) — Azərbaycan mətni üçün
+  // düzgün registr çevrilməsi.
+  let text = raw.trim().toLocaleLowerCase("az");
   // LaTeX-in açıq boşluq əmri (`\ `) əvvəlcə HƏQİQİ boşluğa çevrilir, SONRA bütün boşluqlar
   // silinir — sympy/mathjs onlara həssas deyil, amma gizli-vurma qaydası (aşağıda) boşluq
   // varlığından asılıdır; əvvəlcədən silmək "2x+1" ilə "2 x + 1"-i eyni nəticəyə gətirir
