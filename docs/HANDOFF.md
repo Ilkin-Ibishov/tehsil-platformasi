@@ -15,6 +15,65 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (91) · Claude Code → Cowork
+
+**Etdim — Ilkin-in tapşırığı: model seçimi Vercel env-dən (manual + redeploy) DB-yə köçürüldü.
+`ADR-023-runtime-model-config.md` yazıldı, sonra icra edildi. Yan-nəticə: registridəki
+qiymət ədədi Google-un rəsmi səhifəsinə görə düzəldildi.**
+
+### Qiymət düzəlişi (ADR-022-ə əlavə)
+
+`web/lib/models.ts`-in `gemini-3.6-flash` defolt qiyməti $1.50/$7.50 idi (`.env.example`-in
+köhnə nümunə dəyəri) — Google-un rəsmi qiymət səhifəsini (ai.google.dev/gemini-api/docs/
+pricing) birbaşa yoxladım: **HAZIRDA (2026-12-31-ə qədər) həqiqi qiymət $0.75/$3.75-dir**,
+$1.50/$7.50 YALNIZ 2027-01-01-dən sonra qüvvəyə minir. Düzəldildi, 5 test yeniləndi.
+**DİQQƏT gələcək sessiyalar üçün:** 2027-01-01-dən sonra `REGISTRY`-dəki defolt dəyərləri
+əl ilə yeniləmək lazımdır — kod tarix-əsaslı avtomatik keçid ETMİR.
+
+Həm də aşkarlandı: `gemini-3.7-flash` HAZIRDA `gemini-3.6-flash` ilə EYNİ qiymətdədir (yalnız
+keyfiyyət/bençmark fərqi var, xərc fərqi YOX) — registriyə əlavə edildi, eyni qiymətlə.
+
+### DB-dən model seçimi (`ADR-023`)
+
+- **`supabase/migrations/0056_active_model_config.sql`** — YENİ, `public.app_config`
+  (key/value) cədvəli. İki sətir: `active_model`, `active_transcribe_model`. `app_runtime`-ın
+  YALNIZ `SELECT`-i var (gate-78 dərsi) — yazı hazırda birbaşa SQL-lədir (Claude Code/Cowork),
+  gələcək admin dashboard üçün `app.set_active_model()` RPC-si sonra əlavə oluna bilər
+  (additive, bu ADR onu QURMUR, yalnız yolunu açır). **Production-a (`oxjzehxnbumgyoqjonju`)
+  tətbiq edildi və yoxlanıldı** — yerli Docker Postgres-ə tətbiq edilMƏDİ (docker daemon bu
+  sessiyada cavabsız idi, aşağı bax).
+- **`web/lib/models.ts`** — `getActiveModel(pool)`/`getActiveTranscribeModel(pool)`. DB
+  sorğusu uğursuz olsa/sətir yoxdursa env-ə (`GEMINI_MODEL`/`TRANSCRIBE_MODEL`) geri düşür —
+  SƏSSİZ deyil, konsola yazır. Hər sorğuya ~1 DB round-trip (~<10ms) əlavə edir.
+- Çağıran yerlər yeniləndi: `transcribe.ts` (`pool` artıq idi), `solve-text.ts` (`pool`
+  YENİ parametr, `run.ts`-dən ötürülür), `app/api/solve/route.ts` (monolit yol).
+- **Yan-tapıntı və düzəliş:** `persist.ts` və `transcribe/route.ts` `question_translations.
+  model`/`ocr_captures.model` sütunlarına `process.env.GEMINI_MODEL`-i BİRBAŞA yazırdı —
+  Qat 3 (LLM çağırmayan template) üçün bu YANLIŞ metadata idi (heç bir LLM işləmədiyi halda
+  "gemini-3.6-flash" yazılırdı). `LayerSolution.newQuestion.model` sahəsi əlavə edildi —
+  Qat 5 həqiqi işlədilən modeli yazır, Qat 3 `null` (LLM yoxdur, düzgün təsvir).
+
+### Necə dəyişdirilir (Ilkin-in "mən özüm rahatlıqla" tələbi)
+
+```sql
+update public.app_config set value = 'gemini-3.7-flash' where key = 'active_model';
+```
+
+Redeploy YOXDUR, dərhal növbəti sorğudan effektiv olur. Claude Code Supabase MCP-nin
+`execute_sql`-i ilə bunu birbaşa edə bilər.
+
+### Doğrulama
+
+20 yenilənmiş/əlavə test (`models.selftest.mts`, mock pool ilə DB davranışı yoxlanıldı) +
+mövcud 7 paket reqressiyasız (~133 test cəmi) + `tsc`/`eslint`/`npm run build` təmiz.
+Canlı `/api/solve` uçdan-uca yoxlanmadı (kamera bloklu). **Yerli Docker Postgres bu
+sessiyada 2 dəfə cavabsız oldu** (əvvəlki UX audit sessiyasında da) — dev mühiti növbəti
+sessiyada yenidən qurulmalı ola bilər, miqrasiya `0056` orada TƏTBİQ EDİLMƏYİB.
+
+**Blok:** yerli dev DB-yə `0056` tətbiqi gözləyir (docker əlçatan olanda).
+
+---
+
 ## 2026-08-14 (90) · Claude Code → Cowork
 
 **Etdim — block 89-da təklif edilən "LLM-i model-agnostik et" ideyasını Ilkin-in

@@ -114,6 +114,11 @@ export type LayerSolution =
         // `check.accept` daşıyır — DB-yə (`private.step_answers`) gedir, ŞƏBƏKƏYƏ YOX.
         stepAnswerRows: StepAnswerRow[];
         rawSteps: RawStep[];
+        // ADR-023: HƏQİQƏTƏN işlədilən model ID-si (LLM qatları üçün) — `null` = bu qat
+        // ümumiyyətlə LLM çağırmadı (məs. Qat 3 şablon tanıyıcısı, `template.ts`). Çağıran
+        // (`persist.ts`) bunu `process.env.GEMINI_MODEL`-i TƏXMİN ETMƏK əvəzinə buradan alır —
+        // əks halda LLM-siz Qat 3 sətirlərinə YANLIŞ model adı yazılardı.
+        model: string | null;
       };
       costUsd: number | null;
       latencyMs: number;

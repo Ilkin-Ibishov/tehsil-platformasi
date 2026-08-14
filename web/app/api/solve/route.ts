@@ -4,6 +4,7 @@ import { pool } from "@/lib/db";
 import { loadPromptTemplates, renderUserPrompt } from "@/lib/prompt";
 import { callVisionLLM } from "@/lib/llm";
 import { computeCostUsd } from "@/lib/cost";
+import { getActiveModel } from "@/lib/models";
 import { validateStep } from "@/lib/verify/schema";
 import { verifyFinalAnswer } from "@/lib/verify/answer";
 import { detectLeak } from "@/lib/verify/leak";
@@ -468,7 +469,10 @@ export async function POST(req: NextRequest) {
   let attempts = 0;
   let cacheHit = false;
   let timedOut = false;
-  let usedModel = process.env.GEMINI_MODEL ?? ""; // ADR-022: HƏQİQƏTƏN çağırılan model
+  // ADR-023: model artıq DB-dən (`public.app_config.active_model`) oxunur, redeploy tələb
+  // etmir — `getActiveModel` sadəcə DB sətri yoxdursa/DB əlçatmazdırsa `GEMINI_MODEL`-ə düşür.
+  const activeModel = await getActiveModel(pool);
+  let usedModel = activeModel; // ADR-022: HƏQİQƏTƏN çağırılan model
 
   // Şəkil-hash keşi (HANDOFF 81, ClickUp): eyni şəkil TƏKRAR gəlsə (şəbəkə xətasından sonra
   // retry, ikiqat toxunma) VƏ ya VİZUAL OXŞAR gəlsə (pHash Hamming ≤5, ClickUp 86eymfgbv)
@@ -489,7 +493,7 @@ export async function POST(req: NextRequest) {
         if (timeoutController.signal.aborted) break;
         let result;
         try {
-          result = await callVisionLLM({ systemPrompt: system, userPrompt, imageBase64, imageMime, signal: timeoutController.signal });
+          result = await callVisionLLM({ systemPrompt: system, userPrompt, imageBase64, imageMime, model: activeModel, signal: timeoutController.signal });
         } catch (err) {
           if (timeoutController.signal.aborted) break;
           console.error(`[/api/solve] LLM çağırışı xətası (cəhd ${call}):`, err);
@@ -656,7 +660,7 @@ export async function POST(req: NextRequest) {
           JSON.stringify(publicSteps),
           verified === true,
           verificationMethod,
-          process.env.GEMINI_MODEL ?? null,
+          usedModel || null,
           costUsd,
         ]
       );

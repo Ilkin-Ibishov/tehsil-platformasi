@@ -18,9 +18,11 @@
 // Prompt/mətn müqaviləsi `prompt_loader.py` ilə eynidir, yəni `BULK-EVAL.md`-in mətn girişli
 // dəsti bu qatı BİRBAŞA ölçə bilir (ADR-014 §"Eval strategiyası ilə üst-üstə düşür").
 
+import type { Pool } from "pg";
 import { loadPromptTemplates, renderUserPrompt } from "../prompt";
 import { callVisionLLM, type LLMUsage } from "../llm";
 import { computeCostUsd } from "../cost";
+import { getActiveModel } from "../models";
 import { validateStep } from "../verify/schema";
 import type { CascadeContext, FinalAnswer, LayerSolution, PublicStep, RawStep, SolveLayer, StepAnswerRow } from "./types";
 
@@ -54,7 +56,9 @@ export function buildStepAnswerRows(steps: NonNullable<StepSchemaOutput["steps"]
     }));
 }
 
-export function makeTextSolveLayer(): SolveLayer {
+// ADR-023: `pool` YENİ — model artıq DB-dən (`public.app_config.active_model`) oxunur,
+// `getActiveModel` env-ə (`GEMINI_MODEL`) yalnız DB sətri yoxdursa/DB əlçatmazdırsa düşür.
+export function makeTextSolveLayer(pool: Pool): SolveLayer {
   return {
     id: "llm_text",
     async run(ctx: CascadeContext): Promise<LayerSolution | null> {
@@ -68,18 +72,19 @@ export function makeTextSolveLayer(): SolveLayer {
         ctx.locale,
         ctx.transcript.canonical
       );
+      const activeModel = await getActiveModel(pool);
 
       let parsed: StepSchemaOutput | null = null;
       let usage: LLMUsage | null = null;
       let latencyMs = 0;
-      let usedModel = process.env.GEMINI_MODEL ?? "";
+      let usedModel = activeModel;
 
       for (let call = 1; call <= 2; call++) {
         if (ctx.signal?.aborted) break;
         let result;
         try {
           // `imageBase64` VERİLMİR → `llm.ts` mətn-yalnız sorğu qurur, vision tokeni ödənilmir.
-          result = await callVisionLLM({ systemPrompt: system, userPrompt, signal: ctx.signal });
+          result = await callVisionLLM({ systemPrompt: system, userPrompt, model: activeModel, signal: ctx.signal });
         } catch (err) {
           if (ctx.signal?.aborted) break;
           console.error(`[cascade/solve-text] LLM çağırışı xətası (cəhd ${call}):`, err);
@@ -120,6 +125,7 @@ export function makeTextSolveLayer(): SolveLayer {
           finalAnswer,
           stepAnswerRows: buildStepAnswerRows(rawSteps),
           rawSteps,
+          model: usedModel,
         },
         costUsd: computeCostUsd(usage, usedModel),
         latencyMs,

@@ -38,7 +38,7 @@ export function buildLayers(pool: Pool): SolveLayer[] {
     ...makeBankLayers(pool), // Qat 2a: hash, Qat 2b: fingerprint
     makeTemplateLayer(), // Qat 3: yalnız ALG.LINEAR_EQUATION/QUADRATIC_EQUATION/VIETA_SUM (ADR-021)
     // ← Qat 4 (sympy + izah) BURAYA girir — ADR-021-in gələcək davamı
-    makeTextSolveLayer(), // Qat 5
+    makeTextSolveLayer(pool), // Qat 5 — ADR-023: model DB-dən oxunur, pool tələb edir
   ];
 }
 

@@ -102,7 +102,7 @@ export async function persistSolution(opts: {
   }
 
   // ── Qat 5 yolu: yeni həll ────────────────────────────────────────────────────────────
-  const { finalAnswer, stepAnswerRows, rawSteps } = solution.newQuestion;
+  const { finalAnswer, stepAnswerRows, rawSteps, model: usedModel } = solution.newQuestion;
   const { verified } = verifyFinalAnswer(transcript.canonical, finalAnswer.values);
   const leaked = detectLeak(rawSteps, finalAnswer.values);
 
@@ -202,7 +202,7 @@ export async function persistSolution(opts: {
           JSON.stringify(solution.steps),
           verified === true,
           verificationMethod,
-          process.env.GEMINI_MODEL ?? null,
+          usedModel, // ADR-023: HƏQİQƏTƏN işlədilən model (LLM-siz Qat 3 üçün `null`)
           solution.costUsd,
         ]
       );

@@ -15,12 +15,14 @@ import { callVisionLLM, type LLMUsage } from "../llm";
 import { computeCostUsd } from "../cost";
 import { validateTranscript } from "../verify/transcribe-schema";
 import { computePHash } from "../phash";
+import { getActiveTranscribeModel } from "../models";
 import type { Refusal, Transcript, Candidate } from "./types";
 
-// Qat 1 üçün ucuz/sürətli model (ClickUp 86eykqb1c). Təyin edilməyibsə bahalı modelə düşür —
-// yəni kaskad model dəyişikliyi OLMADAN da işləyir, model seçimi AYRI taskdır və AYRI ölçmə
-// tələb edir (OCR düzəliş nisbəti, transkripsiya təsdiq ekranı olmadan ölçülə bilmir).
-const TRANSCRIBE_MODEL_ENV = "TRANSCRIBE_MODEL";
+// Qat 1 üçün ucuz/sürətli model (ClickUp 86eykqb1c). ADR-023: `getActiveTranscribeModel`
+// DB-dən (`public.app_config.active_transcribe_model`) oxuyur, boşdursa `TRANSCRIBE_MODEL`
+// env-ə, o da yoxdursa `active_model`/`GEMINI_MODEL`-ə düşür — model seçimi AYRI taskdır
+// və AYRI ölçmə tələb edir (OCR düzəliş nisbəti, transkripsiya təsdiq ekranı olmadan
+// ölçülə bilmir).
 
 // Şəkil-hash keşi (`0045`, `private.image_hash_cache`) HƏM DƏ Qat 1 üçün işlədilir — taskın
 // açıq tələbi: "Şəkil hash-i üzrə qat 1 nəticəsini keşlə".
@@ -35,8 +37,10 @@ function cacheKeyForTranscript(selectedLabel: string): string {
 }
 
 export type TranscribeOutcome =
-  | { kind: "transcript"; transcript: Transcript; costUsd: number | null; latencyMs: number; usage: LLMUsage | null; cacheHit: boolean; imagePhash: string | null }
-  | { kind: "refusal"; refusal: Refusal; costUsd: number | null; latencyMs: number; usage: LLMUsage | null; cacheHit: boolean; imagePhash: string | null }
+  // ADR-023: `model` — HƏQİQƏTƏN çağırılan (və ya keş-hitdə, çağırılACAQ) model ID-si.
+  // Çağıran (`ocr_captures` yazısı) bunu birbaşa env-dən oxumaq əvəzinə buradan almalıdır.
+  | { kind: "transcript"; transcript: Transcript; costUsd: number | null; latencyMs: number; usage: LLMUsage | null; cacheHit: boolean; imagePhash: string | null; model: string }
+  | { kind: "refusal"; refusal: Refusal; costUsd: number | null; latencyMs: number; usage: LLMUsage | null; cacheHit: boolean; imagePhash: string | null; model: string }
   // Model/sxem uğursuzluğu — imtina DEYİL, XƏTA. Klientə "yenidən cəhd et" göstərilir.
   | { kind: "error"; timedOut: boolean };
 
@@ -109,6 +113,10 @@ export async function transcribe(opts: {
 }): Promise<TranscribeOutcome> {
   const { pool, imageHash, selectedLabel } = opts;
   const cacheKey = cacheKeyForTranscript(selectedLabel);
+  // ADR-023: keş-hit yolunda LLM çağırılmır, amma `model` yenə də DB/env-dən əvvəlcədən
+  // oxunur ki, `TranscribeOutcome.model` HƏR iki qolda dolu olsun (OCR korpusunun `model`
+  // sütunu izsiz qalmasın).
+  const activeTranscribeModel = await getActiveTranscribeModel(pool);
 
   // ClickUp 86eymfgbv — pHash, best-effort. Deşifrə uğursuz olsa (korlanmış şəkil, dəstəklənməyən
   // format) `null` qalır — axtarış AVTOMATIK sha256-yalnız rejiminə düşür (RPC-nin öz defoltu),
@@ -137,8 +145,8 @@ export async function transcribe(opts: {
       // Keş-hit: LLM çağırılmadı → xərc 0, gecikmə ~DB round-trip. `usage` `null` qalır ki,
       // token hesabatı saxta rəqəmlə çirklənməsin.
       return "transcript" in interpreted
-        ? { kind: "transcript", transcript: interpreted.transcript, costUsd: 0, latencyMs: 0, usage: null, cacheHit: true, imagePhash }
-        : { kind: "refusal", refusal: interpreted.refusal, costUsd: 0, latencyMs: 0, usage: null, cacheHit: true, imagePhash };
+        ? { kind: "transcript", transcript: interpreted.transcript, costUsd: 0, latencyMs: 0, usage: null, cacheHit: true, imagePhash, model: activeTranscribeModel }
+        : { kind: "refusal", refusal: interpreted.refusal, costUsd: 0, latencyMs: 0, usage: null, cacheHit: true, imagePhash, model: activeTranscribeModel };
     }
     console.error("[cascade/transcribe] keşdəki obyekt oxunmadı, LLM-ə keçilir");
   }
@@ -147,12 +155,12 @@ export async function transcribe(opts: {
   const { system, userTemplate } = loadTranscribeTemplates();
   const userPrompt = renderUserPrompt(userTemplate, opts.grade, opts.subject, opts.locale);
   const imageBase64 = opts.imageBytes.toString("base64");
-  const model = process.env[TRANSCRIBE_MODEL_ENV] || undefined;
+  const model = activeTranscribeModel;
 
   let raw: RawTranscript | null = null;
   let usage: LLMUsage | null = null;
   let latencyMs = 0;
-  let usedModel = model ?? process.env.GEMINI_MODEL ?? "";
+  let usedModel = model;
 
   for (let call = 1; call <= 2; call++) {
     if (opts.signal?.aborted) break;
@@ -202,6 +210,6 @@ export async function transcribe(opts: {
   const costUsd = computeCostUsd(usage, usedModel);
 
   return "transcript" in interpreted
-    ? { kind: "transcript", transcript: interpreted.transcript, costUsd, latencyMs, usage, cacheHit: false, imagePhash }
-    : { kind: "refusal", refusal: interpreted.refusal, costUsd, latencyMs, usage, cacheHit: false, imagePhash };
+    ? { kind: "transcript", transcript: interpreted.transcript, costUsd, latencyMs, usage, cacheHit: false, imagePhash, model: usedModel }
+    : { kind: "refusal", refusal: interpreted.refusal, costUsd, latencyMs, usage, cacheHit: false, imagePhash, model: usedModel };
 }

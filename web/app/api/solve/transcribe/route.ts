@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
     ocrRaw: outcome.transcript.canonical,
     imageSha256: imageHash,
     imagePhash: outcome.imagePhash,
-    model: process.env.TRANSCRIBE_MODEL || process.env.GEMINI_MODEL || null,
+    model: outcome.model || null, // ADR-023: HƏQİQƏTƏN işlədilən model, env-dən təxmin YOX
     latencyMs: Math.round(outcome.latencyMs),
     costUsd: outcome.costUsd,
   });

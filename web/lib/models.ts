@@ -26,14 +26,34 @@ export type ModelConfig = {
 
 // Tanınan modellər — yeni model əlavə etmək REGİSTRİYƏ məcburi DEYİL (qiymət override
 // env-i ilə də işləyir), amma tanınan model üçün sıfır-konfiqurasiya təmin edir.
+//
+// QİYMƏT DÜZƏLİŞİ (2026-08-14, Google-un rəsmi qiymət səhifəsi — ai.google.dev/gemini-api/
+// docs/pricing — birbaşa yoxlanıldı): `gemini-3.6-flash` VƏ `gemini-3.7-flash` HAZIRDA
+// (2026-12-31-ə QƏDƏR) EYNİ giriş qiymətindədir — $0.75/$3.75, YOX $1.50/$7.50 (bu ədədlər
+// `web/.env.example`-in köhnə nümunə dəyərləri idi, HƏMİN vaxt üçün YANLIŞ idi). **DİQQƏT —
+// 2027-01-01-dən qiymət İKİQAT olur ($1.50/$7.50).** Bu tarixdən sonra aşağıdakı defolt
+// dəyərləri yeniləmək lazımdır (və ya `MODEL_*_PRICE_*_PER_1M` env override-ı ilə əvvəlcədən
+// keçid etmək) — kod özü tarix-əsaslı dəyişiklik ETMİR, bu, gələcək bir sessiyanın işidir.
 const REGISTRY: Record<string, ModelConfig> = {
   "gemini-3.6-flash": {
     id: "gemini-3.6-flash",
     provider: "gemini",
     baseUrlEnv: "GEMINI_BASE_URL",
     apiKeyEnv: "GEMINI_API_KEY",
-    defaultPriceInputPer1M: 1.5,
-    defaultPriceOutputPer1M: 7.5,
+    defaultPriceInputPer1M: 0.75, // 2026-12-31-ə qədər. Sonra 1.50.
+    defaultPriceOutputPer1M: 3.75, // 2026-12-31-ə qədər. Sonra 7.50.
+  },
+  // Eyni provayder (Gemini-nin OpenAI-uyğun endpoint-i), HAZIRDA eyni qiymət — ADR-022-nin
+  // "eyni provayder daxilində model versiyaları arasında rahat keçid" məqsədinin BİRİNCİ
+  // real nümunəsi. `GEMINI_MODEL=gemini-3.7-flash` təyin etmək kifayətdir, qiymət avtomatik
+  // düzgün olacaq.
+  "gemini-3.7-flash": {
+    id: "gemini-3.7-flash",
+    provider: "gemini",
+    baseUrlEnv: "GEMINI_BASE_URL",
+    apiKeyEnv: "GEMINI_API_KEY",
+    defaultPriceInputPer1M: 0.75, // 2026-12-31-ə qədər. Sonra 1.50.
+    defaultPriceOutputPer1M: 3.75, // 2026-12-31-ə qədər. Sonra 7.50.
   },
 };
 
@@ -83,4 +103,42 @@ export function resolveConnection(modelId: string): ResolvedConnection | null {
   const apiKey = process.env[cfg.apiKeyEnv];
   if (!baseUrl || !apiKey) return null;
   return { baseUrl, apiKey };
+}
+
+// ── ADR-023: aktiv model DB-dən (redeploy-suz) ───────────────────────────────────────────
+//
+// `public.app_config` (`0056`) — Ilkin-in tapşırığı: model seçimi Vercel env-dən (manual +
+// redeploy) asılı olmasın. `app_runtime`-ın YALNIZ SELECT-i var (gate-78 dərsi) — yazı
+// birbaşa SQL-lə (Claude Code/Cowork) və ya gələcək admin RPC-lə olur, BU MODUL yazmır.
+//
+// DB sorğusu UĞURSUZ olsa (miqrasiya tətbiq olunmayıb, DB əlçatmazdır) və ya sətir yoxdursa,
+// env-ə geri düşülür — ADR-022-nin "DB/env MƏCBURİYYƏT deyil, rahatlıq qatıdır" prinsipi
+// bir səviyyə yuxarı təkrarlanır. Bu geri-düşmə SƏSSİZ DEYİL — konsola yazılır ki, "niyə
+// DB dəyəri işləmədi" sualı loglardan cavablana bilsin.
+type PoolLike = { query<T = unknown>(text: string, params?: unknown[]): Promise<{ rows: T[] }> };
+
+async function readConfigValue(pool: PoolLike, key: string): Promise<string | null> {
+  try {
+    const { rows } = await pool.query<{ value: string }>(`select value from public.app_config where key = $1`, [key]);
+    return rows[0]?.value ?? null;
+  } catch (err) {
+    console.error(`[models] app_config oxuna bilmədi (key=${key}), env fallback-a düşülür:`, err);
+    return null;
+  }
+}
+
+// `GEMINI_MODEL`-i əvəz edir — DB `active_model` sətri boş/yoxdursa env-ə geri düşür.
+export async function getActiveModel(pool: PoolLike): Promise<string> {
+  const fromDb = await readConfigValue(pool, "active_model");
+  return fromDb || process.env.GEMINI_MODEL || "";
+}
+
+// `TRANSCRIBE_MODEL || GEMINI_MODEL` zəncirini əvəz edir — DB `active_transcribe_model`
+// boşdursa `getActiveModel`-ə (yəni DB-nin özünün `active_model`-inə, sonra env-ə) düşür.
+export async function getActiveTranscribeModel(pool: PoolLike): Promise<string> {
+  const fromDb = await readConfigValue(pool, "active_transcribe_model");
+  if (fromDb) return fromDb;
+  const envOverride = process.env.TRANSCRIBE_MODEL;
+  if (envOverride) return envOverride;
+  return getActiveModel(pool);
 }

@@ -97,6 +97,7 @@ function assembleSolution(
       finalAnswer,
       stepAnswerRows: parts.map((p) => p.answer),
       rawSteps: parts.map((p) => p.raw),
+      model: null, // ADR-023: bu qat LLM ÇAĞIRMIR — model adı yazmaq YANLIŞ olardı
     },
     costUsd: 0,
     latencyMs: 0,
