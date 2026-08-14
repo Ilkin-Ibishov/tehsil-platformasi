@@ -15,6 +15,71 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (103) · Claude Code → Cowork
+
+**Etdim — S1-S8 deploy olunandan SONRA Ilkin-in birinci real solve-unu (blok 95-in eyni
+metodu ilə DB+Vercel forensikası) analiz etdim.** Şikayət: "yenə uyğunsuzluq var."
+
+**Obyekt:** `attempts.id = f8c684a7-fdba-46b7-be7f-5870fc7cf04d`, 2026-08-14 19:25:38Z,
+mövzu: `y=kx+b` qrafikinə görə `k`/`b`-nin işarəsi (A-E variantlı).
+
+### Birinci nəticə: RİYAZİYYAT VƏ FINAL CAVAB DÜZGÜNDÜR
+
+`k>0, b<0` (variant B) — qrafikin təsvirinə (artan xətt, y-oxu mənfi yarımoxda, x-oxu müsbət
+yarımoxda kəsişir) tam uyğundur, `private.question_answers`-dəki saxlanılan cavabla EYNİDİR.
+3 addımın `check.ask`-ı öz `latex`-inə aiddir (S6 qayda 17 KEÇİR). `questions.canonical` BOŞ
+DEYİL (S8 işləyir), `attempt_items.completed/revealed_answer/self_solved` düzgün yazılıb
+(S4 işləyir).
+
+### İKİ REAL TAPINTI (Ilkin-in "uyğunsuzluq" hissi buradan gəlir)
+
+1. **S1 hələ də İŞLƏMİR — Vercel runtime logs-da 403 RLS xətası tapıldı.**
+   ```
+   [storage] yükləmə xətası (.../crop.jpg): 403 "new row violates row-level security policy"
+   [storage] yükləmə xətası (.../raw.jpg): eyni xəta
+   ```
+   `storage.buckets`-də 1 sətir var (bucket mövcuddur), `storage.objects` isə **0 sətir** —
+   HEÇ bir fayl yüklənməyib. Kök səbəb: Postgres-də `service_role` rolunun `rolbypassrls=true`
+   olduğu TƏSDİQLƏNDİ — yəni sorğu HƏQİQƏTƏN `service_role` kimi autentifikasiya olunsaydı,
+   RLS ÜMUMİYYƏTLƏ tətbiq olunmazdı. 403 gəlməsi sübut edir ki, Vercel-dəki
+   `SUPABASE_SERVICE_ROLE_KEY` DƏYƏRİ service_role kimi TANINMIR (ən ehtimallı səbəb: Supabase
+   Dashboard-da "Legacy anon, service_role API keys" səhifəsində `anon` açarı sərbəst görünür/
+   "Copy" düyməsi var, `service_role` isə gizlidir/yalnız "Reveal"lə açılır — səhvən `anon`
+   açarının kopyalanması TAM bu simptomu (403, RLS pozuntusu) verər). **Ilkin-dən xahiş:**
+   Vercel → Settings → Environment Variables → `SUPABASE_SERVICE_ROLE_KEY`-i sil, Supabase
+   Dashboard-da `service_role` sətrinin "Reveal" düyməsinə bas, dəyəri ORADAN köçür (əvvəl-sonra
+   boşluq/sətir keçidi olmadan), yenidən yadda saxla, redeploy et.
+   `ocr_captures.storage_path` YENƏ DƏ `null` qalır (kod özü düzgün "best-effort" davranır —
+   axını bloklamır, amma bu o deməkdir ki, S1-in qəbul şərti hələ TƏSDİQLƏNMƏYİB).
+2. **`\tan` LaTeX-i xam göstərilirdi — DÜZƏLDİLDİ.** `render.unformatted_latex` hadisəsi
+   `\tan` üçün atılıb (addım 2-nin `latex`-i `k = \tan\alpha` idi, ekranda hərfi "\tan\alpha"
+   görünüb). `web/lib/math-format.ts`-ə `\tan`/`\alpha` əlavə edildi (HANDOFF 55-in "yalnız
+   ÖLÇÜLƏNİ əlavə et" qaydası ilə — `\sin`/`\cos`/`\cot` ƏLAVƏ EDİLMƏDİ, ölçülməyib).
+   `math-format.selftest.mts`-ə reqressiya testi əlavə edildi, 34/34 keçir.
+
+### Üçüncü müşahidə — DÜZƏLDİLMƏDİ, qeyd üçün
+
+Addım 2-də (`k`-nın işarəsi, `input_kind:"expression"`, `accept:["müsbət","k>0","k > 0"]`)
+şagird **5 cəhddən sonra** düz cavab verdi (addım 1: 1 cəhd, addım 3: reveal-ə qədər 1 səhv
+cəhd). `given_answer` DB-yə yazılmır (yalnız correct/incorrect boolean), ona görə şagirdin
+NƏ yazdığı bilinmir — amma "işarə" kimi KEYFİYYƏT sualının `input_kind:"expression"` olması
+(rəqəm/ifadə gözləyən sərbəst mətn sahəsi) şübhəlidir: "müsbətdir", "pozitiv", "+" kimi
+məntiqli variantlar `accept` siyahısında YOXDUR və `studentAnswerMatches`-in ədədi-ekvivalent
+yolu keyfiyyət sözlərini YOXLAYA BİLMİR (riyazi ifadə deyil). **Fərziyyədir, TƏSDİQLƏNMƏYİB**
+(n=1, real yazılan mətn yoxdur) — düzəldilmədi. Əgər təkrarlanarsa: (a) işarə sualları üçün
+`input_kind:"choice"` (müsbət/mənfi düymələri) düşünülə bilər, (b) `accept` siyahısını
+prompt səviyyəsində genişləndirmək. ADR tələb edir, bu sessiyanın həcmində DEYİL.
+
+**Doğrulama:** `tsc --noEmit`/`eslint` təmiz, `math-format.selftest.mts` 34/34 (2 yeni hal
+daxil). Vercel `get_runtime_errors` (son 24 saat) YALNIZ bu 2 storage xətasını göstərdi —
+başqa heç bir S1-S8 reqressiyası YOXDUR.
+
+**Blok:** `SUPABASE_SERVICE_ROLE_KEY`-in düzəldilməsi Ilkin-in əl işidir — bunsuz S1 "qəbul
+edilib" deyilə bilməz, kod tərəfi artıq düz "best-effort" davranır (axını bloklamır, sadəcə
+şəkil itir).
+
+---
+
 ## 2026-08-14 (102) · Claude Code → Cowork
 
 **Etdim — S8 (86eymwgmv), `canonical` saxlanılsın, `ADR-003`-ün boşaltma qərarı LƏĞV EDİLDİ.

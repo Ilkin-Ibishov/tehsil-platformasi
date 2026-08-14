@@ -69,6 +69,14 @@ export function formatMath(src: string, locale: string = "az"): string {
   // (`log_2(`) tanıyır, bura göstərmə üçün mötərizəsiz forma da (`\log_3`) tanımalıdır)
   text = text.replace(/\\?log_\{?(\d+)\}?/g, (_m, d: string) => `log${toSub(d)}`);
 
+  // ÖLÇÜLƏN siyahıya əlavə (HANDOFF 103, 2026-08-14): production-da `render.unformatted_latex`
+  // `\tan` üçün atıldı — `k = \tan\alpha` xam göstərilirdi (`\alpha` EYNİ sətirdə, ölçülməmiş
+  // görünsə də ARDINCA gələn eyni-sinif atım olardı, ona görə birlikdə düzəldilir). Digər
+  // triqonometrik funksiyalar (`\sin`, `\cos`, `\cot`) ƏLAVƏ EDİLMƏDİ — HEÇ BİR ölçmədə
+  // görünməyib, HANDOFF (55)-in "təxminlə doldurma, yalnız ölçülənə görə böyü" qaydası.
+  text = text.replace(/\\tan\b/g, "tan");
+  text = text.replace(/\\alpha\b/g, "α");
+
   // x^{10} / x^2 → x¹⁰ / x² — mötərizəli (çox rəqəmli) forma ƏVVƏL, sonra tək rəqəm
   text = text.replace(/\^\{(-?\d+)\}/g, (_m, d: string) => toSuper(d));
   text = text.replace(/\^(-?\d)/g, (_m, d: string) => toSuper(d));

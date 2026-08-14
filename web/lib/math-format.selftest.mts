@@ -41,6 +41,9 @@ const CASES: [string, string][] = [
   // ekranda görünürdü. findUnformattedLatex-in reqex-i (\[a-zA-Z]+) bunu tuta bilmirdi.
   ["1\\% = \\frac{200}{100}", "1% = (200)/(100)"],
   ["50\\%", "50%"],
+  // HANDOFF (103): production-da `k = \tan\alpha` xam göstərilirdi (`render.unformatted_latex`
+  // `\tan`-ı ölçdü) — `\alpha` EYNİ sətirdə idi, ikisi birlikdə düzəldildi.
+  ["k = \\tan\\alpha", "k = tanα"],
 ];
 
 let fails = 0;
@@ -53,8 +56,11 @@ for (const [input, expected] of CASES) {
 
 const UNFORMATTED_CASES: [string, string | null][] = [
   ["x^2 - 5x", null],
-  ["\\alpha + \\beta", "\\alpha"],
+  // HANDOFF (103): `\alpha` indi tanınır (ölçülüb) — qalan ilk tanınmayan `\beta`-dır.
+  // `\beta`-nın ÖZÜ hələ cədvəldə YOXDUR (ölçülməyib, HANDOFF 55 qaydası).
+  ["\\alpha + \\beta", "\\beta"],
   ["x_1 \\in \\mathbb{N}", null],
+  ["k = \\tan\\alpha", null],
 ];
 
 for (const [input, expectedToken] of UNFORMATTED_CASES) {
