@@ -49,6 +49,8 @@ doğrudur. **Şikayətin mənbəyi riyaziyyat deyil, göstərmə və taksonomiya
    `ADR-003` (2026-08-08): DİM mətninin hərfi saxlanması hüquqi riskdir, keş açarı yalnız
    `canonical_hash`/`numeric_fingerprint`-dir. Üstəlik `template.ts:267` DB sütunundan yox,
    **yaddaşdakı `ctx.transcript.canonical`-dan** oxuyur — Qat 3 işləkdir. Geri götürürəm.
+   **SONRAKI QƏRAR:** Ilkin `ADR-003`-ün boşaltma qərarını LƏĞV ETDİ (aşağıda S8) — `canonical`
+   bundan sonra tam saxlanılır. Yuxarıdakı izah tarixi kontekst kimi qalır.
 
 ### NƏZƏRİMDƏN QAÇAN ƏSAS TAPINTI — kaskad production-da İŞLƏMİR
 
@@ -85,7 +87,19 @@ Son 3 sessiyanın kaskad işinin production dəyəri hazırda SIFIRDIR.
 
 ---
 
-## Tapşırıq — 1 valideyn + 7 subtask
+## Tapşırıq — 1 valideyn + 8 subtask (ClickUp-da yaradıldı, Faza 1 siyahısı)
+
+| # | ClickUp | Prioritet |
+|---|---|---|
+| Valideyn | [86eymwggu](https://app.clickup.com/t/86eymwggu) | urgent |
+| S1 şəkil saxlanması | [86eymwght](https://app.clickup.com/t/86eymwght) | urgent |
+| S2 CASCADE_ENABLED | [86eymwgja](https://app.clickup.com/t/86eymwgja) | urgent |
+| S3 error_code taksonomiyası | [86eymwgju](https://app.clickup.com/t/86eymwgju) | high |
+| S4 attempt_items yazılması | [86eymwgk7](https://app.clickup.com/t/86eymwgk7) | high |
+| S5 sympy yoxlaması | [86eymwgkv](https://app.clickup.com/t/86eymwgkv) | high |
+| S6 check.ask uyğunluğu | [86eymwgma](https://app.clickup.com/t/86eymwgma) | normal |
+| S7 boş model ID + RLS | [86eymwgmk](https://app.clickup.com/t/86eymwgmk) | normal |
+| S8 canonical / ADR-003 ləğv | [86eymwgmv](https://app.clickup.com/t/86eymwgmv) | high |
 
 **Valideyn:** *Foto-solve axınının izlənilə bilməsi və doğruluğu — dəvət dalğasından əvvəl*
 Məqsəd: real istifadəçi yanlış həll bildirəndə onu **bərpa edib sübut edə bilmək**, və
@@ -150,10 +164,22 @@ kaskadın qurulmuş dəyərini production-a çıxarmaq. Sıra bağlayıcıdır �
 - `topic_codes` və `error_codes`-da RLS söndürülüb (Supabase advisor, critical).
   `enable row level security` + `select` üçün `app_runtime`/anon oxu siyasəti, yazı qapalı.
 
+**S8 — `canonical` saxlanılsın, `ADR-003`-ün boşaltma qərarı LƏĞV EDİLİR**
+- **Ilkin-in qəti qərarı (2026-08-14):** DİM mətninin hüquqi riski bu mərhələdə maneə sayılmır.
+  `canonical` artıq boşaldılmır, tam mətn saxlanılır.
+- `web/lib/cascade/persist.ts:174` və `web/app/api/solve/route.ts:630` — `''` yazan sətirlər
+  götürülsün, `transcript.canonical`/`parsed.canonical` olduğu kimi yazılsın.
+- `ADR-003`-ə "Ləğv 2026-08-14" bölməsi: qərar geri alındı, səbəb (sürət > hüquqi ehtiyat,
+  pre-launch, 0 istifadəçi), yeni davranış. ADR silinmir — tarixi qərar qalır.
+- `canonical_hash`/`numeric_fingerprint` onsuz da boşaltmadan ƏVVƏL hesablanır, keş
+  davranışı DƏYİŞMİR — reqressiya gözlənilmir.
+- Mövcud 10 `user_capture` sətri bərpa OLUNA BİLMƏZ (mətn heç yerdə saxlanmayıb, yalnız
+  `question_translations.stem`-də var) — geriyə doldurma `stem`-dən aparıla bilər, bir dəfəlik
+  UPDATE, S8-in son addımı.
+- **Qəbul şərti:** yeni foto-solve-dan sonra `questions.canonical` boş deyil.
+
 **Diqqət:**
 - `docs/STEP-SCHEMA.json`-un enum-una TOXUNMA. S3-də dəyişən DB cədvəlidir.
-- `ADR-003`-ün `canonical=''` qərarına toxunma — amma `stem`-in eyni mətni saxladığını
-  `ADR-003`-ə "Əlavə 2026-08-14" kimi qeyd et ki, qərar sonra kimisə çaşdırmasın.
 - S2 bayraq dəyişikliyidir, kod dəyişikliyi deyil — sınarsa geri qaytar, saatlarla debug etmə.
 
 **Blok:** yoxdur. S1 → S2 sırası bağlayıcıdır, qalanı paraleldir.
