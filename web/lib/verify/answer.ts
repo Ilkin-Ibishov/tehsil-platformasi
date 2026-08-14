@@ -142,13 +142,21 @@ function parseEquationSides(eqStr: string): { lhs: string; rhs: string } | null 
   return { lhs, rhs };
 }
 
+// S5 (86eymwgkv) — `null` niyə qaytarıldığını izah edən kod. `question_translations.
+// verification_reason`-a yazılır ki, "yoxlanıla bilmədi" statistikası SƏBƏBLƏ ölçülə bilsin
+// (məs. "çoxu söz məsələsidir" vs "parser boşluqdur" fərqli hərəkət tələb edir).
+export type VerificationReason = "no_equation_extracted" | "no_single_variable_equation" | null;
+
 /** `verify.py::equation_cross_check`-in TS portu. `true`/`false`/`null` qaytarır —
  * `null` = canonical-dan yoxlanıla bilən tək-dəyişənli tənlik çıxarıla bilmədi. */
-export function equationCrossCheck(canonical: string, values: string[]): boolean | null {
-  if (!values || values.length === 0) return false;
+export function equationCrossCheck(
+  canonical: string,
+  values: string[]
+): { verified: boolean | null; reason: VerificationReason } {
+  if (!values || values.length === 0) return { verified: false, reason: null };
 
   const equations = extractEquations(canonical);
-  if (equations.length === 0) return null;
+  if (equations.length === 0) return { verified: null, reason: "no_equation_extracted" };
 
   const parsed: { lhs: string; rhs: string; symbol: string }[] = [];
   for (const eqStr of equations) {
@@ -159,19 +167,22 @@ export function equationCrossCheck(canonical: string, values: string[]): boolean
     parsed.push({ ...sides, symbol: [...symbols][0] });
   }
 
-  if (parsed.length === 0) return null;
+  if (parsed.length === 0) return { verified: null, reason: "no_single_variable_equation" };
 
   for (const valueStr of values) {
     const ok = parsed.some(({ lhs, rhs, symbol }) => valueSatisfies(valueStr, lhs, rhs, symbol));
-    if (!ok) return false;
+    if (!ok) return { verified: false, reason: null };
   }
-  return true;
+  return { verified: true, reason: null };
 }
 
 /** `verify.py::verify_final_answer`-in istehsalat yolu (golden_values yoxdur, ADR-012).
- * `verified`: true/false/null. */
-export function verifyFinalAnswer(canonical: string, values: string[]): { verified: boolean | null } {
-  return { verified: equationCrossCheck(canonical, values) };
+ * `verified`: true/false/null, `reason` YALNIZ `verified===null` olanda mənalıdır. */
+export function verifyFinalAnswer(
+  canonical: string,
+  values: string[]
+): { verified: boolean | null; reason: VerificationReason } {
+  return equationCrossCheck(canonical, values);
 }
 
 /** SYSTEM-REVIEW-2026-08-07 §B1: şagirdin S4-də yazdığı cavab `check.accept`-in EYNİ

@@ -15,6 +15,54 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-14 (99) · Claude Code → Cowork
+
+**Etdim — S5 (86eymwgkv), sympy yoxlaması göstərilmədən əvvəl fərqin görünməsi.**
+
+- **Real bug tapıldı və düzəldildi:** `web/lib/cascade/persist.ts:242` və `web/app/api/solve/
+  route.ts:811` klientə HƏMİŞƏ `verification: { verified: true, ... }` qaytarırdı —
+  `verificationMethod='none'` (sympy heç nə TƏSDİQLƏMƏYİB) olanda BELƏ. DB-yə düzgün
+  yazılırdı (`question_translations.verified`), amma ŞƏBƏKƏ CAVABI yalan danışırdı. İndi
+  `verified: verified === true`.
+- **`web/lib/verify/answer.ts`** — `equationCrossCheck`/`verifyFinalAnswer` indi
+  `{verified, reason}` qaytarır. `reason` YALNIZ `verified===null` olanda mənalıdır:
+  `no_equation_extracted` (canonical-dan `=` işarəli seqment çıxarıla bilmədi) və ya
+  `no_single_variable_equation` (tənlik(lər) var, amma tək dəyişənli deyil/heç dəyişəni
+  yoxdur). `lib/verify/cli.mts` (scripts/eval.py-ın çağırdığı xarici müqavilə)
+  QORUNDU — `reason` ora SIZMIR, `{"verified": ...}` formatı dəyişmədi.
+- **`supabase/migrations/0060_verification_reason.sql`** — production-a tətbiq edildi.
+  `question_translations.verification_reason` (additiv, CHECK-lə məhdudlaşdırılıb).
+  `persist.ts`/`route.ts` hər ikisi indi bunu yazır.
+- **UI:** `web/components/hell/SolveView.tsx` — `SolveResult.verified` sahəsi əlavə edildi,
+  `verified===false` olanda cavab bloku ÜSTÜNDƏ "yoxlanılmadı — diqqətli ol" xəbərdarlığı
+  göstərilir (cavabı GİZLƏTMİR, server qaydası 1 artıq QƏTİ ziddiyyəti əvvəlcədən rədd edir).
+  `messages/az.json`-a `hell.answer.unverified` əlavə edildi. `kamera/page.tsx`-in hər iki
+  yolu (`submitSolve`/`submitSolveCascade`-in `applyFinishResult`-u) `body.verification.
+  verified`-i indi `SolveResult`-a ötürür.
+- **Ölçmə (qəbul şərti):** production `question_translations`-da `verification_method`
+  paylanması, `template_authored` (bulk seed, canlı solve DEYİL) İSTİSNA edilərək — YALNIZ
+  `sympy`/`none` (canlı LLM/kaskad yolu): **9/10 `none`, 1/10 `sympy`.** Yəni real DİM
+  şəkillərinin böyük əksəriyyəti (söz məsələləri, çoxdəyişənli/çoxtənlikli hallar)
+  `equationCrossCheck`-in tək-dəyişənli-tənlik məhdudiyyətinə görə HEÇ VAXT sympy ilə
+  təsdiqlənmir — bu, `route.ts`-in öz köhnə şərhində ("mətn məsələlərinin hamısını udurdu")
+  qeyd olunan riskin RƏQƏMLƏ TƏSDİQİDİR. `verification_reason` yeni sütun olduğu üçün bu 10
+  sətrin heç birində DOLU deyil (miqrasiyadan ƏVVƏLki data) — YENİ solve-lar bundan sonra
+  səbəb daşıyacaq.
+
+**Doğrulama:** `tsc --noEmit`/`eslint` təmiz, `answer.selftest.mts` 18/18 (reqressiya yoxdur,
+`studentAnswerMatches` toxunulmadı).
+
+**Diqqət:**
+- Server qaydası 1 (`verified===false` → `unreadable`, göstərilmir) DƏYİŞMƏDİ — bu tapşırıq
+  YALNIZ `null` halının (yoxlanıla bilmədi, göstərilir) görünürlüyünü düzəltdi, məhsul
+  qaydasını YOX.
+- Real foto-solve ilə UÇDAN-UCA yoxlanmadı (kamera bloklanıb) — badge kodu review edildi,
+  brauzerdə vizual sınanmadı.
+- `9/10 none` rəqəmi kiçik n (10) üzərindədir, qapı statistikası DEYİL — informativ, ADR
+  tələb etmir.
+
+---
+
 ## 2026-08-14 (98) · Claude Code → Cowork
 
 **Etdim — S4 (86eymwgk7), `attempt_items.completed`/`revealed_answer` yazılması.**

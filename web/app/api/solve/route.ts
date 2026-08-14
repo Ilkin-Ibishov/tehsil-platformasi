@@ -635,7 +635,7 @@ export async function POST(req: NextRequest) {
     costUsd: computeCostUsd(usage, usedModel),
   }).catch((err) => console.error("[/api/solve] capture/storage xətası (monolit budaq):", err));
 
-  const { verified } = verifyFinalAnswer(parsed.canonical, finalAnswer.values);
+  const { verified, reason: verificationReason } = verifyFinalAnswer(parsed.canonical, finalAnswer.values);
   const leaked = detectLeak(parsed.steps ?? [], finalAnswer.values);
 
   // Server qaydası 1 (PHASE-1): verified=false göstərilmir. AMMA `verified` üç haldır
@@ -731,14 +731,15 @@ export async function POST(req: NextRequest) {
       const publicSteps = stripAccept(stepsForStorage);
       await client.query(
         `insert into question_translations
-           (question_id, lang, stem, steps, verified, verification_method, model, cost_usd)
-         values ($1,'az',$2,$3,$4,$5,$6,$7)`,
+           (question_id, lang, stem, steps, verified, verification_method, verification_reason, model, cost_usd)
+         values ($1,'az',$2,$3,$4,$5,$6,$7,$8)`,
         [
           questionId,
           JSON.stringify({ blocks: [{ t: "text", v: parsed.canonical }] }),
           JSON.stringify(publicSteps),
           verified === true,
           verificationMethod,
+          verificationReason,
           usedModel || null,
           costUsd,
         ]
@@ -808,7 +809,9 @@ export async function POST(req: NextRequest) {
       steps: clientSteps,
       attempt_id: sessionId,
       match_path: cacheHit ? "image_cache" : "llm",
-      verification: { verified: true, method: verificationMethod, verified_at: new Date().toISOString() },
+      // S5 (86eymwgkv) — ƏVVƏLLƏR HƏMİŞƏ `verified: true` idi (`verificationMethod`='none'
+      // olanda BELƏ) — klient sympy təsdiqi ilə "yoxlanılmadı" halını ayırd edə bilmirdi.
+      verification: { verified: verified === true, method: verificationMethod, reason: verificationReason, verified_at: new Date().toISOString() },
       meta: {
         latency_ms: Math.round(latencyMs),
         cost_usd: costUsd,

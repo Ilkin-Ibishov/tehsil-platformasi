@@ -85,6 +85,7 @@
     },
     "answer": {
       "label": "CAVAB",
+      "unverified": "yoxlanılmadı — diqqətli ol",
       "revealError": "Şəbəkə xətası — cavab gətirilə bilmədi. Yenidən cəhd et.",
       "reportWrong": "həll səhvdir",
       "reportWrongDone": "Qeyd olundu, təşəkkür edirik.",

@@ -238,7 +238,7 @@ export default function KameraPage() {
         return;
       }
 
-      setSolution({ canonical: body.canonical, steps: body.steps });
+      setSolution({ canonical: body.canonical, steps: body.steps, verified: body.verification?.verified });
       setSolutionAttemptId(typeof body.attempt_id === "string" ? body.attempt_id : currentAttemptIdRef.current ?? null);
       setStage("solved");
     } catch {
@@ -319,7 +319,11 @@ export default function KameraPage() {
       tokens_out: (body.meta as { tokens_out?: number | null } | undefined)?.tokens_out ?? null,
       step_count: (body.steps as unknown[]).length,
     });
-    setSolution({ canonical: body.canonical as string, steps: body.steps as SolveResult["steps"] });
+    setSolution({
+      canonical: body.canonical as string,
+      steps: body.steps as SolveResult["steps"],
+      verified: (body.verification as { verified?: boolean } | undefined)?.verified,
+    });
     setSolutionAttemptId(typeof body.attempt_id === "string" ? body.attempt_id : currentAttemptIdRef.current ?? null);
     setStage("solved");
   }

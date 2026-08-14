@@ -33,7 +33,7 @@ export type PersistResult =
       // ona görə DB-yə yazandan SONRA buradan qaytarılır.
       itemId: string;
       steps: PublicStep[];
-      verification: { verified: boolean; method: string };
+      verification: { verified: boolean; method: string; reason?: string | null };
       leaked: boolean;
     }
   // `rejected` — sympy QƏTİ ZİDDİYYƏT tapdı (`verified === false`). Server qaydası 1
@@ -103,7 +103,7 @@ export async function persistSolution(opts: {
 
   // ── Qat 5 yolu: yeni həll ────────────────────────────────────────────────────────────
   const { finalAnswer, stepAnswerRows, rawSteps, model: usedModel } = solution.newQuestion;
-  const { verified } = verifyFinalAnswer(transcript.canonical, finalAnswer.values);
+  const { verified, reason: verificationReason } = verifyFinalAnswer(transcript.canonical, finalAnswer.values);
   const leaked = detectLeak(rawSteps, finalAnswer.values);
 
   // `verified` ÜÇ haldır: `false` = QƏTİ ZİDDİYYƏT (gizlədilir), `null` = yoxlanıla bilmədi
@@ -193,8 +193,8 @@ export async function persistSolution(opts: {
 
       await client.query(
         `insert into question_translations
-           (question_id, lang, stem, steps, verified, verification_method, model, cost_usd)
-         values ($1,$2,$3,$4,$5,$6,$7,$8)`,
+           (question_id, lang, stem, steps, verified, verification_method, verification_reason, model, cost_usd)
+         values ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
         [
           questionId,
           opts.locale,
@@ -202,6 +202,7 @@ export async function persistSolution(opts: {
           JSON.stringify(solution.steps),
           verified === true,
           verificationMethod,
+          verificationReason,
           usedModel, // ADR-023: HƏQİQƏTƏN işlədilən model (LLM-siz Qat 3 üçün `null`)
           solution.costUsd,
         ]
@@ -239,7 +240,10 @@ export async function persistSolution(opts: {
       sessionId,
       itemId,
       steps: servedSteps,
-      verification: { verified: true, method: verificationMethod },
+      // S5 (86eymwgkv) — bura ƏVVƏLLƏR HƏMİŞƏ `verified: true` yazırdı (`verificationMethod`
+      // 'none' olanda BELƏ) — klient sympy təsdiqi ilə "yoxlanılmadı, modelin çıxışına
+      // etibar edilir" halını AYIRD EDƏ BİLMİRDİ. İndi HƏQİQİ nəticə yazılır.
+      verification: { verified: verified === true, method: verificationMethod, reason: verificationReason },
       leaked,
     };
   } catch (err) {

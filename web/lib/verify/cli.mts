@@ -21,7 +21,11 @@ async function readStdin(): Promise<string> {
 function handle(line: string): string {
   try {
     const { canonical, values } = JSON.parse(line) as { canonical: string; values: string[] };
-    return JSON.stringify({ verified: equationCrossCheck(canonical, values) });
+    // S5 (86eymwgkv): `equationCrossCheck` indi `{verified, reason}` qaytarır (istehsalat
+    // tərəfi `verification_reason`-u DB-yə yazır) — bu CLI-nın xarici müqaviləsi (`scripts/
+    // eval.py`) YALNIZ `{"verified": ...}` gözləyir, ona görə `reason` bura SIZDIRILMIR.
+    const { verified } = equationCrossCheck(canonical, values);
+    return JSON.stringify({ verified });
   } catch (e) {
     return JSON.stringify({ error: String(e) });
   }
