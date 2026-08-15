@@ -157,7 +157,7 @@ datası). Redeploy-suz dəyişdirilə bilən dəyərlər üçün:
 | `key` | `value` nümunəsi | qeyd |
 |---|---|---|
 | `active_model` | `gemini-3.7-flash` | `web/lib/models.ts`-in `getActiveModel`-i oxuyur, boşdursa `GEMINI_MODEL` env-ə düşür |
-| `active_transcribe_model` | `` (boş = `active_model`-i işlət) | Qat 1 üçün, `TRANSCRIBE_MODEL` env-dən sonra sıradadır |
+| `active_transcribe_model` | `gemini-3.1-flash-lite` | Qat 1; boşdursa `TRANSCRIBE_MODEL` env, o da yoxdursa `active_model` |
 | `cascade_enabled` | `1` | Server kaskadı (`/api/solve` daxili Qat 1-5), boşdursa `CASCADE_ENABLED` env-ə düşür |
 | `cascade_ui_enabled` | `0` | Klient transkripsiya təsdiq ekranı, `/api/config/public`-dən oxunur (`NEXT_PUBLIC_*` DEYİL — bax aşağı) |
 

@@ -55,6 +55,16 @@ const REGISTRY: Record<string, ModelConfig> = {
     defaultPriceInputPer1M: 0.75, // 2026-12-31-ə qədər. Sonra 1.50.
     defaultPriceOutputPer1M: 3.75, // 2026-12-31-ə qədər. Sonra 7.50.
   },
+  // ClickUp 86eykqb1c — Qat 1 (şəkil→transkripsiya). Vision var, mühakimə yoxdur.
+  // Qiymət: ai.google.dev/gemini-api/docs/pricing (2026-08-15, birbaşa yoxlanıldı).
+  "gemini-3.1-flash-lite": {
+    id: "gemini-3.1-flash-lite",
+    provider: "gemini",
+    baseUrlEnv: "GEMINI_BASE_URL",
+    apiKeyEnv: "GEMINI_API_KEY",
+    defaultPriceInputPer1M: 0.25,
+    defaultPriceOutputPer1M: 1.5,
+  },
 };
 
 export function getModelConfig(modelId: string): ModelConfig | null {

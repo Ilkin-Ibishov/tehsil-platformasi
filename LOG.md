@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-15: HANDOFF 122 — Qat 1 `active_transcribe_model` ucuz modelə (registri + `0064`). ClickUp `86eykqb1c`.
 - 2026-08-15: HANDOFF 121 — həll ekranında LENT irəli/geri (`SolveView.tsx`). ClickUp `86eyn1t7b`.
 - 2026-08-15: HANDOFF 120 — «Cavabı göstər» yalnız son addım (`SolveView.tsx`). ClickUp `86eymrkjn`.
 - 2026-08-15: HANDOFF 119 — dəvət kodu qapıda yoxlanır (`/api/invite/check`, `InviteGate`, bank `inviteError`). ClickUp `86eymrm6g`.

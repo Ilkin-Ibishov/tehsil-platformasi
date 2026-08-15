@@ -52,6 +52,14 @@ check("gemini-3.7-flash: registridədir, eyni qiymət", resolvePrice("gemini-3.7
 });
 check("gemini-3.7-flash: eyni provayder/env-lər", getModelConfig("gemini-3.7-flash")?.baseUrlEnv, "GEMINI_BASE_URL");
 
+// ClickUp 86eykqb1c — Qat 1 ucuz model. Qiymət 2026-08-15 rəsmi səhifədən.
+check("gemini-3.1-flash-lite: registri defolt", resolvePrice("gemini-3.1-flash-lite"), {
+  inputPer1M: 0.25,
+  outputPer1M: 1.5,
+});
+check("gemini-3.1-flash-lite: eyni provayder/env-lər", getModelConfig("gemini-3.1-flash-lite")?.baseUrlEnv, "GEMINI_BASE_URL");
+check("priceEnvKey: gemini-3.1-flash-lite", priceEnvKey("gemini-3.1-flash-lite", "INPUT"), "MODEL_GEMINI_3_1_FLASH_LITE_PRICE_INPUT_PER_1M");
+
 // ── 2. Deterministik env açarı ───────────────────────────────────────────────────────────
 check("priceEnvKey: gemini-3.6-flash", priceEnvKey("gemini-3.6-flash", "INPUT"), "MODEL_GEMINI_3_6_FLASH_PRICE_INPUT_PER_1M");
 check("priceEnvKey: yeni model (nöqtə/tire → _)", priceEnvKey("gemini-3.7-flash", "OUTPUT"), "MODEL_GEMINI_3_7_FLASH_PRICE_OUTPUT_PER_1M");

@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (122) · Cursor → Cowork
+
+Etdim:    ClickUp `86eykqb1c` — Qat 1 ucuz model. `gemini-3.1-flash-lite` registriyə düşdü ($0.25/$1.50, rəsmi qiymət səhifəsi 2026-08-15). Miqrasiya `0064` yalnız boş `active_transcribe_model`-i doldurur; production-a tətbiq olundu. Qat 5 `active_model` toxunulmayıb. `models.selftest.mts` keçdi.
+Tapşırıq: `86eykqb1c` — mərhələ 1 kiçik, mərhələ 2 bahalı.
+Diqqət:   Registri `main`-ə çatmayınca `cost_usd` bu model üçün NULL ola bilər — push lazımdır. Qat 1 404/500 verərsə: `update app_config set value='' where key='active_transcribe_model'`. Ölçmə: `transcript.corrected` >15% → Qat 1-i qaldır. `refusal.shown`, `solve.cascade.transcribe_cost_usd`.
+
 ## 2026-08-15 (121) · Cursor → Cowork
 
 Etdim:    Həll ekranında artıq açılmış addımlar arası irəli/geri — sticky `LENT` (`design/Həll ekranı v5.dc.html`). `goToStep` `farthestIndex`-dən irəli getmir, `answers` silinmir. Üst zolaq da `farthestIndex` ilə dolur. Unmount `abandoned_at_step` = ən uzaq açılmış addım.
