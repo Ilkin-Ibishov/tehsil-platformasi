@@ -313,8 +313,15 @@ def aggregate(entries, human_review=None):
 
 
 def write_results(pipeline_name, set_path, entries, metrics, out_dir, date_str):
+    # HANDOFF 106 (2026-08-15) — bu, EYNİ günə düşən iki fərqli `--set`-in nəticəsini
+    # ÜST-ÜSTƏ yazdığı DÖRDÜNCÜ hadisədir (HANDOFF 38-dən bəri bilinən risk). `set_stem`
+    # ƏLAVƏ edilir, amma TARİXDƏN SONRA (yox `write_summary`-nin set-əvvəl konvensiyası) —
+    # `find_latest_result` faylları ƏLİFBA sırasına görə "son"u seçir, tarix STRİNQİN
+    # ƏVVƏLİNDƏ qalmalıdır ki, bu sıralama TARİXƏ görə düzgün qalsın (YYYY-MM-DD ləxikoqrafik
+    # = xronoloji). set_stem-i tarixdən ƏVVƏL yazmaq bu sıralamanı pozardı.
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / f"{pipeline_name}-{date_str}.json"
+    set_stem = Path(set_path).stem
+    out_path = out_dir / f"{pipeline_name}-{date_str}-{set_stem}.json"
     payload = {
         "pipeline": pipeline_name,
         "set": str(set_path),
