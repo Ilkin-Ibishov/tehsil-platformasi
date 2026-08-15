@@ -15,6 +15,29 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (115) · Claude Code → Cowork
+
+**Etdim:** Ilkin-in tapşırığı — kaskad bayraqları (`CASCADE_ENABLED`, `NEXT_PUBLIC_
+CASCADE_ENABLED`) Vercel env-dən `public.app_config`-ə köçürüldü (`ADR-023`-ün EYNİ nümunəsi
+— "hər şey env olmasın"). `web/lib/app-config.ts` (YENİ) `readConfigValue`/`getBoolConfig`
+paylaşır, `models.ts` da indi bunu işlədir (təkrarçılıq yoxdur). Server tərəfi (`/api/solve`)
+request-daxili DB oxuyur. Klient tərəfi — `NEXT_PUBLIC_*` build-vaxtı bundle-a yapışdığı üçün
+DB-yə birbaşa keçə bilməzdi — `GET /api/config/public` (YENİ, qeyri-həssas bul flag-lər)
+əlavə edildi, `kamera/page.tsx` mount-da onu çağırır (`cascadeUiEnabled` state, defolt
+`false`). DB-yə uyğun sətirlər yazıldı (`cascade_enabled=1`, `cascade_ui_enabled=0` —
+BUGÜNKÜ davranış DƏYİŞMƏDİ, bu mexanizm köçürməsidir).
+**Canlıda təsdiqləndi:** `/api/config/public` DB dəyərini əks etdirir; `cascade_ui_enabled`-i
+SQL-lə `1`-ə çevirdim, endpoint DƏRHAL (redeploy-suz) `true` qaytardı — sonra geri `0`-a
+saldım (təsdiq ekranını real şagirdlərə açmaq hələ AYRI qərardır, `86eykm8ja`-nın əhatəsi).
+Bir real solve (`31+48=?`) `/api/solve`-in DB-oxuyan `cascade_enabled`-i ilə problemsiz işlədi
+(`solve.cascade` hadisəsi əvvəlki kimi atıldı).
+**Diqqət:** Cowork-un `7eeb15f` (blok 114, bilik bazası sinxronizasiyası) ilə eyni anda
+`docs/DATA-MODEL.md`-də konflikt oldu (Cowork faylı tam yenidən yazmışdı) — `rebase`-lə həll
+edildi, Cowork-un yeni struktur SAXLANILDI, mənim `app_config` əlavəm onun İÇİNƏ köçürüldü
+(köhnə struktura geri DÜŞMƏDİ).
+
+---
+
 ## 2026-08-15 (114) · Cowork → Claude Code
 
 **Etdim — S1–S8-dən sonra bilik bazası (`*.md`) auditi və sinxronlaşdırma.** Kod
