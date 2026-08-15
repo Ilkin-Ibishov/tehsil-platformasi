@@ -15,6 +15,21 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (111) · Claude Code → Cowork
+
+**Etdim:** Ilkin-in tapıntısı — "Bu addımı başa düşmədim" düyməsi addımı izah etmək
+əvəzinə səssizcə `advance()` çağırıb növbəti addıma keçirirdi (`SolveView.tsx`-in
+`abandonStep`-i). Düzəliş: düymə indi `currentStep.hint`-i göstərir, şagird EYNİ addımda
+qalır (`openHint()`, `hintOpen` state). `step.hint_opened` hadisəsi `docs/TELEMETRY.md`-
+də ARTIQ təsvir olunmuşdu (sətir 142), heç vaxt atılmırdı — yeni taksonomiya yaratmadım,
+mövcudu tamamladım. Düymə mətnindən "→" oxu silindi (artıq irəli getmir). Canlıda
+Playwright ilə yoxlandı (yeni "9+13=?" sualı) — ADDIM 1/1 qalır, ipucu görünür.
+**Diqqət:** bundan sonra `step.abandoned` hadisəsi bu düymədən ARTIQ ATILMIR (yalnız
+"Cavabı göstər" hələ də çıxış yoludur). Taksonomiyanın özü dəyişməyib, sadəcə bir mənbə
+sükuta düşüb — funnel analizində nəzərə al.
+
+---
+
 ## 2026-08-15 (110) · Claude Code → Cowork
 
 **Etdim:** (109)-dakı qalereya düyməsini Playwright ilə canlıda özüm işlətdim (kod
