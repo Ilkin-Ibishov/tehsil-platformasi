@@ -1,13 +1,13 @@
-// Model registrisi — ADR-022. Qiymət MODELİN ÖZÜ ilə eyni obyektdə yaşayır ki, `GEMINI_
-// MODEL`/`TRANSCRIBE_MODEL` dəyişəndə qiymət env-ini yeniləməyi UNUTMAQ struktur olaraq
-// mümkün olmasın (86eymrm8j auditinin aşkarladığı risk — "0 yazma" YOX, "SƏSSİZ YANLIŞ
-// model üçün YANLIŞ qiymət" idi, daha təhlükəli sinifdir).
+// Model registrisi — ADR-022 / ADR-027. Qiymət MODELİN ÖZÜ ilə eyni obyektdə yaşayır
+// və YALNIZ buradadır: Vercel/env qiymət oxumur (86eymrm8j — env unudulanda cost_usd
+// NULL; env köhnələndə isə səssizcə YANLIŞ rəqəm).
 //
-// Model SEÇİMİ özü AZAD qalır (`GEMINI_MODEL` istənilən sətir ola bilər, registridə
-// olmasa belə çağırış keçir) — registri MƏCBURİYYƏT deyil, TANINAN modellər üçün
-// sıfır-konfiqurasiya rahatlığıdır. Naməlum model üçün qiymət `null` (bilinmir) qalır,
-// TA Kİ operator `MODEL_<SLUG>_PRICE_*_PER_1M` təyin etməyincə — açar MODELİN ÖZ
-// ID-sindən hesablanır, ona görə yanlış modelin qiymətini "təsadüfən" oxumaq mümkün deyil.
+// Gemini Developer API USD qaytarmır — `chat/completions` `usage` yalnız token sayıdır,
+// `models.get` token limitidir, qiymət kataloqu yoxdur (ADR-027). `cost_usd` = token ×
+// bu registri.
+//
+// Model SEÇİMİ azad qalır (registridə olmasa belə çağırış keçir). Naməlum model üçün
+// qiymət `null` qalır — yeni modelə qiymət YALNIZ bu fayla sətir əlavə etməklə gəlir.
 
 export type ProviderId = "gemini";
 
@@ -18,22 +18,16 @@ export type ModelConfig = {
   // endpoint-lərdə model adı sorğu gövdəsində dəyişir, URL/açar dəyişmir).
   baseUrlEnv: string;
   apiKeyEnv: string;
-  // KODDA yaşayan defolt qiymət — modeldən AYRILA BİLMƏZ. `docs/decisions/ADR-022...`-də
-  // qeyd olunan mənbələrlə doğrulanıb (2026-08-14).
+  // KODDA yaşayan qiymət — modeldən AYRILA BİLMƏZ. Mənbə: ai.google.dev/gemini-api/docs/pricing.
   defaultPriceInputPer1M: number;
   defaultPriceOutputPer1M: number;
 };
 
-// Tanınan modellər — yeni model əlavə etmək REGİSTRİYƏ məcburi DEYİL (qiymət override
-// env-i ilə də işləyir), amma tanınan model üçün sıfır-konfiqurasiya təmin edir.
+// Tanınan modellər. Naməlum ID üçün `resolvePrice` `null` qaytarır — env ilə doldurulmur.
 //
-// QİYMƏT DÜZƏLİŞİ (2026-08-14, Google-un rəsmi qiymət səhifəsi — ai.google.dev/gemini-api/
-// docs/pricing — birbaşa yoxlanıldı): `gemini-3.6-flash` VƏ `gemini-3.7-flash` HAZIRDA
-// (2026-12-31-ə QƏDƏR) EYNİ giriş qiymətindədir — $0.75/$3.75, YOX $1.50/$7.50 (bu ədədlər
-// `web/.env.example`-in köhnə nümunə dəyərləri idi, HƏMİN vaxt üçün YANLIŞ idi). **DİQQƏT —
-// 2027-01-01-dən qiymət İKİQAT olur ($1.50/$7.50).** Bu tarixdən sonra aşağıdakı defolt
-// dəyərləri yeniləmək lazımdır (və ya `MODEL_*_PRICE_*_PER_1M` env override-ı ilə əvvəlcədən
-// keçid etmək) — kod özü tarix-əsaslı dəyişiklik ETMİR, bu, gələcək bir sessiyanın işidir.
+// QİYMƏT DÜZƏLİŞİ (2026-08-14, Google rəsmi səhifə): `gemini-3.6-flash` və
+// `gemini-3.7-flash` 2026-12-31-ə qədər eyni tarifdədir. 2027-01-01-dən Google
+// ikiqat edir — o vaxt BU FAYLI yenilə; kod tarixə görə özü dəyişmir.
 const REGISTRY: Record<string, ModelConfig> = {
   "gemini-3.6-flash": {
     id: "gemini-3.6-flash",
@@ -75,30 +69,17 @@ export function listKnownModelIds(): string[] {
   return Object.keys(REGISTRY);
 }
 
-// "gemini-3.6-flash" → "MODEL_GEMINI_3_6_FLASH_PRICE_INPUT_PER_1M". Deterministikdir —
-// eyni model ID HƏMİŞƏ eyni açara düşür, ona görə iki modelin qiyməti QARIŞA BİLMƏZ.
-export function priceEnvKey(modelId: string, direction: "INPUT" | "OUTPUT"): string {
-  const slug = modelId.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
-  return `MODEL_${slug}_PRICE_${direction}_PER_1M`;
-}
-
 export type ResolvedPrice = { inputPer1M: number; outputPer1M: number };
 
-// Qiyməti tapır: əvvəlcə model-spesifik env override (istənilən model üçün işləyir,
-// registridə olmasa belə), sonra registrinin defolt dəyəri. İkisi də yoxdursa `null` —
-// `86eymrm8j`-dəki eyni "0 yazma, sükutla düz sayma" prinsipi.
+// Yalnız registri. Env oxunmur (ADR-027). Naməlum model → `null`, 0 YOX
+// (`86eymrm8j` — bilinməyəni sıfır yazmaq tavanı yalan edər).
 export function resolvePrice(modelId: string): ResolvedPrice | null {
-  const inputOverride = process.env[priceEnvKey(modelId, "INPUT")];
-  const outputOverride = process.env[priceEnvKey(modelId, "OUTPUT")];
   const cfg = REGISTRY[modelId];
-
-  const inputPer1M = inputOverride ? Number(inputOverride) : cfg?.defaultPriceInputPer1M;
-  const outputPer1M = outputOverride ? Number(outputOverride) : cfg?.defaultPriceOutputPer1M;
-
-  if (inputPer1M === undefined || outputPer1M === undefined || Number.isNaN(inputPer1M) || Number.isNaN(outputPer1M)) {
-    return null;
-  }
-  return { inputPer1M, outputPer1M };
+  if (!cfg) return null;
+  return {
+    inputPer1M: cfg.defaultPriceInputPer1M,
+    outputPer1M: cfg.defaultPriceOutputPer1M,
+  };
 }
 
 export type ResolvedConnection = { baseUrl: string; apiKey: string };

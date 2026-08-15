@@ -97,11 +97,9 @@ NEXT_PUBLIC_CASCADE_ENABLED=1
 NEXT_PUBLIC_APP_VERSION=dev-audit
 ```
 
-**`GEMINI_PRICE_*` env vars are gone (2026-08-14, `ADR-022`)** — don't add them back, the
-code no longer reads them. Price now ships hardcoded with each model in `web/lib/models.ts`'s
-registry (`gemini-3.6-flash` already covered, zero config needed). If a future session tests
-a model not in that registry, set `MODEL_<MODEL_ID_UPPERCASED>_PRICE_INPUT_PER_1M`/
-`_OUTPUT_PER_1M` instead (see `models.ts`'s `priceEnvKey`).
+**LLM prices are not env vars (`ADR-022` / `ADR-027`)** — don't add `GEMINI_PRICE_*` or
+`MODEL_*_PRICE_*` to Vercel or `.env`. Tariffs live in `web/lib/models.ts`. A model not
+in that registry yields `cost_usd = null` until you add a registry row.
 
 **Model selection is DB-driven, not just env (2026-08-14, `ADR-023`)** — `GEMINI_MODEL`
 above is only the bootstrap fallback. The real active model lives in

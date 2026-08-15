@@ -1,6 +1,6 @@
 # ADR-022 — Model registrisi: qiymət modeldən ayrıla bilməz
 
-**Status:** Qəbul edilib
+**Status:** Qəbul edilib — env override hissəsi `ADR-027` ilə ləğv edilib
 **Tarix:** 2026-08-14
 **Toxunur:** `web/lib/llm.ts`, `web/lib/cost.ts` (dəyişir) · `ADR-020` (`TRANSCRIBE_MODEL`
 override-i ilk dəfə buraya gətirdi)

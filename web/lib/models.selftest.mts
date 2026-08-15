@@ -1,21 +1,16 @@
-// Model registrisi + xərc hesablaması selftesti — ADR-022. LLM/DB ÇAĞIRILMIR.
+// Model registrisi + xərc hesablaması selftesti — ADR-022 / ADR-027. LLM/DB ÇAĞIRILMIR.
 //
 // Nəyi qıfıllayır:
-//   1. Tanınan model (`gemini-3.6-flash`) env OLMADAN da düzgün qiymət verir (registri
-//      defolt) — 86eymrm8j-in "env unudulub, cost_usd NULL qalıb" bugini kökündən bağlayır.
-//   2. Model-spesifik env override HAMİ dəqiq həmin modelin açarından oxunur — başqa modelin
-//      qiymətini "təsadüfən" oxumaq mümkün deyil (deterministik `priceEnvKey`).
-//   3. Naməlum model, override YOXDURSA → `null` (bilinmir, YANLIŞ 0 yox).
-//   4. `computeCostUsd` yalnız verilən modelin qiymətini işlədir — köhnə `prefix`-əsaslı
-//      API tam silinib (tip səviyyəsində `modelId` MƏCBURİDİR).
+//   1. Tanınan model env OLMADAN düzgün qiymət verir (registri).
+//   2. Env `MODEL_*_PRICE_*` qoyulsa belə registri dəyişmir (Vercel override YOX).
+//   3. Naməlum model → `null` (bilinmir, YANLIŞ 0 yox) — env də onu doldurmur.
+//   4. `computeCostUsd` yalnız verilən modelin registri qiymətini işlədir.
 //
 // İşə salma: npx tsx web/lib/models.selftest.mts
 
-import { getModelConfig, priceEnvKey, resolvePrice, resolveConnection, listKnownModelIds, getActiveModel, getActiveTranscribeModel } from "./models.ts";
+import { getModelConfig, resolvePrice, resolveConnection, listKnownModelIds, getActiveModel, getActiveTranscribeModel } from "./models.ts";
 import { computeCostUsd } from "./cost.ts";
 
-// Real Pool əvəzinə: `getActiveModel`/`getActiveTranscribeModel`-in tələb etdiyi `.query`
-// interfeysini ödəyən sadə mock — real DB YOXDUR.
 function mockPool(row: { key: string; value: string } | null, shouldThrow = false) {
   return {
     async query() {
@@ -33,83 +28,61 @@ function check(label: string, got: unknown, expected: unknown) {
   console.log(`${ok ? "PASS" : "FAIL"}  ${label} -> ${JSON.stringify(got)} (gözlənilən ${JSON.stringify(expected)})`);
 }
 
-// ── 1. Tanınan model, env yoxdur ─────────────────────────────────────────────────────────
-delete process.env.MODEL_GEMINI_3_6_FLASH_PRICE_INPUT_PER_1M;
-delete process.env.MODEL_GEMINI_3_6_FLASH_PRICE_OUTPUT_PER_1M;
-check("gemini-3.6-flash: registri defolt (env yoxdursa)", resolvePrice("gemini-3.6-flash"), {
+check("gemini-3.6-flash: registri", resolvePrice("gemini-3.6-flash"), {
   inputPer1M: 0.75,
   outputPer1M: 3.75,
 });
 check("gemini-3.6-flash: getModelConfig tapır", getModelConfig("gemini-3.6-flash")?.provider, "gemini");
 check("listKnownModelIds gemini-3.6-flash-ı ehtiva edir", listKnownModelIds().includes("gemini-3.6-flash"), true);
 
-// gemini-3.7-flash — 2026-08-14-də Google-un rəsmi qiymət səhifəsinə görə eyni qiymət
-// (ai.google.dev/gemini-api/docs/pricing, birbaşa yoxlanıldı) — GEMINI_MODEL-i buna
-// dəyişmək sıfır-konfiqurasiya işləməlidir.
 check("gemini-3.7-flash: registridədir, eyni qiymət", resolvePrice("gemini-3.7-flash"), {
   inputPer1M: 0.75,
   outputPer1M: 3.75,
 });
 check("gemini-3.7-flash: eyni provayder/env-lər", getModelConfig("gemini-3.7-flash")?.baseUrlEnv, "GEMINI_BASE_URL");
 
-// ClickUp 86eykqb1c — Qat 1 ucuz model. Qiymət 2026-08-15 rəsmi səhifədən.
 check("gemini-3.1-flash-lite: registri defolt", resolvePrice("gemini-3.1-flash-lite"), {
   inputPer1M: 0.25,
   outputPer1M: 1.5,
 });
 check("gemini-3.1-flash-lite: eyni provayder/env-lər", getModelConfig("gemini-3.1-flash-lite")?.baseUrlEnv, "GEMINI_BASE_URL");
-check("priceEnvKey: gemini-3.1-flash-lite", priceEnvKey("gemini-3.1-flash-lite", "INPUT"), "MODEL_GEMINI_3_1_FLASH_LITE_PRICE_INPUT_PER_1M");
 
-// ── 2. Deterministik env açarı ───────────────────────────────────────────────────────────
-check("priceEnvKey: gemini-3.6-flash", priceEnvKey("gemini-3.6-flash", "INPUT"), "MODEL_GEMINI_3_6_FLASH_PRICE_INPUT_PER_1M");
-check("priceEnvKey: yeni model (nöqtə/tire → _)", priceEnvKey("gemini-3.7-flash", "OUTPUT"), "MODEL_GEMINI_3_7_FLASH_PRICE_OUTPUT_PER_1M");
-
-// Override YALNIZ ÖZ modelinin qiymətini dəyişir — digərinə TƏSİR ETMİR.
+// ADR-027: Vercel/env qiyməti ÖTMƏMƏLİDİR.
 process.env.MODEL_GEMINI_3_6_FLASH_PRICE_INPUT_PER_1M = "9.99";
-check("override yalnız həmin modelin qiymətini dəyişir", resolvePrice("gemini-3.6-flash"), {
-  inputPer1M: 9.99,
-  outputPer1M: 3.75, // output override edilməyib, registri defolt qalır
+process.env.MODEL_GEMINI_3_6_FLASH_PRICE_OUTPUT_PER_1M = "99";
+check("env override registrini dəyişmir", resolvePrice("gemini-3.6-flash"), {
+  inputPer1M: 0.75,
+  outputPer1M: 3.75,
 });
 delete process.env.MODEL_GEMINI_3_6_FLASH_PRICE_INPUT_PER_1M;
+delete process.env.MODEL_GEMINI_3_6_FLASH_PRICE_OUTPUT_PER_1M;
 
-// ── 3. Naməlum model ─────────────────────────────────────────────────────────────────────
-check("naməlum model, override yoxdursa → null (bilinmir, 0 YOX)", resolvePrice("gpt-5-mini"), null);
-check("naməlum model üçün connection → null (hansı provayder bilinmir)", resolveConnection("gpt-5-mini"), null);
+check("naməlum model → null (bilinmir, 0 YOX)", resolvePrice("gpt-5-mini"), null);
+check("naməlum model üçün connection → null", resolveConnection("gpt-5-mini"), null);
 
 process.env.MODEL_GPT_5_MINI_PRICE_INPUT_PER_1M = "0.25";
 process.env.MODEL_GPT_5_MINI_PRICE_OUTPUT_PER_1M = "1.00";
-check("naməlum model, override VARSA → işləyir (registridə olmadan)", resolvePrice("gpt-5-mini"), {
-  inputPer1M: 0.25,
-  outputPer1M: 1.0,
-});
+check("naməlum model, env VARSA belə → null", resolvePrice("gpt-5-mini"), null);
 delete process.env.MODEL_GPT_5_MINI_PRICE_INPUT_PER_1M;
 delete process.env.MODEL_GPT_5_MINI_PRICE_OUTPUT_PER_1M;
 
-// ── 4. computeCostUsd — modelId MƏCBURİDİR ───────────────────────────────────────────────
 check("computeCostUsd: usage yoxdursa → null", computeCostUsd(null, "gemini-3.6-flash"), null);
 check(
   "computeCostUsd: tanınan model, 1000 giriş + 500 çıxış token",
   computeCostUsd({ prompt_tokens: 1000, completion_tokens: 500 }, "gemini-3.6-flash"),
   (1000 / 1_000_000) * 0.75 + (500 / 1_000_000) * 3.75
 );
-check("computeCostUsd: naməlum model, override yoxdur → null", computeCostUsd({ prompt_tokens: 100, completion_tokens: 50 }, "naməlum-model"), null);
+check("computeCostUsd: naməlum model → null", computeCostUsd({ prompt_tokens: 100, completion_tokens: 50 }, "naməlum-model"), null);
 
-// Regressiya-qıfılı: İKİ FƏRQLİ modelin qiyməti QARIŞMIR — məhz 86eymrm8j-in kök səbəbi.
-process.env.MODEL_MODEL_A_PRICE_INPUT_PER_1M = "100";
-process.env.MODEL_MODEL_A_PRICE_OUTPUT_PER_1M = "200";
-process.env.MODEL_MODEL_B_PRICE_INPUT_PER_1M = "1";
-process.env.MODEL_MODEL_B_PRICE_OUTPUT_PER_1M = "2";
 check(
-  "iki fərqli modelin qiyməti bir-birinə SIZMIR",
-  [computeCostUsd({ prompt_tokens: 1_000_000, completion_tokens: 0 }, "model-a"), computeCostUsd({ prompt_tokens: 1_000_000, completion_tokens: 0 }, "model-b")],
-  [100, 1]
+  "iki tanınan modelin qiyməti qarışmır",
+  [
+    computeCostUsd({ prompt_tokens: 1_000_000, completion_tokens: 0 }, "gemini-3.6-flash"),
+    computeCostUsd({ prompt_tokens: 1_000_000, completion_tokens: 0 }, "gemini-3.1-flash-lite"),
+  ],
+  [0.75, 0.25]
 );
-delete process.env.MODEL_MODEL_A_PRICE_INPUT_PER_1M;
-delete process.env.MODEL_MODEL_A_PRICE_OUTPUT_PER_1M;
-delete process.env.MODEL_MODEL_B_PRICE_INPUT_PER_1M;
-delete process.env.MODEL_MODEL_B_PRICE_OUTPUT_PER_1M;
 
-// ── 5. getActiveModel/getActiveTranscribeModel — ADR-023 (DB-dən, redeploy-suz) ─────────────
 await (async () => {
   delete process.env.GEMINI_MODEL;
   delete process.env.TRANSCRIBE_MODEL;
@@ -130,8 +103,6 @@ await (async () => {
     "gemini-flash-lite"
   );
 
-  // DB-dəki `active_transcribe_model` sətri boşdursa (defolt seed dəyəri, `0056`) TRANSCRIBE_MODEL
-  // env-ə, o da yoxdursa `active_model`/`GEMINI_MODEL`-ə düşür — köhnə zəncirin eyni davranışı.
   process.env.TRANSCRIBE_MODEL = "gemini-flash-cheap";
   check(
     "getActiveTranscribeModel: DB sətri boşdursa TRANSCRIBE_MODEL env-ə düşür",
@@ -140,7 +111,7 @@ await (async () => {
   );
   delete process.env.TRANSCRIBE_MODEL;
   check(
-    "getActiveTranscribeModel: TRANSCRIBE_MODEL da yoxdursa active_model-ə (GEMINI_MODEL-ə) düşür",
+    "getActiveTranscribeModel: TRANSCRIBE_MODEL da yoxdursa active_model-ə düşür",
     await getActiveTranscribeModel(mockPool(null)),
     "gemini-3.6-flash"
   );

@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-15: HANDOFF 123 — LLM tarifi yalnız registridə (`ADR-027`), Vercel PRICE env silindi. ClickUp `86eymrm8j`.
 - 2026-08-15: HANDOFF 122 — Qat 1 `active_transcribe_model` ucuz modelə (registri + `0064`). ClickUp `86eykqb1c`.
 - 2026-08-15: HANDOFF 121 — həll ekranında LENT irəli/geri (`SolveView.tsx`). ClickUp `86eyn1t7b`.
 - 2026-08-15: HANDOFF 120 — «Cavabı göstər» yalnız son addım (`SolveView.tsx`). ClickUp `86eymrkjn`.

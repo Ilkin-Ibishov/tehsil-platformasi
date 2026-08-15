@@ -114,6 +114,8 @@ export async function callVisionLLM(opts: {
 
   const body = await res.json();
   const rawText: string = body.choices?.[0]?.message?.content ?? "";
+  // OpenAI-uyğun `usage`: prompt_tokens / completion_tokens. Gemini USD və ya
+  // per-1M tarif QAYTARMIR (ADR-027) — `computeCostUsd` registri ilə vurur.
   const usage: LLMUsage | null = body.usage ?? null;
 
   let parsed: unknown | null = null;

@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (123) · Cursor → Cowork
+
+Etdim:    Qiymət yalnız `web/lib/models.ts` — `resolvePrice` env oxumur (`ADR-027`). Gemini `chat/completions`/`models.get` USD qaytarmır, ona görə API-dən tarif çəkilmir; `cost_usd` = token × registri. `models.selftest.mts` keçdi.
+Tapşırıq: `86eymrm8j` — `cost_usd` Vercel env-dən asılı olmasın.
+Diqqət:   Naməlum model hələ `null` (0 yazılmır). Yeni tarif = registriyə sətir, Vercel PRICE env-i yox. Qat 1 flash-lite registrisi bu push-la Vercel-ə çatır.
+
 ## 2026-08-15 (122) · Cursor → Cowork
 
 Etdim:    ClickUp `86eykqb1c` — Qat 1 ucuz model. `gemini-3.1-flash-lite` registriyə düşdü ($0.25/$1.50, rəsmi qiymət səhifəsi 2026-08-15). Miqrasiya `0064` yalnız boş `active_transcribe_model`-i doldurur; production-a tətbiq olundu. Qat 5 `active_model` toxunulmayıb. `models.selftest.mts` keçdi.

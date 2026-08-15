@@ -2,9 +2,8 @@
 import type { LLMUsage } from "./llm";
 import { resolvePrice } from "./models";
 
-// ADR-022: qiymət MODEL İD-inə görə axtarılır (əvvəllər qatın MƏQSƏDİNƏ görə axtarılırdı —
-// `86eymrm8j` auditi bunun səssiz-yanlış-qiymət riski yaratdığını aşkarladı: model dəyişib
-// qiyməti yeniləməsən, xərc başqa modelin qiymətiylə hesablanardı).
+// ADR-022/027: qiymət MODEL İD-inə görə registridən oxunur (qatın məqsədinə və ya
+// Vercel env-inə görə YOX). Gemini cavabı USD vermir — yalnız token sayı.
 //
 // NİYƏ `null` QAYTARILIR (0 YOX): qiymət bilinmirsə xərc BİLİNMİR. `0` yazmaq gündəlik
 // xərc tavanını (`DAILY_COST_CEILING_USD`) səssizcə yalan edərdi — `attempt_items.cost_usd`
