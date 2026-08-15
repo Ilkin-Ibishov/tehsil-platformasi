@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (120) · Cursor → Cowork
+
+Etdim:    «Cavabı göstər» yalnız son addımda — hər-addım mətn düyməsi silindi, `reveal()` `stepIndex < total-1` olanda çıxır. Orta addımda ilişmə ipucudur. Maket artıq belə idi (`Həll ekranı v5.dc.html`).
+Tapşırıq: `86eymrkjn` — hər addımdan son cavaba tullanma `error_code` itkisi.
+Diqqət:   HANDOFF 49 §3d bu düymə üçün ləğv olunur (qızıl qayda). Son addımda cavabsız «Cavabı göstər» qalır — qəsdən. Növbəti açıq defect: `86eyn1t7b` addımlar arası irəli/geri.
+
 ## 2026-08-15 (119) · Cursor → Cowork
 
 Etdim:    Dəvət kodu qapıda yoxlanır — `POST /api/invite/check` (`checkInviteCode`, redeem yox). `InviteGate` yalnız 200-də localStorage-a yazır; səhv/şəbəkə `invite.invalid` / `invite.networkError`. Bank 403 indi `inviteError` göstərir (`bank/page.tsx`). Kamera gec 403 hələ `invalid` prop ilə qapıya qayıdır.

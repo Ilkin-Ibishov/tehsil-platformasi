@@ -47,6 +47,9 @@ All in `web/components/hell/SolveView.tsx` unless noted. Full detail in
    advance. `bank/page.tsx` sets `inviteError` on 403 (list and start) and passes
    `invalid` into the gate — the silent blank-form return is gone. Kamera late-403
    still returns to the gate with `invalid={true}` for stale stored codes.
+10. **"Cavabı göstər" from every step.** Per-step text button removed. Sticky CTA
+    already last-step-only (mockup). `reveal()` returns early if `stepIndex < total - 1`.
+    ClickUp 86eymrkjn; supersedes HANDOFF 49 §3d for that button.
 
 ## Found, NOT yet fixed (2026-08-14, found while validating this skill — report, don't
 re-discover)
@@ -74,25 +77,7 @@ re-discover)
 ## Found, NOT yet fixed (2026-08-14, second pass — invite gate + solve-flow stress test,
 live-browser-verified)
 
-10. **"Cavabı göstər" ("Show the answer") is available from every step and always jumps
-    to the FINAL answer, silently forfeiting all remaining steps' `error_code` data — no
-    warning, no confirmation.** `SolveView.tsx`'s `reveal()` (called by the `t("step.showAnswer")`
-    button, `messages/az.json`'s `hell.step.showAnswer` = "Cavabı göstər") always calls
-    `fetchFinalAnswer`/sets `revealed=true` regardless of `stepIndex`, per the documented
-    HANDOFF-49 §3d intent ("ilişmiş şagirdin çıxış yolu" — an intentional stuck-student
-    escape hatch). The bug is not that this exists — it's that nothing distinguishes it
-    from `t("step.abandon")` = "Bu addımı başa düşmədim →" ("I didn't understand THIS
-    step"), which only advances one step. Live repro: on a 2-step question, at step 1/2,
-    clicking "Cavabı göstər" jumped straight to the `CAVAB` final-answer screen — step
-    2 was never shown or attempted, `reportAttemptProgress` fires with `completed:false,
-    abandonedAtStep:0`. A student who taps this expecting "show me how to do this step"
-    (a reasonable reading of the label) instead ends the whole problem with fewer steps'
-    worth of diagnostic data collected — directly cuts against CLAUDE.md's "Qızıl qayda"
-    (the product's whole value is the `error_code` map). Severity 🟠 Serious. Fix
-    direction: either (a) reword the button so it's unambiguous it ends the problem
-    ("Bütün cavabı göstər" / similar), or (b) gate it behind a one-tap confirm when
-    `stepIndex < total - 1`, or (c) add a real per-step reveal that doesn't forfeit
-    remaining steps, with THIS button reserved for the true give-up case.
+(Item 10 — "Cavabı göstər" every step — moved to Fixed 2026-08-15, ClickUp 86eymrkjn.)
 
 **Re-confirmed still present (live-verified again this pass, not re-fixed):**
 - Item 9 was still present on 2026-08-14; it was fixed in code on 2026-08-15

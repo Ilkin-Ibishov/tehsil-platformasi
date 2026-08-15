@@ -395,21 +395,19 @@ export function SolveView({
   // etiketi ilə şagirdi SƏSSİZCƏ növbəti addıma keçirirdi (`advance()`) — düymənin adı izah
   // vəd edir, davranışı isə pas keçirdi. İndi addımda QALIR, `currentStep.hint`-i göstərir.
   // `step.hint_opened` `docs/TELEMETRY.md`-də ARTIQ TƏSVİR OLUNMUŞDU (sətir 142) amma heç vaxt
-  // atılmırdı — kod indi mövcud taksonomiyanı tamamlayır, yenisini yaratmır. Faktiki "pas keç"
-  // yolu "Cavabı göstər" düyməsidir (aşağıda) — `step.abandoned` artıq buradan ATILMIR, çünki
-  // bu düymə artıq addımı tərk etdirmir.
+  // atılmırdı — kod indi mövcud taksonomiyanı tamamlayır, yenisini yaratmır. Orta addımdan
+  // "pas keç" yolu yoxdur (ClickUp 86eymrkjn) — ilişmə ipucudur, səhifəni tərk unmount-dur.
   function openHint() {
     if (!hintOpen[stepIndex]) trackEvent("step.hint_opened", { index: stepIndex });
     setHintOpen((prev) => ({ ...prev, [stepIndex]: true }));
   }
 
-  // HANDOFF (49) §3d: "Cavabı göstər" indi HƏR addımdan çağırıla bilər (ilişmiş şagirdin çıxış
-  // yolu), təkcə sonuncudan yox — əvvəllər `advance()` yalnız son addımda buraya çatırdı.
-  // `completed`/`abandoned_at_step` semantikasını qorumaq üçün "həqiqətən bitirdi" indi
-  // ÇAĞIRIŞ ANINDAKI `stepIndex`-dən hesablanır: son addımdan çağırılıbsa tam bitmə, əks halda
-  // pes etmə (`completed=false`, `abandoned_at_step=stepIndex`) — `solution.completed` YALNIZ
-  // birincidə atılır, ikincidə DEYİL (steps_total/errors_total "bütün addımlar bitdi" fərz edir).
+  // ClickUp 86eymrkjn / Ilkin: "Cavabı göstər" YALNIZ son addımdadır. HANDOFF (49) §3d hər
+  // addımdan çıxış qızıl qaydanı pozurdu — qalan addımların `error_code`-u heç yazılmırdı.
+  // `completed`/`abandoned_at_step` hələ çağırış anındakı `stepIndex`-dən hesablanır
+  // (müdafiə: bu funksiya təsadüfən erkən çağırılsa `solution.completed` yalan danışmasın).
   async function reveal() {
+    if (stepIndex < total - 1) return;
     setRevealing(true);
     setRevealError(false);
     let answer: FinalAnswer;
@@ -451,10 +449,8 @@ export function SolveView({
       abandonedAtStep: finishedAllSteps ? null : stepIndex,
       durationSec,
       // S4 — bura HƏMİŞƏ `true`-dur: `reveal()` bu nöqtəyə çatıbsa `final_answer` HƏQİQƏTƏN
-      // gətirilib/göstərilib (yuxarıda `setRevealed(true)`), `finishedAllSteps`-dən ASILI
-      // OLMAYARAQ (son addımdan təbii bitmə DƏ, "Cavabı göstər" ilə erkən çıxış da AYNI
-      // `/api/attempts/reveal` çağırışını edir — hazırkı UX-də final cavabı görmədən
-      // "bitirmə" yolu YOXDUR).
+      // gətirilib/göstərilib (yuxarıda `setRevealed(true)`). 86eymrkjn-dən sonra bura yalnız
+      // son addımdan gəlinir; final cavabı görmədən "bitirmə" yolu YOXDUR.
       revealedAnswer: true,
     });
   }
@@ -828,28 +824,15 @@ export function SolveView({
             </div>
           )}
 
-          <div style={{ display: "flex", gap: 20 }}>
-            {currentAnswer.status !== "correct" && !hintOpen[stepIndex] && (
-              <button
-                type="button"
-                onClick={openHint}
-                style={{ alignSelf: "flex-start", minHeight: 44, padding: 0, border: "none", background: "transparent", color: "var(--t2)", fontFamily: "inherit", fontSize: 14, cursor: "pointer" }}
-              >
-                {t("step.needHint")}
-              </button>
-            )}
-            {/* HANDOFF (49) §3d: ilişmiş şagird üçün HƏR addımdan çıxış yolu — sonuncu addıma
-                qədər gözləmək məcburi deyil. `reveal()` `completed`/`abandoned_at_step`-i çağırış
-                anındakı addımdan düzgün hesablayır (bax yuxarı şərh). */}
+          {currentAnswer.status !== "correct" && !hintOpen[stepIndex] && (
             <button
               type="button"
-              onClick={() => void reveal()}
-              disabled={revealing}
-              style={{ alignSelf: "flex-start", minHeight: 44, padding: 0, border: "none", background: "transparent", color: "var(--t2)", fontFamily: "inherit", fontSize: 14, cursor: "pointer", opacity: revealing ? 0.6 : 1 }}
+              onClick={openHint}
+              style={{ alignSelf: "flex-start", minHeight: 44, padding: 0, border: "none", background: "transparent", color: "var(--t2)", fontFamily: "inherit", fontSize: 14, cursor: "pointer" }}
             >
-              {t("step.showAnswer")}
+              {t("step.needHint")}
             </button>
-          </div>
+          )}
         </div>
 
       <div style={{ position: "sticky", bottom: 0, background: "var(--bg)", borderTop: "1px solid var(--bor)", padding: "10px var(--page-pad-x) 20px", flexShrink: 0 }}>
@@ -859,9 +842,8 @@ export function SolveView({
           // UX audit tapıntısı (2026-08-14): əvvəlki şərt YALNIZ `revealing` idi — şagird
           // heç bir sahəyə toxunmadan "Növbəti addım"a spam edib bütün suala 0 cavabla
           // sondan-sona keçə bilirdi (`error_code` heç vaxt yazılmır, CLAUDE.md Qızıl qaydası
-          // pozulur). `currentAnswer.status !== "correct"` əlavə edildi. QƏSDƏN `advance()`-in
-          // ÖZÜ dəyişmədi — `abandonStep`/"Bu addımı başa düşmədim" AYRI, AÇIQ etiketli bir
-          // çıxış yoludur (HANDOFF 49 §3d), o, cavabsız irəli getməyə İCAZƏ VERMƏLİDİR.
+          // pozulur). `currentAnswer.status !== "correct"` əlavə edildi. Son addımda eyni
+          // düymə "Cavabı göstər" olur və cavabsız da açıq qalır (86eymrkjn — yalnız orada).
           disabled={revealing || (stepIndex < total - 1 && currentAnswer.status !== "correct")}
           style={{
             width: "100%",
