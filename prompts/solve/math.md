@@ -10,7 +10,8 @@ davam edir, birləşmiş mətn əvvəlki `solve-step.md`-lə HƏRFİ EYNİDİR.
 siqnalı verirdi — DB-də ölçülmüş 7 real həllin 6-sı 4 addım idi, sxem 2–6-ya icazə versə də.
 v11 (86eyn28kq): birinci nümunə **1 addımlıq** (`5+5`) — əks halda model qayda 3/nümunəyə
 uyğun süni ikinci addım doldurur. Sonra 2 addım + 6 addım. `core.md` qayda 15 addım sayının
-**mexaniki hesablanmasını** tələb edir.
+**mexaniki hesablanmasını** tələb edir. v12: qayda 15 +1 yalnız dövri olmayan yoxlamada
+(`y=kx+b` kəsişməsini yenidən yoxlamaq +0) — nümunə JSON-ları dəyişməyib.
 
 `extract_example_json` (schema/struktur invariant testi) HƏMİŞƏ İLK JSON obyektini oxuyur —
 ona görə 1-ci nümunə (1 addım) sxemə görə TAM VALİD olmalıdır, qalanları ayrıca əl ilə yoxlanılıb.

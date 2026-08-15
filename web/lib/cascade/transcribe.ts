@@ -18,11 +18,11 @@ import { computePHash } from "../phash";
 import { getActiveTranscribeModel } from "../models";
 import type { Refusal, Transcript, Candidate } from "./types";
 
-// Qat 1 üçün ucuz/sürətli model (ClickUp 86eykqb1c). ADR-023: `getActiveTranscribeModel`
-// DB-dən (`public.app_config.active_transcribe_model`) oxuyur. Boşdursa `TRANSCRIBE_MODEL`
-// env → `active_model`. 86eykqb1c-dən sonra production dəyəri Qat 1-i `active_model`-dən
-// AYIRIR — Qat 5 pedaqoji keyfiyyətdə qalır, vision tokenləri ucuz modeldə yanır.
-// Geri dönüş (task): `transcript.corrected` nisbəti 15%-i keçərsə Qat 1-i qaldır.
+// Qat 1 model ID `getActiveTranscribeModel` — DB `active_transcribe_model` (ADR-023).
+// 86eykqb1c `gemini-3.1-flash-lite` qoydu; ADR-025 n=2 (kəsişmələr tərs) sonra `0065`
+// `gemini-3.7-flash`. Qat 5 `active_model` AYRI qalır.
+// Geri dönüş: `update app_config set value='gemini-3.1-flash-lite' where key='active_transcribe_model'`
+// (və ya `value=''` → yenidən `active_model`).
 
 // Şəkil-hash keşi (`0045`, `private.image_hash_cache`) HƏM DƏ Qat 1 üçün işlədilir — taskın
 // açıq tələbi: "Şəkil hash-i üzrə qat 1 nəticəsini keşlə".

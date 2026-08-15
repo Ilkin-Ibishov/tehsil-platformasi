@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-16: HANDOFF 129 — Qat 1 `gemini-3.7-flash` (`0065`), prompt v12 dövri son addım, `transcribe.md` v2. `86eyn2bgc`.
 - 2026-08-16: HANDOFF 128 — S-pre1 ilişmə keçidi (`86eyn28kn`), S-pre2 prompt v11 1–6 + 1 addımlıq nümunə (`86eyn28kq`).
 - 2026-08-16: HANDOFF 127 — Faza 2 S-pre1 ilişmə çıxışı (`86eyn28kn`), S-pre2 mənasız addım kök səbəbi (`86eyn28kq`).
 - 2026-08-16: HANDOFF 126 — Faza 2 blokları bağlandı (`ADR-029`): n=10 Gemini qızıl, ToS sahibin, 5/5 transkripsiya qapısı.

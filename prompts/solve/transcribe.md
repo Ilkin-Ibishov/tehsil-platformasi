@@ -1,8 +1,9 @@
-# Prompt — Qat 1: transkripsiya + rədd qapısı (v1)
+# Prompt — Qat 1: transkripsiya + rədd qapısı (v2)
 
 **Çıxış:** `docs/TRANSCRIBE-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** `response_format={"type":"json_object"}`.
-**Model:** `TRANSCRIBE_MODEL` (kiçik/sürətli) — bax ClickUp `86eykqb1c`, ADR-020.
+**Model:** DB `active_transcribe_model` (ADR-023). `0065`-dən `gemini-3.7-flash` —
+flash-lite qrafik kəsişmələrini tərs oxudu (ADR-025 n=2).
 
 > **v1 (2026-08-13).** `ADR-020` / ClickUp `86eykj7tu`. Bu prompt `core.md`-in ŞƏKİL bölməsindən
 > törəyir, amma **həlli qəsdən istəmir**. `core.md`-in ŞƏKİL qaydaları (əl yazısını atla, cavab
@@ -14,6 +15,10 @@
 > prompt böyüdükcə itir. Qat 1-in bütün dəyəri ondadır ki, prompt KİÇİK olsun — kiçik model onu
 > tam icra edə bilsin. `core.md`-ə "bəzən həll et, bəzən etmə" şərti əlavə etmək hər iki işi
 > pisləşdirər.
+>
+> **v1 → v2 (2026-08-16).** Ilkin: Qat 1 `gemini-3.7-flash` (flash-lite uğursuz). `has_figure`
+> üçün mexaniki qayda: y-oxundakı rəqəm y-kəsişmədir, x-oxundakı rəqəm x-kəsişmədir —
+> onları dəyişmə. Qat 5-ə şəkil hələ yoxdur (ADR-020).
 
 ## System
 
@@ -86,6 +91,9 @@ has_figure → şəkildə mətnə TAM çevrilə bilməyən məzmun varsa true:
              çertyoj, həndəsi fiqur, cədvəl, qrafik, diaqram, koordinat sistemi.
              true yazdınsa canonical-da fiquru SÖZLƏ təsvir et: verilən uzunluqlar,
              bucaqlar, nöqtə adları, hansı tərəflərin bərabər olduğu.
+             Koordinat qrafikində: y-oxundakı yazılı rəqəm Y-KƏSİŞMƏDİR (b), x-oxundakı
+             yazılı rəqəm X-KƏSİŞMƏDİR. Bu iki ədədi bir-biri ilə DƏYİŞMƏ. İşarəni
+             (müsbət/mənfi yarımox) oxun etiketindən götür, təxmin etmə.
              Bunu etməsən məsələ bərpa oluna bilmir — sonrakı mərhələ şəkli GÖRMÜR.
 
 ═══ İMTİNA QAPISI — SƏNİN ƏSAS İŞİN ═══

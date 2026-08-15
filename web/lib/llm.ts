@@ -94,7 +94,7 @@ function sleep(ms: number) {
 }
 
 // ADR-020 (kaskad): `image*` sahələri artıq OPTIONAL-dır və `model` override edilə bilir.
-//   Qat 1 → şəkil VAR, ucuz model (`TRANSCRIBE_MODEL`)
+//   Qat 1 → şəkil VAR, `active_transcribe_model` (0065: gemini-3.7-flash)
 //   Qat 5 → şəkil YOX (sırf mətn), bahalı model (`GEMINI_MODEL`)
 // Şəkil verilməyəndə `content` massiv deyil, sadə sətir kimi göndərilir — bu, OpenAI-uyğun
 // endpointlərdə mətn-yalnız sorğunun standart formasıdır və vision tokeni ödənilmir.

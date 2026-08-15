@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v11)
+# Prompt — addım sxemi generasiyası (v12)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -89,6 +89,13 @@
 > qayda 3 hələ «2–6 addım» deyirdi. System preambulası artıq 1–6 yazırdı — model qayda 3-ə
 > və nümunəyə uyğun süni ikinci addım doldururdu (`56+27=?` → «83−27», ClickUp 86eyn28kq).
 > Qayda 3 indi sxemlə eynidir: 1–6, say qayda 15-dir.
+>
+> **v11 → v12 (2026-08-16).** v11 1-keçidlik süni addımı kəsdi, amma çoxkeçidlik
+> qrafikdə (`y=kx+b`, kəsişmələrdən k və b) qayda 15 hələ «tip (a) qurula bilir → +1»
+> deyirdi. Tip (a) kəsişmə məsələsində HƏMİŞƏ qurula bilir — eyni x-kəsişməni yenidən
+> yoxlamaq isə qayda 8-ə görə DÖVRİDİR. Model say qaydasını məna qaydasından üstün tutdu
+> (ADR-013): 3 keçid + dummy 4-cü addım. Qayda 15 indi +1-i «qurula bilir VƏ dövri deyil»
+> şərtinə bağlayır; qayda 8-ə bu qrafik nümunəsi düşür.
 
 ## System
 
@@ -281,6 +288,8 @@ KƏSİLMİŞ MƏSƏLƏ:
    süni artırır, heç nəyi sınamır.
      Pis (dövri): əvvəlki addımda "b = 1/3" tapılıb, son addım "x=0 olduqda y=x/5+1/3 neçədir?"
        soruşur → tərifcə b-yə bərabərdir, HEÇ NƏ yoxlanmır.
+     Pis (dövri, kəsişmə): addım 2 x-oxu kəsişməsindən k tapıb, son addım "x=5-də y=1·5−5?"
+       — eyni nöqtə yenidən, k-nın tərifini təkrarlayır. HEÇ NƏ yoxlanmır. (HANDOFF 129)
      Pis (əlaqəsiz): qrafikin FORMASI haqqında sual idi, son addım "x=1 olduqda y=1/x
        neçədir?" soruşur → qrafikin formasını TƏSDİQLƏMİR, təsadüfi bir nöqtə hesablayır.
      Pis: "Cavab x = 3-dür."                        (heç nə yoxlamır)
@@ -341,12 +350,16 @@ KƏSİLMİŞ MƏSƏLƏ:
 15. ADDIM SAYI MEXANİKİ HESABLANIR — "UYĞUN SAY SEÇ" DEYİL.
     Addımlara BÖLMƏZDƏN ƏVVƏL məsələnin tələb etdiyi RİYAZİ KEÇİDLƏRİN sayını müəyyən et
     (əmsal oxumaq, diskriminant, kök, yerinə qoymaq, vahid çevirmək — hər biri BİR keçiddir).
-    Addım sayı = keçid sayı + (1, ƏGƏR qayda 8-in 4 tipindən biri qurula bilirsə — əks
-    halda +0). Tək-keçidlik faktlarda (`5+5` kimi) MƏNALI yoxlama QURULA BİLMİR → 1 addım,
-    yoxlamasız — bu, XƏTA DEYİL, düzgün davranışdır.
+    Addım sayı = keçid sayı + (1, ƏGƏR qayda 8-in 4 tipindən biri qurula bilir VƏ o
+    yoxlama DÖVRİ/ƏLAQƏSİZ DEYİLDİRSƏ — əks halda +0). "Qurula bilir" kifayət DEYİL:
+    kəsişmədən tapılmış k-nı eyni kəsişməyə qaytarmaq tip (a) kimi GÖRÜNÜR, amma dövri
+    olduğu üçün +0-dır. Tək-keçidlik faktlarda (`5+5` kimi) MƏNALI yoxlama QURULA BİLMİR
+    → 1 addım, yoxlamasız — bu, XƏTA DEYİL, düzgün davranışdır.
       2x + 6 = 20  → keçid: "20−6"-nı tap, "14/2"-ni tap (2) + yoxlama (a) → 3 addım
       3x = 12      → keçid: "12/3"-ü tap (1) + yoxlama (a)                → 2 addım
       5 + 5        → keçid: "5+5"-i tap (1), mənalı yoxlama YOXDUR         → 1 addım
+      y=kx+b, kəsişmələrdən k, b, sonra k+b → keçid: b, k, cəm (3). Eyni kəsişməni
+        yenidən yoxlamaq DÖVRİ → +0 → 3 addım
       düzbucaqlı sahə məsələsi (aşağıdakı 2-ci nümunə) → 5 keçid + yoxlama → 6 addım
     Nə "3-4 addım standartdır" düşünmə, nə hər məsələni eyni qəlibə sal — say məsələdən gəlir.
 

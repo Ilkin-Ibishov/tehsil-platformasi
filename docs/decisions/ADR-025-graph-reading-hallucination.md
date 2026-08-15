@@ -1,7 +1,7 @@
 # ADR-025 — Qrafik oxuma hallüsinasiyası (Qat 1, `has_figure=true`)
 
-**Status:** Qeyd edilib — ölçmə tələb edir, qərar YOXDUR (n=1)
-**Tarix:** 2026-08-15
+**Status:** Qismən qərar — Qat 1 modeli dəyişdi; qrafik dəqiqliyi hələ ölçülməyib (n=2)
+**Tarix:** 2026-08-15; əlavə 2026-08-16
 **Toxunur:** `ADR-001` (OCR boru xətti, mətn dəqiqliyi ÖLÇÜLÜB — qrafik YOX),
 `prompts/solve/core.md` §"HƏNDƏSƏ" (yalnız ölçü/uzunluqları yazmağı tələb edir, əyri/xəttin
 İSTİQAMƏTİNİ NECƏ oxumağı YOX), HANDOFF blok 103/104
@@ -67,5 +67,18 @@ edəcək** — bu, S1-in dəyərinin məhz nə üçün olduğunun ikinci real s�
 
 ## Nəticə
 
-Kod dəyişikliyi EDİLMƏDİ (n=1 üzərində qərar vermək ADR-004-ün əleyhinədir). Bu ADR risk
+Kod dəyişikliyi əvvəl EDİLMƏDİ (n=1 üzərində qərar vermək ADR-004-ün əleyhinədir). Bu ADR risk
 sinfini SƏNƏDLƏŞDİRİR ki, gələcək bənzər hadisələr təsadüfi görünməsin — ClickUp-da izlənilir.
+
+## Əlavə (2026-08-16) — n=2 və Qat 1 model
+
+İkinci ölçü: DİM 12, `y=kx+b`, `k+b`. Əsl qrafik y-kəsişmə **+5**, x-kəsişmə **−5** → `k=1`,
+`k+b=6` (A). Qat 1 (`gemini-3.1-flash-lite`) yazdı: y-oxunu **−5**-də, x-oxunu **5**-də —
+kəsişmələr dəyişdirildi və işarələr çevrildi. Qat 5 yanlış mətni düzgün həll etdi (`k+b=-4`, C).
+Şagird şəkildən `b=5` desə `COEFFICIENT_READ` alardı.
+
+Ilkin qərarı: Qat 1 **`gemini-3.7-flash`** (`0065`, `active_transcribe_model`). Qat 5
+`active_model` toxunulmur. Qat 5-ə şəkil hələ GETMİR (ADR-020) — bu, model dəyişikliyi deyil,
+ölçmə (Faza 2 soak S4 `has_figure`) tələb edir. `transcribe.md` v2 kəsişmə oxumağı mexaniki
+qayda kimi yazır.
+

@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (129) · Cursor → Cowork
+
+Etdim:    Qat 1 `active_transcribe_model` → `gemini-3.7-flash` (`0065`, production-a tətbiq olundu). flash-lite ADR-025 n=2-də kəsişmələri tərs oxudu. Prompt v12: qayda 15 +1 yalnız dövri olmayan yoxlamada; qayda 8-ə kəsişmə nümunəsi. `transcribe.md` v2 ox kəsişməsi. `eval.py --selftest` 35/35.
+Tapşırıq: `86eyn2bgc` (86eykqb1c-nin əksi).
+Diqqət:   Qat 1 tarifi 3.7-flash-dir (~3× lite). Prompt v12 Vercel `main` deploy-dan sonra. Köhnə keşli həll addımları yenilənmir. Qat 5 şəkil hələ görmür.
+
 ## 2026-08-16 (128) · Cursor → Cowork
 
 Etdim:    S-pre1 `86eyn28kn`: orta addımda ipucu+səhvdən sonra «Bu addımı keç» (`/api/steps/pass`, `step_events` `is_correct=false` + addım `error_code`). Final açılmır. S-pre2 `86eyn28kq`: prompt v11 qayda 3 = 1–6, birinci nümunə `5+5` 1 addım. `step-pass.selftest` 11/11, eval `--selftest` 35/35.
