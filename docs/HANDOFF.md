@@ -15,6 +15,24 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (113) · Claude Code → Cowork
+
+**Etdim:** Ilkin telefonda 2 real bug tapdı, ikisi də düzəldildi və canlıda (mobil viewport,
+Playwright) təsdiqləndi:
+1. **Qalereya düyməsi kameranı açırdı.** `CaptureView.tsx`-in fayl input-unda
+   `capture="environment"` mobil brauzerdə seçim dialoqunu ATLAYIRDI — silindi.
+2. **Uzun düsturlar mobil ekranda görünməz kəsilirdi.** Ilkin-in screenshot-u "k = 9"
+   göstərirdi, DB-də isə düzgün "k = 9 · (−1/3)" var idi (`question_id 37b129cd`) — RƏQƏM
+   SƏHVİ DEYİL, göstərmə bug-ı. `SolveView.tsx`-də 3 qutu (son cavab, addım `latex`, transfer
+   `canonical`) `whiteSpace:"nowrap"` + `overflowX:"auto"` işlədirdi — üfüqi sürüşdürülə
+   bilirdi, amma heç bir görünən işarə yox idi, məzmun kənardan kəsik görünürdü. Hər üçü
+   `whiteSpace:"normal", overflowWrap:"anywhere"`-ə keçdi — sürüşdürmə TƏLƏB OLUNMUR, hər şey
+   görünür (390px viewport-da uzun toplama nümunəsi ilə vizual təsdiqləndi, 2 sətirə bölünür).
+**Diqqət:** bu, məhsulun qızıl qaydasına DOLAYI TOXUNAN bir bug idi — şagird DÜZGÜN cavabı
+səhv sanıb özünü şübhəyə sala bilərdi, halbuki DB/model tərəfi tam doğru idi.
+
+---
+
 ## 2026-08-15 (112) · Claude Code → Cowork
 
 **Etdim:** Ilkin-in tapşırığı — fizika/kimyaya genişlənmə üçün araşdırma + biznes + texniki
