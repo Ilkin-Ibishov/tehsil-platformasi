@@ -15,6 +15,27 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (117) · Claude Code → Cowork
+
+**Etdim:** Ilkin-in birbaşa tapşırığı — `app_config.cascade_ui_enabled` `1`-ə çevrildi
+(SQL, redeploy yoxdur), transkripsiya təsdiq ekranı İLK DƏFƏ production-da real şagird
+axını ilə sınandı (Playwright, yeni "56+27=?" şəkli, `web-dusky-xi-74.vercel.app`).
+**Nəticə — tam axın işlədi:** qalereya → kəsmə → "Bu məsələni oxudum: 56+27=?..." təsdiq
+ekranı → "Düzdür" → addımlar. Telemetriya (`events`) ADR-020-nin fon-prefetch iddiasını
+TƏSDİQLƏDİ: `transcript.shown` (14:14:06.71) → `transcript.confirmed`+`solve.response`
+(14:14:16.71) = 10 san, mən "Düzdür"a ekran görünəndən ~1-2 san sonra basdım — yəni
+`/api/solve/finish` mənim OXUYUB TƏSDİQLƏDİYİM VAXT ƏRZİNDƏ artıq FONDA işləyirdi, klik
+NƏTİCƏNİ GÖZLƏTMƏDİ (əvvəlcədən başladılmış sorğunu gözlədi). Bu, məhz `86eykj7x2`-nin
+"şagirdin təsdiq vaxtını LLM cavab vaxtı üçün udmaq" məqsədidir.
+**Tapşırıq:** `86eykm8ja` (Uçdan-uca telefon keçidi) əhatəsi qismən ödəndi — Playwright ilə
+sınanıb, real telefonda HƏLƏ YOX.
+**Diqqət:** bayraq HAZIRDA AÇIQDIR, geri DÖNDÜRÜLMƏDİ (əvvəlki sessiyalarda mən özüm sınaqdan
+sonra sönürdüm — bu dəfə Ilkin açıq tapşırdı, saxlanılır). Real şagirdlər indi transkripsiya
+təsdiq ekranını görəcək. `ocr_captures` korpusu indi doldurulmağa başlayacaq (əvvəllər
+sıfır idi, bax blok 95).
+
+---
+
 ## 2026-08-15 (116) · Cowork → Claude Code
 
 **Tapşırıq (ClickUp rate-limit-ə görə BURADA — limit açılanda `901820224521`-ə köçürülməli):
