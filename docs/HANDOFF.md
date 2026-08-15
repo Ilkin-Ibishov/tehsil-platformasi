@@ -15,6 +15,81 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (107) · Claude Code → Cowork
+
+**Etdim — 99/99 sualın TAM eval nəticəsi (Faza 0-ın ilk n≥30 qapı ölçməsi) + eval.py-ın
+öz fayl-üst-yazma bug-ının düzəlişi (3 dəfə real data itkisinə səbəb oldu, elə bu sessiyada).**
+
+### Yol — niyə 4 ayrı run lazım oldu
+
+Açar limiti 2 dəfə 429-a çırpıldı (61-də, sonra yenidən). Ilkin limiti artırandan sonra qalan
+suallar hissə-hissə (38, sonra tam 99 təzədən — YENƏ 429, sonra yalnız çatışmayan 60) işə
+salındı. **Prosesdə iki dəfə tam nəticə itdi** — `scripts/lib/report.py::write_results`
+YALNIZ `{pipeline}-{tarix}.json` adı işlədirdi (set adı YOX), eyni günə düşən HƏR YENİ run
+əvvəlkini SƏSSİZCƏ üzərinə yazırdı. Bu, HANDOFF (38)-də QEYD OLUNMUŞ, əvvəllər DƏ baş vermiş
+eyni bug-ın DÖRDÜNCÜ təkrarı idi — bu dəfə DÜZƏLDİLDİ: `write_results` indi `write_summary`
+kimi set adını da fayl adına yazır (`{pipeline}-{tarix}-{set}.json`, tarix ƏVVƏL ki
+`find_latest_result`-un əlifba sırası xronoloji qalsın). Bundan sonra hər run öz faylını
+saxladı, 4-cü (çatışmayan 60) run problemsiz bitdi, 4 nəticə əl ilə (`report.aggregate`-in
+ÖZÜNDƏN, yenidən icra edilmədən) BİRLƏŞDİRİLDİ.
+
+### Yekun nəticə (n=99, 0 xəta)
+
+| Metrika | Nəticə |
+|---|---|
+| Sxem validliyi | **99/99 = 100%** |
+| Variant (cavab) dəqiqliyi | **91/96 = 94.8%** |
+| Struktur (say/check/ardıcıllıq/yoxlama/fərqli kod) | **96/96 = 100%** |
+| Cavab sızması | 21/96 = 21.9% (hədəf ≤10%) |
+| Artıq ehtiyat (imtina, lazım deyildi) | 3/99 = 3% |
+| Orta xərc | $0.00997/sual (99 sual ≈ $0.99 cəmi) |
+| Orta latensiya | 19.2 san |
+
+**Qapı: NATAMAM** — yalnız insan pedaqoji rəyi çatışmır (`ADR-004`), digər HAMISI ölçülüb.
+
+### Sızma — 21.9%-in ARXASINDA nə var (yenə əl ilə izlənildi, ehtimal YOX)
+
+Ümumi 29 "sızma" hadisəsinin (əvvəlki iki partiyadan 8 + bu axırıncı mərhələdən 8 yeni,
+üst-üstə düşənlər çıxılmaqla) HAMISI `detect_leak`-in özündən keçirilib. Nəticə: **demək olar
+heç birində model cavabı erkən açıqlamır.** Kateqoriyalar:
+- ~7-8 hal: son (yoxlama) addımının ÖZÜ tapılan dəyəri restate edir — `ADR-005`-in qəsdən
+  j<i qaydasına görə "doğru" sızma, əslində promptun MCQ-yoxlama scaffolding boşluğu.
+- ~4-5 hal: sualın ÖZÜ verilən ifadə/düstur cavabla EYNİDİR (eynilik/düstur-tanıma sualları).
+- ~5-6 YENİ səth forması ("2, 3 və 4-cü" siyahı-tipli ordinal, "log_a a = 1" ümumi loqarifma
+  qaydası, "1-dən böyük" — simvolik ">" YOX, sözlə müqayisə) — bu axırıncı mərhələdə tapıldı,
+  bugünkü ilk düzəlişimin (4 dar istisna) ƏHATƏ ETMƏDİYİ YENİ təsadüfi-toqquşma sinifləridir.
+- 1-2 borderline (namizəd sadalaması, dərivasiya addımı).
+
+**Qərar: DAHA ARTIQ patch YAZILMADI.** Bu gün artıq BİR dəfə dar-istisna cəhdi öz-özünə
+reqressiya yaratdı (bax blok 106, "-ə" toqquşması). Hər yeni səth forması üçün ayrıca regex
+əlavə etmək azalan-gəlirli və reqressiya-riskli bir yoldur — bu, `leak.py`-ın MEXANİKİ
+yanaşmasının (substring axtarışı, "ümumi qayda" ilə "bu sualın CAVABI"nı ayırd edə bilməməsi)
+STRUKTUR məhdudiyyətidir. **Cowork/Ilkin-in qərarına buraxılır:** (a) bu metrikanın ölçülmüş
+"yalançı-müsbət döşəməsini" (~20%) qəbul edib nəzərə almaq, (b) `ADR-005`-i genişləndirib
+"ümumi qayda/düstur xatırlatması" sinfini strukturca xaric etmək (yeni ADR tələb edir),
+(c) müsbət açar-söz tələbi əlavə etmək ("cavab", "nəticə" kimi sözlər yaxınlıqda olmasa
+qısa/ümumi dəyərləri IGNORE et — mən bunu ilkin dizayn etdim, amma tətbiq ETMƏDİM, effekt
+ölçülmədi).
+
+### Digər tapıntı — 3 "artıq ehtiyat" imtina MƏNİM kəsmə скриптимин səhvidir, model DEYİL
+
+q063/092/057 "unreadable"/"cut_off" ilə imtina etdi — SƏBƏBLƏRİ yoxlanıldı: hər üçü
+`scripts/pdf_to_golden_set.py`-in kəsmə sərhədinin mətni QISA KƏSMƏSİ idi (məsələ kadrdan
+kənarda kəsilib görünürdü). Bu, MODELİN həddindən artıq ehtiyatlı olması DEYİL — mənim
+avtomatlaşdırılmış kəsmə pipeline-ımın 99/100-dən daha bir neçəsində (q098-dən əlavə) tam
+mükəmməl olmadığının sübutudur.
+
+**Fayllar:** `evals/results/summary-golden-set-dim-100test-2025-2026-08-15.json` (git-ə
+gedir, birləşdirilmiş 99 nəticə) yeniləndi/commit edildi. Xam `B-*.json` fayllar (raw_output
+daxil) gitignored qalır, lokal saxlanılıb.
+
+**Diqqət:** `.env` (repo kökündə, Ilkin-in API açarı ilə) `.gitignore`-dadır, commit
+EDİLMƏYİB. Açar dəyəri bu HANDOFF-a YAZILMADI.
+
+**Blok:** sızma-metrikasının gələcəyi (yuxarı 3 seçim) Ilkin/Cowork-un qərarını gözləyir.
+
+---
+
 ## 2026-08-15 (106) · Claude Code → Cowork
 
 **Etdim — ilk real 99-sualıq eval run (n≥30 qapı ilk dəfə keçildi) + `leak.py`/`leak.ts`

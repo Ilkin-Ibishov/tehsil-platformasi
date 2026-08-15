@@ -1,0 +1,831 @@
+{
+  "pipeline": "B",
+  "set": "evals\\golden-set-dim-100test-2025.jsonl",
+  "date": "2026-08-15",
+  "prompt_version": "v9",
+  "metrics": {
+    "n_total": 99,
+    "n_attempted": 99,
+    "n_not_implemented": 0,
+    "schema_validity": {
+      "rate": 1.0,
+      "matched": 99,
+      "n": 99
+    },
+    "final_answer_accuracy": {
+      "rate": 0.25,
+      "matched": 1,
+      "n": 4
+    },
+    "leak_rate": {
+      "rate": 0.21875,
+      "matched": 21,
+      "n": 96
+    },
+    "verify_conflict": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 96
+    },
+    "verify_conflict_ids": [],
+    "choice_match_rate": {
+      "rate": 0.9479166666666666,
+      "matched": 91,
+      "n": 96
+    },
+    "hallucination_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "false_refusal_rate": {
+      "rate": 0.030303030303030304,
+      "matched": 3,
+      "n": 99
+    },
+    "status_match_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "step_split_structural": {
+      "count_ok": {
+        "rate": 1.0,
+        "matched": 96,
+        "n": 96
+      },
+      "checks_present": {
+        "rate": 1.0,
+        "matched": 96,
+        "n": 96
+      },
+      "index_sequential": {
+        "rate": 1.0,
+        "matched": 96,
+        "n": 96
+      },
+      "ends_with_verification": {
+        "rate": 1.0,
+        "matched": 96,
+        "n": 96
+      },
+      "error_codes_distinct": {
+        "rate": 1.0,
+        "matched": 96,
+        "n": 96
+      },
+      "all_pass": {
+        "rate": 1.0,
+        "matched": 96,
+        "n": 96
+      }
+    },
+    "step_split_pedagogical": {
+      "rate": null,
+      "matched": 0,
+      "n": 0,
+      "note": "insan rəyi yoxdur — qapı natamam"
+    },
+    "avg_cost_usd": 0.0099665,
+    "avg_latency_ms": 19194.28335555513,
+    "gate_eligible": true,
+    "gate_pass": null,
+    "gate_status": "NATAMAM — insan rəyi yoxdur — qapı natamam (addım bölgüsünün pedaqoji hissəsi)"
+  },
+  "items": [
+    {
+      "id": "dim-100test-2025-001",
+      "final_answer_correct": null,
+      "model_values": [
+        "0"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-002",
+      "final_answer_correct": null,
+      "model_values": [
+        "19"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-003",
+      "final_answer_correct": null,
+      "model_values": [
+        "x^2/(x^4+1)"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-004",
+      "final_answer_correct": null,
+      "model_values": [
+        "x+\\sin x"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-005",
+      "final_answer_correct": null,
+      "model_values": [
+        "\\frac{2x}{1-x}",
+        "2x/(1-x)"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-006",
+      "final_answer_correct": null,
+      "model_values": [
+        "[0;3)",
+        "[0; 3)"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-007",
+      "final_answer_correct": null,
+      "model_values": [
+        "[-2;-1)U(-1;3]",
+        "[-2;-1) \\cup (-1;3]"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-008",
+      "final_answer_correct": null,
+      "model_values": [
+        "3"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-009",
+      "final_answer_correct": null,
+      "model_values": [
+        "[4;6]",
+        "[4; 6]"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-010",
+      "final_answer_correct": null,
+      "model_values": [
+        "(-\\infty; 2/3) \\cup (1; \\infty)"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-011",
+      "final_answer_correct": null,
+      "model_values": [
+        "(1,1)",
+        "(1;1)"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-012",
+      "final_answer_correct": null,
+      "model_values": [
+        "(-1,0)",
+        "(-1;0)"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-013",
+      "final_answer_correct": null,
+      "model_values": [
+        "(4/3; -1/3)",
+        "4/3; -1/3"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-014",
+      "final_answer_correct": null,
+      "model_values": [
+        "\\pi",
+        "pi"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-015",
+      "final_answer_correct": null,
+      "model_values": [
+        "2/3"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-016",
+      "final_answer_correct": null,
+      "model_values": [
+        "4/3"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-017",
+      "final_answer_correct": null,
+      "model_values": [
+        "(-\\infty; 1) \\cup (4; \\infty)",
+        "(-\\infty;1)\\cup(4;\\infty)"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-018",
+      "final_answer_correct": null,
+      "model_values": [
+        "2\\pi/3",
+        "\\frac{2\\pi}{3}"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-019",
+      "final_answer_correct": null,
+      "model_values": [
+        "72"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-020",
+      "final_answer_correct": null,
+      "model_values": [
+        "4"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-021",
+      "final_answer_correct": null,
+      "model_values": [
+        "sin^2(2\\alpha)",
+        "\\sin^2 2\\alpha",
+        "sin^2 2\\alpha"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-022",
+      "final_answer_correct": null,
+      "model_values": [
+        "0"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-023",
+      "final_answer_correct": null,
+      "model_values": [
+        "\\cos 4\\alpha",
+        "\\cos(4\\alpha)"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-024",
+      "final_answer_correct": null,
+      "model_values": [
+        "(1+\\sqrt{3})/2",
+        "\\frac{1+\\sqrt{3}}{2}"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-025",
+      "final_answer_correct": null,
+      "model_values": [
+        "0.5",
+        "0,5",
+        "1/2"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-026",
+      "final_answer_correct": null,
+      "model_values": [
+        "2"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-027",
+      "final_answer_correct": null,
+      "model_values": [
+        "1/2",
+        "0.5"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-028",
+      "final_answer_correct": null,
+      "model_values": [
+        "4",
+        "0.25",
+        "0,25"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-029",
+      "final_answer_correct": null,
+      "model_values": [
+        "\\frac{\\pi}{4}",
+        "pi/4"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-030",
+      "final_answer_correct": null,
+      "model_values": [
+        "11\\pi/12",
+        "11pi/12"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-031",
+      "final_answer_correct": null,
+      "model_values": [
+        "90",
+        "90°"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-032",
+      "final_answer_correct": null,
+      "model_values": [
+        "120",
+        "120°"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-033",
+      "final_answer_correct": false,
+      "model_values": [
+        "(-1)^{k+1}\\frac{\\pi}{6}+\\pi k"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-034",
+      "final_answer_correct": false,
+      "model_values": [
+        "(-1)^{n+1}\\frac{\\pi}{6}+\\pi n"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-035",
+      "final_answer_correct": null,
+      "model_values": [
+        "7"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-036",
+      "final_answer_correct": null,
+      "model_values": [
+        "13/9"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-037",
+      "final_answer_correct": null,
+      "model_values": [
+        "1/3",
+        "y=(1/3)^x"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-038",
+      "final_answer_correct": true,
+      "model_values": [
+        "1"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-039",
+      "final_answer_correct": false,
+      "model_values": [
+        "-3"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-040",
+      "final_answer_correct": null,
+      "model_values": [
+        "(-1; \\infty)"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-041",
+      "final_answer_correct": null,
+      "model_values": [
+        "\\sqrt{a}+\\sqrt{3}"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-042",
+      "final_answer_correct": null,
+      "model_values": [
+        "-2",
+        "−2"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-043",
+      "final_answer_correct": null,
+      "model_values": [
+        "-2",
+        "−2"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-044",
+      "final_answer_correct": null,
+      "model_values": [
+        "1"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-045",
+      "final_answer_correct": null,
+      "model_values": [
+        "I, II, V"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-046",
+      "final_answer_correct": null,
+      "model_values": [
+        "16"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-047",
+      "final_answer_correct": null,
+      "model_values": [
+        "1"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-048",
+      "final_answer_correct": null,
+      "model_values": [
+        "(-\\infty; -3) \\cup (3; \\infty)"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-049",
+      "final_answer_correct": null,
+      "model_values": [
+        "9"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-050",
+      "final_answer_correct": null,
+      "model_values": [
+        "12"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-051",
+      "final_answer_correct": null,
+      "model_values": [
+        "16.25",
+        "16,25",
+        "65/4",
+        "16 1/4"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-052",
+      "final_answer_correct": null,
+      "model_values": [
+        "1"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-053",
+      "final_answer_correct": null,
+      "model_values": [
+        "0"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-054",
+      "final_answer_correct": null,
+      "model_values": [
+        "100000"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-055",
+      "final_answer_correct": null,
+      "model_values": [
+        "2"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-056",
+      "final_answer_correct": null,
+      "model_values": [
+        "6"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-057",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "dim-100test-2025-058",
+      "final_answer_correct": null,
+      "model_values": [
+        "6x^5-4\\cos x",
+        "6x^5-4cosx"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-059",
+      "final_answer_correct": null,
+      "model_values": [
+        "-72x^7 - 6x^4"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-060",
+      "final_answer_correct": null,
+      "model_values": [
+        "bucaq əmsalı",
+        "k"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-061",
+      "final_answer_correct": null,
+      "model_values": [
+        "2"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-062",
+      "final_answer_correct": null,
+      "model_values": [
+        "0"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-063",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "dim-100test-2025-064",
+      "final_answer_correct": null,
+      "model_values": [
+        "0"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-065",
+      "final_answer_correct": null,
+      "model_values": [
+        "3-2i"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-066",
+      "final_answer_correct": null,
+      "model_values": [
+        "\\frac{(4x-7)^9}{36}+c",
+        "\\frac{(4x-7)^9}{36}+C"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-067",
+      "final_answer_correct": null,
+      "model_values": [
+        "-3\\cos x + 2\\sin x + c",
+        "-3cosx+2sinx+c"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-068",
+      "final_answer_correct": null,
+      "model_values": [
+        "-3\\cos x - 2\\tan x + C",
+        "-3\\cos x - 2tgx + c"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-069",
+      "final_answer_correct": null,
+      "model_values": [
+        "1/3"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-070",
+      "final_answer_correct": null,
+      "model_values": [
+        "1"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-071",
+      "final_answer_correct": null,
+      "model_values": [
+        "A \\cap B \\cap C"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-072",
+      "final_answer_correct": null,
+      "model_values": [
+        "(A \\cap C) \\cup (B \\cap C)"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-073",
+      "final_answer_correct": null,
+      "model_values": [
+        "5"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-074",
+      "final_answer_correct": null,
+      "model_values": [
+        "n+1"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-075",
+      "final_answer_correct": null,
+      "model_values": [
+        "Bir düz xəttə paralel olan düz xətlər paraleldirlər"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-076",
+      "final_answer_correct": null,
+      "model_values": [
+        "çarpaz"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-077",
+      "final_answer_correct": null,
+      "model_values": [
+        "1 və ya 3"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-078",
+      "final_answer_correct": null,
+      "model_values": [
+        "AM"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-079",
+      "final_answer_correct": null,
+      "model_values": [
+        "5"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-080",
+      "final_answer_correct": null,
+      "model_values": [
+        "a\\sqrt{2}/2",
+        "(a\\sqrt{2})/2",
+        "\\frac{a\\sqrt{2}}{2}"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-081",
+      "final_answer_correct": null,
+      "model_values": [
+        "\\sqrt{\\frac{a^2}{2}+b^2}"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-082",
+      "final_answer_correct": null,
+      "model_values": [
+        "(0; 0; 3)",
+        "(0, 0, 3)"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-083",
+      "final_answer_correct": null,
+      "model_values": [
+        "\\sqrt{2/15}"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-084",
+      "final_answer_correct": null,
+      "model_values": [
+        "±3",
+        "3",
+        "-3"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-085",
+      "final_answer_correct": null,
+      "model_values": [
+        "(1; -3; 5)",
+        "(1;-3;5)",
+        "1; -3; 5",
+        "1;-3;5"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-086",
+      "final_answer_correct": null,
+      "model_values": [
+        "±6",
+        "6",
+        "-6"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-087",
+      "final_answer_correct": null,
+      "model_values": [
+        "pH"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-088",
+      "final_answer_correct": null,
+      "model_values": [
+        "13"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-089",
+      "final_answer_correct": null,
+      "model_values": [
+        "5"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-090",
+      "final_answer_correct": null,
+      "model_values": [
+        "\\frac{\\sqrt{3}}{3}a",
+        "\\sqrt{3}/3 a"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-091",
+      "final_answer_correct": null,
+      "model_values": [
+        "10"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-092",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "dim-100test-2025-093",
+      "final_answer_correct": null,
+      "model_values": [
+        "22"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-094",
+      "final_answer_correct": null,
+      "model_values": [
+        "n(n-3)"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-095",
+      "final_answer_correct": null,
+      "model_values": [
+        "8"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-096",
+      "final_answer_correct": null,
+      "model_values": [
+        "1/8 \\pi l^3",
+        "\\frac{1}{8}\\pi l^3"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-097",
+      "final_answer_correct": null,
+      "model_values": [
+        "4"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-099",
+      "final_answer_correct": null,
+      "model_values": [
+        "üçbucaq",
+        "D"
+      ]
+    },
+    {
+      "id": "dim-100test-2025-100",
+      "final_answer_correct": null,
+      "model_values": [
+        "4\\pi R^2"
+      ]
+    }
+  ]
+}
