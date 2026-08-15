@@ -10,9 +10,35 @@ istinad etmək sızma deyil — bax ADR-004-ün tələb etdiyi məcburi yoxlama 
 
 _leaked_in_text-dəki rəqəm/şəkilçi ayırd etməsi (Azərbaycan dilində '3-ə' vs riyazi 'b^2-4ac')
 dəyişməz saxlanılır — yalnız HANSI addımlarda axtarılacağı dəyişir.
+
+HANDOFF 106 (2026-08-15) — real 99-sualıq DIM dəstində 9 "sızma" ƏL İLƏ izlənildi (Ilkin-in
+tələbi: "ehtimal ilə niyə düşünürsən?"). 4-ü DƏYƏRİN ÖZÜ ilə HEÇ ƏLAQƏSİZ təsadüfi rəqəm
+toqquşması idi (bax aşağıdakı 4 istisna) — bunlar ADR-005-in ÖZ tərifinə görə DƏ sızma
+DEYİL (sızma = "V açıqlanır", təsadüfi eyni rəqəm YOX). Qalan 5-i (o cümlədən son-addım
+yoxlamasının öz nəticəsini restate etməsi) ADR-005-in qəsdən j<i qaydasına görə DOĞRU sızma
+sayılır — TOXUNULMADI (bax ADR-005 §"Niyə j<i, j<=i yox").
 """
 
 import re
+
+# 1) Sıra sayı şəkilçisi: "2-ci", "3-cü" — DƏYƏR yox, sıra göstərir (q026 real tapıntı).
+# QƏSDƏN DAR SİYAHI (yalnız ölçülən sıra şəkilçiləri) — geniş "-hər hansı hərf" forması
+# "3-ə bərabər" (bərabərlik şəkilçisi, HƏQİQİ sızma nümunəsi, `leaked_explanation` selftest
+# halı) İLƏ TOQQUŞDU, ilk versiyada bu reqressiyanı YARATMIŞDI.
+_ORDINAL_SUFFIX_RE = re.compile(
+    r"^-(ci|cı|cü|cu|nci|ncı|ncü|ncu|inci|ıncı|uncu|üncü)\b", re.IGNORECASE | re.UNICODE
+)
+# 2) Domen/interval mötərizəsi: "[-90°, 90°]" — funksiyanın TƏRİFİ, konkret cavab yox (q031).
+_BRACKET_SPAN_RE = re.compile(r"\[[^\[\]]*\]")
+# 3) Müqayisə operatorundan DƏRHAL sonra: "8 > 1" — şərt/qayda, cavab yox (q052).
+_COMPARISON_BEFORE_RE = re.compile(r"[<>≤≥]\s*$")
+
+
+def _in_bracket_span(text, start, end):
+    for m in _BRACKET_SPAN_RE.finditer(text):
+        if m.start() <= start and end <= m.end():
+            return True
+    return False
 
 
 def _leaked_in_text(value, text):
@@ -24,7 +50,20 @@ def _leaked_in_text(value, text):
         r"(?<![\w.])" + re.escape(value) + r"(?!\w)(?!-\d)(?!\.\d)",
         flags=re.UNICODE,
     )
-    return pattern.search(text) is not None
+    for m in pattern.finditer(text):
+        start, end = m.start(), m.end()
+        if _ORDINAL_SUFFIX_RE.match(text[end : end + 3]):
+            continue
+        if _in_bracket_span(text, start, end):
+            continue
+        if _COMPARISON_BEFORE_RE.search(text[max(0, start - 5) : start]):
+            continue
+        # 4) Düstura bilavasitə bitişik ("1/(2√x)" kəsr məxrəci) — ümumi düstur xatırlatması,
+        #    konkret cavab yox (q055).
+        if end < len(text) and text[end] == "√":
+            continue
+        return True
+    return False
 
 
 def _normalize(v):

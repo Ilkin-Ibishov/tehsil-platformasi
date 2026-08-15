@@ -15,6 +15,69 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (106) · Claude Code → Cowork
+
+**Etdim — ilk real 99-sualıq eval run (n≥30 qapı ilk dəfə keçildi) + `leak.py`/`leak.ts`
+sızma detektorunun 4 yalançı-müsbətinin düzəldilməsi.**
+
+### Run #1 nəticəsi — 61/99 (429 rate-limit, açar limiti sonra artırıldı)
+
+`scripts/eval.py --pipeline B --set evals/golden-set-dim-100test-2025.jsonl` ilk cəhddə
+item 61-də 429 "Too Many Requests"-ə çırpıldı, qalan 38-i də (yenidən cəhd DAXİL) eyni xəta
+ilə uğursuz oldu — Ilkin-in açara qoyduğu xərc limiti idi, keçici RPM-boğulma DEYİL
+(təsdiqləndi: bir az sonra təkrar cəhd DƏRHAL yenə 429 verdi). Uğurlu 61 sual üzərində
+(infrastruktur xətaları XARİC, ilk hesabatın "60.6%" rəqəmi bunları sxem-uğursuzluğu kimi
+sayırdı — YANLIŞ metodologiya, düzəldilməli):
+- Sxem validliyi: **61/61 = 100%**
+- Variant (cavab) dəqiqliyi: **57/60 = 95%**
+- Struktur: 98.3%
+- Sızma: 9/61 = 15% (hədəf ≤10%-i keçir)
+
+### Sızma tapıntısı — Ilkin-in "ehtimal ilə niyə düşünürsən, loglamısan?" sualından sonra
+
+İlk cavabımda ("model B variantını erkən açıqlayır ehtimalı") HEÇ bir real data yoxlamamışdım
+— Ilkin bunu düzgün sual etdi. Bütün 9 "sızma"nı `detect_leak`-in ÖZÜNDƏN keçirib DƏQİQ hansı
+addımda, hansı mətndə tutulduğunu tapdım:
+
+- **4/9 TAM yalançı-müsbət** — sızan "dəyər" HEÇ CAVABLA ƏLAQƏSİZ təsadüfi rəqəm toqquşması
+  idi: `"2-ci"` (sıra sayı şəkilçisi, cavab "2" YOX), `"[-90°, 90°]"` (arcsin-in domen
+  intervalı, cavab "90°" YOX), `"8 > 1"` (loqarifm əsası qaydası, cavab "1" YOX),
+  `"1/(2√x)"` (törəmə düsturunun məxrəci, cavab "2" YOX).
+- **2/9** son (yoxlama) addımının ÖZÜ tapılan dəyəri restate edir — bu, `ADR-005`-in ÖZ
+  qəsdən j<i qaydasına görə DOĞRU sızma sayılır (addımın öz sualının cavabını öz izahında
+  açıqlaması), amma prompt qayda 8-in (yoxlama = "nəticəni yerinə qoy") TƏLƏB ETDİYİ formaya
+  görə YARANIR — bu, **promptun scaffolding boşluğudur** (aralıq addım MCQ dəyərini
+  ƏVVƏLCƏDƏN accept etməli idi), leak.py bug-ı DEYİL. Kod DƏYİŞMƏDİ, ADR-005-ə TOXUNMADI.
+- **3/9** (q027, q045, q060) — sualın öz verilən dəyəri cavabla üst-üstə düşür (eynilik
+  sualı) VƏ ya çoxhissəli/söz-tipli cavab (label siyahısı, "bucaq əmsalı" termini) — aşağı
+  etibarla, DƏYİŞMƏDİ.
+
+**Nəticə: 0/9-da model həqiqətən "cavabı erkən açıqlayır" davranışı yoxdur.** 15% sızma
+göstəricisi ƏSASƏN ölçmə alətinin özünün zəifliyi idi.
+
+### Düzəliş — `scripts/lib/leak.py` + `web/lib/verify/leak.ts` (hər ikisi, ADR-012 parity)
+
+4 DAR, ölçülən istisna əlavə edildi (`_leaked_in_text`-ə): sıra sayı şəkilçisi (yalnız
+`-ci/-cı/-cü/-cu/-(i)ncı/-uncu/-üncü`, GENİŞ "istənilən hərf" FORMASI YOX — ilk versiya bunu
+sınadı, "3-**ə** bərabər" (bərabərlik şəkilçisi, HƏQİQİ sızma nümunəsi) ilə toqquşdu,
+`leaked_explanation` selftest halını qırdı, DƏRHAL tutuldu və düzəldildi), domen/interval
+mötərizəsi `[...]`, müqayisə operatorundan (`< > ≤ ≥`) dərhal sonra, `√`-ə bilavasitə bitişik
+əmsal. `evals/selftest-cases.jsonl`-a 6 real HANDOFF-106 halı (4 düzələn + 2 dəyişməyən)
+əlavə edildi — **34/34 selftest keçir**. `web/lib/verify/leak.selftest.mts` YENİ (bu modulun
+əvvəllər HEÇ selftest-i yox idi) — 7/7, o cümlədən reqressiya qıfılı ("-ə" ordinal DEYİL).
+
+**Doğrulama:** `tsc --noEmit`/`eslint` təmiz, Python `--selftest` 34/34, TS `leak.selftest.mts`
+7/7, 9 real HANDOFF-106 halı `detect_leak`-in ÖZÜNDƏN birbaşa yenidən icra edilib təsdiqləndi.
+
+**Diqqət:**
+- q028/q059-un (yoxlama-addım scaffolding boşluğu) DÜZƏLİŞİ bu sessiyada EDİLMƏDİ — bu,
+  `leak.py`-ın DEYİL, PROMPTUN məsələsidir (MCQ-yoxlama dəyəri aralıq addımda əvvəlcədən
+  accept edilməli idi). Ayrıca qərar/ClickUp tələb edir, Cowork-a buraxılır.
+- İkinci cəhd (qalan 38 sual) Ilkin-in açar limitini artırmasından sonra işə salınıb —
+  nəticə NÖVBƏTİ blokda.
+
+---
+
 ## 2026-08-15 (105) · Claude Code → Cowork
 
 **Etdim — Ilkin PDF tapdı (`100 test. Riyaziyyat..pdf`, öz Downloads qovluğundan), Scribd-in
