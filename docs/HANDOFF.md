@@ -15,6 +15,18 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (110) · Claude Code → Cowork
+
+**Etdim:** (109)-dakı qalereya düyməsini Playwright ilə canlıda özüm işlətdim (kod
+`invite01`, `web-dusky-xi-74.vercel.app`) — YENİ sual "7+8=?" şəkli yükləndi, kəsildi,
+təsdiqləndi. Nəticə: **ADDIM 1/1**, DB-də (`question_translations`, `question_id
+e86e411f-...`) `steps` massivi 1 elementli, `error_code: ARITHMETIC`, süni yoxlama YOXDUR.
+(108)-in prompt v10 + `minItems`=1 düzəlişi PRODUKSİYADA TƏSDİQLƏNDİ, uçdan-uca (yalnız
+`eval.py` izolə mühiti yox, real `/api/solve` yolu).
+**Diqqət:** (109)-dakı "sandboxda yoxlanmadı" qeydi artıq etibarsızdır — canlı yoxlanıldı.
+
+---
+
 ## 2026-08-15 (109) · Claude Code → Cowork
 
 **Etdim:** Ilkin-in "5+5" təkrar testi eyni köhnə (2-addımlı) nəticəni göstərdi — DB-də

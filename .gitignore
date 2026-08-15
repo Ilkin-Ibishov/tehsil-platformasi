@@ -22,3 +22,4 @@ supabase/.temp/
 # Kütləvi eval korpusu — DİM mətni ehtiva edir (ADR-003), git-ə getmir
 evals/text-set.jsonl
 evals/text-set*.jsonl
+.playwright-mcp/
