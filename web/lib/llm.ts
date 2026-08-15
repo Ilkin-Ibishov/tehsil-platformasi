@@ -22,7 +22,61 @@ const RETRY_BASE_DELAY_MS = 1000;
 // gəlir, `fetch`-ə ötürülür. Burada AYRICA timeout QURULMUR ki, iki fərqli saat bir-birini
 // ötməsin.
 
-export type LLMUsage = { prompt_tokens?: number; completion_tokens?: number };
+export type LLMUsage = {
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  total_tokens?: number;
+  // OpenRouter və bəzi gateway-lər USD/kredit göndərir. Gemini/OpenAI göndərmir.
+  cost?: number;
+  cost_usd?: number;
+  prompt_tokens_details?: { cached_tokens?: number };
+  completion_tokens_details?: { reasoning_tokens?: number };
+  thoughts_token_count?: number;
+  cached_content_token_count?: number;
+};
+
+function finiteNum(v: unknown): number | undefined {
+  return typeof v === "number" && Number.isFinite(v) ? v : undefined;
+}
+
+function asRecord(v: unknown): Record<string, unknown> | null {
+  return v !== null && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+}
+
+// Gemini OpenAI-uyğun qatı bəzən camelCase (`promptTokens`) və ya `total_tokens`
+// (düşünmə daxil) qaytarır. Çağıranlar yalnız snake_case görsün.
+export function normalizeUsage(raw: unknown): LLMUsage | null {
+  const u = asRecord(raw);
+  if (!u) return null;
+
+  const promptDetails = asRecord(u.prompt_tokens_details) ?? asRecord(u.promptTokensDetails);
+  const completionDetails = asRecord(u.completion_tokens_details) ?? asRecord(u.completionTokensDetails);
+
+  const usage: LLMUsage = {
+    prompt_tokens: finiteNum(u.prompt_tokens) ?? finiteNum(u.promptTokens),
+    completion_tokens: finiteNum(u.completion_tokens) ?? finiteNum(u.completionTokens),
+    total_tokens: finiteNum(u.total_tokens) ?? finiteNum(u.totalTokens),
+    cost: finiteNum(u.cost),
+    cost_usd: finiteNum(u.cost_usd) ?? finiteNum(u.costUsd),
+    thoughts_token_count: finiteNum(u.thoughts_token_count) ?? finiteNum(u.thoughtsTokenCount),
+    cached_content_token_count: finiteNum(u.cached_content_token_count) ?? finiteNum(u.cachedContentTokenCount),
+  };
+  const cached = finiteNum(promptDetails?.cached_tokens) ?? finiteNum(promptDetails?.cachedTokens);
+  if (cached !== undefined) usage.prompt_tokens_details = { cached_tokens: cached };
+  const reasoning = finiteNum(completionDetails?.reasoning_tokens) ?? finiteNum(completionDetails?.reasoningTokens);
+  if (reasoning !== undefined) usage.completion_tokens_details = { reasoning_tokens: reasoning };
+
+  if (
+    usage.prompt_tokens === undefined &&
+    usage.completion_tokens === undefined &&
+    usage.total_tokens === undefined &&
+    usage.cost === undefined &&
+    usage.cost_usd === undefined
+  ) {
+    return null;
+  }
+  return usage;
+}
 
 export type LLMResult = {
   parsed: unknown | null;
@@ -114,9 +168,9 @@ export async function callVisionLLM(opts: {
 
   const body = await res.json();
   const rawText: string = body.choices?.[0]?.message?.content ?? "";
-  // OpenAI-uyğun `usage`: prompt_tokens / completion_tokens. Gemini USD və ya
-  // per-1M tarif QAYTARMIR (ADR-027) — `computeCostUsd` registri ilə vurur.
-  const usage: LLMUsage | null = body.usage ?? null;
+  // Gemini/OpenAI `usage`-də USD YOXDUR — token sayları var (ADR-028). OpenRouter
+  // `usage.cost` göndərir; `normalizeUsage` onu da saxlayır.
+  const usage = normalizeUsage(body.usage);
 
   let parsed: unknown | null = null;
   try {

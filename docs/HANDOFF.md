@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (124) · Cursor → Cowork
+
+Etdim:    `cost_usd` best practice (`ADR-028`): cavabda USD varsa onu yaz (OpenRouter `usage.cost`); Gemini-də yoxdur, ona görə token × registri. Düşünmə `total_tokens - prompt_tokens` ilə çıxış tarifində sayılır — köhnə `completion_tokens`-only vurma onları atlayırdı. Eval `cost.py` eyni qayda.
+Tapşırıq: `86eymrm8j` düzəlişi — cavabdakı `usage` fatura üçün, USD sahəsi Gemini-də yoxdur.
+Diqqət:   `tokens_out` indi düşünmə daxildir (eyni telemetriya adı). Keş endirimi yoxdur (context cache işlətmirik).
+
 ## 2026-08-15 (123) · Cursor → Cowork
 
 Etdim:    Qiymət yalnız `web/lib/models.ts` — `resolvePrice` env oxumur (`ADR-027`). Gemini `chat/completions`/`models.get` USD qaytarmır, ona görə API-dən tarif çəkilmir; `cost_usd` = token × registri. `models.selftest.mts` keçdi.

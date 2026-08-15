@@ -5,7 +5,7 @@ import { buildLayers, runCascade } from "@/lib/cascade/run";
 import { persistSolution } from "@/lib/cascade/persist";
 import { finalizeOcrCapture, rejectOcrCapture } from "@/lib/cascade/ocr-capture";
 import { checkInviteCode, logEvent } from "@/lib/cascade/guards";
-import { sumCostUsd } from "@/lib/cost";
+import { sumCostUsd, billableOutputTokens } from "@/lib/cost";
 import type { Transcript } from "@/lib/cascade/types";
 
 // POST /api/solve/finish — ClickUp 86eykj7x2 / ADR-020.
@@ -191,7 +191,7 @@ export async function POST(req: NextRequest) {
         cost_usd: totalCostUsd,
         latency_ms: Math.round(transcribeLatencyMs + solution.latencyMs),
         tokens_in: solution.usage?.prompt_tokens ?? null,
-        tokens_out: solution.usage?.completion_tokens ?? null,
+        tokens_out: billableOutputTokens(solution.usage),
         leaked: persisted.leaked,
         layer: solution.layer,
       },

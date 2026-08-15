@@ -3,7 +3,7 @@ import { randomUUID, createHash } from "node:crypto";
 import { pool } from "@/lib/db";
 import { loadPromptTemplates, renderUserPrompt } from "@/lib/prompt";
 import { callVisionLLM } from "@/lib/llm";
-import { computeCostUsd } from "@/lib/cost";
+import { computeCostUsd, sumCostUsd, billableOutputTokens, sumTokens } from "@/lib/cost";
 import { getActiveModel } from "@/lib/models";
 import { getBoolConfig } from "@/lib/app-config";
 import { validateStep } from "@/lib/verify/schema";
@@ -12,7 +12,6 @@ import { detectLeak } from "@/lib/verify/leak";
 import { transcribe, imageSha256 } from "@/lib/cascade/transcribe";
 import { buildLayers, runCascade } from "@/lib/cascade/run";
 import { persistSolution } from "@/lib/cascade/persist";
-import { sumCostUsd } from "@/lib/cost";
 import { computePHash } from "@/lib/phash";
 import { writeOcrCapture, reserveCaptureId } from "@/lib/cascade/ocr-capture";
 import { uploadCaptureImages } from "@/lib/storage";
@@ -120,13 +119,6 @@ async function logEvent(
       [randomUUID(), deviceId, attemptId, name, JSON.stringify(props)]
     )
     .catch((err) => console.error(`[/api/solve] ${name} telemetriya xətası:`, err));
-}
-
-// İki qatın token sayı. Hər ikisi bilinmirsə `null` — `0` yazmaq token hesabatını yalan
-// edərdi (keş-hit-də `usage` qəsdən `null`-dur, sıfır token işlədilməyib deməkdir).
-function sumTokens(a: number | undefined, b: number | undefined): number | null {
-  if (a === undefined && b === undefined) return null;
-  return (a ?? 0) + (b ?? 0);
 }
 
 // S1 (86eymwght) / ADR-024 — hər iki monolit budaq (kaskad-daxili və köhnə tək-çağırışlı)
@@ -490,7 +482,7 @@ export async function POST(req: NextRequest) {
             latency_ms: Math.round(t1.latencyMs + solution.latencyMs),
             cost_usd: totalCostUsd,
             tokens_in: sumTokens(t1.usage?.prompt_tokens, solution.usage?.prompt_tokens),
-            tokens_out: sumTokens(t1.usage?.completion_tokens, solution.usage?.completion_tokens),
+            tokens_out: sumTokens(billableOutputTokens(t1.usage), billableOutputTokens(solution.usage)),
             attempts: 1,
             leaked: persisted.leaked,
             layer: solution.layer,
@@ -822,7 +814,7 @@ export async function POST(req: NextRequest) {
         latency_ms: Math.round(latencyMs),
         cost_usd: costUsd,
         tokens_in: usage?.prompt_tokens ?? null,
-        tokens_out: usage?.completion_tokens ?? null,
+        tokens_out: billableOutputTokens(usage),
         attempts,
         leaked,
       },

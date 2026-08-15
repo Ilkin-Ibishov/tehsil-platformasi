@@ -1,6 +1,6 @@
 # ADR-027 — LLM qiyməti yalnız registridə, Vercel/env yox
 
-**Status:** Qəbul edilib
+**Status:** Qəbul edilib — hesablama qaydası `ADR-028`-də dəqiqləşdirilib (düşünmə tokeni)
 **Tarix:** 2026-08-15
 **Toxunur:** `ADR-022` (env override silinir) · `web/lib/models.ts` · `web/lib/cost.ts`
 **Motivasiya:** Ilkin — qiymət Vercel-dən gəlməsin, repo-da olsun. Əlavə: Gemini API
@@ -33,5 +33,5 @@ o çıxış qiyməti yenə Vercel-ə qaytarırdı, `86eymrm8j`-nin kök səbəbi
 
 ## Həcm xaricində
 
-Faza 0 eval harness (`scripts/lib/cost.py`) qiyməti arqument kimi alır; production
-yolu deyil. Bu ADR onu dəyişmir.
+Faza 0 eval harness qiyməti hələ arqument kimi alır (`scripts/lib/cost.py`); tarif
+mənbəyi bu ADR-in mövzusu deyil. Token qaydasının özü `ADR-028`-də TS ilə eyniləşdirilib.

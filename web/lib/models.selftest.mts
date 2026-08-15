@@ -68,11 +68,38 @@ delete process.env.MODEL_GPT_5_MINI_PRICE_OUTPUT_PER_1M;
 
 check("computeCostUsd: usage yoxdursa → null", computeCostUsd(null, "gemini-3.6-flash"), null);
 check(
-  "computeCostUsd: tanınan model, 1000 giriş + 500 çıxış token",
+  "computeCostUsd: tanınan model, 1000 giriş + 500 çıxış (total yoxdur)",
   computeCostUsd({ prompt_tokens: 1000, completion_tokens: 500 }, "gemini-3.6-flash"),
   (1000 / 1_000_000) * 0.75 + (500 / 1_000_000) * 3.75
 );
-check("computeCostUsd: naməlum model → null", computeCostUsd({ prompt_tokens: 100, completion_tokens: 50 }, "naməlum-model"), null);
+check(
+  "computeCostUsd: total = prompt+completion → düşünmə yox, köhnə vurma ilə eyni",
+  computeCostUsd({ prompt_tokens: 1000, completion_tokens: 500, total_tokens: 1500 }, "gemini-3.6-flash"),
+  (1000 / 1_000_000) * 0.75 + (500 / 1_000_000) * 3.75
+);
+check(
+  "computeCostUsd: Gemini düşünmə total-dadır, completion-da deyil",
+  computeCostUsd({ prompt_tokens: 15, completion_tokens: 18, total_tokens: 175 }, "gemini-3.6-flash"),
+  (15 / 1_000_000) * 0.75 + (160 / 1_000_000) * 3.75
+);
+check(
+  "computeCostUsd: provayder usage.cost varsa token vurmasını ötür",
+  computeCostUsd({ prompt_tokens: 1_000_000, completion_tokens: 1_000_000, cost: 0.01 }, "gemini-3.6-flash"),
+  0.01
+);
+check(
+  "computeCostUsd: OpenAI reasoning completion-un içindədir, total yox → iki dəfə sayma",
+  computeCostUsd(
+    { prompt_tokens: 100, completion_tokens: 80, completion_tokens_details: { reasoning_tokens: 50 } },
+    "gemini-3.6-flash"
+  ),
+  (100 / 1_000_000) * 0.75 + (80 / 1_000_000) * 3.75
+);
+check(
+  "computeCostUsd: naməlum model, amma usage.cost var → onu yaz",
+  computeCostUsd({ cost: 0.02 }, "naməlum-model"),
+  0.02
+);
 
 check(
   "iki tanınan modelin qiyməti qarışmır",

@@ -1,26 +1,65 @@
-// scripts/lib/cost.py-ın hərfi TS portu, ADR-022-də model registrisinə köçürüldü.
+// Token × tarif = xərc. Eval (`scripts/lib/cost.py`) eyni qaydanı işlətməlidir.
 import type { LLMUsage } from "./llm";
+import { normalizeUsage } from "./llm";
 import { resolvePrice } from "./models";
 
-// ADR-022/027: qiymət MODEL İD-inə görə registridən oxunur (qatın məqsədinə və ya
-// Vercel env-inə görə YOX). Gemini cavabı USD vermir — yalnız token sayı.
-//
-// NİYƏ `null` QAYTARILIR (0 YOX): qiymət bilinmirsə xərc BİLİNMİR. `0` yazmaq gündəlik
-// xərc tavanını (`DAILY_COST_CEILING_USD`) səssizcə yalan edərdi — `attempt_items.cost_usd`
-// `null` qalanda `sum()` onu ATLAYIR, sıfır kimi saymır, amma heç olmasa yalan hesabat vermir.
-export function computeCostUsd(usage: LLMUsage | null, modelId: string): number | null {
+function finiteNum(v: unknown): number | undefined {
+  return typeof v === "number" && Number.isFinite(v) ? v : undefined;
+}
+
+// Provayder USD göndəribsə (OpenRouter `usage.cost`) onu götür. Gemini göndərmir.
+export function providerReportedCostUsd(usage: LLMUsage): number | null {
+  const billed = finiteNum(usage.cost_usd) ?? finiteNum(usage.cost);
+  return billed !== undefined && billed >= 0 ? billed : null;
+}
+
+// Google: düşünmə tokeni çıxış tarifindədir. Gemini-nin OpenAI qatı bunu tez-tez
+// `completion_tokens`-a QOYMUR — `total_tokens = prompt + completion + thoughts`.
+// `total - prompt` həm görünən çıxışı, həm düşünməni tutur; `total ≈ prompt+completion`
+// olanda düşünmə artıq completion-dadır, iki dəfə sayılmır.
+export function billableOutputTokens(usage: LLMUsage | null): number | null {
   if (!usage) return null;
+  const prompt = usage.prompt_tokens ?? 0;
+  const completion = usage.completion_tokens ?? 0;
+  const total = usage.total_tokens;
+  const reasoning = usage.completion_tokens_details?.reasoning_tokens ?? usage.thoughts_token_count ?? 0;
+  if (total !== undefined && total >= prompt) return Math.max(0, total - prompt);
+  // OpenAI: reasoning_tokens completion-un alt çoxluğudur. Gemini OpenAI qatı
+  // (total yoxdursa) thinking-i ayrıca saxlayır. completion ≥ reasoning → alt çoxluq.
+  if (reasoning > 0 && completion >= reasoning) return completion;
+  return completion + reasoning;
+}
+
+export function billablePromptTokens(usage: LLMUsage | null): number | null {
+  if (!usage) return null;
+  return usage.prompt_tokens ?? 0;
+}
+
+// ADR-022/027/028: tarif registridən. Cavab USD vermirsə token × tarif.
+//
+// NİYƏ `null` QAYTARILIR (0 YOX): qiymət bilinmirsə xərc BİLİNMİR. `0` yazmaq
+// `DAILY_COST_CEILING_USD` tavanını yalan edər.
+export function computeCostUsd(usage: LLMUsage | null, modelId: string): number | null {
+  const normalized = usage ? normalizeUsage(usage) ?? usage : null;
+  if (!normalized) return null;
+
+  const reported = providerReportedCostUsd(normalized);
+  if (reported !== null) return reported;
+
   const price = resolvePrice(modelId);
   if (!price) return null;
 
-  const promptTokens = usage.prompt_tokens ?? 0;
-  const completionTokens = usage.completion_tokens ?? 0;
-  return (promptTokens / 1_000_000) * price.inputPer1M + (completionTokens / 1_000_000) * price.outputPer1M;
+  const prompt = billablePromptTokens(normalized) ?? 0;
+  const output = billableOutputTokens(normalized) ?? 0;
+  return (prompt / 1_000_000) * price.inputPer1M + (output / 1_000_000) * price.outputPer1M;
 }
 
-// İki qatın xərcini birləşdirir. Hər ikisi `null`-dursa nəticə `null` (bilinmir),
-// biri məlumdursa məlum olan qaytarılır — `null`-u 0 kimi saymaq yalan hesabatdır.
 export function sumCostUsd(a: number | null, b: number | null): number | null {
   if (a === null && b === null) return null;
+  return (a ?? 0) + (b ?? 0);
+}
+
+export function sumTokens(a: number | null | undefined, b: number | null | undefined): number | null {
+  if (a == null && b == null) return null;
   return (a ?? 0) + (b ?? 0);
 }
