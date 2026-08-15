@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (119) · Cursor → Cowork
+
+Etdim:    Dəvət kodu qapıda yoxlanır — `POST /api/invite/check` (`checkInviteCode`, redeem yox). `InviteGate` yalnız 200-də localStorage-a yazır; səhv/şəbəkə `invite.invalid` / `invite.networkError`. Bank 403 indi `inviteError` göstərir (`bank/page.tsx`). Kamera gec 403 hələ `invalid` prop ilə qapıya qayıdır.
+Tapşırıq: `86eymrm6g` — dəvət kodu heç vaxt təsdiqlənmirdi, bank yolunda səssiz uğursuzluq.
+Diqqət:   `invite_redeemed` bu endpoint-də YAZILMIR. Telemetriya taksonomiyasına yeni ad düşmədi. Yeni defect (həll edilməyib): `86eyn1t7b` addımlar arası irəli/geri. Qızıl qayda növbəti: `86eymrkjn` ("Cavabı göstər").
+
 ## 2026-08-15 (118) · Cursor → Cowork
 
 Etdim:    HANDOFF 116 — həll ekranında `solution.canonical` defolt yığılmış (bir sətir + ellipsis), toxunanda açılır, addım dəyişəndə yenidən yığılır. `problem.expanded` (`step_index`) `TELEMETRY.md` funnel-inə və `SolveView`-a düşdü. Maket: `design/Həll ekranı v5.dc.html`. `check` input flex-shrink:0 + banner `maxHeight: min(22vh, 8.5rem)` — 480px-də açılınca yoxla sahəsi ekrandan itməsin.

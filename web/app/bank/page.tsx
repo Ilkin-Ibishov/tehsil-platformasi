@@ -35,6 +35,7 @@ export default function BankPage() {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>(() => (getStoredInviteCode() ? "loading" : "invite"));
   const [inviteCode, setInviteCode] = useState<string | null>(() => getStoredInviteCode());
+  const [inviteError, setInviteError] = useState(false);
   const [questions, setQuestions] = useState<BankQuestion[] | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<TopicGroup | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -48,7 +49,11 @@ export default function BankPage() {
       .then((res) => {
         if (res.status === 403) {
           clearStoredInviteCode();
-          if (!cancelled) setStage("invite");
+          if (!cancelled) {
+            setInviteError(true);
+            setInviteCode(null);
+            setStage("invite");
+          }
           return null;
         }
         return res.ok ? res.json() : Promise.reject(new Error(`http_${res.status}`));
@@ -90,6 +95,8 @@ export default function BankPage() {
       });
       if (res.status === 403) {
         clearStoredInviteCode();
+        setInviteError(true);
+        setInviteCode(null);
         setStage("invite");
         return;
       }
@@ -117,8 +124,10 @@ export default function BankPage() {
   if (stage === "invite") {
     return (
       <InviteGate
+        invalid={inviteError}
         onCode={(code) => {
           setInviteCode(code);
+          setInviteError(false);
           setStage("loading");
         }}
       />

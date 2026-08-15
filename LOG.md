@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-15: HANDOFF 119 — dəvət kodu qapıda yoxlanır (`/api/invite/check`, `InviteGate`, bank `inviteError`). ClickUp `86eymrm6g`.
 - 2026-08-15: HANDOFF 116 — həll ekranında yığılmış sual mətni + `problem.expanded`. `SolveView.tsx`, `TELEMETRY.md`, `Həll ekranı v5.dc.html`.
 - 2026-08-15: Cursor masa — `AGENTS.md` + `.cursor/` (qayda/skill/agent/hook). HANDOFF indeksdən çıxarıldı ki, köhnə bloklar "cari vəziyyət" olmasın.
 

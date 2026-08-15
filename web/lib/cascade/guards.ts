@@ -14,6 +14,7 @@ export const DAILY_LIMIT = 30;
 export type InviteCheck = { ok: true; studentRef: string } | { ok: false };
 
 // `INVITE_CODES` (vergüllə ayrılmış, ADR-012) — sinxron, DB toxunmur.
+// Qapı yoxlaması: `POST /api/invite/check` (86eymrm6g). Redeem BURADA deyil.
 export function checkInviteCode(inviteCode: unknown): InviteCheck {
   const validCodes = new Set(
     (process.env.INVITE_CODES ?? "")

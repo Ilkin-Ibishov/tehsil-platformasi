@@ -39,27 +39,19 @@ All in `web/components/hell/SolveView.tsx` unless noted. Full detail in
    `scrollHeight === innerHeight` exactly). Fixed: `paddingBottom: max(16px,
    env(safe-area-inset-bottom))` on `web/app/page.tsx`'s `<main>`.
 
+## Fixed (2026-08-15, ClickUp 86eymrm6g — code, not live-browser re-verified)
+
+9. **Invite code never validated at the invite gate.** `InviteGate` now `POST`s
+   `/api/invite/check` (`checkInviteCode`, no redemption write) and only stores the
+   code on 200. Wrong code shows `invite.invalid` (`role="alert"`) and does not
+   advance. `bank/page.tsx` sets `inviteError` on 403 (list and start) and passes
+   `invalid` into the gate — the silent blank-form return is gone. Kamera late-403
+   still returns to the gate with `invalid={true}` for stale stored codes.
+
 ## Found, NOT yet fixed (2026-08-14, found while validating this skill — report, don't
 re-discover)
 
-9. **Invite code is never actually validated at the invite gate.**
-   `InviteGate.onCode` (`components/kamera/InviteGate.tsx`) stores whatever string was
-   typed and advances immediately — no client or server check at entry. The real check
-   only happens later, server-side, on the first API call that needs it:
-   - **Kamera flow**: a wrong code survives all the way through camera permission,
-     capture, and crop, and only fails at `/api/solve`'s 403 — at which point
-     `kamera/page.tsx` does show `t("inviteInvalid")` ("Dəvət kodu düzgün deyil"), but
-     only after the student has invested the whole capture flow.
-   - **Bank flow**: strictly worse — `bank/page.tsx`'s `useEffect` handles the 403 by
-     calling `clearStoredInviteCode()` and `setStage("invite")` with **no error state
-     set at all** (confirmed live: submitting a wrong code silently returns to the
-     exact same blank invite form, no message, indistinguishable from the button
-     having done nothing). There is no `inviteError`-equivalent state in
-     `bank/page.tsx` the way there is in `kamera/page.tsx`.
-   Heuristics violated: #1 (visibility of system status — the failure is invisible on
-   the bank path), #5 (error prevention — should fail fast at entry, not after a whole
-   flow). Severity 🟠 Serious on kamera (late but eventually clear), arguably closer to
-   🔴 on bank (silent, looks broken, no path forward stated to the student).
+(Item 9 — invite gate — moved to Fixed 2026-08-15.)
 
 ## Deliberately not covered (documented decisions, not gaps to re-flag)
 
@@ -103,11 +95,10 @@ live-browser-verified)
     remaining steps, with THIS button reserved for the true give-up case.
 
 **Re-confirmed still present (live-verified again this pass, not re-fixed):**
-- Item 9 above (invite code never validated at the gate) — both the kamera 403-after-
-  full-capture-flow path and the bank silent-return-to-blank-form path reproduced
-  exactly as described. Network trace for the bank case:
-  `GET /api/bank/questions?invite_code=totally-wrong-code → 403`, then UI returns to
-  the identical blank `Dəvət kodu` form, no error text rendered anywhere in the DOM.
+- Item 9 was still present on 2026-08-14; it was fixed in code on 2026-08-15
+  (ClickUp 86eymrm6g). Do not re-report the silent bank 403 or unvalidated gate
+  submit. Live-browser re-verification of the new `/api/invite/check` path is
+  still open.
 
 **Confirmed still fixed (re-verified, no regression):** items 1, 6, 8 from the list
 above — "Növbəti addım" disabled with no/incorrect answer, `inputMode="decimal"` present
@@ -135,10 +126,10 @@ on the step-answer input, home-screen bottom padding present at 360×640.
 ## Not yet audited at all (the actual frontier — start here on the next pass)
 
 - **Invite gate copy/tone and whether the PWA-install hint appears at the right
-  moment** — the error-state bug itself is now documented (item 9), but nobody has
-  judged whether showing the PWA hint immediately on first gate view (before the
-  student has gotten any value yet) is the right moment, or whether it should appear
-  later (e.g. after a first successful solve).
+  moment** — the error-state bug is fixed (item 9, 2026-08-15); nobody has judged
+  whether showing the PWA hint immediately on first gate view (before the student
+  has gotten any value yet) is the right moment, or whether it should appear later
+  (e.g. after a first successful solve).
 - **Invite gate accessibility**: input has no `aria-label` (placeholder-only label,
   a known a11y antipattern — text disappears once typing starts) and no `autoFocus`
   (student must tap the field before typing). Neither confirmed as a real problem for

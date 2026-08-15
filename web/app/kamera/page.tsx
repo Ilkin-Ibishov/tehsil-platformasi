@@ -520,20 +520,14 @@ export default function KameraPage() {
 
   if (stage === "invite") {
     return (
-      <>
-        {inviteError && (
-          <p style={{ color: "var(--warn)", padding: "8px var(--page-pad-x) 0", margin: 0, fontSize: 13 }}>
-            {t("inviteInvalid")}
-          </p>
-        )}
-        <InviteGate
-          onCode={(code) => {
-            setInviteCode(code);
-            setInviteError(false);
-            setStage("capture");
-          }}
-        />
-      </>
+      <InviteGate
+        invalid={inviteError}
+        onCode={(code) => {
+          setInviteCode(code);
+          setInviteError(false);
+          setStage("capture");
+        }}
+      />
     );
   }
 

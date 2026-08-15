@@ -33,7 +33,6 @@
     "doneTitle": "Bir şey alınmadı",
     "doneBody": "Bağlantıda problem oldu. Yenidən cəhd et.",
     "doneHome": "Ana ekrana qayıt",
-    "inviteInvalid": "Dəvət kodu düzgün deyil. Yenidən yoxla.",
     "refusedTitle": "Bu şəkli oxuya bilmədim",
     "refusedBody": "Kəsmə çərçivəsini dəyişib yenidən sına.",
     "refusedRetake": "Yenidən kəs",
@@ -61,6 +60,9 @@
     "body": "Bu, sənə fərdi verilmiş koddur — sənə müəllimin/valideynin verib.",
     "placeholder": "Kodu bura yaz",
     "submit": "Davam et",
+    "checking": "yoxlanır…",
+    "invalid": "Dəvət kodu düzgün deyil. Yenidən yoxla.",
+    "networkError": "Şəbəkə xətası — kod yoxlanıla bilmədi. Yenidən cəhd et.",
     "pwaHint": "Növbəti dəfə tez açmaq üçün: brauzer menyusundan \"Ana ekrana əlavə et\" seç."
   },
   "hell": {
