@@ -114,6 +114,14 @@ solve.timeout                  props: {timeout_ms}             ← server yazır
                                                                    LLM çağırışı ~45 san-da kəsildi,
                                                                    klient solve.failed görür, bura
                                                                    server-tərəfli SƏBƏB üçündür
+
+problem.expanded               props: {step_index}             ← HANDOFF 116: həll ekranında
+                                                                   yığılmış sual mətni açıldı.
+                                                                   Tezlik Qat 1 / transkripsiya
+                                                                   keyfiyyətinin proxy-sidir
+                                                                   (`transcript.corrected`,
+                                                                   `solution.reported_wrong`
+                                                                   ilə korrelyasiya — ADR-025)
 ```
 
 `match_path` (`hash`/`fingerprint`/`embedding`/`llm`) → **S6-nın əsas metrikası**.

@@ -70,6 +70,11 @@
       "stage3": "addımlar qurulur",
       "stage4": "az qaldı"
     },
+    "problem": {
+      "label": "SUAL",
+      "expand": "məsələni aç",
+      "collapse": "məsələni yığ"
+    },
     "step": {
       "counter": "ADDIM {index} / {total}",
       "inputPlaceholder": "cavabın",

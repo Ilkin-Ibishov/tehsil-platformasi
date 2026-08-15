@@ -48,12 +48,21 @@
     <span style="height: var(--zolaq, 6px); border-radius: 99px; flex: 1; transition: background 380ms cubic-bezier(0.16,1,0.3,1); background: {{ p4 }};"></span>
   </div>
 
-  <div style="margin: 20px 20px 0; padding: 14px 16px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); display: flex; align-items: baseline; gap: 12px; transition: background 260ms ease, border-color 260ms ease;">
-    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3); flex-shrink: 0;">SUAL</span>
+  <div style="margin: 12px 20px 0; padding: 12px 16px; border: 1px solid var(--bor); border-radius: var(--rad); background: var(--sur); display: flex; align-items: flex-start; gap: 12px; transition: background 260ms ease, border-color 260ms ease;">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3); flex-shrink: 0; padding-top: 14px;">SUAL</span>
     <sc-if value="{{ ocrNormal }}" hint-placeholder-val="{{ true }}">
-      <div style="flex: 1; min-width: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
-        <span data-tex="x^2 - 5x + 6 = 0" style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--t1);">x² − 5x + 6 = 0</span>
-        <button type="button" onClick="{{ duzelisAc }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; white-space: nowrap; border-bottom: 1px solid var(--bor);">düzəliş</button>
+      <div style="flex: 1; min-width: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+        <sc-if value="{{ sualYigilmis }}" hint-placeholder-val="{{ true }}">
+          <button type="button" onClick="{{ sualAc }}" aria-expanded="false" style="flex: 1; min-width: 0; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t1); font-family: 'JetBrains Mono', monospace; font-size: 16px; line-height: 1.45; cursor: pointer; text-align: left; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow-wrap: anywhere;">
+            <span data-tex="x^2 - 5x + 6 = 0">x² − 5x + 6 = 0</span>
+          </button>
+        </sc-if>
+        <sc-if value="{{ sualAcik }}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{ sualAc }}" aria-expanded="true" style="flex: 1; min-width: 0; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t1); font-family: 'JetBrains Mono', monospace; font-size: 16px; line-height: 1.45; cursor: pointer; text-align: left; white-space: normal; overflow-wrap: anywhere; max-height: min(22vh, 8.5rem); overflow-y: auto; overflow-x: hidden;">
+            <span data-tex="x^2 - 5x + 6 = 0">x² − 5x + 6 = 0</span>
+          </button>
+        </sc-if>
+        <button type="button" onClick="{{ duzelisAc }}" style="min-height: 44px; padding: 0; border: none; background: transparent; color: var(--t2); font-family: inherit; font-size: 14px; cursor: pointer; white-space: nowrap; border-bottom: 1px solid var(--bor); flex-shrink: 0;">düzəliş</button>
       </div>
     </sc-if>
     <sc-if value="{{ ocrDuzelis }}" hint-placeholder-val="{{ false }}">
@@ -484,7 +493,7 @@ const TON = {
 };
 
 class Component extends DCLogic {
-  state = { addim: 0, enCox: 0, cavab: false, duzelis: false, niye: null, token: null,
+  state = { addim: 0, enCox: 0, cavab: false, duzelis: false, niye: null, token: null, sualAcik: false,
     yazi: ['', '', '', ''], netice: [null, null, null, null],
     oxsarYazi: '', oxsarNetice: null, saniye: 30, saatIsleyir: false, danisir: false };
 
@@ -565,13 +574,13 @@ class Component extends DCLogic {
     const sesli = (this.props.sesliOxu ?? true) && typeof window !== 'undefined' && !!this.azSesi();
     const istifade = Math.max(0, Math.min(5, this.props.gunlukLimit ?? 3));
     const qalan = 5 - istifade;
-    const { addim, cavab, duzelis, niye, token, netice, saniye, saatIsleyir, danisir, oxsarNetice } = this.state;
+    const { addim, cavab, duzelis, niye, token, netice, saniye, saatIsleyir, danisir, oxsarNetice, sualAcik } = this.state;
     const canli = veziyyet === 'normal';
     const son = 3;
     const enCox = Math.max(this.state.enCox || 0, addim, cavab ? son : 0);
     const rengi = i => (i === addim && !cavab ? t.t1 : i <= enCox ? t.acc : t.lentBos);
     const zolaq = i => (i <= enCox ? t.acc : t.zolaqBos);
-    const git = i => () => { if (i <= enCox) this.setState({ addim: i, cavab: false, enCox, token: null, niye: null }); };
+    const git = i => () => { if (i <= enCox) this.setState({ addim: i, cavab: false, enCox, token: null, niye: null, sualAcik: false }); };
     const tk = ADDIMLAR[addim] ? ADDIMLAR[addim].tokenler : {};
 
     const vals = {
@@ -615,11 +624,14 @@ class Component extends DCLogic {
       t3Gorunur: addim === 2 && !!tk[token], t3Metni: tk[token] || '',
       novbeti: () => this.setState(s => {
         const n = Math.min(son, s.addim + 1);
-        return { addim: n, enCox: Math.max(s.enCox || 0, n), token: null, niye: null };
+        return { addim: n, enCox: Math.max(s.enCox || 0, n), token: null, niye: null, sualAcik: false };
       }),
-      cavabiGoster: () => { this.setState({ cavab: true, enCox: son, token: null, niye: null }); this.saatiBaslat(); },
-      sifirla: () => { clearInterval(this._i); this.setState({ addim: 0, enCox: 0, cavab: false, duzelis: false, niye: null, token: null, yazi: ['', '', '', ''], netice: [null, null, null, null], oxsarYazi: '', oxsarNetice: null, saniye: 30, saatIsleyir: false }); },
+      cavabiGoster: () => { this.setState({ cavab: true, enCox: son, token: null, niye: null, sualAcik: false }); this.saatiBaslat(); },
+      sifirla: () => { clearInterval(this._i); this.setState({ addim: 0, enCox: 0, cavab: false, duzelis: false, niye: null, token: null, sualAcik: false, yazi: ['', '', '', ''], netice: [null, null, null, null], oxsarYazi: '', oxsarNetice: null, saniye: 30, saatIsleyir: false }); },
       duzelisAc: () => this.setState({ duzelis: true }),
+      sualAc: () => this.setState(s => ({ sualAcik: !s.sualAcik })),
+      sualAcik: !!sualAcik,
+      sualYigilmis: !sualAcik,
       oxsarSual: oxsarNetice === null,
       oxsarDogru: oxsarNetice === true,
       oxsarSehv: oxsarNetice === false,

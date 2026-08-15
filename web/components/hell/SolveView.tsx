@@ -107,6 +107,91 @@ async function checkTransferAnswer(attemptId: string, transferProblemId: string,
 
 type TransferState = "loading" | "shown" | "checking" | "answered" | "unavailable" | "error";
 
+// HANDOFF 116: həll ekranında canonical — defolt bir sətir, toxunanda açılır.
+// `whiteSpace: nowrap` + `overflowX: auto` YOX (4036f91): kəsilmiş düstur görünməz qalırdı.
+// Yığılmış hal `-webkit-line-clamp: 1` (ellipsis). Açılmış hal `overflowWrap: anywhere`
+// və `maxHeight` — uzun söz məsələsi `check` input-unu 480px-də ekranın altına itələməsin.
+function ProblemBanner({
+  text,
+  expanded,
+  onToggle,
+  label,
+  expandLabel,
+  collapseLabel,
+}: {
+  text: string;
+  expanded: boolean;
+  onToggle: () => void;
+  label: string;
+  expandLabel: string;
+  collapseLabel: string;
+}) {
+  if (!text.trim()) return null;
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={expanded}
+      aria-label={expanded ? collapseLabel : expandLabel}
+      style={{
+        margin: "12px var(--page-pad-x) 0",
+        padding: "12px 16px",
+        border: "1px solid var(--bor)",
+        borderRadius: "var(--rad)",
+        background: "var(--sur)",
+        display: "flex",
+        alignItems: expanded ? "flex-start" : "center",
+        gap: 12,
+        width: "calc(100% - 2 * var(--page-pad-x))",
+        boxSizing: "border-box",
+        textAlign: "left",
+        cursor: "pointer",
+        minHeight: 44,
+        fontFamily: "inherit",
+        color: "inherit",
+        flexShrink: 0,
+      }}
+    >
+      <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.1em", color: "var(--t3)", flexShrink: 0 }}>
+        {label}
+      </span>
+      <span
+        style={
+          expanded
+            ? {
+                flex: 1,
+                minWidth: 0,
+                fontFamily: "var(--font-mono)",
+                fontSize: 16,
+                lineHeight: 1.45,
+                color: "var(--t1)",
+                whiteSpace: "normal",
+                overflowWrap: "anywhere",
+                maxHeight: "min(22vh, 8.5rem)",
+                overflowY: "auto",
+                overflowX: "hidden",
+              }
+            : {
+                flex: 1,
+                minWidth: 0,
+                fontFamily: "var(--font-mono)",
+                fontSize: 16,
+                lineHeight: 1.45,
+                color: "var(--t1)",
+                overflowWrap: "anywhere",
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 1,
+                overflow: "hidden",
+              }
+        }
+      >
+        {text}
+      </span>
+    </button>
+  );
+}
+
 export function SolveView({
   solution,
   attemptId,
@@ -137,6 +222,7 @@ export function SolveView({
   const [transferProblem, setTransferProblem] = useState<TransferProblem | null>(null);
   const [transferInput, setTransferInput] = useState("");
   const [transferCorrect, setTransferCorrect] = useState<boolean | null>(null);
+  const [problemExpanded, setProblemExpanded] = useState(false);
   const solveStartedAt = useRef(Date.now());
   const shownSteps = useRef<Set<number>>(new Set());
   const transferShownAt = useRef<number>(0);
@@ -144,6 +230,18 @@ export function SolveView({
 
   const currentStep = steps[stepIndex];
   const currentAnswer = answers[stepIndex] ?? { input: "", status: "idle" as StepStatus, attemptNo: 0, startedAt: Date.now() };
+  const formattedCanonical = useMemo(() => formatMath(solution.canonical ?? ""), [solution.canonical]);
+
+  useEffect(() => {
+    setProblemExpanded(false);
+  }, [stepIndex]);
+
+  function toggleProblem() {
+    if (!problemExpanded) {
+      trackEvent("problem.expanded", { step_index: currentStep?.index ?? stepIndex });
+    }
+    setProblemExpanded((open) => !open);
+  }
 
   // SYSTEM-REVIEW-2026-08-07 §A1: son addıma çatmadan bu ekran sökülürsə (geri, "yeni sual
   // çək" ADƏTƏN sökmür amma naviqasiya edə bilər, tab bağlama) — `abandoned_at_step` bunu
@@ -543,8 +641,8 @@ export function SolveView({
   }
 
   return (
-    <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-      <div style={{ display: "flex", gap: 4, padding: "0 var(--page-pad-x) 0" }}>
+    <main style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+      <div style={{ display: "flex", gap: 4, padding: "0 var(--page-pad-x) 0", flexShrink: 0 }}>
         {steps.map((s) => (
           <span
             key={s.index}
@@ -559,7 +657,16 @@ export function SolveView({
         ))}
       </div>
 
-      <div style={{ flex: 1, padding: "24px 0", display: "flex", flexDirection: "column", gap: 16 }}>
+      <ProblemBanner
+        text={formattedCanonical}
+        expanded={problemExpanded}
+        onToggle={toggleProblem}
+        label={t("problem.label")}
+        expandLabel={t("problem.expand")}
+        collapseLabel={t("problem.collapse")}
+      />
+
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "24px 0", display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ padding: "0 var(--page-pad-x)", display: "grid", rowGap: 6 }}>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.1em", color: "var(--acc)" }}>
             {t("step.counter", { index: stepIndex + 1, total })}
@@ -595,8 +702,9 @@ export function SolveView({
             {formatMath(currentStep.latex)}
           </div>
         )}
+      </div>
 
-        <div style={{ padding: "0 var(--page-pad-x)", display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ padding: "0 var(--page-pad-x) 12px", display: "flex", flexDirection: "column", gap: 12, flexShrink: 0 }}>
           {currentAnswer.status !== "correct" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <span style={{ fontSize: 14, lineHeight: 1.6 }}>{currentStep.check.ask}</span>
@@ -743,9 +851,8 @@ export function SolveView({
             </button>
           </div>
         </div>
-      </div>
 
-      <div style={{ position: "sticky", bottom: 0, background: "var(--bg)", borderTop: "1px solid var(--bor)", padding: "10px var(--page-pad-x) 20px" }}>
+      <div style={{ position: "sticky", bottom: 0, background: "var(--bg)", borderTop: "1px solid var(--bor)", padding: "10px var(--page-pad-x) 20px", flexShrink: 0 }}>
         <button
           type="button"
           onClick={advance}
