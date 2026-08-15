@@ -79,7 +79,8 @@
       "errorRecorded": "hesabatına yazıldı",
       "retry": "yenidən yaz",
       "networkError": "Şəbəkə xətası — cavabın yoxlanıla bilmədi. Yenidən cəhd et.",
-      "abandon": "Bu addımı başa düşmədim →",
+      "needHint": "Bu addımı başa düşmədim",
+      "hintLabel": "İpucu",
       "next": "Növbəti addım",
       "showAnswer": "Cavabı göstər"
     },

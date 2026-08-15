@@ -127,6 +127,7 @@ export function SolveView({
 
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, StepAnswerState>>({});
+  const [hintOpen, setHintOpen] = useState<Record<number, boolean>>({});
   const [revealed, setRevealed] = useState(false);
   const [revealing, setRevealing] = useState(false);
   const [revealError, setRevealError] = useState(false);
@@ -292,9 +293,16 @@ export function SolveView({
     }));
   }
 
-  function abandonStep() {
-    trackEvent("step.abandoned", { index: stepIndex, total });
-    advance();
+  // UX düzəlişi (Ilkin-in tapşırığı, 2026-08-15): əvvəllər bu düymə "Bu addımı başa düşmədim"
+  // etiketi ilə şagirdi SƏSSİZCƏ növbəti addıma keçirirdi (`advance()`) — düymənin adı izah
+  // vəd edir, davranışı isə pas keçirdi. İndi addımda QALIR, `currentStep.hint`-i göstərir.
+  // `step.hint_opened` `docs/TELEMETRY.md`-də ARTIQ TƏSVİR OLUNMUŞDU (sətir 142) amma heç vaxt
+  // atılmırdı — kod indi mövcud taksonomiyanı tamamlayır, yenisini yaratmır. Faktiki "pas keç"
+  // yolu "Cavabı göstər" düyməsidir (aşağıda) — `step.abandoned` artıq buradan ATILMIR, çünki
+  // bu düymə artıq addımı tərk etdirmir.
+  function openHint() {
+    if (!hintOpen[stepIndex]) trackEvent("step.hint_opened", { index: stepIndex });
+    setHintOpen((prev) => ({ ...prev, [stepIndex]: true }));
   }
 
   // HANDOFF (49) §3d: "Cavabı göstər" indi HƏR addımdan çağırıla bilər (ilişmiş şagirdin çıxış
@@ -638,6 +646,12 @@ export function SolveView({
                   {currentAnswer.status === "checking" ? t("step.checking") : t("step.check")}
                 </button>
               </div>
+              {hintOpen[stepIndex] && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "12px 16px", borderRadius: "var(--rad)", background: "var(--sur)", border: "1px solid var(--bor)" }}>
+                  <span style={{ fontSize: 12, color: "var(--t3)" }}>{t("step.hintLabel")}</span>
+                  <span style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>{currentStep.hint}</span>
+                </div>
+              )}
             </div>
           )}
 
@@ -701,13 +715,15 @@ export function SolveView({
           )}
 
           <div style={{ display: "flex", gap: 20 }}>
-            <button
-              type="button"
-              onClick={abandonStep}
-              style={{ alignSelf: "flex-start", minHeight: 44, padding: 0, border: "none", background: "transparent", color: "var(--t2)", fontFamily: "inherit", fontSize: 14, cursor: "pointer" }}
-            >
-              {t("step.abandon")}
-            </button>
+            {currentAnswer.status !== "correct" && !hintOpen[stepIndex] && (
+              <button
+                type="button"
+                onClick={openHint}
+                style={{ alignSelf: "flex-start", minHeight: 44, padding: 0, border: "none", background: "transparent", color: "var(--t2)", fontFamily: "inherit", fontSize: 14, cursor: "pointer" }}
+              >
+                {t("step.needHint")}
+              </button>
+            )}
             {/* HANDOFF (49) §3d: ilişmiş şagird üçün HƏR addımdan çıxış yolu — sonuncu addıma
                 qədər gözləmək məcburi deyil. `reveal()` `completed`/`abandoned_at_step`-i çağırış
                 anındakı addımdan düzgün hesablayır (bax yuxarı şərh). */}
