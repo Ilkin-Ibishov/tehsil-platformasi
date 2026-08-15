@@ -2,6 +2,10 @@
 
 > Claude Code üçün əsas sənəd. `CLAUDE.md` → `HANDOFF.md` → **bura**.
 > Sprintlər ardıcıldır. Hər biri **telefonda işləyən** nəticə ilə bitir və deploy olunur.
+>
+> **2026-08-15:** məhsul dilimi canlıdır. Növbəti faza ölçməni avtomatlaşdırır —
+> `docs/PHASE-2.md` (Korpus soak). Bu sənədin 20 şagird qapısı **insan** qapısı olaraq
+> qalır; Faza 2 onu əvəz etmir.
 
 ## Məqsəd
 

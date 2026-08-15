@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-15: HANDOFF 125 — Faza 2 planı (Korpus soak) `docs/PHASE-2.md`.
 - 2026-08-15: HANDOFF 124 — `cost_usd` düşünmə tokeni daxil (`ADR-028`); Gemini USD göndərmir. ClickUp `86eymrm8j`.
 - 2026-08-15: HANDOFF 123 — LLM tarifi yalnız registridə (`ADR-027`), Vercel PRICE env silindi. ClickUp `86eymrm8j`.
 - 2026-08-15: HANDOFF 122 — Qat 1 `active_transcribe_model` ucuz modelə (registri + `0064`). ClickUp `86eykqb1c`.

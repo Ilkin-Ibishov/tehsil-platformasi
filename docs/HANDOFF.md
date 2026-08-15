@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (125) · Cursor → Cowork
+
+Etdim:    Faza 2 planı `docs/PHASE-2.md` — Korpus soak. DİM PDF kəsimi lokal skript (Cursor vision yox), app qalereya yükləməsi, Playwright axını, ChatGPT avtomat servisi yalnız soak adapter (`ADR-029` yazılacaq). Şagird Gemini yolu toxunulmur.
+Tapşırıq: plan (ClickUp siyahısı hələ yoxdur).
+Diqqət:   20 şagird retensiyası bu fazanın qapısı deyil. Soak `cost_usd=0` yazılmasın. API açarı Tehsil repo-ya düşməsin. `Cloud_Server_AI` OpenAI-uyğun deyil, 5/dəq, növbə 10.
+
 ## 2026-08-15 (124) · Cursor → Cowork
 
 Etdim:    `cost_usd` best practice (`ADR-028`): cavabda USD varsa onu yaz (OpenRouter `usage.cost`); Gemini-də yoxdur, ona görə token × registri. Düşünmə `total_tokens - prompt_tokens` ilə çıxış tarifində sayılır — köhnə `completion_tokens`-only vurma onları atlayırdı. Eval `cost.py` eyni qayda.
