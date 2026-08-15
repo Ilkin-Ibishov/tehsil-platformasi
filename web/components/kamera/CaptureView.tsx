@@ -17,6 +17,12 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
   const t = useTranslations("kamera");
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  // "qalereya" — `messages/az.json`-da tərcümə açarı MÖVCUD İDİ, amma heç yerə bağlanmamışdı
+  // (ölü i18n açarı). Kamera (`getUserMedia`) uğursuz olan hər hal üçün real fallback —
+  // istifadəçi mövcud şəkli seçə bilir, `capture=environment` mobil brauzerlərdə birbaşa
+  // kameranı da açır (native "foto çək / qalereyadan seç" seçici). `stage`-dən ASILI DEYİL —
+  // "not-supported"/"permission-denied" hallarında da işləyir, çünki fərqli API-dir.
+  const fileInputRef = useRef<HTMLInputElement>(null);
   // Defolt "requesting" — dəstək yoxlaması (`navigator.mediaDevices`) YALNIZ effektdə (client-only)
   // aparılır. lazy useState initializer-də aparılsaydı, Next.js-in server-render keçidində
   // `navigator` olmadığı üçün "not-supported" server HTML-ə bişib qalır və hidratasiyadan sonra
@@ -132,6 +138,39 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
     onCancel(stage);
   }
 
+  // Fayldan (qalereya/faylı seç) götürülən şəkli EYNİ `Captured` formasına salır ki, aşağıdakı
+  // kəsmə/həll axını kameradan gələn kadrla FƏRQLƏNDİRMƏSİN — yeganə fərq mənbədir.
+  function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // eyni faylı təkrar seçəndə də `onChange` işə düşsün
+    if (!file) return;
+
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      URL.revokeObjectURL(url);
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0);
+      trackEvent("capture.photo_taken", {
+        px_w: canvas.width,
+        px_h: canvas.height,
+        bytes: file.size,
+        torch_used: false,
+        source: "gallery",
+      });
+      onCaptured({ canvas, width: canvas.width, height: canvas.height, torchUsed: false });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      trackEvent("capture.shutter_noop", { reason: "gallery_decode_failed" });
+    };
+    img.src = url;
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
       <div style={{ display: "grid", gridTemplateColumns: "44px 1fr 44px", alignItems: "center", padding: "12px 20px 0" }}>
@@ -193,7 +232,21 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
       </div>
 
       <div style={{ position: "sticky", bottom: 0, background: "var(--bg)", display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 16, padding: "18px 20px 26px" }}>
-        <span />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          style={{ justifySelf: "start", minHeight: 44, padding: 0, border: "none", background: "transparent", color: "var(--t2)", fontFamily: "inherit", fontSize: 14, cursor: "pointer" }}
+        >
+          {t("gallery")}
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFileSelected}
+          style={{ display: "none" }}
+        />
         <button
           type="button"
           onClick={shoot}

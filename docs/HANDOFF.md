@@ -15,6 +15,25 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (109) · Claude Code → Cowork
+
+**Etdim:** Ilkin-in "5+5" təkrar testi eyni köhnə (2-addımlı) nəticəni göstərdi — DB-də
+yoxladım: `persist.ts`-in `canonical_hash` dedup-u eyni `question_id`-i (əvvəlki, v9-prompt-lu)
+YENİDƏN İSTİFADƏ edir, prompt v10 düzəlişi TƏTBİQ OLUNMUR (bu, gözlənilən davranışdır —
+`step_answers` uyğunluğu üçün qəsdəndir, bax `persist.ts`-in "ADDIM/CAVAB UYĞUNLUĞU" şərhi).
+"5+15" (yeni canonical) düzgün 1 addımla gəldi — v10 İŞLƏYİR, sadəcə köhnə keş "donub".
+
+**Əlavə:** `CaptureView.tsx`-ə real qalereya/fayl seçimi düyməsi əlavə edildi (`messages/
+az.json`-dakı ölü `kamera.gallery` açarı İLK DƏFƏ bağlandı) — Ilkin-in tapşırığı: kamera
+olmayan mühitdə (bu sandbox) eyni app axınını fayl yükləməklə sınamaq. `input[type=file]
+accept="image/*" capture="environment"` — mobil brauzerlərdə native "çək/qalereya" seçicisini
+açır, bu sandboxda isə birbaşa fayl seçimidir. Kameranın ÖZÜ TOXUNULMADI, əlavə YALNIZ
+bir fallback yoludur (kamera uğursuz olanda da işləyir).
+
+**Diqqət:** production-a push edilib, canlı sınandı (aşağı bax).
+
+---
+
 ## 2026-08-15 (108) · Claude Code → Cowork
 
 **Etdim:** Ilkin-in birbaşa tapşırığı (BLİTZ, ADR-siz) — "yoxlama addımı istisnasız" qaydası
