@@ -50,6 +50,7 @@ export async function persistSolution(opts: {
   requestedSubject: string;
   locale: string;
   totalCostUsd: number | null;
+  attemptKind?: "photo_solve" | "corpus_soak";
 }): Promise<PersistResult> {
   const { pool, solution, transcript, sessionId } = opts;
 
@@ -77,6 +78,7 @@ export async function persistSolution(opts: {
         ocrSource: "vision_llm",
         stepsTotal: solution.steps.length,
         costUsd: opts.totalCostUsd,
+        kind: opts.attemptKind ?? "photo_solve",
       });
       await client.query("commit");
       return {
@@ -234,6 +236,7 @@ export async function persistSolution(opts: {
       ocrSource: "vision_llm",
       stepsTotal: servedSteps.length,
       costUsd: opts.totalCostUsd,
+      kind: opts.attemptKind ?? "photo_solve",
     });
 
     await client.query("commit");
@@ -274,12 +277,13 @@ async function insertAttempt(
     ocrSource: string;
     stepsTotal: number;
     costUsd: number | null;
+    kind: "photo_solve" | "corpus_soak";
   }
 ): Promise<string> {
   await client.query(
     `insert into attempts (id, device_id, student_ref, kind, started_at, client_created_at)
-     values ($1,$2,$3,'photo_solve',now(),now())`,
-    [opts.sessionId, opts.deviceId, opts.studentRef]
+     values ($1,$2,$3,$4,now(),now())`,
+    [opts.sessionId, opts.deviceId, opts.studentRef, opts.kind]
   );
   const itemId = randomUUID();
   await client.query(

@@ -15,6 +15,7 @@ import { interpretTranscript } from "./transcribe.ts";
 import { stripAccept, buildStepAnswerRows } from "./solve-text.ts";
 import { runCascade } from "./run.ts";
 import type { CascadeContext, LayerSolution, SolveLayer } from "./types.ts";
+import { SoakTransportError } from "../soak/adapter.ts";
 
 let fails = 0;
 
@@ -216,6 +217,26 @@ const r3 = await runCascade([declining, throwing], ctx);
 check("runCascade: heç bir qat cavab verməsə solution=null", [r3.solution, r3.declinedLayers], [
   null,
   ["bank_hash", "template:error"],
+]);
+
+const soakThrowing: SolveLayer = {
+  id: "llm_text",
+  run: async () => {
+    throw new SoakTransportError("soak auth", "auth");
+  },
+};
+try {
+  await runCascade([soakThrowing], ctx);
+  check("runCascade: SoakTransportError udulmur", "no-throw", "throw");
+} catch (err) {
+  check("runCascade: SoakTransportError udulmur", err instanceof SoakTransportError, true);
+}
+
+const soakLlm: SolveLayer = { id: "llm_text", run: async () => fakeSolution("llm_text") };
+const soakSkipBank = await runCascade([declining, answering, soakLlm], { ...ctx, useSoakAdapter: true });
+check("runCascade: soak yalnız llm_text (bank skip)", [soakSkipBank.solution?.layer, soakSkipBank.declinedLayers], [
+  "llm_text",
+  [],
 ]);
 
 console.log(fails === 0 ? "\nHAMISI KEÇDİ" : `\n${fails} TEST UĞURSUZ`);

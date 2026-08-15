@@ -7,6 +7,12 @@ import { finalizeOcrCapture, rejectOcrCapture } from "@/lib/cascade/ocr-capture"
 import { checkInviteCode, logEvent } from "@/lib/cascade/guards";
 import { sumCostUsd, billableOutputTokens } from "@/lib/cost";
 import type { Transcript } from "@/lib/cascade/types";
+import { soakGate } from "@/lib/soak/gate";
+import { attemptKindFor, llmAbortMs, usesSoakAdapter } from "@/lib/soak/mode";
+import { SoakTransportError } from "@/lib/soak/adapter";
+
+// ChatGPT soak 150s timeout + buffer (PHASE-2). Şagird çağırışı yenə ~45 san abort edir.
+export const maxDuration = 180;
 
 // POST /api/solve/finish — ClickUp 86eykj7x2 / ADR-020.
 //
@@ -77,6 +83,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ schema_version: 1, status: "rejected" }, { status: 200 });
   }
 
+  const soak = await soakGate(pool, invite.studentRef);
+  if (!soak.ok) {
+    return NextResponse.json({ error: soak.error }, { status: soak.status });
+  }
+
   const t = body.transcript;
   if (
     !t ||
@@ -106,7 +117,7 @@ export async function POST(req: NextRequest) {
   const transcribeLatencyMs = typeof body.transcribe_meta?.latency_ms === "number" ? body.transcribe_meta.latency_ms : 0;
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 45_000);
+  const timeoutId = setTimeout(() => controller.abort(), llmAbortMs(soak.mode));
   let solution;
   let declinedLayers: string[];
   try {
@@ -116,7 +127,14 @@ export async function POST(req: NextRequest) {
       requestedGrade: transcript.grade,
       requestedSubject: transcript.subject,
       signal: controller.signal,
+      useSoakAdapter: usesSoakAdapter(soak.mode),
     }));
+  } catch (err) {
+    if (err instanceof SoakTransportError) {
+      const error = err.reason === "auth" ? "soak_auth_expired" : "soak_unavailable";
+      return NextResponse.json({ error }, { status: 503 });
+    }
+    throw err;
   } finally {
     clearTimeout(timeoutId);
   }
@@ -145,6 +163,7 @@ export async function POST(req: NextRequest) {
     requestedSubject: transcript.subject,
     locale,
     totalCostUsd,
+    attemptKind: attemptKindFor(soak.mode),
   });
 
   if (!persisted.ok) {
@@ -176,6 +195,8 @@ export async function POST(req: NextRequest) {
     total_cost_usd: totalCostUsd,
     has_figure: transcript.hasFigure,
     ocr_confidence: transcript.ocrConfidence,
+    attempt_kind: attemptKindFor(soak.mode),
+    soak_provider: soak.mode.kind === "student" ? null : soak.mode.kind,
   });
 
   return NextResponse.json(

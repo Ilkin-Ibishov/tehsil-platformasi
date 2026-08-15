@@ -15,6 +15,7 @@ import { persistSolution } from "@/lib/cascade/persist";
 import { computePHash } from "@/lib/phash";
 import { writeOcrCapture, reserveCaptureId } from "@/lib/cascade/ocr-capture";
 import { uploadCaptureImages } from "@/lib/storage";
+import { isSoakInvite } from "@/lib/soak/mode";
 
 // POST /api/solve — S3 (docs/PHASE-1.md). Server qaydaları:
 // 1. verified=false həll istifadəçiyə göstərilmir → status:"unreadable".
@@ -208,6 +209,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_invite" }, { status: 403 });
   }
   const studentRef = inviteCode;
+
+  if (isSoakInvite(studentRef)) {
+    return NextResponse.json({ error: "soak_use_cascade" }, { status: 503 });
+  }
 
   // 1b) Dəvət açılışı (HANDOFF 81/82, S4/S5) — kodun bu (kod, cihaz) cütündə İLK dəfə
   // görüldüyünü qeyd edir. PK `(code, device_id)`-dir (0033) — `ON CONFLICT (code,

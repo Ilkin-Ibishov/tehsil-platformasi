@@ -133,6 +133,7 @@ export type CascadeContext = {
   requestedGrade: number;
   requestedSubject: string;
   signal?: AbortSignal;
+  useSoakAdapter?: boolean;
 };
 
 export type SolveLayer = {

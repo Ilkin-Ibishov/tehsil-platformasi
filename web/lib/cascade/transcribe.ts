@@ -16,6 +16,7 @@ import { computeCostUsd } from "../cost";
 import { validateTranscript } from "../verify/transcribe-schema";
 import { computePHash } from "../phash";
 import { getActiveTranscribeModel } from "../models";
+import { callSoakChat, SoakTransportError } from "../soak/adapter";
 import type { Refusal, Transcript, Candidate } from "./types";
 
 // Qat 1 model ID `getActiveTranscribeModel` — DB `active_transcribe_model` (ADR-023).
@@ -110,6 +111,8 @@ export async function transcribe(opts: {
   subject: string;
   locale: string;
   signal?: AbortSignal;
+  useSoakAdapter?: boolean;
+  skipImageCache?: boolean;
 }): Promise<TranscribeOutcome> {
   const { pool, imageHash, selectedLabel } = opts;
   const cacheKey = cacheKeyForTranscript(selectedLabel);
@@ -128,15 +131,18 @@ export async function transcribe(opts: {
 
   // --- Keş: eyni foto TƏKRAR gəlsə (bayt-bayt) VƏ ya VİZUAL OXŞAR gəlsə (pHash Hamming ≤5)
   // vision çağırışı ATLANIR. Keş `private`-dədir, yalnız RPC ilə əlçatandır.
-  const cached = await pool
-    .query<{ reveal_cached_solve: RawTranscript | null }>(
-      `select app.reveal_cached_solve($1, $2, $3) as reveal_cached_solve`,
-      [imageHash, cacheKey, imagePhash]
-    )
-    .catch((err) => {
-      console.error("[cascade/transcribe] keş oxuma xətası:", err);
-      return null;
-    });
+  // Soak (ADR-029) keşi ATLAYIR — şagird Gemini nəticəsi ChatGPT ölçməsini korlamasın.
+  const cached = opts.skipImageCache
+    ? null
+    : await pool
+        .query<{ reveal_cached_solve: RawTranscript | null }>(
+          `select app.reveal_cached_solve($1, $2, $3) as reveal_cached_solve`,
+          [imageHash, cacheKey, imagePhash]
+        )
+        .catch((err) => {
+          console.error("[cascade/transcribe] keş oxuma xətası:", err);
+          return null;
+        });
 
   const cachedRaw = cached?.rows[0]?.reveal_cached_solve ?? null;
   if (cachedRaw) {
@@ -166,15 +172,26 @@ export async function transcribe(opts: {
     if (opts.signal?.aborted) break;
     let result;
     try {
-      result = await callVisionLLM({
-        systemPrompt: system,
-        userPrompt,
-        imageBase64,
-        imageMime: opts.imageMime,
-        model,
-        signal: opts.signal,
-      });
+        if (opts.useSoakAdapter) {
+          result = await callSoakChat({
+            systemPrompt: system,
+            userPrompt,
+            imageBase64,
+            imageMime: opts.imageMime,
+            signal: opts.signal,
+          });
+        } else {
+          result = await callVisionLLM({
+            systemPrompt: system,
+            userPrompt,
+            imageBase64,
+            imageMime: opts.imageMime,
+            model,
+            signal: opts.signal,
+          });
+        }
     } catch (err) {
+      if (err instanceof SoakTransportError) throw err;
       if (opts.signal?.aborted) break;
       console.error(`[cascade/transcribe] LLM çağırışı xətası (cəhd ${call}):`, err);
       continue;
@@ -202,10 +219,12 @@ export async function transcribe(opts: {
   }
 
   // Keşə YAZ — imtinalar da keşlənir (qəsdən): eyni bulanıq şəkil təkrar gəlsə ikinci dəfə
-  // pul ödəməyə səbəb yoxdur, cavab dəyişməyəcək.
-  await pool
-    .query(`select app.store_cached_solve($1, $2, $3::jsonb, $4)`, [imageHash, cacheKey, JSON.stringify(raw), imagePhash])
-    .catch((err) => console.error("[cascade/transcribe] keş yazı xətası:", err));
+  // pul ödəməyə səbəb yoxdur, cavab dəyişməyəcək. Soak yazmır (ölçməni donmasın).
+  if (!opts.skipImageCache) {
+    await pool
+      .query(`select app.store_cached_solve($1, $2, $3::jsonb, $4)`, [imageHash, cacheKey, JSON.stringify(raw), imagePhash])
+      .catch((err) => console.error("[cascade/transcribe] keş yazı xətası:", err));
+  }
 
   const costUsd = computeCostUsd(usage, usedModel);
 

@@ -24,6 +24,7 @@ import { callVisionLLM, type LLMUsage } from "../llm";
 import { computeCostUsd } from "../cost";
 import { getActiveModel } from "../models";
 import { validateStep } from "../verify/schema";
+import { callSoakChat, SoakTransportError } from "../soak/adapter";
 import type { CascadeContext, FinalAnswer, LayerSolution, PublicStep, RawStep, SolveLayer, StepAnswerRow } from "./types";
 
 type StepSchemaOutput = {
@@ -83,9 +84,13 @@ export function makeTextSolveLayer(pool: Pool): SolveLayer {
         if (ctx.signal?.aborted) break;
         let result;
         try {
-          // `imageBase64` VERİLMİR → `llm.ts` mətn-yalnız sorğu qurur, vision tokeni ödənilmir.
-          result = await callVisionLLM({ systemPrompt: system, userPrompt, model: activeModel, signal: ctx.signal });
+          if (ctx.useSoakAdapter) {
+            result = await callSoakChat({ systemPrompt: system, userPrompt, signal: ctx.signal });
+          } else {
+            result = await callVisionLLM({ systemPrompt: system, userPrompt, model: activeModel, signal: ctx.signal });
+          }
         } catch (err) {
+          if (err instanceof SoakTransportError) throw err;
           if (ctx.signal?.aborted) break;
           console.error(`[cascade/solve-text] LLM çağırışı xətası (cəhd ${call}):`, err);
           continue;

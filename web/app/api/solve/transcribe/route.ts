@@ -4,6 +4,12 @@ import { transcribe, imageSha256 } from "@/lib/cascade/transcribe";
 import { writeOcrCapture, reserveCaptureId } from "@/lib/cascade/ocr-capture";
 import { uploadCaptureImages } from "@/lib/storage";
 import { checkInviteCode, checkCostCeiling, checkDailyLimit, logInviteRedemption } from "@/lib/cascade/guards";
+import { soakGate } from "@/lib/soak/gate";
+import { llmAbortMs, skipImageCache, usesSoakAdapter } from "@/lib/soak/mode";
+import { SoakTransportError } from "@/lib/soak/adapter";
+
+// ChatGPT soak 150s timeout + buffer (PHASE-2). Şagird çağırışı yenə ~45 san abort edir.
+export const maxDuration = 180;
 
 // POST /api/solve/transcribe — ClickUp 86eykj7x2 / ADR-020.
 //
@@ -48,13 +54,20 @@ export async function POST(req: NextRequest) {
   }
   await logInviteRedemption(pool, invite.studentRef, deviceId);
 
-  const { blocked: limitBlocked, dailyCount } = await checkDailyLimit(pool, deviceId);
-  if (limitBlocked) {
-    return NextResponse.json({ error: "limit_reached", daily_count: dailyCount }, { status: 429 });
+  const soak = await soakGate(pool, invite.studentRef);
+  if (!soak.ok) {
+    return NextResponse.json({ error: soak.error }, { status: soak.status });
   }
-  const { blocked: costBlocked } = await checkCostCeiling(pool);
-  if (costBlocked) {
-    return NextResponse.json({ error: "limit_reached", daily_count: dailyCount }, { status: 429 });
+
+  if (soak.mode.kind === "student") {
+    const { blocked: limitBlocked, dailyCount } = await checkDailyLimit(pool, deviceId);
+    if (limitBlocked) {
+      return NextResponse.json({ error: "limit_reached", daily_count: dailyCount }, { status: 429 });
+    }
+    const { blocked: costBlocked } = await checkCostCeiling(pool);
+    if (costBlocked) {
+      return NextResponse.json({ error: "limit_reached", daily_count: dailyCount }, { status: 429 });
+    }
   }
 
   const imageBytes = Buffer.from(await image.arrayBuffer());
@@ -63,7 +76,7 @@ export async function POST(req: NextRequest) {
   const label = typeof selectedLabel === "string" && selectedLabel ? selectedLabel : "";
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 45_000);
+  const timeoutId = setTimeout(() => controller.abort(), llmAbortMs(soak.mode));
   let outcome;
   try {
     outcome = await transcribe({
@@ -76,7 +89,15 @@ export async function POST(req: NextRequest) {
       subject,
       locale,
       signal: controller.signal,
+      useSoakAdapter: usesSoakAdapter(soak.mode),
+      skipImageCache: skipImageCache(soak.mode),
     });
+  } catch (err) {
+    if (err instanceof SoakTransportError) {
+      const error = err.reason === "auth" ? "soak_auth_expired" : "soak_unavailable";
+      return NextResponse.json({ error }, { status: 503 });
+    }
+    throw err;
   } finally {
     clearTimeout(timeoutId);
   }

@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (130) · Cursor → Cowork
+
+Etdim:    S0 soak adapter (`86eyn2c70`): `0066` `soak_enabled=0` / `soak_provider=chatgpt_web`. Yalnız `soak-*` dəvət ChatGPT `POST /chat`-ə gedir; şagird Gemini. cost_usd 0 yazılmır. `kind=corpus_soak`. Keş və bank soak-da atlanır. `adapter.selftest` keçdi.
+Tapşırıq: `86eyn2c70`.
+Diqqət:   Bayraq sönük qalır. Live tüstü: Vercel `SOAK_LLM_*` + `INVITE_CODES`-ə `soak-*` + SQL `soak_enabled=1`. Cookie `authMode` olmasa 503. Açar repo-ya düşməsin. Əvvəlki 3.7-flash commit də push gözləyir.
+
 ## 2026-08-16 (129) · Cursor → Cowork
 
 Etdim:    Qat 1 `active_transcribe_model` → `gemini-3.7-flash` (`0065`, production-a tətbiq olundu). flash-lite ADR-025 n=2-də kəsişmələri tərs oxudu. Prompt v12: qayda 15 +1 yalnız dövri olmayan yoxlamada; qayda 8-ə kəsişmə nümunəsi. `transcribe.md` v2 ox kəsişməsi. `eval.py --selftest` 35/35.

@@ -31,6 +31,7 @@ import { makeBankLayers } from "./bank";
 import { makeTemplateLayer } from "./template";
 import { makeTextSolveLayer } from "./solve-text";
 import type { CascadeContext, LayerSolution, SolveLayer } from "./types";
+import { SoakTransportError } from "../soak/adapter";
 
 export function buildLayers(pool: Pool): SolveLayer[] {
   return [
@@ -51,13 +52,16 @@ export type CascadeRun = {
 
 export async function runCascade(layers: SolveLayer[], ctx: CascadeContext): Promise<CascadeRun> {
   const declinedLayers: string[] = [];
+  // Soak ChatGPT ölçür — bank/şablon Gemini keşini Qat 5-ə buraxmasın (ADR-029).
+  const queue = ctx.useSoakAdapter ? layers.filter((layer) => layer.id === "llm_text") : layers;
 
-  for (const layer of layers) {
+  for (const layer of queue) {
     if (ctx.signal?.aborted) break;
     let solution: LayerSolution | null;
     try {
       solution = await layer.run(ctx);
     } catch (err) {
+      if (err instanceof SoakTransportError) throw err;
       // Bir qatın XƏTASI kaskadı dayandırmır — növbəti qat cəhd edilir. Səbəb: Qat 2-nin DB
       // sorğusu qırılsa (grant regresiyası, gate-78/T1 kimi) şagird həll ALMALIDIR, sadəcə
       // bahalı yolla. Xəta LOGA düşür ki, səssiz deqradasiya olmasın.
