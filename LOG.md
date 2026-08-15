@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-16: HANDOFF 126 — Faza 2 blokları bağlandı (`ADR-029`): n=10 Gemini qızıl, ToS sahibin, 5/5 transkripsiya qapısı.
 - 2026-08-15: HANDOFF 125 — Faza 2 planı (Korpus soak) `docs/PHASE-2.md`.
 - 2026-08-15: HANDOFF 124 — `cost_usd` düşünmə tokeni daxil (`ADR-028`); Gemini USD göndərmir. ClickUp `86eymrm8j`.
 - 2026-08-15: HANDOFF 123 — LLM tarifi yalnız registridə (`ADR-027`), Vercel PRICE env silindi. ClickUp `86eymrm8j`.

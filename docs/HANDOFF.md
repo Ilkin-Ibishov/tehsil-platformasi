@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (126) · Cursor → Cowork
+
+Etdim:    Faza 2 üç blok bağlandı (`ADR-029`, `docs/PHASE-2.md`): soak ChatGPT zəif olsa da davam + n=10 Gemini qızıl; ToS/cookie sahibin riski; avtomatik “Düzdür” yalnız Cursor 5/5 transkripsiya yoxlamasından sonra.
+Tapşırıq: plan (ClickUp Faza 2 siyahısı hələ yoxdur).
+Diqqət:   5/5 keçməsə həcm açılmır. Gemini qızıl soak `kind` ilə qarışdırılmır. Şagird Gemini yolu toxunulmur.
+
 ## 2026-08-15 (125) · Cursor → Cowork
 
 Etdim:    Faza 2 planı `docs/PHASE-2.md` — Korpus soak. DİM PDF kəsimi lokal skript (Cursor vision yox), app qalereya yükləməsi, Playwright axını, ChatGPT avtomat servisi yalnız soak adapter (`ADR-029` yazılacaq). Şagird Gemini yolu toxunulmur.

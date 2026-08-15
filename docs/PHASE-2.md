@@ -20,9 +20,9 @@ yazılır, app kameranı atlayıb şəkil yükləyir, eyni şagird axını (təs
 ## Nəyi dəyişmirik
 
 - Şagird production yolu Gemini kaskadında qalır (`active_model` / `active_transcribe_model`).
-- Qızıl qayda: soak `error_code` xəritəsini zəiflədən qısa yol yoxdur (həmişə düz cavab,
-  transkripsiya təsdiqini avtomatik “Düzdür” etmək yalnız **ayrı** metrikadır).
-- `ADR-016`: korpus daxilidir, ictimai bank/axtarış yoxdur.
+- Qızıl qayda: soak `error_code` xəritəsini zəiflədən qısa yol yoxdur (həmişə düz cavab
+  yalnız transkripsiya dəqiqliyi üçündür, addım səhvləri skriptlə verilir).
+- `ADR-016` / `ADR-029`: korpus daxilidir; ChatGPT cookie/ToS riski sahibindir.
 - DİM PDF və kəsiklər git-ə düşmür.
 
 ## İki xərc, iki qayda
@@ -69,8 +69,8 @@ server/env. Sənəddəki nümunə açarları bura köçürmə.
 
 **Cookie məcburidir.** Guest rejimində sessiyada 3 şəkil limiti var — 100 həll üçün
 yararsızdır. Soak başlamazdan əvvəl `/health` → `authMode=cookie`. Cookie 30–90 gündə
-ölür; `AUTH_EXPIRED` / `selectorFailures` artımı soak-u dayandırır, Gemini-yə keçmir
-(şagird yolu ayrı qalır).
+ölür; `AUTH_EXPIRED` / `selectorFailures` artımı soak-u dayandırır, şagird Gemini-yə
+keçmir. ToS/cookie riski sahibindir (`ADR-029`).
 
 **Timeout.** App-də `/api/solve` və transcribe/finish **45 san** abort edir. ChatGPT
 servisinin `REQUEST_TIMEOUT` 150 san-dir. Soak bayrağı olanda abort ≥150 san olmalıdır,
@@ -106,9 +106,11 @@ korpus şəklində kəsmə çərçivəsi tam kadra oturur (bir sual = bir şəki
 
 ### S0 — ADR-029 + soak bayrağı (bloklayıcı)
 
-`app_config`: `soak_provider`, `soak_enabled`. Production şagird yolu toxunulmur.
-ChatGPT adapter: `POST /chat` `{ text, image }` → JSON çıxar → mövcud schema check.
-429/QUEUE_FULL/TIMEOUT retry. `/health` soak başlamazdan əvvəl.
+`ADR-029` qəbul edilib. `app_config`: `soak_provider`, `soak_enabled`. Production
+şagird yolu toxunulmur. ChatGPT adapter: `POST /chat` `{ text, image }` → JSON çıxar
+→ mövcud schema check. 429/QUEUE_FULL/TIMEOUT retry. `/health` soak başlamazdan əvvəl.
+
+Eyni sprintdə **n=10 Gemini qızıl** yolu ayrı `kind` ilə qalır (həcm ChatGPT-dir).
 
 **Qəbul:** 1 şəkil soak provayderi ilə transcribe+finish, Gemini şagird yolu eyni qalır.
 
@@ -130,20 +132,27 @@ Invite kodu `soak-*`. `kind` və ya `student_ref` hesabatlarda insan həllindən
 
 ### S3 — Axın avtomatlaşdırılması
 
-Playwright: təsdiq, addım, bilərəkdən səhv cavab (distraktor və ya skript), son addımda
-reveal. Həmişə-düz rejim yalnız transkripsiya dəqiqliyi üçündür, `error_code` üçün deyil.
+**Transkripsiya qapısı (`ADR-029`):** Cursor 5 ChatGPT transkripsiyasını kəsik şəklə
+qarşı yoxlayır. 5/5 düzdürsə qalan şəkillər üçün “Düzdür” avtomatikdir. Biri səhvdirsə
+avtomatik təsdiq açılmır — həcm o qapını gözləyir.
+
+Playwright: təsdiq (qapıdan sonra avtomatik), addım, bilərəkdən səhv cavab (distraktor
+və ya skript), son addımda reveal. Həmişə-düz rejim yalnız transkripsiya dəqiqliyi
+üçündür, `error_code` üçün deyil.
 
 Sürət: 5/dəq-ə tabe. Növbə 10-u aşma.
 
-**Qəbul:** 30 sual uçdan-uca, hesabat SQL-i üç sorğu qaytarır (həcm, `match_path`,
+**Qəbul:** 5/5 qapısı HANDOFF-da · 30 sual uçdan-uca · SQL üç sorğu (həcm, `match_path`,
 `error_code` null nisbəti).
 
 ### S4 — 100+ soak və analiz
 
-Qapı: 100 delivered. Ayrı: `has_figure` alt-nümunə (`ADR-025`). `transcript.corrected`
-soak-da adətən 0-dır (avtomatik təsdiq) — onu insan nümunəsi ilə qarışdırma.
+Qapı: 100 delivered (ChatGPT). Ayrı: n=10 Gemini qızıl (eyni kəsiklərin alt-nümunəsi).
+Ayrı: `has_figure` alt-nümunə (`ADR-025`). `transcript.corrected` soak-da 0 qalır
+(avtomatik təsdiq) — insan nümunəsi ilə qarışdırma.
 
-**Qəbul:** HANDOFF-a cədvəl: n, match_path, refusal, xəta kodu doluluğu, qrafik n.
+**Qəbul:** HANDOFF-a cədvəl: n ChatGPT, n Gemini qızıl, match_path, refusal, xəta kodu
+doluluğu, qrafik n.
 
 ## Sahə
 
@@ -158,9 +167,10 @@ soak-da adətən 0-dır (avtomatik təsdiq) — onu insan nümunəsi ilə qarı�
 Yeni telemetriya adı lazımdırsa əvvəl `TELEMETRY.md` (Cowork). Namizəd: `soak.run`
 yox, mövcud `solve.response` + `student_ref`/`kind` filtri.
 
-## Bloklar (qərar tələb edir)
+## Qərarlar (2026-08-16, `ADR-029`)
 
-1. Soak ChatGPT keyfiyyəti Gemini-dən zəif olsa: soak-u dayandır, yoxsa Gemini ilə
-   kiçik n-də bahalı etibarlı ölçü saxla?
-2. ChatGPT ToS / cookie ömrü — sahibin əməliyyat riski (`ADR-016` eyni model).
-3. Avtomatik “Düzdür” transkripsiya metrikasını korlayır — ayrı n insan təsdiqi qalsınmı?
+1. ChatGPT Gemini-dən zəif olsa soak **dayanmır**. n=10 Gemini qızıl nümunə ayrıca qalır.
+2. Cookie / ChatGPT ToS riski **sahibindir**. İcraçı buna görə dayandırmır.
+3. Avtomatik “Düzdür”: Cursor 5 ChatGPT transkripsiyasını şəkilə qarşı yoxlayır.
+   5/5 keçərsə qalan şəkillər avtomatik təsdiqlənir; keçməzsə həcm açılmır.
+   Ayrı davamlı insan təsdiq n-i yoxdur.
