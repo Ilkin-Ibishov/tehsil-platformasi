@@ -177,14 +177,34 @@ transfer.skipped
 
 ### OCR keyfiyyəti → S3
 
+⚠️ **Aşağıdakı `ocr.correction_*` adları HEÇ VAXT KODA DÜŞMƏDİ.** Kaskad (`ADR-020`) gələndə
+transkripsiya təsdiq ekranı ayrıca bir mərhələyə çevrildi və hadisələr `transcript.*` adı ilə
+yazıldı. Planlanan adlar tarixi qeyd kimi saxlanılır, **canlı taksonomiya `transcript.*`-dır**:
+
 ```
-ocr.correction_offered         props: {ocr_confidence}
-ocr.correction_made            props: {chars_changed}
-ocr.correction_skipped
+transcript.shown               props: {ocr_confidence}     ← Qat 1 mətni şagirdə göstərildi
+transcript.confirmed           props: {corrected: bool}    ← "Düzdür" — `corrected` mətnin
+                                                              dəyişib-dəyişmədiyini deyir
+transcript.corrected           props: {}                   ← şagird mətni redaktə etdi →
+                                                              fon sorğusu abort, YENİ sorğu
+transcript.rejected            props: {}                   ← "Bu mənim məsələm deyil"
 ```
 
-`ocr_confidence: low` ilə `correction_made` arasındakı korrelyasiya `düzəliş` axınının
+~~`ocr.correction_offered` / `ocr.correction_made` / `ocr.correction_skipped`~~ — planlandı,
+yazılmadı.
+
+`ocr_confidence: low` ilə `transcript.corrected` arasındakı korrelyasiya təsdiq ekranının
 tetikleyicisinin düzgün olub-olmadığını göstərir.
+
+### Test bankı → S2, S5
+
+```
+bank.list_loaded               props: {count}
+bank.question_selected         props: {question_id, topic_code, grade}
+```
+
+Bank axını kamera axınından AYRIDIR — `match_path` həmişə bank-dır, LLM xərci sıfırdır.
+Funnel müqayisəsində bu iki mənbəni qarışdırma.
 
 ### Limit → S8
 

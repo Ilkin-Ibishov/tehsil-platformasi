@@ -54,6 +54,13 @@ naməlum kodu `needs_review=true` ilə avtomatik qeydə alır.
 **Yoxlama:** `ocr_final is not null and ocr_raw is null` → 0 sətir.
 Yalnız son mətn saxlanılsa training korpusu dəyərsizdir.
 
+### INV-11 · Yoxlama statusu yalan danışmır (S5, `86eymwgkv`)
+Klientə gedən `verification.verified` DB-dəki `verified`/`verification_method` ilə eyni
+olmalıdır. Pozulma tarixi: `persist.ts` və `route.ts` `method='none'` olanda belə həmişə
+`true` göndərirdi.
+**Yoxlama:** `verification_method='none'` olan həlldə cavab `verified: true` OLA BİLMƏZ.
+`verified` üç haldır — `true` / `false` (gizlət) / `null` (göstər + "yoxlanılmadı" nişanı).
+
 ### INV-05 · Soft delete
 Şagirdə göstərilən hər sorğu `deleted_at is null` filtri daşıyır.
 
@@ -66,8 +73,11 @@ Yalnız son mətn saxlanılsa training korpusu dəyərsizdir.
 - **INV-07 · Sual versiyalaşması.** Eyni `root_id` altında yalnız bir `superseded_by is null`
   sətir ola bilər.
 - **INV-08 · Mətn konvensiyası.** `x^2` və `Vyet` bank mətnlərində qadağandır — lint.
-- **INV-09 · Şəkil saxlama müddəti.** `ocr_captures` şəkilləri uşaqlara aiddir. Saxlama
-  müddəti və silinmə qaydası data yığılmamışdan əvvəl yazılır.
+- **INV-09 · Şəkil saxlama müddəti — İNDİ AKTUALDIR (`ADR-024`, `0057`).** Şəkillər artıq
+  HƏQİQƏTƏN saxlanılır (`captures` bucket-i). Qərar: 90 gün. **Təminat mexanizmi YOXDUR** —
+  nə cron, nə pg_cron. Yoxlama: `select count(*) from public.ocr_captures where storage_path
+  is not null and created_at < now() - interval '90 days'` → 0 olmalıdır, hazırda təmin
+  edilmir. Şagird şəkli şəxsi datadır — bu, açıq qalan ƏN CİDDİ maddədir.
 
 ## Token intizamı
 

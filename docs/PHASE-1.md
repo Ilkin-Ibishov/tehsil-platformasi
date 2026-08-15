@@ -69,15 +69,22 @@ Cavab: **`STEP-SCHEMA.json`-a uyğun obyekt** + server sahələri:
   "...": "STEP-SCHEMA sahələri (status, steps, final_answer, candidates, ...)",
   "solution_id": "uuid",
   "match_path": "llm",
-  "verification": { "verified": true, "method": "sympy" }
+  "verification": { "verified": true, "method": "sympy", "reason": null, "verified_at": "..." }
 }
 ```
 
 **Server qaydaları:**
 1. **`verified=false` olan həll istifadəçiyə göstərilmir** — `status: unreadable` kimi qaytar.
+   `verified` ÜÇ haldır: `true` (sympy təsdiqlədi), `false` (sympy TƏKZİB etdi → gizlət),
+   `null` (yoxlaya bilmədi → göstər, "yoxlanılmadı" nişanı ilə). S5-ə qədər klientə həmişə
+   `verified: true` gedirdi — bu bug idi, `86eymwgkv`-də düzəldildi. Real paylanma:
+   son 10 canlı həllin **9-u `method='none'`**.
 2. Cavab `STEP-SCHEMA`-ya valid deyilsə → **bir dəfə** təkrar cəhd, yenə olmasa `unreadable`.
    Model xam çıxışı loqlanır (`solve.response.props`-a yox, **server loguna**).
-3. Şəkil **saxlanılmır**. Yalnız `image_px`, `image_bytes` metadatası.
+3. ~~Şəkil **saxlanılmır**~~ — **DƏYİŞDİ (`ADR-024`, 2026-08-14).** Hər çəkiliş üçün iki
+   fayl (kəsilmiş + orijinal) PRIVATE `captures` bucket-inə yazılır, `ocr_captures.
+   storage_path`-a bağlanır, retensiya 90 gün (silmə cron-u hələ yoxdur). Telemetriyada
+   isə hələ də yalnız `image_px`/`image_bytes` metadatası gedir — `props`-a şəkil düşmür.
 4. `selected_label` verilibsə, prompta əlavə olunur: yalnız həmin məsələ həll edilir.
 
 ### `POST /api/events`
@@ -225,7 +232,8 @@ Bu, Faza 1-in ən böyük texniki riskidir və vibe coding zamanı asanlıqla bu
 
 ## Məxfilik — istifadəçilər yetkinlik yaşına çatmayıb
 
-- Şəkil **saxlanılmır**. Bu, dizaynda istifadəçiyə verilən vəddir.
+- Şəkil **saxlanılır** (`ADR-024`) — PRIVATE bucket, 90 gün. Dizayndakı "Şəkil telefonda
+  qalır" mətni artıq DOĞRU DEYİL və dəyişdirilməlidir.
 - `props`-a şəkil, məsələ mətni, şəxsi data düşmür (`TELEMETRY.md`).
 - Üçüncü tərəf analitika SDK-sı yoxdur.
 - Şagirdə ilk açılışda bir cümlə: nə toplanır, niyə.

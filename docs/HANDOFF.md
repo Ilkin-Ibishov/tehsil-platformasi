@@ -15,6 +15,46 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (114) · Cowork → Claude Code
+
+**Etdim — S1–S8-dən sonra bilik bazası (`*.md`) auditi və sinxronlaşdırma.** Kod
+dəyişmədi, yalnız sənəd.
+
+- **`docs/ARCHITECTURE.md` yenidən yazıldı.** Köhnə versiya hələ Texo-nu (klientdə ONNX
+  OCR) əsas boru xətti kimi göstərirdi — halbuki `ADR-001` onu 2026-08-06-da silmişdi.
+  Yerinə real kaskad (Qat 0/1/2/3/5, Qat 4 = embedding KODDA YOXDUR), `pg` ilə birbaşa
+  Postgres (SDK yoxdur), `app_config` model seçimi, sympy-nin real nadirliyi (9/10 `none`).
+- **`README.md` yenidən yazıldı.** "Faza 0 qapısı keçilməyib — kod yazılmır" yazırdı;
+  struktur siyahısında `web/`, `supabase/`, `.kiro/`, `LOG.md` YOX idi.
+- **Şəkil saxlama ziddiyyəti bağlandı.** `ADR-024` şəkil saxlamağı qəbul etdi, amma
+  `ARCHITECTURE.md`, `PHASE-1.md` (server qaydası 3 + Məxfilik) və `INVARIANTS.md` INV-09
+  hələ "şəkil saxlanılmır" deyirdi. Hamısı düzəldildi.
+- **`docs/TELEMETRY.md`:** `ocr.correction_offered/made/skipped` HEÇ VAXT koda düşməyib —
+  real adlar `transcript.shown/confirmed/corrected/rejected`. Əlavə olaraq `bank.list_loaded`
+  / `bank.question_selected` sənədsiz idi. Hər ikisi yazıldı, köhnə adlar tarixi qeyd kimi
+  saxlandı (taksonomiya append-only-dir).
+- **`docs/DATA-MODEL.md`:** `verification_reason` (`0060`), `captures` bucket-i (`0057`),
+  `topic_codes`/`error_codes` + RLS (`0058`/`0061`), `canonical` YENİDƏN YAZILIR (`0062`).
+- **`docs/INVARIANTS.md`:** yeni **INV-11** (klientə gedən `verification` DB ilə eyni
+  olmalıdır — S5-in tapdığı bug), INV-09 "yazılası"dan "aktual"a keçdi.
+- **`CLAUDE.md`:** dərs 7 (status yalan danışmır), `error_codes` cədvəlinin STEP-SCHEMA-nın
+  güzgüsü olduğu, şəkil saxlama, cari vəziyyət sətri. 167 sətir (limit 200).
+- **`docs/PRODUCT.md`:** Faza 0 "KEÇDİ" işarələndi, dizayn vədi pozuntusu bölməsi.
+
+**Rebase qeydi:** bu blok əvvəlcə lokal `main` (9c51a3e) üzərində yazıldı, sonra 14 commit
+geri qaldığı görüldü — `origin/main`-ə (f36dcd6) rebase edildi və sənədlər blok 103–113-ün
+gətirdikləri ilə YENİDƏN uzlaşdırıldı: n=99 eval nəticələri (107) `PRODUCT.md`/`README.md`/
+`CLAUDE.md`-də köhnə "9/10, 16.8 san" rəqəmlərini əvəz etdi, `0063` (`step_events.
+given_answer`/`is_correct`) `DATA-MODEL.md`-ə, `ADR-025` (qrafik hallüsinasiyası)
+`ARCHITECTURE.md`/`CLAUDE.md` risk siyahısına yazıldı.
+
+**Diqqət — iki açıq maddə, ikisi də uşaq datasına aiddir:**
+1. **90 günlük silmə cron-u YOXDUR.** `captures` bucket-i dolur, heç nə silinmir (INV-09).
+2. **`design/Kamera.dc.html` hələ "Şəkil telefonda qalır" yazır** — artıq yalandır.
+   Şagird dəvətindən ƏVVƏL mətn dəyişməlidir.
+
+---
+
 ## 2026-08-15 (113) · Claude Code → Cowork
 
 **Etdim:** Ilkin telefonda 2 real bug tapdı, ikisi də düzəldildi və canlıda (mobil viewport,

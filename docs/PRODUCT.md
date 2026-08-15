@@ -60,13 +60,23 @@ düzgün olur.** Model seçimi artıq bu faylda deyil, DB-də (`public.app_confi
 `ADR-023`) — redeploy-suz dəyişdirilə bilər, bu köhnə ölçmə fərqli model üçün etibarsız ola
 bilər. Cari xərci `attempt_items.cost_usd`-dan real ölç, bu faylın rəqəminə güvənmə.
 
+✅ **N=99 REAL ÖLÇMƏ (2026-08-15, HANDOFF 107):** orta **$0.00997/sual** (99 sual ≈ $0.99),
+latensiya 19.2 san. Break-even ~295 həll/ay (4.99 ₼ ≈ $2.94). Yəni yuxarıdakı $0.0084
+təxmini düz istiqamətdə idi, real rəqəm bir az yüksəkdir — keş hələ də biznes modelinin
+şərtidir, optimallaşdırma deyil.
+
 ---
 
 # Fazalar və qapılar
 
 Hər fazanın **rəqəmli qapısı** var. Qapı keçilmirsə növbəti fazaya keçmək qadağandır.
 
-## Faza 0 — Eval (2 gün, kod yox)
+## Faza 0 — Eval (2 gün, kod yox) — **KEÇDİ (2026-08-06)**
+
+> **2026-08-06 (n=10, lite):** `ADR-001` HÖKM — vision boru xətti 9/10, Texo SİLİNDİ.
+> **2026-08-15 (n=99, tam):** sxem 100% · cavab 94.8% · struktur 100% · sızma 21.9%
+> · $0.00997/sual · 19.2 san. **Qapı NATAMAM** — yalnız insan pedaqoji rəyi (`ADR-004`)
+> qalıb. Detallar: HANDOFF blok 107. Aşağıdakı orijinal plan tarixi qeyd kimi saxlanılır.
 
 Girişin əksəriyyəti **çap olunmuş DİM test toplusu** olduğu üçün bu qısadır.
 
@@ -85,7 +95,7 @@ Girişin əksəriyyəti **çap olunmuş DİM test toplusu** olduğu üçün bu q
 
 **Nəticə:** `docs/decisions/ADR-001-ocr-pipeline.md` yenilənir
 
-## Faza 1 — Şaquli dilim (2–3 həftə)
+## Faza 1 — Şaquli dilim (2–3 həftə → real: 4–5 həftə) — **CARİ**
 
 Yalnız bir yol: **Kamera → həll → addımlar**. Auth yox, tab yox, ödəniş yox, lent yox.
 Sinif `localStorage`-da.
@@ -124,3 +134,12 @@ Faza 2-dən əvvəl dizayn olunmalıdır, yoxsa satılan şeyin biri boşdur.
 - [ ] MƏN / profil ekranı
 - [ ] Tarixçə (`hamısı` düyməsinin hədəfi)
 - [ ] Şagird üçün "valideyn bunu görür" önizləməsi (etimad üçün kritik)
+
+---
+
+## Vədin pozulduğu yer — dizayn mətni yenilənməlidir
+
+`ADR-024` (2026-08-14) şəkil saxlamağı QƏBUL ETDİ: hər çəkilişdən iki fayl PRIVATE bucket-də,
+90 gün. Dizayn faylları (`Kamera.dc.html`) hələ **"Şəkil telefonda qalır"** vədini göstərir.
+Bu mətn dəyişdirilməyincə istifadəçiyə yalan deyilir — S4/S5 şagird dəvətindən ƏVVƏL
+düzəldilməlidir (uşaq datası, valideyn etimadı).

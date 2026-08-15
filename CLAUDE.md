@@ -45,13 +45,17 @@ Production təhlükəsizlik auditindən (HANDOFF 79/80) çıxan, təkrarlanmamas
 6. **Şagird axınında olan cədvəldə sərt rədd etmə — öz-özünü sağaldan qeydiyyat işlət.** Naməlum
    `topic_code`/`error_code` insert-i dağıtmır; `active=false, needs_review=true` ilə qeydə alınır
    və `v_taxonomy_review`-da görünür. Anomaliya görünür qalır, şagird isə qırılmır.
+7. **Kod klientə göndərdiyi statusda yalan danışmamalıdır** (2026-08-14, S5 `86eymwgkv`).
+   `verification.verified` DB-dəki dəyərlə eyni olmalıdır — `method='none'` olanda `true`
+   göndərmək bug-dır. `verified` ÜÇ haldır: `true` / `false` (gizlət) / `null` (göstər +
+   "yoxlanılmadı" nişanı). Real paylanma: son 10 canlı həllin 9-u `none`.
 
 ## Fayl sahibliyi — tək mənbə qaydası
 
 | Data | Tək mənbə | Yazan |
 |---|---|---|
 | LLM cavab müqaviləsi | `docs/STEP-SCHEMA.json` | Cowork (dəyişiklik ADR tələb edir) |
-| Səhv kodları (`error_code`) | `docs/STEP-SCHEMA.json` → `error_codes` | Cowork — **dəyişməz enum** |
+| Səhv kodları (`error_code`) | `docs/STEP-SCHEMA.json` → `error_codes` (11 kod) | Cowork — **dəyişməz enum**. `public.error_codes` cədvəli `0058`-dən bəri bu enum-un GÜZGÜSÜDÜR (əlavə köhnə kodlar `deprecated=true`), mənbə DEYİL |
 | Dizayn tokenləri | `docs/DESIGN-TOKENS.json` | Cowork |
 | DB sxemi | `docs/DATA-MODEL.md` | hər ikisi (miqrasiya ilə) |
 | Prompt mətnləri | `prompts/**/*.md` (nüvə: `prompts/solve/core.md`, fənn əlavəsi: `prompts/solve/math.md` — ADR-014) | hər ikisi |
@@ -120,6 +124,10 @@ Folder: `901815897469` · Space: `901810230629` · Workspace: `90182536078`
   (`web/lib/models.ts`) modelin ÖZÜ ilə eyni yerdə yaşayır ki, model dəyişəndə unudulmasın.
   Cari aktiv modeli bilmək üçün DB-yə bax (`select value from public.app_config where
   key='active_model'`), bu faylı YOX — həmişə köhnəlmə riski var.
+- **Şəkil SAXLANILIR** — `ADR-024`/`0057`: hər çəkilişdən iki fayl (kəsilmiş + orijinal)
+  PRIVATE `captures` bucket-inə, `web/lib/storage.ts` yazır (SDK yox, REST `fetch`).
+  Retensiya 90 gün QƏRARDIR, **silmə cron-u hələ yoxdur** (açıq maddə, INV-09).
+  Dizayndakı "Şəkil telefonda qalır" mətni artıq DOĞRU DEYİL.
 - ~~Texo (ONNX)~~ — **silindi**, `ADR-001` HÖKM. B tək çağırışda OCR+həll edir; latensiyanın
   səbəbi OCR deyil, modelin thinking rejimidir, Texo onu həll etmir.
 
@@ -134,16 +142,22 @@ Detallar: `docs/ARCHITECTURE.md`
 
 ## Cari faza
 
-**Faza 1 — Şaquli dilim.** Faza 0-lite keçdi (`ADR-001` → "HÖKM", 2026-08-06):
-vision boru xətti işləyir, 9/10 dəqiqlik, 0 hallüsinasiya. Texo (pipeline A) silindi.
+**Faza 1 — Şaquli dilim.** Faza 0 qapısı **n=99 ilə ölçüldü** (HANDOFF 107): sxem 100%,
+cavab 94.8%, struktur 100%, $0.00997/sual, 19.2 san. Qapı NATAMAM — yalnız insan pedaqoji
+rəyi (`ADR-004`) qalıb. Texo (pipeline A) silindi (`ADR-001`).
 
 **Əsas sənəd: `docs/PHASE-1.md`** — sprintlər, API müqaviləsi, qəbul şərtləri.
 Telemetriya müqaviləsi: `docs/TELEMETRY.md`.
 
+Vəziyyət (2026-08-15): production canlıdır, miqrasiyalar `0062`-yə qədər tətbiq edilib,
+kaskad Qat 0/1/2/3/5 işləyir (Qat 4 — embedding — kodda YOXDUR), miqrasiyalar `0063`-ə
+qədər, ADR-lər `026`-ya qədər. Son HANDOFF bloku: 114.
+
 İki açıq risk dəqiqlik deyil:
 - **Xərc** — $0.0167/həll, abunə 200 həlldən sonra zərərdə. Keş və ucuz model
   optimallaşdırma deyil, biznes modelinin şərtidir.
-- **Latensiya** — 16.8 san. `HƏLL QURULUR` ekranı boş spinner olmamalıdır.
+- **Latensiya** — 19.2 san (n=99). `HƏLL QURULUR` ekranı boş spinner olmamalıdır.
+- **Qrafikli suallar** — `ADR-025`: Qat 1 qrafikin istiqamətini tərs oxudu (n=1, ölçülməyib).
 
 Qapı: 15–20 şagird · 100+ real həll · 20 şagirddən ≥8-i 7 gündə ≥3 dəfə qayıdır.
 

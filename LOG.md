@@ -8,3 +8,9 @@
 - Miqrasiya 0043/0044: public.ocr_captures (OCR training korpusu), v_ocr_corpus, v_distractor_health.
 - Miqrasiya 0049/0050/0051: topic_codes + error_codes taksonomiya cedvelleri, oz-ozunu sagaldan qeydiyyat trigger-leri, fingerprint prefiks invarianti (yalniz source=generated). 0049-un sert FK-lari user_capture axinini sindirirdi - 0050 duzeltdi.
 - docs/INVARIANTS.md yaradildi; CLAUDE.md-e miqrasiya dersi 5-6 elave edildi.
+
+## 2026-08-15 - Cowork (sened auditi)
+- S1-S8 (0057-0062) sonrasi knowledgebase sinxronlashdirildi: ARCHITECTURE.md ve README.md yeniden yazildi (Texo silinmisdi, kaskad qatlari yox idi, "Faza 0, kod yazilmir" yazirdi).
+- Duzeldilen 4 real zidiyyat: sekil artiq SAXLANILIR (ADR-024) - 3 fayl "saxlanilmir" yazirdi; canonical yeniden yazilir (0062); verification 3 halldir (S5); telemetriyada ocr.correction_* heç vaxt yazilmayib, real adlar transcript.* + bank.*.
+- Yeni: INV-11 (status yalan danismir), CLAUDE.md ders 7, DATA-MODEL-e captures bucket + taksonomiya bolmeleri. Aciq qalan: 90 gunluk silme cron-u YOXDUR (INV-09), dizayndaki "Sekil telefonda qalir" metni yalandir.
+- Rebase: lokal main 14 commit geri idi (origin f36dcd6). Blok 103-113-un getirdikleri ile yeniden uzlasdirildi: n=99 eval (107), 0063 step_events, ADR-025/026.

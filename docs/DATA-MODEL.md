@@ -10,6 +10,14 @@ Supabase / Postgres. Miqrasiyalar `supabase/migrations/` altında (Faza 1-də ya
 > `supabase/migrations/*.sql`-ə birbaşa bax, bura yalnız KONSEPSIYA üçün etibarlıdır.
 > Tam yenidən yazma ayrı iş kimi qalır, bu əlavə yalnız gələcək sessiyanın kor-koranə
 > köhnə ad işlətməsinin qarşısını almaq üçündür.
+>
+> **2026-08-15 əlavəsi (S1–S8, miqrasiyalar `0057`–`0062`).** Aşağıdakılar bu sənəddə HƏLƏ
+> əks olunmayıb, real sxemə birbaşa bax:
+> `question_translations.verification_reason` (`0060`) · `attempt_items.completed` /
+> `revealed_answer` real yazılır (`0059`) · `public.error_codes` STEP-SCHEMA-nın 11 kodu ilə
+> birləşdirildi, artıq `deprecated` sütunu var (`0058`) · `topic_codes`/`error_codes`-da RLS
+> AKTİVDİR, `app_runtime` üçün full policy (`0061`) · Supabase Storage-da `captures` bucket-i
+> (`0057`, `ADR-024`) · `questions.canonical` YENİDƏN YAZILIR (`0062`, `ADR-003` ləğv edildi).
 
 ## Prinsip
 
@@ -27,7 +35,7 @@ Birincisi paylaşılan aktivdir, ikincisi şəxsi datadır. RLS siyasətləri bu
 | sütun | tip | qeyd |
 |---|---|---|
 | `id` | uuid pk | |
-| `canonical` | text | **BOŞ** (ADR-003, 2026-08-08 əlavəsi) — mətn məsələlərində DİM mətninin özü çıxdı, §D1. Sütun qalır, yazılmır. |
+| `canonical` | text | **YAZILIR** (`0062`, 2026-08-14 — `ADR-003`-ün boşaltma qərarı LƏĞV EDİLDİ: eyni mətn onsuz da `question_translations.stem`-də qalırdı, boşaltmaq yalnız forensikanı itirirdi) |
 | `canonical_hash` | text unique | `sha256(normalize(canonical))` — hesablanır, mətnin özü saxlanılmır. Birinci dərəcəli açar |
 | `numeric_fingerprint` | text | mətndəki bütün ədədlər sıra ilə: `"60,2,3"` — ikinci dərəcəli açar |
 | `embedding` | vector(768) | üçüncü dərəcəli açar, pgvector |
@@ -42,10 +50,11 @@ Birincisi paylaşılan aktivdir, ikincisi şəxsi datadır. RLS siyasətləri bu
 
 **İndekslər:** `canonical_hash` (unique btree), `numeric_fingerprint` (btree), `embedding` (ivfflat).
 
-> ⚠️ **Hüquqi:** `canonical` sütunu artıq YAZILMIR (`0009_scrub_problems_canonical.sql`) — mətn
-> məsələlərində DİM mətninin özünü saxlayırdı (§D1). Keş açarı yalnız `canonical_hash`/
-> `numeric_fingerprint`-dir. **`solutions.payload` hələ tam mətni saxlayır** — bu, AYRICA açıq
-> hüquqi məsələdir, bax `docs/decisions/ADR-003-dim-dataset-legal.md` "Əlavə 2026-08-08".
+> ⚠️ **Hüquqi (2026-08-14-də yeniləndi):** `0009_scrub_problems_canonical.sql` sütunu
+> boşaldırdı; `0062_restore_canonical_from_stem.sql` bunu geri qaytardı və `ADR-003`-ün həmin
+> bəndini LƏĞV etdi (sürət > hüquqi ehtiyat, pre-launch, 0 istifadəçi). İndi DİM mətni HƏM
+> `questions.canonical`-da, HƏM `question_translations.stem`-də, HƏM də addım payload-larında
+> qalır. Hüquqşünas rəyi maddəsi indi DAHA AKTUALDIR — bax `ADR-003` → "Ləğv 2026-08-14".
 
 ## `solutions` — həllər
 
@@ -56,7 +65,8 @@ Birincisi paylaşılan aktivdir, ikincisi şəxsi datadır. RLS siyasətləri bu
 | `schema_version` | int | `STEP-SCHEMA.json` versiyası |
 | `payload` | jsonb | sxemə uyğun tam obyekt (steps, final_answer, ...) |
 | `verified` | bool | **`false` isə istifadəçiyə göstərilmir** |
-| `verification_method` | text | `sympy` / `human` / `none` |
+| `verification_method` | text | `sympy` / `human` / `none`. **Real ölçmə (S5): son 10 canlı həllin 9-u `none`** — əksər DİM məsələsi tək dəyişənli tənlik deyil |
+| `verification_reason` | text null | `0060` — niyə yoxlanmadı: `no_equation_extracted` / `no_single_variable_equation`. Klientə `verification.reason` kimi gedir |
 | `model` | text | hansı model generasiya edib |
 | `cost_usd` | numeric | vahid iqtisadiyyat ölçüsü |
 | `created_at` | timestamptz | |
@@ -114,7 +124,9 @@ Səhv xəritəsinin və valideyn hesabatının **yeganə** mənbəyi.
 | `id` | bigserial pk | |
 | `attempt_id` | uuid fk | |
 | `step_index` | int | |
-| `error_code` | text null | `STEP-SCHEMA.json` enum-u; doğrudursa `null` |
+| `error_code` | text null | `STEP-SCHEMA.json` enum-u (11 kod); doğrudursa `null` |
+| `given_answer` | text null | `0063` — şagirdin YAZDIĞI xam cavab (doğru/səhv fərq etmədən) |
+| `is_correct` | bool null | `0063` — **`error_code is null` ilə QARIŞDIRMA**: həm doğru cavab, həm "heç bir distraktora uyğun gəlməyən səhv cavab" `error_code=null` verir |
 | `attempts_count` | int | həmin addımda neçə cəhd |
 | `used_why` | bool | "niyə belədir"i açdımı |
 | `used_token_hint` | bool | simvol izahına toxundumu |
@@ -176,3 +188,37 @@ Bunlar olmadan test etmək faydasızdır:
 - `revealed_answer` nisbəti (öyrənir, yoxsa köçürür)
 - `transfer_correct` nisbəti (**əsl öyrənmə metrikası**)
 - gündəlik/həftəlik qayıdış (Faza 1 qapısı: 20 şagirddən ≥8-i 7 gündə ≥3 dəfə)
+
+---
+
+## `public.ocr_captures` + Storage `captures` bucket-i (`0049`, `0057`, `ADR-024`)
+
+OCR training korpusu VƏ forensika. Hər çəkiliş üçün **iki fayl** yazılır:
+
+| | qeyd |
+|---|---|
+| yol formatı | `captures/<yyyy>/<mm>/<attempt_item_id və ya capture_id>-{raw,crop}.jpg` |
+| `raw` | orijinal kəsilməmiş kadr — kəsmə bug-larını yalnız bu sübut edir |
+| `crop` | LLM-ə göndərilən şəkil |
+| bucket | PRIVATE, `image/jpeg`+`image/png`, obyekt başı 2 MB. RLS policy YOXDUR — yeganə giriş `SUPABASE_SERVICE_ROLE_KEY` ilədir |
+| sütunlar | `storage_path`, `width`, `height`, `bytes`, `image_sha256`, `image_phash`, `ocr_raw`, `ocr_final` |
+| yazan kod | `web/lib/storage.ts` (Storage REST API-yə birbaşa `fetch`, SDK yoxdur) |
+
+**Uğursuzluq axını bloklamır** — Storage xətası şagirdin həllini dayandırmır, `storage_path`
+`null` qalır.
+
+⚠️ **Retensiya 90 gün QƏRARDIR, amma silmə cron-u HƏLƏ QURULMAYIB.** Şagird şəkli şəxsi
+datadır. Silinmə tarixi `ocr_captures.created_at + 90 gün`-dən hesablanır, bucket obyekti
+`storage_path` ilə 1-1 uyğundur. Bax `INVARIANTS.md` INV-09.
+
+## `public.topic_codes` / `public.error_codes` — taksonomiya (`0051`, `0058`, `0061`)
+
+Kodların yeganə DB mənbəyi. FK YOXDUR (şagird axını qırılmasın) —
+`trg_register_topic_code`/`trg_register_error_code` naməlum kodu `active=false,
+needs_review=true` ilə avtomatik qeydə alır, `v_taxonomy_review`-da görünür.
+
+- `error_codes` **`docs/STEP-SCHEMA.json`-un 11 kodlu enum-u ilə birləşdirilib** (`0058`).
+  DB-də olub sxemdə olmayan 7 köhnə kod SİLİNMƏDİ — `deprecated=true` ilə işarələndi
+  (tarixi `step_events` sətirləri qırılmasın).
+- **RLS hər ikisində AKTİVDİR** (`0061`): `app_runtime` üçün full policy (trigger-lər hər
+  şagird sorğusunda bu cədvəllərə insert edir), `anon`/`authenticated` üçün heç bir policy.
