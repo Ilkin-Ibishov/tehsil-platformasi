@@ -14,9 +14,11 @@ import { TranscriptConfirmView } from "@/components/hell/TranscriptConfirmView";
 
 // ADR-020 / ClickUp 86eykj7x2 — transkripsiya təsdiq ekranı YALNIZ server kaskadı açıq
 // olanda mənalıdır (o, `/api/solve/transcribe`+`/api/solve/finish` iki-endpoint axınına
-// EHTİYAC DUYUR, monolit `/api/solve` bunu dəstəkləmir). Server bayrağı `CASCADE_ENABLED`
-// ilə EYNİ qərarı əks etdirməlidir — ADR-014 qapısı keçilməyib, defolt SÖNÜKDÜR.
-const CASCADE_UI_ENABLED = process.env.NEXT_PUBLIC_CASCADE_ENABLED === "1";
+// EHTİYAC DUYUR, monolit `/api/solve` bunu dəstəkləmir). Server bayrağı `cascade_enabled`
+// (DB) ilə EYNİ qərarı əks etdirməlidir — ADR-014 qapısı keçilməyib, defolt SÖNÜKDÜR.
+// Bayrağın özü artıq `NEXT_PUBLIC_*` env DEYİL, komponent daxilində `/api/config/public`-dən
+// oxunur (bax `cascadeUiEnabled` state-i, aşağıda) — səbəb: `NEXT_PUBLIC_*` build vaxtı
+// bundle-a yapışır, DB dəyişikliyi redeploy-suz görünmür.
 
 type Stage = "invite" | "capture" | "crop" | "submitting" | "solved" | "refused" | "candidates" | "done" | "confirm";
 
@@ -53,6 +55,11 @@ export default function KameraPage() {
   const [refusalReason, setRefusalReason] = useState<string | null>(null);
   const [refusalStatus, setRefusalStatus] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<Candidate[] | null>(null);
+  // 2026-08-15 (Ilkin-in tapşırığı): əvvəllər `NEXT_PUBLIC_CASCADE_ENABLED` (build-vaxtı
+  // yapışdırılan env) idi — DB-yə keçdi (`web/lib/app-config.ts`, `/api/config/public`).
+  // Defolt `false` (monolit yol) — sorğu qayıdana qədər TƏHLÜKƏSİZ tərəfdə qalır, heç vaxt
+  // yanlışlıqla kaskad yoluna DÜŞMÜR.
+  const [cascadeUiEnabled, setCascadeUiEnabled] = useState(false);
   const [cascadeTranscript, setCascadeTranscript] = useState<CascadeTranscript | null>(null);
   // ADR-020 / 86eykj7x2: "fon prosesi davam etsin, şagird səhv görüb müdaxilə edərsə
   // dayandırılsın". Təsdiq ekranı göstərilən KİMİ `/api/solve/finish` FONDA başladılır
@@ -91,6 +98,23 @@ export default function KameraPage() {
     setAttemptId(id);
     trackEvent("capture.screen_opened", {});
   }, [stage]);
+
+  // DB-dən (redeploy-suz) oxunan kaskad UI bayrağı — bax yuxarıdakı şərh. Uğursuz olsa
+  // (şəbəkə, DB əlçatmazdır) sükutla `false`-da qalır — monolit yol, ən təhlükəsiz defolt.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/config/public")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body: { cascade_ui_enabled?: boolean } | null) => {
+        if (!cancelled && body?.cascade_ui_enabled) setCascadeUiEnabled(true);
+      })
+      .catch(() => {
+        // Səssiz — defolt `false` onsuz da təhlükəsiz yoldur.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function goHome() {
     setAttemptId(undefined);
@@ -250,7 +274,7 @@ export default function KameraPage() {
 
   // ══════════════════════════════════════════════════════════════════════════════════════
   // ADR-020 / ClickUp 86eykj7x2 — kaskad UI axını. `submitSolve`-in YANINDA, onu ƏVƏZ
-  // ETMİR (`CASCADE_UI_ENABLED` sönükdə heç vaxt çağırılmır — bax `runSolve` aşağıda).
+  // ETMİR (`cascadeUiEnabled` sönükdə heç vaxt çağırılmır — bax `runSolve` aşağıda).
   // ══════════════════════════════════════════════════════════════════════════════════════
 
   function transcriptPayload(t: CascadeTranscript) {
@@ -492,7 +516,7 @@ export default function KameraPage() {
     backToCrop();
   }
 
-  const runSolve = CASCADE_UI_ENABLED ? submitSolveCascade : submitSolve;
+  const runSolve = cascadeUiEnabled ? submitSolveCascade : submitSolve;
 
   if (stage === "invite") {
     return (

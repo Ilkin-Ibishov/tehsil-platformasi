@@ -5,6 +5,7 @@ import { loadPromptTemplates, renderUserPrompt } from "@/lib/prompt";
 import { callVisionLLM } from "@/lib/llm";
 import { computeCostUsd } from "@/lib/cost";
 import { getActiveModel } from "@/lib/models";
+import { getBoolConfig } from "@/lib/app-config";
 import { validateStep } from "@/lib/verify/schema";
 import { verifyFinalAnswer } from "@/lib/verify/answer";
 import { detectLeak } from "@/lib/verify/leak";
@@ -46,7 +47,10 @@ const LLM_TIMEOUT_MS = 45_000;
 // A/B təsdiqlənmədən açılmır).
 //
 // `CASCADE_ENABLED=1` → kaskad. Təyin edilməyibsə mövcud monolit yol, BAYT-BAYT dəyişməz.
-const CASCADE_ENABLED = process.env.CASCADE_ENABLED === "1";
+// 2026-08-15: DB-yə köçürüldü (`public.app_config.cascade_enabled`, `ADR-023`-ün EYNİ nümunəsi
+// — Ilkin-in tapşırığı, "hər şey env olmasın") — env DƏYƏRİ hələ də fallback kimi işləyir,
+// DB sətri VARSA onu üstün tutur. Modul səviyyəsindən request-daxili oxumaya keçdi, çünki
+// DB sorğusu asinxrondur (bax `POST`-un başında `getBoolConfig(...)`).
 
 type StepSchemaOutput = {
   status?: string;
@@ -168,6 +172,8 @@ async function captureAndStore(
 }
 
 export async function POST(req: NextRequest) {
+  const cascadeEnabled = await getBoolConfig(pool, "cascade_enabled", "CASCADE_ENABLED");
+
   let form: FormData;
   try {
     form = await req.formData();
@@ -325,7 +331,7 @@ export async function POST(req: NextRequest) {
   // Defolt SÖNÜKDÜR (bax `CASCADE_ENABLED` şərhi). Bu budaq `return` edir, yəni aşağıdaki
   // monolit yol bayraq sönükdə BAYT-BAYT dəyişməz qalır.
   // ══════════════════════════════════════════════════════════════════════════════════════
-  if (CASCADE_ENABLED) {
+  if (cascadeEnabled) {
     const cascadeBytes = Buffer.from(await image.arrayBuffer());
     const cascadeHash = imageSha256(cascadeBytes);
     const label = typeof selectedLabel === "string" && selectedLabel ? selectedLabel : "";

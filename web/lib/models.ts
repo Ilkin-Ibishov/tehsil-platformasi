@@ -111,21 +111,12 @@ export function resolveConnection(modelId: string): ResolvedConnection | null {
 // redeploy) asılı olmasın. `app_runtime`-ın YALNIZ SELECT-i var (gate-78 dərsi) — yazı
 // birbaşa SQL-lə (Claude Code/Cowork) və ya gələcək admin RPC-lə olur, BU MODUL yazmır.
 //
-// DB sorğusu UĞURSUZ olsa (miqrasiya tətbiq olunmayıb, DB əlçatmazdır) və ya sətir yoxdursa,
-// env-ə geri düşülür — ADR-022-nin "DB/env MƏCBURİYYƏT deyil, rahatlıq qatıdır" prinsipi
-// bir səviyyə yuxarı təkrarlanır. Bu geri-düşmə SƏSSİZ DEYİL — konsola yazılır ki, "niyə
-// DB dəyəri işləmədi" sualı loglardan cavablana bilsin.
-type PoolLike = { query<T = unknown>(text: string, params?: unknown[]): Promise<{ rows: T[] }> };
+// `readConfigValue` `web/lib/app-config.ts`-ə köçürüldü (2026-08-15) — kaskad feature
+// flag-ləri (bax `getBoolConfig`) EYNİ mexanizmi paylaşsın deyə, iki ayrı DB-oxuma
+// implementasiyası olmasın.
+import { readConfigValue } from "./app-config";
 
-async function readConfigValue(pool: PoolLike, key: string): Promise<string | null> {
-  try {
-    const { rows } = await pool.query<{ value: string }>(`select value from public.app_config where key = $1`, [key]);
-    return rows[0]?.value ?? null;
-  } catch (err) {
-    console.error(`[models] app_config oxuna bilmədi (key=${key}), env fallback-a düşülür:`, err);
-    return null;
-  }
-}
+type PoolLike = { query<T = unknown>(text: string, params?: unknown[]): Promise<{ rows: T[] }> };
 
 // `GEMINI_MODEL`-i əvəz edir — DB `active_model` sətri boş/yoxdursa env-ə geri düşür.
 export async function getActiveModel(pool: PoolLike): Promise<string> {

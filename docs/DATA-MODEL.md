@@ -152,12 +152,20 @@ Səhv xəritəsinin və valideyn hesabatının **yeganə** mənbəyi.
 ## `app_config` — runtime konfiqurasiya (`ADR-023`, `0056`, real sxem)
 
 Key/value cədvəli, `public` sxemində (sirr deyil, `error_codes`/`topic_codes` kimi arayış
-datası). Redeploy-suz dəyişdirilə bilən dəyərlər üçün — indi yalnız model seçimi:
+datası). Redeploy-suz dəyişdirilə bilən dəyərlər üçün:
 
 | `key` | `value` nümunəsi | qeyd |
 |---|---|---|
 | `active_model` | `gemini-3.7-flash` | `web/lib/models.ts`-in `getActiveModel`-i oxuyur, boşdursa `GEMINI_MODEL` env-ə düşür |
 | `active_transcribe_model` | `` (boş = `active_model`-i işlət) | Qat 1 üçün, `TRANSCRIBE_MODEL` env-dən sonra sıradadır |
+| `cascade_enabled` | `1` | Server kaskadı (`/api/solve` daxili Qat 1-5), boşdursa `CASCADE_ENABLED` env-ə düşür |
+| `cascade_ui_enabled` | `0` | Klient transkripsiya təsdiq ekranı, `/api/config/public`-dən oxunur (`NEXT_PUBLIC_*` DEYİL — bax aşağı) |
+
+2026-08-15: `cascade_*` bayraqları Vercel env-dən (build-vaxtı, redeploy tələb edən) bura
+köçürüldü — `web/lib/app-config.ts::getBoolConfig` ümumi oxuyucudur, `readConfigValue`
+`active_model`-lə PAYLAŞILIR. Klient (`NEXT_PUBLIC_*` YOX, çünki build-vaxtı bundle-a
+yapışır) `GET /api/config/public`-i mount-da çağırır — bax `web/app/kamera/page.tsx`-in
+`cascadeUiEnabled` state-i.
 
 `app_runtime`-ın YALNIZ `SELECT`-i var (gate-78 dərsi) — yazı birbaşa SQL-lə (Claude Code/
 Cowork) və ya gələcək admin RPC-lə. Bax `ADR-022` (qiymət registrisi) + `ADR-023` (bu cədvəl).
