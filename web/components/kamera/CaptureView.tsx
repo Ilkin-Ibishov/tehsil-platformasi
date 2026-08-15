@@ -239,11 +239,15 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
         >
           {t("gallery")}
         </button>
+        {/* UX düzəlişi (Ilkin, 2026-08-15): `capture="environment"` mobil brauzerdə seçim
+            dialoqunu ATLAYIB birbaşa kameranı açırdı — "qalereya" düyməsi faktiki kameraya
+            gedirdi. Bu atribut YALNIZ "birbaşa kamera" istəyəndə lazımdır; qalereyanın da
+            seçim kimi görünməsi üçün silinməlidir — brauzer bundan sonra native "çək/qalereya"
+            seçicisini göstərir. */}
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          capture="environment"
           onChange={handleFileSelected}
           style={{ display: "none" }}
         />

@@ -424,8 +424,8 @@ export function SolveView({
             fontSize: 26,
             lineHeight: 1.3,
             color: "var(--t1)",
-            overflowX: "auto",
-            whiteSpace: "nowrap",
+            whiteSpace: "normal",
+            overflowWrap: "anywhere",
           }}
         >
           {finalDisplayText}
@@ -466,7 +466,7 @@ export function SolveView({
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.1em", color: "var(--acc)" }}>
               {t("transfer.label")}
             </span>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 18, color: "var(--t1)", overflowX: "auto", whiteSpace: "nowrap" }}>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 18, color: "var(--t1)", whiteSpace: "normal", overflowWrap: "anywhere" }}>
               {formatMath(transferProblem.canonical)}
             </div>
             {transferState !== "answered" && (
@@ -572,6 +572,12 @@ export function SolveView({
           {currentStep.explanation}
         </p>
         {currentStep.latex && (
+          // Ilkin-in tapdığı bug (2026-08-15, screenshot): `whiteSpace: "nowrap"` +
+          // `overflowX: "auto"` uzun düsturları mobil ekranda GÖRÜNMƏZ şəkildə kəsirdi —
+          // qutu üfüqi sürüşdürülə bilirdi, amma bunun görünən heç bir işarəsi yox idi,
+          // şagird "k = 9 · (−1/3)"-in yalnız "k = 9" hissəsini görüb DB-nin özü düzgün
+          // olduğu halda nəticəni səhv sanırdı. İndi normal sətir keçidi ilə göstərilir —
+          // heç nə kəsilmir, sürüşdürmə TƏLƏB OLUNMUR.
           <div
             style={{
               margin: "0 var(--page-pad-x)",
@@ -582,8 +588,8 @@ export function SolveView({
               fontFamily: "var(--font-mono)",
               fontSize: 20,
               color: "var(--t1)",
-              overflowX: "auto",
-              whiteSpace: "nowrap",
+              whiteSpace: "normal",
+              overflowWrap: "anywhere",
             }}
           >
             {formatMath(currentStep.latex)}
