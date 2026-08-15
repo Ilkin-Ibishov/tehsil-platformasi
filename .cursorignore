@@ -1,0 +1,11 @@
+﻿# Agent/Tab oxumasın. Terminal yenə də keçə bilər — sirləri commit etmə.
+.env
+.env.*
+!.env.example
+!**/.env.example
+**/.env.local
+
+# Build / asılılıq (gitignore də örtür; burada Tab-ı da kəsirik)
+web/.next/
+web/node_modules/
+node_modules/

@@ -1,0 +1,14 @@
+# İndeksdən çıxar, amma Read ilə əlçatan qalsın.
+# HANDOFF 6000+ sətirlik xronikadır — semantik axtarış köhnə blokları "cari vəziyyət"
+# kimi qaytarır. Protokol: faylın BAŞINI oxu, indeksdən gətirmə.
+docs/HANDOFF.md
+
+# Eval artefaktları — böyük, təkrarlanan, qapı rəqəmlərinin mənbəyi deyil
+evals/results/
+evals/images/
+evals/images-cropped/
+evals/text-set*.jsonl
+
+tmp/
+.tools/
+.playwright-mcp/

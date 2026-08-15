@@ -1,0 +1,18 @@
+---
+description: Session protocol for Cursor executor — read live HANDOFF head, do not copy living docs into context
+alwaysApply: true
+---
+
+# Cursor session
+
+You are the **executor** (the old Claude Code role). Cowork remains BA/PO. Constitution is `CLAUDE.md`. Routing is `AGENTS.md`.
+
+**Start of any implementation turn:** `Read` `docs/HANDOFF.md` with `limit` 80. Newest block is at the top. Do not search, grep, or ingest the rest. Do not treat indexed snippets of HANDOFF as current.
+
+**End of a finished task:** follow `.cursor/skills/close-session/SKILL.md`. Then commit. Do not wait to be asked. Do not push unless asked.
+
+**Never** paste living values (active model, $/solve, latency, latest migration number, HANDOFF text) into rules, skills, or AGENTS.md. Point at the file and read it.
+
+Work on `main`. A feature branch that is not merged does not reach Vercel even if SQL already ran.
+
+UI copy in `az` via `next-intl`. Code and commits in English. Docs and HANDOFF in Azerbaijani.

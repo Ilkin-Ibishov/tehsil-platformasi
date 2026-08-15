@@ -1,0 +1,18 @@
+---
+description: Expand-contract migrations, app_runtime grants, RLS, read writers before constraints
+globs: supabase/migrations/**/*.sql
+alwaysApply: false
+---
+
+# Migrations
+
+Before writing SQL, read the TypeScript that inserts/updates the table. A constraint the writer already violates will 500 production.
+
+- Additive first: create new, keep a shim, merge code, drop old last. Moving/renaming an object without a shim breaks the currently deployed app the moment the migration runs.
+- Every new table: RLS policy in the **same** migration.
+- Every function/table/sequence: explicit `grant ... to app_runtime`. Advisors only catch "too open", never "app_runtime lost EXECUTE".
+- Student-path tables: no hard reject. Unknown codes register `active=false, needs_review=true`.
+- Grant only objects the live code path actually calls.
+- Migration must be applied before the reading code merges to `main`.
+
+Full procedure: `.cursor/skills/write-migration/SKILL.md`.

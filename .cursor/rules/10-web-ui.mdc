@@ -1,0 +1,20 @@
+---
+description: UI, i18n, design tokens, 480px mobile-first when editing screens or mockups
+globs:
+  - web/app/**/*.tsx
+  - web/components/**/*.tsx
+  - web/messages/**/*.json
+  - design/**/*.html
+  - web/lib/design-tokens.ts
+  - docs/DESIGN-TOKENS.json
+alwaysApply: false
+---
+
+# Web UI
+
+- Copy: `useTranslations(...)` + `web/messages/az.json`. No hardcoded user-facing strings.
+- Color, radius, type: `docs/DESIGN-TOKENS.json` → `getThemeVars` → `var(--token)`. No hex/px in components.
+- Layout: `max-width: 480px`. Crop cannot be skipped (real DIM pages are multi-question).
+- Mockups in `design/*.dc.html` are spec. Match structure and copy; tokens still come from JSON.
+- After UI changes, run `ux-design-review` (read `references/known-state.md` first).
+- `error_code` collection is the product. A skip-the-step path that records nothing is a product bug, not a UX nicety.

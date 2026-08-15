@@ -1,0 +1,18 @@
+---
+description: Telemetry event names are a frozen contract — edit TELEMETRY.md before code
+globs:
+  - web/lib/telemetry/**/*.ts
+  - web/app/api/events/**/*.ts
+  - docs/TELEMETRY.md
+alwaysApply: false
+---
+
+# Telemetry
+
+`docs/TELEMETRY.md` is the contract. Event names are append-only. A new name starts in that file, then in code.
+
+Each event answers one question in the TELEMETRY table (S1–S8). No question, no event.
+
+Client creates `event_id` (uuid). `/api/events` upserts. Telemetry failure never surfaces to the student (always 200).
+
+Do not put image bytes or PII in `props`. Metadata only (`image_px`, `image_bytes`).

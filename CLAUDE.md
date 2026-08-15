@@ -1,7 +1,8 @@
 # CLAUDE.md — Təhsil Platforması
 
-> Bu fayl Claude Code tərəfindən hər sessiyanın əvvəlində avtomatik oxunur.
-> Cowork (Claude Project) tərəfi bu faylı yeniləyir. **Dəyişiklik etməzdən əvvəl `docs/HANDOFF.md`-i oxu.**
+> Bu fayl konstitusiyadır. Cowork (Claude Project) onu yeniləyir.
+> Claude Code və Cursor (executor) hər sessiyadan əvvəl oxuyur. **Dəyişiklik etməzdən əvvəl `docs/HANDOFF.md`-i oxu.**
+> Cursor əməliyyat xəritəsi: `AGENTS.md` + `.cursor/` — yaşayan vəziyyəti bura köçürmə.
 
 ## Layihə bir abzasda
 
@@ -75,8 +76,7 @@ property → komponent. Səbəb: mövcud 9 dizayn faylında eyni token 3 fərqli
 
 ## ClickUp koordinatları
 
-Claude Code-a eyni ClickUp MCP-sini əlavə et (`claude mcp add`) — tapşırığı özün `in progress`-ə çək,
-commit-dən sonra bağla.
+Claude Code-a eyni ClickUp MCP-sini əlavə et (`claude mcp add`). Space statusları yalnız `to do` / `complete`-dir (`in progress` yoxdur). Başlayanda komment yaz; commit-dən sonra `complete`.
 
 | Siyahı | `list_id` |
 |---|---|
@@ -87,7 +87,9 @@ commit-dən sonra bağla.
 
 Folder: `901815897469` · Space: `901810230629` · Workspace: `90182536078`
 
-## Sessiya qaydaları (Claude Code üçün)
+## Sessiya qaydaları (executor — Claude Code və Cursor)
+
+Cursor-da eyni qaydalar keçərlidir. Əməliyyat xəritəsi `AGENTS.md`-dir (qaydalar, skill, hook, subagent). HANDOFF-un tamını kontekstə yükləmə — yalnız son 2 blok.
 
 1. **Başlayanda:** `docs/HANDOFF.md`-in son 2 yazısını oxu.
 2. **İşləyəndə:** memarlıq səviyyəsində qərar verirsənsə → `docs/decisions/ADR-XXX.md` yaz, köhnəni silmə.

@@ -8,6 +8,7 @@ Rəqiblər cavab verir — biz **harada ilişdiyini** deyirik.
 | Sən | Oxu |
 |---|---|
 | Claude Code sessiyası | `CLAUDE.md` → `docs/HANDOFF.md` (son 2 blok) |
+| Cursor IDE sessiyası | `AGENTS.md` → `.cursor/` (qayda/skill/agent). Konstitusiya yenə `CLAUDE.md` |
 | Məhsulu anlamaq | `docs/PRODUCT.md` |
 | Cari sprint planı və API müqaviləsi | `docs/PHASE-1.md` |
 | Texniki qərarlar | `docs/ARCHITECTURE.md`, `docs/decisions/` (ADR-001…024) |
@@ -17,7 +18,9 @@ Rəqiblər cavab verir — biz **harada ilişdiyini** deyirik.
 ## Struktur
 
 ```
-CLAUDE.md                 giriş faylı — Claude Code avtomatik oxuyur
+CLAUDE.md                 konstitusiya — Cowork yeniləyir
+AGENTS.md                 Cursor əməliyyat xəritəsi (yaşayan datanı təkrar etmir)
+.cursor/                  qaydalar, skill, subagent, hook, layihə MCP
 LOG.md                    qısa iş jurnalı (3 sətir/task)
 docs/
   PRODUCT.md              məhsul briefi, fazalar və qapı metrikaları
@@ -29,7 +32,7 @@ docs/
   STEP-SCHEMA.json        LLM cavab müqaviləsi + error_code enum-u (11 kod)
   TRANSCRIBE-SCHEMA.json  Qat 1 transkripsiya müqaviləsi
   DESIGN-TOKENS.json      dizayn tokenlərinin tək mənbəyi
-  HANDOFF.md              Cowork ↔ Claude Code növbə jurnalı
+  HANDOFF.md              Cowork ↔ Cursor/Claude Code növbə jurnalı
   decisions/              ADR-001…026 (son: ADR-025 qrafik hallüsinasiyası, ADR-026 fənn genişlənməsi)
 web/                      Next.js tətbiqi (App Router, TS, Tailwind, PWA)
 supabase/migrations/      0001…0062 — DB-yə tətbiq sırası ilə

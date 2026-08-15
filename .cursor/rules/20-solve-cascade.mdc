@@ -1,0 +1,23 @@
+---
+description: Cascade, STEP-SCHEMA, sympy verification, prompts — do not invent contract fields
+globs:
+  - web/lib/cascade/**/*.ts
+  - web/lib/verify/**/*.ts
+  - web/app/api/solve/**/*.ts
+  - prompts/**/*.md
+  - docs/STEP-SCHEMA.json
+  - docs/TRANSCRIBE-SCHEMA.json
+alwaysApply: false
+---
+
+# Solve pipeline
+
+Contract lives in `docs/STEP-SCHEMA.json` (and transcribe in `TRANSCRIBE-SCHEMA.json`). Changing either needs an ADR. `error_codes` is a frozen enum.
+
+Layers (code: `web/lib/cascade/`): 0 image cache, 1 transcribe, 2 hash/fingerprint, 3 templates, 4 embedding **not in code**, 5 LLM. Cache before LLM.
+
+`verification.verified` is three-valued and must match the DB: `true` / `false` (hide solution) / `null` (show + unverified). Never send `verified: true` when `method='none'`.
+
+Student-path inserts self-heal unknown `topic_code`/`error_code` (`needs_review=true`). Do not add hard FKs that 500 a live solve.
+
+Active model is `public.app_config.active_model`, not an env hardcoded in a component. Price lives next to the model in `web/lib/models.ts`.

@@ -1,0 +1,19 @@
+{
+  "eslint.workingDirectories": ["web"],
+  "typescript.tsdk": "web/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "files.exclude": {
+    "web/.next": true,
+    "**/__pycache__": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "web/.next": true,
+    "evals/results": true,
+    "evals/images": true,
+    "evals/images-cropped": true
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
+}

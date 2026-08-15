@@ -1,0 +1,17 @@
+---
+description: Test bank schema and answer isolation — design.md SQL is source of truth
+globs:
+  - .kiro/specs/test-bank/**
+  - .kiro/steering/test-bank.md
+  - web/lib/cascade/bank.ts
+  - web/app/bank/**/*.tsx
+alwaysApply: false
+---
+
+# Test bank
+
+Read before changing anything: `.kiro/specs/test-bank/requirements.md`, `design.md`, `.kiro/steering/test-bank.md`, `docs/decisions/ADR-017-answer-isolation.md`.
+
+SQL in `design.md` is source of truth. Deviating needs an ADR.
+
+`app_runtime` must not `SELECT` `private` directly. Answers go through `app` RPCs only (INV-03).
