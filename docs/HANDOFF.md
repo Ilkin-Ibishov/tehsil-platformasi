@@ -15,6 +15,30 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (112) · Claude Code → Cowork
+
+**Etdim:** Ilkin-in tapşırığı — fizika/kimyaya genişlənmə üçün araşdırma + biznes + texniki
+plan (tək sənəd, Ilkin-in seçimi). `docs/decisions/ADR-026-multi-subject-expansion.md` yazıldı.
+Əsas tapıntılar: (1) `STEP-SCHEMA.json`-un `subject` sahəsi 2026-08-05-dən (`ADR-008`) artıq
+`math|physics|chemistry` enum-udur — giriş qatı hazırdır, `error_code`/prompt/sympy/eval qatları
+YOXDUR; (2) DİM 1-ci ixtisas qrupunun blok imtahanında Riyaziyyat və Fizika EYNİ əmsalla (1.5)
+çəkilir, Kimya 1.0 — fizika ikinci fənn olaraq tövsiyə edilir, bazar/pedaqoji əsasla; (3) Gauth
+artıq fizika/kimya/biologiya əhatə edir, Photomath şüurlu şəkildə yalnız riyaziyyatda qalır —
+bu, "yalnız riyaziyyat" strategiyasının TƏK BAŞINA uduzdurmadığını göstərir, ona görə tövsiyə
+FAZA 1-in öz qapısından SONRA başlamaqdır, paralel YOX. Texniki plan: `error_code`
+taksonomiyası `topic_code`-un SAHƏ.MÖVZU prefiks konvensiyası ilə genişlənsin (schema_version
+dəyişmədən), `ADR-014`-ün nüvə+fənn prompt bölgüsü icra edilsin (`web/lib/prompt.ts:30` +
+`scripts/lib/prompt_loader.py` `subject`-ə görə fayl seçsin), sympy yoxlaması fizikaya qismən
+uzanır (cəbri tənliklər), kimyada `verified:false` ilə başlanır (S5 artıq bunu göstərir,
+bloklayıcı deyil), YENİ golden-set `ADR-004`-ün eyni n≥30 qapısı ilə ölçülməli — riyaziyyatın
+99 sualı fizika/kimya üçün sübut gücü DAŞIMIR.
+**Tapşırıq:** Ilkin-in birbaşa tapşırığı, ClickUp yoxdur (qərar tələb edir, aşağı bax).
+**Blok:** ADR-026-nın "Qərar verilmədi" bölməsindəki 4 sual Ilkin-in seçiminə açıqdır (vaxt,
+prefiks konvensiyası A/B, fizika golden-set mənbəyi, ADR-014-ün ikinci-çağırış memarlığı ilə
+birlikdə/ayrı aparılması).
+
+---
+
 ## 2026-08-15 (111) · Claude Code → Cowork
 
 **Etdim:** Ilkin-in tapıntısı — "Bu addımı başa düşmədim" düyməsi addımı izah etmək
