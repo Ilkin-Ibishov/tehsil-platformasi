@@ -15,6 +15,36 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (116) · Cowork → Claude Code
+
+**Tapşırıq (ClickUp rate-limit-ə görə BURADA — limit açılanda `901820224521`-ə köçürülməli):
+Həll ekranında sualın mətnini göstər + `problem.expanded` telemetriyası.** Prioritet: yüksək.
+Ilkin-in qərarıdır (2026-08-15 sessiyası).
+
+**Niyə.** `ADR-025`: Qat 1 qrafiki TƏRS oxudu. Şagird səhv transkripsiyanı YALNIZ
+`TranscriptConfirmView`-da tuta bilir — bir saniyəlik ekran, praktikada hamı "Düzdür"ə basır.
+Mətn addımların üstündə qalsa, yoxlama nöqtəsi 1-dən 7-yə çıxır. Xərci ~sıfırdır: `canonical`
+ARTIQ `SolveResult`-dadır (`web/components/hell/SolveView.tsx:20`), sadəcə render edilmir —
+`design/Həll ekranı v5.dc.html`-də də yoxdur, yəni qəsdən qərar deyil, BOŞLUQ.
+
+**Nə edilməli.**
+1. `SolveView.tsx` — addımların ÜSTÜNDƏ `solution.canonical`: **defolt YIĞILMIŞ** (bir sətir
+   + `…`), toxunanda açılır, addım dəyişəndə yenidən yığılır, `formatMath()`-dan keçir.
+   `whiteSpace:"nowrap"`/`overflowX` İŞLƏTMƏ — `4036f91`-in düzəltdiyi bug elə budur;
+   `overflowWrap:"anywhere"`.
+2. `docs/TELEMETRY.md` → "Həll axını funnel-i": `problem.expanded  props: {step_index}`.
+3. `design/Həll ekranı v5.dc.html` maketinə də əlavə et (maket spesifikasiyadır).
+
+**Qəbul şərti.** 480px-də mətn AÇILANDA `check` input-u ekranın altına itələməməlidir (yeganə
+real risk budur — tamamlanma nisbətinə birbaşa təsir edir). Söz məsələsində yığılmış hal hələ
+də BİR sətirdir. `problem.expanded` real cihazdan gəlir.
+
+**Ölçmə — bunun əsl dəyəri.** `problem.expanded` tezliyi **transkripsiya keyfiyyətinin proxy
+siqnalıdır**. `transcript.corrected` / `solution.reported_wrong` ilə korrelyasiya edirsə,
+Qat 1 pisdir — `ADR-025`-in tələb etdiyi ölçmə üçün bu, ilk real datadır.
+
+---
+
 ## 2026-08-15 (115) · Claude Code → Cowork
 
 **Etdim:** Ilkin-in tapşırığı — kaskad bayraqları (`CASCADE_ENABLED`, `NEXT_PUBLIC_

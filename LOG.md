@@ -14,3 +14,4 @@
 - Duzeldilen 4 real zidiyyat: sekil artiq SAXLANILIR (ADR-024) - 3 fayl "saxlanilmir" yazirdi; canonical yeniden yazilir (0062); verification 3 halldir (S5); telemetriyada ocr.correction_* heç vaxt yazilmayib, real adlar transcript.* + bank.*.
 - Yeni: INV-11 (status yalan danismir), CLAUDE.md ders 7, DATA-MODEL-e captures bucket + taksonomiya bolmeleri. Aciq qalan: 90 gunluk silme cron-u YOXDUR (INV-09), dizayndaki "Sekil telefonda qalir" metni yalandir.
 - Rebase: lokal main 14 commit geri idi (origin f36dcd6). Blok 103-113-un getirdikleri ile yeniden uzlasdirildi: n=99 eval (107), 0063 step_events, ADR-025/026.
+- 2026-08-15: Qerar (Ilkin) - hell ekraninda sualin metni gorunmelidir. Task HANDOFF blok 115-de (ClickUp rate-limit). Esas sebeb ADR-025: sehv transkripsiya yalniz confirm ekraninda tutula bilir; problem.expanded telemetriyasi Qat 1 keyfiyyetinin proxy siqnalidir.
