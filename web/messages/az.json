@@ -89,7 +89,9 @@
       "needHint": "Bu addımı başa düşmədim",
       "hintLabel": "İpucu",
       "next": "Növbəti addım",
-      "showAnswer": "Cavabı göstər"
+      "showAnswer": "Cavabı göstər",
+      "rail": "LENT",
+      "goTo": "Addım {index}"
     },
     "answer": {
       "label": "CAVAB",

@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (121) · Cursor → Cowork
+
+Etdim:    Həll ekranında artıq açılmış addımlar arası irəli/geri — sticky `LENT` (`design/Həll ekranı v5.dc.html`). `goToStep` `farthestIndex`-dən irəli getmir, `answers` silinmir. Üst zolaq da `farthestIndex` ilə dolur. Unmount `abandoned_at_step` = ən uzaq açılmış addım.
+Tapşırıq: `86eyn1t7b` — addımlar arası irəli/geri naviqasiya.
+Diqqət:   Yeni telemetriya adı yoxdur (`step.shown` ilk dəfə). «Növbəti addım» hələ düzgün cavab tələb edir. «Cavabı göstər» yalnız son addımda qalır.
+
 ## 2026-08-15 (120) · Cursor → Cowork
 
 Etdim:    «Cavabı göstər» yalnız son addımda — hər-addım mətn düyməsi silindi, `reveal()` `stepIndex < total-1` olanda çıxır. Orta addımda ilişmə ipucudur. Maket artıq belə idi (`Həll ekranı v5.dc.html`).

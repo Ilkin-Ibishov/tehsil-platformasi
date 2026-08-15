@@ -211,6 +211,9 @@ export function SolveView({
   const total = steps.length;
 
   const [stepIndex, setStepIndex] = useState(0);
+  // ClickUp 86eyn1t7b — ən uzaq açılmış addım. Geri/irəli yalnız `i <= farthestIndex`.
+  // `answers` silinmir: yazılmış `error_code` (server `step_events`) və UI-dakı səhv adı qalır.
+  const [farthestIndex, setFarthestIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, StepAnswerState>>({});
   const [hintOpen, setHintOpen] = useState<Record<number, boolean>>({});
   const [revealed, setRevealed] = useState(false);
@@ -245,20 +248,22 @@ export function SolveView({
 
   // SYSTEM-REVIEW-2026-08-07 §A1: son addıma çatmadan bu ekran sökülürsə (geri, "yeni sual
   // çək" ADƏTƏN sökmür amma naviqasiya edə bilər, tab bağlama) — `abandoned_at_step` bunu
-  // yazır. `HANDOFF 40`-dakı unmount-cleanup dərsi eynidir: unmount anında `revealed`/`stepIndex`
-  // dəyərləri prop/closure-dan gec ola bilər, ona görə ref-lər ayrıca sinxronlaşdırılır.
+  // yazır. `HANDOFF 40`-dakı unmount-cleanup dərsi eynidir: unmount anında `revealed`/
+  // `farthestIndex` dəyərləri prop/closure-dan gec ola bilər, ona görə ref-lər ayrıca
+  // sinxronlaşdırılır. 86eyn1t7b: baxış üçün geri getmək funnel-i "addım 0-da ilişdi"
+  // kimi yazmamalıdır — ən uzaq açılmış addım yazılır.
   const revealedRef = useRef(revealed);
-  const stepIndexRef = useRef(stepIndex);
+  const farthestIndexRef = useRef(farthestIndex);
   useEffect(() => {
     revealedRef.current = revealed;
   }, [revealed]);
   useEffect(() => {
-    stepIndexRef.current = stepIndex;
-  }, [stepIndex]);
+    farthestIndexRef.current = farthestIndex;
+  }, [farthestIndex]);
   useEffect(() => {
     return () => {
       if (!revealedRef.current) {
-        reportAttemptProgress({ attemptId, completed: false, abandonedAtStep: stepIndexRef.current, durationSec: null, revealedAnswer: false });
+        reportAttemptProgress({ attemptId, completed: false, abandonedAtStep: farthestIndexRef.current, durationSec: null, revealedAnswer: false });
       }
     };
   }, [attemptId]);
@@ -455,12 +460,20 @@ export function SolveView({
     });
   }
 
+  function goToStep(i: number) {
+    if (i < 0 || i > farthestIndex || i === stepIndex) return;
+    if (revealing || currentAnswer.status === "checking") return;
+    setStepIndex(i);
+  }
+
   function advance() {
     if (stepIndex >= total - 1) {
       void reveal();
       return;
     }
-    setStepIndex((i) => i + 1);
+    const next = stepIndex + 1;
+    setStepIndex(next);
+    setFarthestIndex((f) => Math.max(f, next));
   }
 
   // ADR-015 Tapıntı 1/2: `values` müqayisə üçündür (server tərəfdə istifadə olunur), şagirdə
@@ -639,14 +652,14 @@ export function SolveView({
   return (
     <main style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
       <div style={{ display: "flex", gap: 4, padding: "0 var(--page-pad-x) 0", flexShrink: 0 }}>
-        {steps.map((s) => (
+        {steps.map((s, i) => (
           <span
-            key={s.index}
+            key={`${s.index}-${i}`}
             style={{
               height: 6,
               borderRadius: 99,
               flex: 1,
-              background: s.index <= stepIndex ? "var(--acc)" : "var(--trackempty, var(--bor))",
+              background: i <= farthestIndex ? "var(--acc)" : "var(--trackempty, var(--bor))",
               transition: "background 380ms cubic-bezier(0.16,1,0.3,1)",
             }}
           />
@@ -836,6 +849,42 @@ export function SolveView({
         </div>
 
       <div style={{ position: "sticky", bottom: 0, background: "var(--bg)", borderTop: "1px solid var(--bor)", padding: "10px var(--page-pad-x) 20px", flexShrink: 0 }}>
+        {total > 1 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 14, paddingBottom: 10, overflowX: "auto" }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.1em", color: "var(--t3)", flexShrink: 0 }}>
+              {t("step.rail")}
+            </span>
+            <div style={{ display: "flex", gap: 6 }}>
+              {steps.map((s, i) => {
+                const reached = i <= farthestIndex;
+                const current = i === stepIndex;
+                const locked = !reached || revealing || currentAnswer.status === "checking";
+                return (
+                  <button
+                    key={`${s.index}-${i}`}
+                    type="button"
+                    onClick={() => goToStep(i)}
+                    disabled={locked && !current}
+                    aria-current={current ? "step" : undefined}
+                    aria-label={t("step.goTo", { index: i + 1 })}
+                    style={{
+                      minHeight: 44,
+                      padding: "0 8px",
+                      border: "none",
+                      background: "transparent",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 14,
+                      color: current ? "var(--t1)" : reached ? "var(--acc)" : "var(--t3)",
+                      cursor: reached && !locked ? "pointer" : current ? "default" : "not-allowed",
+                    }}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <button
           type="button"
           onClick={advance}

@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-15: HANDOFF 121 — həll ekranında LENT irəli/geri (`SolveView.tsx`). ClickUp `86eyn1t7b`.
 - 2026-08-15: HANDOFF 120 — «Cavabı göstər» yalnız son addım (`SolveView.tsx`). ClickUp `86eymrkjn`.
 - 2026-08-15: HANDOFF 119 — dəvət kodu qapıda yoxlanır (`/api/invite/check`, `InviteGate`, bank `inviteError`). ClickUp `86eymrm6g`.
 - 2026-08-15: HANDOFF 116 — həll ekranında yığılmış sual mətni + `problem.expanded`. `SolveView.tsx`, `TELEMETRY.md`, `Həll ekranı v5.dc.html`.
