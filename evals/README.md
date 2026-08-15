@@ -77,7 +77,7 @@ Hər sətir bir JSON obyekti:
 | **Son cavab dəqiqliyi** | üç qat (86eyhqggz, ADR-009): (1) golden `final_answer_values` ilə **kəsişmə** əsaslı müqayisə (`answer_values_are`-ə görə), (2) sympy `canonical`-a qarşı müstəqil çarpaz yoxlama (`answer_is_root=false`-da keçilir), (3) heç biri mümkün deyilsə `None` | **≥85%** |
 | **Yoxlama ziddiyyəti** | (1) və (2) fərqli nəticə verib — golden set-in özündə səhv ola bilər, əl ilə yoxlanmalıdır | qapısız, item id-ləri ilə çap olunur |
 | **Variant uyğunluğu** | `final_answer.choice` (yoxdursa son addımın `check.accept`-i) `expected_choice`-a uyğundurmu | informativ, qapısız |
-| **Addım bölgüsü — struktur** | say 2–6, hər addımda `check`, `index` ardıcıl, son addım yoxlama, `error_code`-lar fərqli | **100%** |
+| **Addım bölgüsü — struktur** | say 1–6, hər addımda `check`, `index` ardıcıl, son addım yoxlama (>1 addımda, HANDOFF 108), `error_code`-lar fərqli | **100%** |
 | **Addım bölgüsü — pedaqoji** | insan rəyi: "bu bölgü ilə şagird özü həll edə bilərmi?" (bax `ADR-004`) | **≥75%** |
 | **Sxem validliyi** | `STEP-SCHEMA.json`-a uyğunluq | 100% |
 | **Cavab sızması** | `V` dəyəri `steps[i].explanation`-da görünür VƏ heç bir **əvvəlki** (`j<i`) addımın `check.accept`-ində yoxdur (`ADR-005`) | ≤10% |

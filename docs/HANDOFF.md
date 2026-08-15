@@ -15,6 +15,19 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-15 (108) · Claude Code → Cowork
+
+**Etdim:** Ilkin-in birbaşa tapşırığı (BLİTZ, ADR-siz) — "yoxlama addımı istisnasız" qaydası
+mənasız son addımlar yaradırdı ("5+5=?" DB-də yoxlanıldı: 2 addım, ikincisi süni). `STEP-
+SCHEMA.json` `minItems` 2→1, `prompts/solve/core.md` qayda 8 4 icazəli yoxlama tipinin qapalı
+siyahısına keçdi (dövri/əlaqəsiz yoxlama açıq qadağan), `scripts/lib/steps_compare.py`-ın
+struktur yoxlaması uyğunlaşdırıldı (35/35 selftest keçir).
+**Tapşırıq:** Ilkin-in birbaşa sözlü tapşırığı, ClickUp yoxdur.
+**Diqqət:** növbəti real solve-da model 1-addımlı sadə suallara HƏQİQƏTƏN 1 addımla cavab
+verirmi — sandboxda yoxlanmadı (API açarı yoxdur), production-da izlənilməlidir.
+
+---
+
 ## 2026-08-15 (107) · Claude Code → Cowork
 
 **Etdim — 99/99 sualın TAM eval nəticəsi (Faza 0-ın ilk n≥30 qapı ölçməsi) + eval.py-ın

@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v9)
+# Prompt — addım sxemi generasiyası (v10)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -72,6 +72,18 @@
 > Qayda 14 YALNIZ yoxlama addımı üçün "ilkin şərtə qayıt" tələb edirdi — ADDIMLARARASI
 > qarışığı (bir addımın sualı BAŞQA addımın işini soruşur) heç bir qayda birbaşa qadağan
 > etmirdi. Qayda 17 əlavə edildi.
+>
+> **v9 → v10 (2026-08-15).** Ilkin-in birbaşa tapşırığı, HANDOFF (108): production-da
+> "5+5=?" sınandı — 1-keçidlik fakta 2-ci (süni, əks-əməllə "yoxlama") addım əlavə olundu.
+> DB-dən daha 4 real solve yoxlanıldı: 2-si mənalı yoxlama idi (orijinal şərtə qayıtma,
+> istifadə olunmamış faktla çarpaz yoxlama), 2-si isə DÖVRİ/ƏLAQƏSİZ idi (əvvəlki addımda
+> artıq tapılmış dəyəri təkrar hesablamaq, ya da qrafikin forması ilə ƏLAQƏSİZ təsadüfi bir
+> nöqtədə funksiyanı hesablamaq). Kök səbəb: qayda 8-in "istisnasız" tələbi + `STEP-SCHEMA.
+> json`-un `minItems: 2`-si BİRLİKDƏ yoxlamanı MƏNALI olub-olmamasından ASILI OLMAYARAQ
+> MƏCBUR EDİRDİ. `minItems` 2→1 endi, qayda 8 "yalnız mənalı yoxlama mümkün olduqda" şərtinə
+> keçdi, 4 icazəli yoxlama tipinin QAPALI SİYAHISI yazıldı, dövri yoxlama AÇIQ QADAĞAN edildi.
+> Qayda 11/14/15 uyğunlaşdırıldı. ADR yazılmadı (Ilkin-in açıq tapşırığı) — HANDOFF (108)-ə
+> bax.
 
 ## System
 
@@ -86,7 +98,9 @@ Vəzifən: məsələni HƏLL ETMƏK DEYİL — şagirdin özünün həll edə bi
 Yalnız JSON qaytar. Markdown code fence yazma. İzah yazma. Sahə adlarını dəyişmə,
 yeni sahə əlavə etmə. Aşağıda İKİ nümunə var — biri sadə (2 addım), biri mürəkkəb
 (6 addım). İkisi də formatın DƏQİQ təsviridir. ADDIM SAYINA DİQQƏT ET: nümunələr
-"həmişə bu qədər addım yaz" demir — hər məsələnin öz sayı var, aşağıdakı 15-ci qaydaya bax.
+"həmişə bu qədər addım yaz" demir — hər məsələnin öz sayı var (1-6 arası, aşağıdakı
+15-ci qaydaya bax). Çox sadə suallarda (tək riyazi keçid, mənalı yoxlama qurula bilmir)
+DÜZGÜN cavab 1 TƏK addımdır — bax qayda 8.
 
 {{MATH_EXAMPLE}}
 
@@ -244,15 +258,32 @@ KƏSİLMİŞ MƏSƏLƏ:
    TRIG.IDENTITIES, PROB.BASIC, STAT.MEDIAN, COMPLEX.ARITHMETIC və s.
    Azərbaycanca yazma — dil-neytral koddur, UI etiketi ayrıca faylda saxlanılır.
 
-8. SON ADDIM HƏMİŞƏ YOXLAMA ADDIMIDIR — istisnasız.
-   Nəticəni ilkin ifadəyə YERİNƏ QOY və bərabərliyin doğru olduğunu göstər.
-   Bu addımın error_code-u adətən SUBSTITUTION_SKIPPED olur.
-   Yoxlama REAL hesablama olmalıdır, təkrar deyil:
-     Pis:  "Cavab x = 3-dür."                        (heç nə yoxlamır)
-     Pis:  "Nəticəni bir daha nəzərdən keçir."       (konkret deyil)
-     Yaxşı: "x = 3 qoyanda sol tərəf nə verir?" → accept: ["0"]
-   Mətn məsələsində də yoxlama var: nəticəni şərtə qaytar
-     ("230 manat 200 manatdan neçə faiz çoxdur?" → accept: ["15"]).
+8. SON ADDIM YOXLAMA ADDIMIDIR — YALNIZ MƏNALI YOXLAMA MÜMKÜN OLDUQDA.
+   HANDOFF (108, 2026-08-15): "istisnasız" qaydası real solve-larda MƏNASIZ addım yaradırdı
+   ("5+5=?" kimi 1-keçidlik suala "10-dan 5 çıxsaq?" tipli süni ikinci addım) — İNDİ ŞƏRTLİDİR.
+
+   Yoxlama YALNIZ aşağıdakı QAPALI SİYAHIDAN BİRİ QURULA BİLƏRSƏ əlavə edilir:
+     (a) tapılanı İLKİN ŞƏRTƏ/tənliyə YERİNƏ QOY — bərabərliyin doğru olduğunu göstər.
+     (b) HƏLƏ İSTİFADƏ OLUNMAMIŞ məlumat nöqtəsi ilə ÇARPAZ YOXLA (qrafikdəki başqa bir
+         verilmiş fakt, sualın istifadə edilməmiş bir şərti və s.).
+     (c) ALTERNATİV ÜSULLA eyni nəticəyə gəl (fərqli düsturla/yoldan yoxlama).
+     (d) MƏNTİQİ/İNTERVAL SANITY CHECK (tapılan qiymət domenə/işarəyə/intervala uyğundurmu).
+   Bu 4 tipdən HEÇ BİRİ bu məsələ üçün QURULA BİLMİRSƏ — yoxlama addımı YAZMA. Son addımın
+   ÖZÜ cavabdır, addım sayına SÜNİ ƏLAVƏ ETMƏ.
+
+   DÖVRİ YOXLAMA QADAĞANDIR: artıq ƏVVƏLKİ addımda TAPILMIŞ dəyəri YENİDƏN hesablamaq
+   (və ya elə həmin faktı fərqli sözlərlə təkrarlamaq) YOXLAMA SAYILMIR — bu, addım sayını
+   süni artırır, heç nəyi sınamır.
+     Pis (dövri): əvvəlki addımda "b = 1/3" tapılıb, son addım "x=0 olduqda y=x/5+1/3 neçədir?"
+       soruşur → tərifcə b-yə bərabərdir, HEÇ NƏ yoxlanmır.
+     Pis (əlaqəsiz): qrafikin FORMASI haqqında sual idi, son addım "x=1 olduqda y=1/x
+       neçədir?" soruşur → qrafikin formasını TƏSDİQLƏMİR, təsadüfi bir nöqtə hesablayır.
+     Pis: "Cavab x = 3-dür."                        (heç nə yoxlamır)
+     Pis: "Nəticəni bir daha nəzərdən keçir."       (konkret deyil)
+   Yoxlama VARSA, bu addımın error_code-u adətən SUBSTITUTION_SKIPPED olur.
+     Yaxşı (a): "x = 3 qoyanda sol tərəf nə verir?" → accept: ["0"]
+     Yaxşı (b): "230 manat 200 manatdan neçə faiz çoxdur?" → accept: ["15"]
+       (mətn məsələsində nəticəni ŞƏRTƏ qaytarır)
 
 9. error_code-ları TƏKRARLAMA. Hər addımda şagirdin məhz ORADA edəcəyi səhvi seç.
    Bütün addımlara eyni kod yazsan, səhv xəritəsi mənasızlaşır — məhsulun bütün dəyəri
@@ -268,15 +299,17 @@ KƏSİLMİŞ MƏSƏLƏ:
     Variantlı məsələdə də şagird cavabı ÖZÜ ÇIXARIR, sonra variantla tutuşdurur.
     Variant seçdirmək məhsulun mənasını yox edir — biz cavab tanıtmırıq, çıxarış öyrədirik.
 
-11. YOXLAMA ADDIMI İLKİN ŞƏRTƏ QAYITMALIDIR.
-    Tapılan nəticəni ilkin məsələyə YERİNƏ QOY və gözlənilən nəticəni verdiyini göstər.
-    Bunlar yoxlama DEYİL:
+11. YOXLAMA VARSA, QAYDA 8-İN 4 TİPİNDƏN BİRİNƏ UYĞUN OLMALIDIR.
+    Ən çox istifadə olunan (a) tipi: tapılan nəticəni ilkin məsələyə YERİNƏ QOY və
+    gözlənilən nəticəni verdiyini göstər. Bunlar HEÇ BİR tipə uyğun gəlmir, yoxlama DEYİL:
       – sonuncu hesablama ("x−√x nədir?" — bu, cavabın özüdür)
       – vahid çevirməsi ("0,3 neçə faizdir?" — heç nə təsdiqləmir)
       – cavabın başqa formada yazılışı
       – variant axtarışı
+      – əvvəlki addımda ARTIQ tapılmış dəyərin təkrar hesablanması (qayda 8-in dövri qadağanı)
     Düzgün nümunə: "m = 7 olduqda D = 25−4m neçədir?" → −3 → mənfi diskriminant
-    kompleks kökü TƏSDİQLƏYİR. Məntiq qapanır.
+    kompleks kökü TƏSDİQLƏYİR. Məntiq qapanır. Heç bir tip qurula bilmirsə, qayda 8-ə görə
+    yoxlama addımı ÜMUMİYYƏTLƏ YAZILMIR.
 
 12. DÜSTURU SUALIN İÇİNDƏ VERMƏ.
       Pis:  "Əlverişli halların sayı (3! × 3!) neçədir?"   ← bütün fikir mötərizədədir
@@ -289,22 +322,27 @@ KƏSİLMİŞ MƏSƏLƏ:
       Yaxşı: "2^(x−5) ifadəsini y ilə yaz."   → (y−1)/3
     Konkret ədəd YALNIZ yoxlama addımında işlənə bilər.
 
-14. YOXLAMA ADDIMININ check.ask-i İLKİN MƏSƏLƏNİN İFADƏSİNİ EHTİVA ETMƏLİDİR.
+14. YOXLAMA ADDIMININ check.ask-i (VARSA) İLKİN MƏSƏLƏNİN İFADƏSİNİ EHTİVA ETMƏLİDİR.
     Bu, 11-ci qaydanın mexaniki formasıdır — "yoxlama olmalıdır" tələbi tək qalanda
-    model boş addım uydurur.
+    model boş addım uydurur. Amma qayda 8-ə görə YOXLAMA ADDIMININ ÖZÜ MƏCBURİ DEYİL —
+    bu qayda YALNIZ yoxlama YAZILANDA onun keyfiyyətini tənzimləyir.
       Pis:  "−3 + 1 neçəyə bərabərdir?"              ← məsələ ilə əlaqəsi yoxdur
       Pis:  "0,3 × 120 nə verir?"                     ← əvvəlki addıma qayıdır
       Yaxşı: "m = 7 olduqda D = 25 − 4m neçədir?"     ← ilkin şərtə qayıdır
       Yaxşı: "x = π/6 olduqda cos(x) + cos(5x) nə verir?"
-    Yoxlama sualında ilkin məsələnin simvolları/ifadəsi görünmürsə, o, yoxlama deyil.
+    Yoxlama sualında ilkin məsələnin simvolları/ifadəsi görünmürsə, o, yoxlama deyil —
+    YA düzəlt (qayda 8-in 4 tipindən birinə uyğunlaşdır), YA da addımı SİL.
 
 15. ADDIM SAYI MEXANİKİ HESABLANIR — "UYĞUN SAY SEÇ" DEYİL.
     Addımlara BÖLMƏZDƏN ƏVVƏL məsələnin tələb etdiyi RİYAZİ KEÇİDLƏRİN sayını müəyyən et
     (əmsal oxumaq, diskriminant, kök, yerinə qoymaq, vahid çevirmək — hər biri BİR keçiddir).
-    Addım sayı = keçid sayı + 1 (yoxlama addımı, qayda 8).
-      2x + 6 = 20  → keçid: "20−6"-nı tap, "14/2"-ni tap (2) → 2+1 = 3 addım
-      3x = 12      → keçid: "12/3"-ü tap (1)                → 1+1 = 2 addım
-      düzbucaqlı sahə məsələsi (aşağıdakı 2-ci nümunə) → 5 keçid → 5+1 = 6 addım
+    Addım sayı = keçid sayı + (1, ƏGƏR qayda 8-in 4 tipindən biri qurula bilirsə — əks
+    halda +0). Tək-keçidlik faktlarda (`5+5` kimi) MƏNALI yoxlama QURULA BİLMİR → 1 addım,
+    yoxlamasız — bu, XƏTA DEYİL, düzgün davranışdır.
+      2x + 6 = 20  → keçid: "20−6"-nı tap, "14/2"-ni tap (2) + yoxlama (a) → 3 addım
+      3x = 12      → keçid: "12/3"-ü tap (1) + yoxlama (a)                → 2 addım
+      5 + 5        → keçid: "5+5"-i tap (1), mənalı yoxlama YOXDUR         → 1 addım
+      düzbucaqlı sahə məsələsi (aşağıdakı 2-ci nümunə) → 5 keçid + yoxlama → 6 addım
     Nə "3-4 addım standartdır" düşünmə, nə hər məsələni eyni qəlibə sal — say məsələdən gəlir.
 
 16. SÜNİ ADDIM ƏLAVƏ ETMƏ — SAYI DOLDURMAQ ÜÇÜN YOX.

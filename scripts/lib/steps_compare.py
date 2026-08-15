@@ -34,12 +34,18 @@ def _error_codes_distinct(steps):
 
 def check_structure(steps):
     """Hər şərti ayrıca boolean kimi qaytarır ki hansının sındığı bilinsin.
-    `steps` boşdursa (və ya STEP-SCHEMA-nın icazə verdiyi minimumdan azdırsa) əksəriyyəti False olur."""
+    `steps` boşdursa (və ya STEP-SCHEMA-nın icazə verdiyi minimumdan azdırsa) əksəriyyəti False olur.
+
+    HANDOFF 108 (2026-08-15): `minItems` 2→1 endi (prompt qayda 8 — yoxlama YALNIZ MƏNALI
+    ola bildikdə tələb olunur, "5+5" kimi 1-keçidlik faktlar üçün ISTISNADIR). `ends_with_
+    verification` YALNIZ 1-dən çox addımda TƏLƏB OLUNUR — tək addımlı həllin ÖZÜ cavabdır,
+    "yoxlama"-formalı olmağa MƏCBUR DEYİL."""
+    n = len(steps)
     result = {
-        "count_ok": 2 <= len(steps) <= 6,
+        "count_ok": 1 <= n <= 6,
         "checks_present": bool(steps) and all(bool(s.get("check")) for s in steps),
-        "index_sequential": [s.get("index") for s in steps] == list(range(1, len(steps) + 1)),
-        "ends_with_verification": bool(steps) and _ends_with_verification(steps[-1]),
+        "index_sequential": [s.get("index") for s in steps] == list(range(1, n + 1)),
+        "ends_with_verification": (n == 1) or (bool(steps) and _ends_with_verification(steps[-1])),
         "error_codes_distinct": _error_codes_distinct(steps),
     }
     result["all_pass"] = all(result.values())
@@ -47,10 +53,10 @@ def check_structure(steps):
 
 
 STRUCTURAL_CONDITIONS = (
-    ("count_ok", "Addım sayı 2–6"),
+    ("count_ok", "Addım sayı 1–6"),
     ("checks_present", "Hər addımda check"),
     ("index_sequential", "Index ardıcıl"),
-    ("ends_with_verification", "Son addım yoxlama"),
+    ("ends_with_verification", "Son addım yoxlama (>1 addımda)"),
     ("error_codes_distinct", "error_code-lar fərqli"),
     ("all_pass", "Struktur — hamısı"),
 )

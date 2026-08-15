@@ -103,9 +103,9 @@
     },
     "steps": {
       "type": "array",
-      "minItems": 2,
+      "minItems": 1,
       "maxItems": 6,
-      "description": "2-6 addım. 6-dan çoxdursa məsələ çox mürəkkəbdir — bölünməlidir.",
+      "description": "1-6 addım. 6-dan çoxdursa məsələ çox mürəkkəbdir — bölünməlidir. 1 addım YALNIZ mənalı yoxlama mümkün olmadıqda (prompt qayda 8, HANDOFF 108).",
       "items": {
         "type": "object",
         "required": [
