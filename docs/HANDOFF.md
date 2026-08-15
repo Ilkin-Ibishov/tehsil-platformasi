@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (127) · Cursor → Cowork
+
+Etdim:    Faza 2 əvvəlinə iki sprint: S-pre1 addımda ilişmə (`86eyn28kn`) — ipucu+səhvdən sonra keç, `error_code` yaz, final açma; S-pre2 mənasız addım (`86eyn28kq`) — qayda 3 vs 8, Qat 1 variant kəsimi, Qat 5 şəkil görmür, keş. `docs/PHASE-2.md`.
+Tapşırıq: `86eyn28kn` · `86eyn28kq` (Faza 1 siyahısı; Faza 2 list yoxdur).
+Diqqət:   «Cavabı göstər» orta addıma qayıtmır (86eymrkjn). Yeni telemetriya adı TELEMETRY.md-dən əvvəl kodda yoxdur. Qat 5-ə şəkil ölçülmədən qayıtmır.
+
 ## 2026-08-16 (126) · Cursor → Cowork
 
 Etdim:    Faza 2 üç blok bağlandı (`ADR-029`, `docs/PHASE-2.md`): soak ChatGPT zəif olsa da davam + n=10 Gemini qızıl; ToS/cookie sahibin riski; avtomatik “Düzdür” yalnız Cursor 5/5 transkripsiya yoxlamasından sonra.

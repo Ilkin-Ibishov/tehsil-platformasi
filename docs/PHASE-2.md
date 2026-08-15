@@ -104,6 +104,60 @@ korpus şəklində kəsmə çərçivəsi tam kadra oturur (bir sual = bir şəki
 
 ## Sprintlər
 
+Soak-dan **əvvəl** iki canlı-şagird işi. Hər ikisi Faza 2 qapısından asılı deyil;
+biri qızıl qaydanı, o biri mənasız addımı kəsir.
+
+### S-pre1 — Addımda ilişmə çıxışı (əvvəl)
+
+ClickUp `86eyn28kn`. Orta addımda növbəti düymə yalnız `status==='correct'` olanda açılır
+(`SolveView` `advance` disabled). İpucu eyni səhifədə saxlayır (`openHint`, HANDOFF 111).
+«Cavabı göstər» yalnız son addımdadır (86eymrkjn) — orta addımdan finala tullanmaq
+qalan `error_code`-ları silirdi.
+
+Şagird ipucundan sonra da `check.ask`-i tapa bilməyəndə səhifədə qalır. Unmount
+`abandoned_at_step` yazır, amma sonrakı addımların səhv xəritəsi heç yaranmır.
+
+**Alqoritm (qızıl qayda):** çıxış **bu addımın miss-ini yazır**, final cavabı açmır.
+
+1. Şərt: bu addımda ipucu açıq **və** ≥1 səhv cəhd (ipucu belə yetməyəndə).
+2. Aksiyon: «Bu addımı keç» — `step_events`: `is_correct=false`,
+   `error_code` = addımın kodu, `given_answer` = son cəhd (yoxdursa boş).
+3. Sonra `advance()` / `farthestIndex++`.
+4. Son addım dəyişmir: düzgün cavabsız «Cavabı göstər» qalır.
+5. Yeni hadisə adı kodda uydurulmur. `step.abandoned` səhifə tərkidir, keçid deyil.
+   Cowork `TELEMETRY.md`-ə ad yazandan sonra klient onu atır.
+
+**Qəbul:** orta addımda ipucu+səhvdən sonra keçmək olar; `step_events`-də sətir var;
+final cavab açılmır; son addım əvvəlki kimidir.
+
+### S-pre2 — Mənasız addım/izah (kök səbəb, 2026-08-16)
+
+ClickUp `86eyn28kq`. Son əl həll (`attempt_items` 19:55 UTC, sual 27, parabola qrafiki, `match_path=llm`,
+`gemini-3.6-flash` + Qat 1 `gemini-3.1-flash-lite`):
+
+1. **Prompt ziddiyyəti.** `core.md` qayda 3 hələ «2–6 addım» deyir; qayda 8/15/16 və
+   `STEP-SCHEMA` `minItems:1` 1 addıma icazə verir. Model nümunəyə və qayda 3-ə uyğun
+   doldurur. Eyni sinif HANDOFF 108-dən sonra da gəlib: `56+27=?` 2-ci addımı
+   «83−27» süni yoxlamadır (qayda 8-in qadağan etdiyi tərs əməl).
+2. **Qat 1 qrafiki mətnə çevirib variantları kəsib.** `ocr_raw`: yalnız A və B;
+   A = `y=3/2(x-1)(x-3)` (y-kəsişmə 2 ilə uyğun gəlmir). Şagird təsdiqləyib
+   (`corrected=false`).
+3. **Qat 5 şəkli görmür** (`finish` / `solve-text.ts`, ADR-020). `ADR-014` R1 əksini
+   istəyirdi. Həll kəsilmiş mətn üzərində qurulub: addımlar `y=(2/3)(x-1)(x-3)` —
+   nə A, nə B. Addım 3 `a`-nı təkrar soruşur; addım 4 eyni yerinəqoymanı yoxlayır
+   (dövri, qayda 8).
+4. **Keş.** Eyni `canonical_hash` köhnə addımları əbədi saxlayır (`persist.ts`
+   ADDIM/CAVAB UYĞUNLUĞU, HANDOFF 109). Prompt düzələndə köhnə qrafik/cəm keşi
+   yenilənmir.
+
+**İş:** qayda 3-ü sxemlə eyniləşdir (1–6, mexaniki say qayda 15-dir). Qrafik alt-nümunə
+`ADR-025` / S4 soak-dadır — bu sprintdə fizika yox, `has_figure` üçün Qat 5-ə şəkil
+qaytarmaq ADR-020 qapısıdır, ölçülmədən edilmir. Keş invalidasiyası ayrıca qərardır
+(qızıl qayda: `step_answers` uyğunsuzluğu).
+
+**Qəbul:** qayda 3 ziddiyyəti yoxdur; yeni `5+5`/`56+27` 1 addım; sual 27 tipli keş
+sətiri tapşırıqda qeyd olunur, səssizcə üzərinə yazılmır.
+
 ### S0 — ADR-029 + soak bayrağı (bloklayıcı)
 
 `ADR-029` qəbul edilib. `app_config`: `soak_provider`, `soak_enabled`. Production
