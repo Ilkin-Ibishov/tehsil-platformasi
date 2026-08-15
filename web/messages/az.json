@@ -89,6 +89,8 @@
       "needHint": "Bu addımı başa düşmədim",
       "hintLabel": "İpucu",
       "next": "Növbəti addım",
+      "pass": "Bu addımı keç",
+      "passError": "Keçilə bilmədi — yenidən cəhd et.",
       "showAnswer": "Cavabı göstər",
       "rail": "LENT",
       "goTo": "Addım {index}"

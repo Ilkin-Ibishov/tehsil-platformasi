@@ -106,8 +106,13 @@ export async function POST(req: NextRequest) {
       [attemptId, stepIndex, effectiveErrorCode, attemptsCount, answer, correct]
     );
   } catch (err) {
-    // step_events yalnız ölçmədir — yazı uğursuz olsa da şagird cavabı almalıdır.
     console.error("[/api/steps/check] step_events yazı xətası:", err);
+    // 86eyn28kn: səhv cavabın `step_events` sətri qızıl qaydadır — yazılmasa UI «Bu addımı
+    // keç» göstərər, server isə `no_wrong_attempt` qaytarar. Doğru cavabda ölçmə itkisi
+    // şagirdi saxlamır.
+    if (!correct) {
+      return NextResponse.json({ error: "write_failed" }, { status: 500 });
+    }
   }
 
   // UX audit tapıntısı (2026-08-14): əvvəllər klient `error_code`-u (`PERCENT_TO_FRACTION`

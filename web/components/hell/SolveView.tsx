@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { trackEvent, getDeviceId } from "@/lib/telemetry";
 import { reportAttemptProgress } from "@/lib/attempts";
 import { formatMath, findUnformattedLatex } from "@/lib/math-format";
+import { canPassStuckStep } from "@/lib/verify/step-pass";
 
 export type SolveStep = {
   index: number;
@@ -77,6 +78,15 @@ async function fetchFinalAnswer(attemptId: string): Promise<FinalAnswer> {
   if (!res.ok) throw new Error(`reveal http ${res.status}`);
   const body = await res.json();
   return body.final_answer;
+}
+
+async function passStuckStep(attemptId: string, stepSchemaIndex: number): Promise<void> {
+  const res = await fetch("/api/steps/pass", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ attempt_id: attemptId, device_id: getDeviceId(), step_index: stepSchemaIndex }),
+  });
+  if (!res.ok) throw new Error(`step pass http ${res.status}`);
 }
 
 // S6 (HANDOFF 56/57): "eynisini sən həll et" — yeni LLM çağırışı yoxdur, `problems`-dən eyni
@@ -219,6 +229,8 @@ export function SolveView({
   const [revealed, setRevealed] = useState(false);
   const [revealing, setRevealing] = useState(false);
   const [revealError, setRevealError] = useState(false);
+  const [passing, setPassing] = useState(false);
+  const [passError, setPassError] = useState(false);
   const [finalAnswer, setFinalAnswer] = useState<FinalAnswer | null>(null);
   const [reportedWrong, setReportedWrong] = useState(false);
   const [transferState, setTransferState] = useState<TransferState | null>(null);
@@ -234,6 +246,15 @@ export function SolveView({
   const currentStep = steps[stepIndex];
   const currentAnswer = answers[stepIndex] ?? { input: "", status: "idle" as StepStatus, attemptNo: 0, startedAt: Date.now() };
   const formattedCanonical = useMemo(() => formatMath(solution.canonical ?? ""), [solution.canonical]);
+  // ClickUp 86eyn28kn: ipucu + ≥1 səhv, orta addım. Son addım «Cavabı göstər»dir.
+  const stuckPassable = canPassStuckStep({
+    isLastStep: stepIndex >= total - 1,
+    hintOpen: Boolean(hintOpen[stepIndex]),
+    status: currentAnswer.status,
+  });
+  const alreadyUnlocked = stepIndex < farthestIndex;
+  const midStepLocked =
+    stepIndex < total - 1 && currentAnswer.status !== "correct" && !stuckPassable && !alreadyUnlocked;
 
   useEffect(() => {
     setProblemExpanded(false);
@@ -401,7 +422,8 @@ export function SolveView({
   // vəd edir, davranışı isə pas keçirdi. İndi addımda QALIR, `currentStep.hint`-i göstərir.
   // `step.hint_opened` `docs/TELEMETRY.md`-də ARTIQ TƏSVİR OLUNMUŞDU (sətir 142) amma heç vaxt
   // atılmırdı — kod indi mövcud taksonomiyanı tamamlayır, yenisini yaratmır. Orta addımdan
-  // "pas keç" yolu yoxdur (ClickUp 86eymrkjn) — ilişmə ipucudur, səhifəni tərk unmount-dur.
+  // çıxış 86eyn28kn: ipucu + səhv cəhddən sonra «Bu addımı keç» (`/api/steps/pass`),
+  // final cavab AÇILMIR. `step.abandoned` səhifə tərkidir, keçid deyil.
   function openHint() {
     if (!hintOpen[stepIndex]) trackEvent("step.hint_opened", { index: stepIndex });
     setHintOpen((prev) => ({ ...prev, [stepIndex]: true }));
@@ -462,7 +484,8 @@ export function SolveView({
 
   function goToStep(i: number) {
     if (i < 0 || i > farthestIndex || i === stepIndex) return;
-    if (revealing || currentAnswer.status === "checking") return;
+    if (revealing || passing || currentAnswer.status === "checking") return;
+    setPassError(false);
     setStepIndex(i);
   }
 
@@ -472,8 +495,24 @@ export function SolveView({
       return;
     }
     const next = stepIndex + 1;
+    setPassError(false);
     setStepIndex(next);
     setFarthestIndex((f) => Math.max(f, next));
+  }
+
+  async function passAndAdvance() {
+    if (!currentStep || passing || !stuckPassable || alreadyUnlocked) return;
+    setPassing(true);
+    setPassError(false);
+    try {
+      await passStuckStep(attemptId, currentStep.index);
+    } catch {
+      setPassing(false);
+      setPassError(true);
+      return;
+    }
+    setPassing(false);
+    advance();
   }
 
   // ADR-015 Tapıntı 1/2: `values` müqayisə üçündür (server tərəfdə istifadə olunur), şagirdə
@@ -750,7 +789,7 @@ export function SolveView({
                 <button
                   type="button"
                   onClick={() => void submitAnswer()}
-                  disabled={!currentAnswer.input.trim() || currentAnswer.status === "checking"}
+                  disabled={!currentAnswer.input.trim() || currentAnswer.status === "checking" || passing}
                   style={{
                     minHeight: "var(--tap)",
                     padding: "0 22px",
@@ -858,7 +897,7 @@ export function SolveView({
               {steps.map((s, i) => {
                 const reached = i <= farthestIndex;
                 const current = i === stepIndex;
-                const locked = !reached || revealing || currentAnswer.status === "checking";
+                const locked = !reached || revealing || passing || currentAnswer.status === "checking";
                 return (
                   <button
                     key={`${s.index}-${i}`}
@@ -885,15 +924,25 @@ export function SolveView({
             </div>
           </div>
         )}
+        {passError && (
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--warn)", margin: "0 0 10px" }}>{t("step.passError")}</p>
+        )}
         <button
           type="button"
-          onClick={advance}
-          // UX audit tapıntısı (2026-08-14): əvvəlki şərt YALNIZ `revealing` idi — şagird
-          // heç bir sahəyə toxunmadan "Növbəti addım"a spam edib bütün suala 0 cavabla
-          // sondan-sona keçə bilirdi (`error_code` heç vaxt yazılmır, CLAUDE.md Qızıl qaydası
-          // pozulur). `currentAnswer.status !== "correct"` əlavə edildi. Son addımda eyni
-          // düymə "Cavabı göstər" olur və cavabsız da açıq qalır (86eymrkjn — yalnız orada).
-          disabled={revealing || (stepIndex < total - 1 && currentAnswer.status !== "correct")}
+          onClick={() => {
+            if (stepIndex >= total - 1) {
+              void reveal();
+              return;
+            }
+            if (stuckPassable && !alreadyUnlocked) {
+              void passAndAdvance();
+              return;
+            }
+            advance();
+          }}
+          // 86eyn28kn: orta addımda düzgün cavab VƏ YA (ipucu + səhv → keç) VƏ YA artıq
+          // açılmış növbəti addıma qayıdış. Final hələ yalnız son addımdadır (86eymrkjn).
+          disabled={revealing || passing || midStepLocked}
           style={{
             width: "100%",
             minHeight: 56,
@@ -908,11 +957,21 @@ export function SolveView({
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0 20px",
-            opacity: revealing || (stepIndex < total - 1 && currentAnswer.status !== "correct") ? 0.5 : 1,
-            cursor: revealing || (stepIndex < total - 1 && currentAnswer.status !== "correct") ? "not-allowed" : "pointer",
+            opacity: revealing || passing || midStepLocked ? 0.5 : 1,
+            cursor: revealing || passing || midStepLocked ? "not-allowed" : "pointer",
           }}
         >
-          <span>{stepIndex >= total - 1 ? (revealing ? t("step.checking") : t("step.showAnswer")) : t("step.next")}</span>
+          <span>
+            {stepIndex >= total - 1
+              ? revealing
+                ? t("step.checking")
+                : t("step.showAnswer")
+              : passing
+                ? t("step.checking")
+                : stuckPassable && !alreadyUnlocked
+                  ? t("step.pass")
+                  : t("step.next")}
+          </span>
           <span style={{ fontFamily: "var(--font-mono)" }}>{stepIndex >= total - 1 ? "↓" : "→"}</span>
         </button>
       </div>

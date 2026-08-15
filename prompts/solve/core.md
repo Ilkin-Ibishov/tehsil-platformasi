@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v10)
+# Prompt — addım sxemi generasiyası (v11)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -84,6 +84,11 @@
 > keçdi, 4 icazəli yoxlama tipinin QAPALI SİYAHISI yazıldı, dövri yoxlama AÇIQ QADAĞAN edildi.
 > Qayda 11/14/15 uyğunlaşdırıldı. ADR yazılmadı (Ilkin-in açıq tapşırığı) — HANDOFF (108)-ə
 > bax.
+>
+> **v10 → v11 (2026-08-16).** HANDOFF (108) `minItems` 2→1 və qayda 8-i şərtli etdi, amma
+> qayda 3 hələ «2–6 addım» deyirdi. System preambulası artıq 1–6 yazırdı — model qayda 3-ə
+> və nümunəyə uyğun süni ikinci addım doldururdu (`56+27=?` → «83−27», ClickUp 86eyn28kq).
+> Qayda 3 indi sxemlə eynidir: 1–6, say qayda 15-dir.
 
 ## System
 
@@ -96,8 +101,8 @@ Vəzifən: məsələni HƏLL ETMƏK DEYİL — şagirdin özünün həll edə bi
 ═══ ÇIXIŞ FORMATI — MƏCBURİ ═══
 
 Yalnız JSON qaytar. Markdown code fence yazma. İzah yazma. Sahə adlarını dəyişmə,
-yeni sahə əlavə etmə. Aşağıda İKİ nümunə var — biri sadə (2 addım), biri mürəkkəb
-(6 addım). İkisi də formatın DƏQİQ təsviridir. ADDIM SAYINA DİQQƏT ET: nümunələr
+yeni sahə əlavə etmə. Aşağıda ÜÇ nümunə var — 1 addım (tək keçid), 2 addım, 6 addım.
+Üçü də formatın DƏQİQ təsviridir. ADDIM SAYINA DİQQƏT ET: nümunələr
 "həmişə bu qədər addım yaz" demir — hər məsələnin öz sayı var (1-6 arası, aşağıdakı
 15-ci qaydaya bax). Çox sadə suallarda (tək riyazi keçid, mənalı yoxlama qurula bilmir)
 DÜZGÜN cavab 1 TƏK addımdır — bax qayda 8.
@@ -245,7 +250,7 @@ KƏSİLMİŞ MƏSƏLƏ:
    Pis:  "D = 1 olduğu üçün iki kök var."
    Yaxşı: "Diskriminant kökün sayını verir — hesabla və işarəsinə bax."
 2. Hər addımda check olmalıdır. check-siz addım qəbul edilmir.
-3. 2–6 addım. Çoxdursa ən vacib addımları birləşdir.
+3. 1–6 addım. Say qayda 15-lə hesablanır — «ən azı 2» YOX. Çoxdursa ən vacib addımları birləşdir.
 4. Dil: title, explanation, why, hint, check.ask, reason — HAMISI girişdəki "Dil" sahəsində
    göstərilən dildə yazılır. Sadə, sinif səviyyəsinə uyğun. Başqa dildən termin qarışdırma.
    canonical isə məsələnin ORİJİNAL dilində qalır (bax detected_language).
@@ -384,7 +389,7 @@ Dil: {{locale}}
 |---|---|
 | Sxem validliyi | 100% |
 | `final_answer.values` sympy yoxlanışından keçir | ≥85% |
-| Addım sayı 2–6 arasındadır | 100% |
+| Addım sayı 1–6 arasındadır | 100% |
 | Hər addımda `check` var | 100% |
 | `error_code` enum-dadır | 100% |
 | Addım bölgüsü müəllim rəyi ilə uyğundur | ≥75% |

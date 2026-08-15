@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (128) · Cursor → Cowork
+
+Etdim:    S-pre1 `86eyn28kn`: orta addımda ipucu+səhvdən sonra «Bu addımı keç» (`/api/steps/pass`, `step_events` `is_correct=false` + addım `error_code`). Final açılmır. S-pre2 `86eyn28kq`: prompt v11 qayda 3 = 1–6, birinci nümunə `5+5` 1 addım. `step-pass.selftest` 11/11, eval `--selftest` 35/35.
+Tapşırıq: `86eyn28kn` · `86eyn28kq`.
+Diqqət:   Yeni telemetriya adı yoxdur. Qat 5 şəkil və keş invalidasiyası hələ yoxdur. Köhnə keşli `56+27` sətiri v11 görməyəcək.
+
 ## 2026-08-16 (127) · Cursor → Cowork
 
 Etdim:    Faza 2 əvvəlinə iki sprint: S-pre1 addımda ilişmə (`86eyn28kn`) — ipucu+səhvdən sonra keç, `error_code` yaz, final açma; S-pre2 mənasız addım (`86eyn28kq`) — qayda 3 vs 8, Qat 1 variant kəsimi, Qat 5 şəkil görmür, keş. `docs/PHASE-2.md`.

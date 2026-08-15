@@ -8,16 +8,49 @@ davam edir, birləşmiş mətn əvvəlki `solve-step.md`-lə HƏRFİ EYNİDİR.
 
 `ADR-015` Tapıntı 3b: TƏK nümunə (əvvəllər yalnız 3 addımlıq) modelə "addım sayı budur"
 siqnalı verirdi — DB-də ölçülmüş 7 real həllin 6-sı 4 addım idi, sxem 2–6-ya icazə versə də.
-İndi İKİ nümunə var: biri **2 addımlıq sadə**, biri **6 addımlıq mürəkkəb** — çeşid göstərir,
-tək uzunluq göstərmir. `core.md` qayda 15 addım sayının **mexaniki hesablanmasını** tələb edir.
+v11 (86eyn28kq): birinci nümunə **1 addımlıq** (`5+5`) — əks halda model qayda 3/nümunəyə
+uyğun süni ikinci addım doldurur. Sonra 2 addım + 6 addım. `core.md` qayda 15 addım sayının
+**mexaniki hesablanmasını** tələb edir.
 
 `extract_example_json` (schema/struktur invariant testi) HƏMİŞƏ İLK JSON obyektini oxuyur —
-ona görə 1-ci nümunə (sadə) sxemə görə TAM VALİD olmalıdır, 2-ci ayrıca əl ilə yoxlanılıb.
+ona görə 1-ci nümunə (1 addım) sxemə görə TAM VALİD olmalıdır, qalanları ayrıca əl ilə yoxlanılıb.
 
 ## Nümunə
 
 ```
-// Nümunə 1 — SADƏ (2 addım: 1 riyazi keçid + yoxlama)
+// Nümunə 1 — TƏK KEÇİD (1 addım, mənalı yoxlama YOXDUR)
+
+{
+  "schema_version": 1,
+  "canonical": "5+5=?, cəm tapılmalıdır",
+  "problem_type": "formula",
+  "subject": "math",
+  "grade": 5,
+  "topic_code": "ARITH.ADDITION",
+  "detected_language": "az",
+  "final_answer": {
+    "latex": "10",
+    "values": ["10"]
+  },
+  "steps": [
+    {
+      "index": 1,
+      "title": "Ədədləri topla",
+      "explanation": "Verilmiş iki ədədi topla.",
+      "latex": "5+5",
+      "why": "Tək keçidli cəmdə ayrı yoxlama addımı qurulmur — nəticənin özü cavabdır.",
+      "check": {
+        "ask": "5 ilə 5-in cəmi neçədir?",
+        "accept": ["10"],
+        "input_kind": "number"
+      },
+      "error_code": "ARITHMETIC",
+      "hint": "Onluq yoxdur — təklikləri birləşdir."
+    }
+  ]
+}
+
+// Nümunə 2 — SADƏ (2 addım: 1 riyazi keçid + yoxlama)
 
 {
   "schema_version": 1,
@@ -64,7 +97,7 @@ ona görə 1-ci nümunə (sadə) sxemə görə TAM VALİD olmalıdır, 2-ci ayr�
   ]
 }
 
-// Nümunə 2 — MÜRƏKKƏB (6 addım: 5 riyazi keçid + yoxlama)
+// Nümunə 3 — MÜRƏKKƏB (6 addım: 5 riyazi keçid + yoxlama)
 
 {
   "schema_version": 1,
