@@ -72,9 +72,11 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// ChatGPT composer keeps ONE attachment. Uploading a .txt after an image
-// replaces the thumbnail (live Playwright 2026-08-16). So Qat 1 (image)
-// types the prompt; Qat 5 (no image, ~22k core.md) still uses the file.
+// ChatGPT composer keeps ONE attachment — image+.txt in one send replaces
+// the thumbnail (live 2026-08-16). Temporary chat also cannot *read* a
+// .txt (Plus: "attachment isn't available in this chat session"). Qat 1
+// types the prompt next to the image; Qat 5 fill()s ~22k core.md (no
+// attachTextAsFile / pasteText — both fail under isolation on Railway).
 export function soakChatPayload(opts: {
   systemPrompt: string;
   userPrompt: string;
@@ -86,8 +88,6 @@ export function soakChatPayload(opts: {
   if (opts.imageBase64) {
     const mime = opts.imageMime || "image/jpeg";
     payload.image = `data:${mime};base64,${opts.imageBase64}`;
-  } else {
-    payload.attachTextAsFile = true;
   }
   return payload;
 }

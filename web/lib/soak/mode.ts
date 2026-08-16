@@ -1,6 +1,7 @@
 // Faza 2 S0 / ADR-029 — soak yalnız `soak-*` dəvətdə açılır.
 // Şagird dəvəti `soak_enabled=1` olsa belə Gemini-də qalır. Soak sönük olanda
 // `soak-*` Gemini-yə düşmür (avtomatik keçid yoxdur).
+// ADR-030: həcm defoltu `gemini`. DB `chatgpt_web` qalsa adapter yolu işləyir.
 
 import { getBoolConfig, readConfigValue } from "../app-config";
 import { isSoakInvite } from "./invite";
@@ -53,7 +54,7 @@ export async function resolveSoakMode(pool: PoolLike, inviteCode: string): Promi
   if (!enabled) return { kind: "blocked", reason: "disabled" };
 
   const fromDb = await readConfigValue(pool, "soak_provider");
-  const raw = (fromDb || process.env.SOAK_PROVIDER || "chatgpt_web").trim();
+  const raw = (fromDb || process.env.SOAK_PROVIDER || "gemini").trim();
   if (raw === "gemini") return { kind: "gemini" };
   if (raw !== "chatgpt_web") return { kind: "blocked", reason: "disabled" };
 

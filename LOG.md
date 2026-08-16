@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-16: HANDOFF 146 — ADR-030 mövzu promptu + soak Gemini. Fingerprint reuse. `86eyn6zth`.
 - 2026-08-16: HANDOFF 145 — OQ-8 fail: Plus adi söhbətdə `.txt` chip var, model oxumur. Soak yenidən Temporary.
 - 2026-08-16: HANDOFF 140 — ChatGPT mesajları yalnız Temporary chat; opt-out yox, submit-dən əvvəl URL qapısı.
 - 2026-08-16: HANDOFF 139 — soak şəkil: ChatGPT Free upload kvotası (Plus/18 saat), Xvfb deyil. Debug screenshot + fail-fast.

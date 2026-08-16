@@ -674,6 +674,7 @@ export async function POST(req: NextRequest) {
   const effectiveGrade = parsed.grade ?? grade;
   const effectiveSubject = parsed.subject ?? subject;
   const stepsForStorage = parsed.steps ?? [];
+  let servedSteps = stripAccept(stepsForStorage);
 
   const client = await pool.connect();
   let questionId: string;
@@ -693,13 +694,22 @@ export async function POST(req: NextRequest) {
 
     // Dedup: `questions_dedup_idx` (canonical_hash, subject_id, grade) — ADR-018 §1d/design.md
     // §5. Sadə `canonical_hash` axtarışı ARTIQ KİFAYƏT DEYİL, eyni hash fərqli sinif üçün
-    // ayrı sətir ola bilər (HANDOFF 70-in daimi qaydası).
-    const existing = await client.query<{ id: string }>(
+    // ayrı sətir ola bilər (HANDOFF 70-in daimi qaydası). Fingerprint unikallığı da eyni
+    // üçlükdədir — hash miss + fingerprint hit olanda INSERT 500 verməsin deyə reuse.
+    let existing = await client.query<{ id: string }>(
       `select id from questions
         where canonical_hash = $1 and subject_id = $2 and grade = $3
           and superseded_by is null and deleted_at is null`,
       [hash, subjectId, effectiveGrade]
     );
+    if (existing.rows.length === 0 && fingerprint) {
+      existing = await client.query<{ id: string }>(
+        `select id from questions
+          where numeric_fingerprint = $1 and subject_id = $2 and grade = $3
+            and superseded_by is null and deleted_at is null`,
+        [fingerprint, subjectId, effectiveGrade]
+      );
+    }
 
     if (existing.rows.length > 0) {
       questionId = existing.rows[0].id;
@@ -707,6 +717,16 @@ export async function POST(req: NextRequest) {
         `update questions set hit_count = hit_count + 1, attempt_count = attempt_count + 1 where id = $1`,
         [questionId]
       );
+      // persist.ts ilə eyni: insert-only step_answers köhnə sətrə bağlıdır — yeni
+      // bölgünü göstərmək uydurma error_code yazardı (Qızıl qayda).
+      const stored = await client.query<{ steps: typeof servedSteps | null }>(
+        `select steps from question_translations where question_id = $1 and lang = 'az'`,
+        [questionId]
+      );
+      const storedSteps = stored.rows[0]?.steps;
+      if (Array.isArray(storedSteps) && storedSteps.length > 0) {
+        servedSteps = storedSteps;
+      }
     } else {
       questionId = randomUUID();
       // ADR-003 Ləğv (2026-08-14) / S8 (86eymwgmv): Ilkin-in qəti qərarı ilə `canonical`
@@ -801,7 +821,7 @@ export async function POST(req: NextRequest) {
   // yalnız ŞƏBƏKƏ cavabından çıxarılır. Addım yoxlaması indi `/api/steps/check`-dədir (§B1-dəki
   // eyni normallaşdırma), son cavab `/api/attempts/reveal`-dədir. `error_code`/`hint` BURADA
   // qalır — bunlar cavabı açmır, yalnız səhv edildikdə göstərilən diaqnoz mətnidir.
-  const clientSteps = stripAccept(stepsForStorage);
+  const clientSteps = servedSteps;
   const parsedWithoutAnswers: Record<string, unknown> = { ...parsed };
   delete parsedWithoutAnswers.final_answer;
   delete parsedWithoutAnswers.steps;

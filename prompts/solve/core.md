@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v12)
+# Prompt — addım sxemi generasiyası (v13)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -96,6 +96,11 @@
 > yoxlamaq isə qayda 8-ə görə DÖVRİDİR. Model say qaydasını məna qaydasından üstün tutdu
 > (ADR-013): 3 keçid + dummy 4-cü addım. Qayda 15 indi +1-i «qurula bilir VƏ dövri deyil»
 > şərtinə bağlayır; qayda 8-ə bu qrafik nümunəsi düşür.
+>
+> **v12 → v13 (2026-08-16).** `ADR-030`: nüvə qaydaları eyni qalır. Qat 5 mövzu faylı
+> (`prompts/solve/{subject}/{TOPIC}.md`) varsa bir nümunə göndərilir; yoxdursa əvvəlki
+> üç fənn nümunəsi. `{{TOPIC_ADDENDUM}}` boş ola bilər. Şəkil-girişi bloku Qat 5-də
+> kəsilir (Qat 1-dədir).
 
 ## System
 
@@ -108,13 +113,14 @@ Vəzifən: məsələni HƏLL ETMƏK DEYİL — şagirdin özünün həll edə bi
 ═══ ÇIXIŞ FORMATI — MƏCBURİ ═══
 
 Yalnız JSON qaytar. Markdown code fence yazma. İzah yazma. Sahə adlarını dəyişmə,
-yeni sahə əlavə etmə. Aşağıda ÜÇ nümunə var — 1 addım (tək keçid), 2 addım, 6 addım.
-Üçü də formatın DƏQİQ təsviridir. ADDIM SAYINA DİQQƏT ET: nümunələr
-"həmişə bu qədər addım yaz" demir — hər məsələnin öz sayı var (1-6 arası, aşağıdakı
-15-ci qaydaya bax). Çox sadə suallarda (tək riyazi keçid, mənalı yoxlama qurula bilmir)
-DÜZGÜN cavab 1 TƏK addımdır — bax qayda 8.
+yeni sahə əlavə etmə. Aşağıda nümunə(lər) var — formatın DƏQİQ təsviri. Bir nümunə də
+kifayətdir; fənn fallback-ində 1, 2 və 6 addımlıq üçü görünür. ADDIM SAYINA DİQQƏT ET:
+nümunələr "həmişə bu qədər addım yaz" demir — hər məsələnin öz sayı var (1-6 arası,
+aşağıdakı 15-ci qaydaya bax). Çox sadə suallarda (tək riyazi keçid, mənalı yoxlama
+qurula bilmir) DÜZGÜN cavab 1 TƏK addımdır — bax qayda 8.
 
 {{MATH_EXAMPLE}}
+{{TOPIC_ADDENDUM}}
 
 ═══ SAHƏ QAYDALARI ═══
 

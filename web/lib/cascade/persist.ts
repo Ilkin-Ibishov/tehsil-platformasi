@@ -131,12 +131,24 @@ export async function persistSolution(opts: {
 
     // Dedup: `questions_dedup_idx` (canonical_hash, subject_id, grade) — sadə `canonical_hash`
     // axtarışı KİFAYƏT DEYİL, eyni hash fərqli sinif üçün ayrı sətir ola bilər (HANDOFF 70).
-    const existing = await client.query<{ id: string }>(
+    // `questions_fingerprint_dedup_idx` eyni (fingerprint, subject, grade) üçün İKİNCİ sətirə
+    // icazə vermir — hash fərqli, rəqəmlər eyni olanda (`5+5=?` vs `5 + 5 = ?`) INSERT 500
+    // verirdi. Bank Qat 2 mövzunu bərabərlik-pozucu kimi işlədir; bu indeksdə mövzu YOXDUR,
+    // ona görə toqquşmada yeni sətir yox, mövcud sətir REUSE olunur (hash-hit yolu).
+    let existing = await client.query<{ id: string }>(
       `select id from questions
         where canonical_hash = $1 and subject_id = $2 and grade = $3
           and superseded_by is null and deleted_at is null`,
       [hash, subjectId, transcript.grade]
     );
+    if (existing.rows.length === 0 && fingerprint) {
+      existing = await client.query<{ id: string }>(
+        `select id from questions
+          where numeric_fingerprint = $1 and subject_id = $2 and grade = $3
+            and superseded_by is null and deleted_at is null`,
+        [fingerprint, subjectId, transcript.grade]
+      );
+    }
 
     let questionId: string;
     // Şagirdə göstərilən addımlar — defolt olaraq qatın yeni istehsal etdikləri.

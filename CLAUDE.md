@@ -59,7 +59,7 @@ Production təhlükəsizlik auditindən (HANDOFF 79/80) çıxan, təkrarlanmamas
 | Səhv kodları (`error_code`) | `docs/STEP-SCHEMA.json` → `error_codes` (11 kod) | Cowork — **dəyişməz enum**. `public.error_codes` cədvəli `0058`-dən bəri bu enum-un GÜZGÜSÜDÜR (əlavə köhnə kodlar `deprecated=true`), mənbə DEYİL |
 | Dizayn tokenləri | `docs/DESIGN-TOKENS.json` | Cowork |
 | DB sxemi | `docs/DATA-MODEL.md` | hər ikisi (miqrasiya ilə) |
-| Prompt mətnləri | `prompts/**/*.md` (nüvə: `prompts/solve/core.md`, fənn əlavəsi: `prompts/solve/math.md` — ADR-014) | hər ikisi |
+| Prompt mətnləri | `prompts/**/*.md` (nüvə: `prompts/solve/core.md`, fənn: `math.md`, bölmə: `prompts/solve/{subject}/{TOPIC}.md` — ADR-014/030) | hər ikisi |
 | Memarlıq qərarları | `docs/decisions/ADR-*.md` | hər ikisi |
 | Test bankı arxitekturası | `.kiro/specs/test-bank/design.md` | Cowork — SQL sxemi mənbə həqiqətdir |
 | Test bankı qaydaları | `.kiro/steering/test-bank.md` | Cowork |

@@ -47,8 +47,12 @@ Bbox tapılmayanda ehtiyat: səhifəni **bir** ucuz çağırışla yalnız
 
 ### 2. App LLM xərci — soak provayderi
 
-Ilkin-in Railway ChatGPT avtomat servisi (`Cloud_Server_AI`, `POST /chat`) Gemini-ni
-**soak üçün** əvəz edir. Şagird production-u əvəz etmir.
+**2026-08-16 / `ADR-030`:** həcm defoltu Gemini-dir (`app_config.soak_provider=gemini`).
+ChatGPT UI (Playwright `.txt` / Temporary chat) Faza 2 qapısını açmır; adapter kodda
+ehtiyatdır. Şagird dəvəti əvvəlki kimi Gemini kaskadındadır — qarışma yoxdur.
+
+Ilkin-in Railway ChatGPT avtomat servisi (`Cloud_Server_AI`, `POST /chat`) əvvəl Gemini-ni
+**soak üçün** əvəz etmək üçün yazılmışdı. Şagird production-u əvəz etmir.
 
 Bu, OpenAI-uyğun endpoint deyil. `web/lib/llm.ts`-ə birbaşa `base_url` yapışdırmaq
 işləməz. Adapter + `ADR-029` lazımdır.

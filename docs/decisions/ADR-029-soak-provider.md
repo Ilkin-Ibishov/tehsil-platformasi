@@ -29,7 +29,13 @@
    o hadisə 0 qalır; insan şagird nümunəsi ilə qarışdırılmır. 5/5 nəticəsi HANDOFF-a
    yazılır.
 
-## Nəticə
+## Əlavə 2026-08-16 — həcm Gemini (`ADR-030`)
 
-Soak ucuz və təkrarlanandır. Gemini kiçik n etalondur. Transkripsiya avtomatlaşması
-kor-koranə deyil — bir dəfəlik 5/5 yoxlamadan sonra.
+Sahib ChatGPT UI nəqliyyatını (Playwright `.txt` / Temporary chat / 22 KB `fill`)
+Faza 2 həcmi üçün rədd etdi. **Soak həcmi `soak_provider=gemini`.** Şagird dəvəti
+hələ də eyni Gemini kaskadındadır; qarışma yoxdur (`soak-*` vs adi dəvət).
+
+`chatgpt_web` adapteri kodda qalır, defolt deyil. n=10 qızıl nümunə həcm ilə eyni
+provayderdədir — ayrıca ChatGPT etalonu bu əlavədən sonra məcburi deyil.
+
+Orijinal §1 (ChatGPT həcm) tarixi qərardır, silinmir. Canlı defolt `ADR-030`-dur.

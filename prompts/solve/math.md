@@ -3,8 +3,9 @@
 `ADR-014` (HANDOFF 40): `prompts/solve/core.md` sxem/qaydaları daşıyır, bura fənnə xas nümunə
 düşür — hazırda YALNIZ nümunə JSON-u, çünki fizika/kimya hələ ayrı nümunə tələb etmir
 (subject sahəsi onsuz da `math|physics|chemistry` üçün dil-neytraldır, qaydalar dəyişmir).
-`prompt_loader` bunu `core.md`-dəki `{{MATH_EXAMPLE}}` yer tutucusuna qoyur — TƏK çağırış
-davam edir, birləşmiş mətn əvvəlki `solve-step.md`-lə HƏRFİ EYNİDİR.
+`prompt_loader` bunu `core.md`-dəki `{{MATH_EXAMPLE}}` yer tutucusuna qoyur — mövzu faylı
+yoxdursa fallback (`ADR-030`). `prompts/solve/math/{TOPIC_CODE}.md` varsa onun `Nümunə`
+bloku bunu əvəz edir.
 
 `ADR-015` Tapıntı 3b: TƏK nümunə (əvvəllər yalnız 3 addımlıq) modelə "addım sayı budur"
 siqnalı verirdi — DB-də ölçülmüş 7 real həllin 6-sı 4 addım idi, sxem 2–6-ya icazə versə də.

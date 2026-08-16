@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (146) · Cursor → Cowork
+
+Etdim:    `ADR-030`: Qat 5 `core.md` + fənn + `prompts/solve/math/{TOPIC}.md`; şəkil qaydaları Qat 1-də qalır. Soak həcm `soak_provider=gemini` (`0069`, prod artıq). `persist.ts` fingerprint reuse (`5+5` unikallıq 500-ü). ChatGPT adapter ehtiyatdır.
+Tapşırıq: `86eyn6zth` mövzu-marşrutlu prompt + soak Gemini.
+Diqqət:   Şagird dəvəti Gemini-dir, əvvəlki kimi. `error_code` enum `core.md`-də qalır. Kod `main`-də, push olunmayıb — topic routing Vercel-ə commit push-dan sonra düşür; DB bayrağı artıq gemini-dir.
+
 ## 2026-08-16 (145) · Cursor → Cowork
 
 Etdim:    OQ-8 canlı: Plus adi söhbətdə `.txt` attach oxunmur (chip var, canary yox, «no file attached»). `fill()` chip-i silir; filesiz Send sönük; `type` yanında da model oxumur. `docs/SOAK-SHARED-CONVERSATION.md` S18. Railway `CHATGPT_CONVERSATION_MODE` yenidən `temporary`.

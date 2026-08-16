@@ -40,7 +40,8 @@ check("qat1: şəkil var", typeof qat1.image, "string");
 check("qat1: .txt yox (şəkli silməsin)", qat1.attachTextAsFile, undefined);
 const qat5 = soakChatPayload({ systemPrompt: "sys", userPrompt: "usr" });
 check("qat5: şəkil yox", qat5.image, undefined);
-check("qat5: .txt var", qat5.attachTextAsFile, true);
+check("qat5: .txt yox (temp chat oxumur)", qat5.attachTextAsFile, undefined);
+check("qat5: paste yox (Xvfb 0 simvol)", qat5.pasteText, undefined);
 
 check("invite: şagird soak deyil", isSoakInvite("abc123"), false);
 check("invite: soak- prefiksi", isSoakInvite("soak-dim-01"), true);
@@ -107,6 +108,10 @@ check("qızıl: adapter yox", usesSoakAdapter(gold), false);
 check("qızıl: corpus_soak", attemptKindFor(gold), "corpus_soak");
 delete process.env.SOAK_LLM_BASE_URL;
 delete process.env.SOAK_LLM_API_KEY;
+delete process.env.SOAK_PROVIDER;
+const defolt = await resolveSoakMode(mockPool({ soak_enabled: "1" }), "soak-x");
+check("defolt soak_provider: gemini", defolt.kind, "gemini");
+check("defolt gemini: adapter yox", usesSoakAdapter(defolt), false);
 
 if (fails) {
   console.log(`\n${fails} uğursuz.`);

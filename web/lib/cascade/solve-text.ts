@@ -1,8 +1,8 @@
 // Kaskad Qat 5 — TAM HƏLL, amma MƏTN üzərində (ClickUp 86eykj7tu, ADR-020).
 //
 // Qat 2/3/4-ün heç biri cavab verə bilmədikdə işə düşür: həndəsə, mətn məsələsi, bankda
-// olmayan yeni struktur. `prompts/solve/core.md` promptunun EYNİSİ işlədilir — dəyişən
-// yalnız girişdir: şəkil YOX, `{{#if text}}` budağı VAR.
+// olmayan yeni struktur. `ADR-030`: nüvə `core.md` + fənn + (varsa) `math/{topic}.md`.
+// Şəkil-girişi Qat 1-də qalır — Qat 5 `includeImageRules: false`.
 //
 // ═══ NİYƏ ŞƏKİL GÖNDƏRİLMİR ═══
 //
@@ -63,7 +63,11 @@ export function makeTextSolveLayer(pool: Pool): SolveLayer {
   return {
     id: "llm_text",
     async run(ctx: CascadeContext): Promise<LayerSolution | null> {
-      const { system, userTemplate } = loadPromptTemplates();
+      const { system, userTemplate } = loadPromptTemplates({
+        subject: ctx.transcript.subject,
+        topicCode: ctx.transcript.topicCode,
+        includeImageRules: false,
+      });
       // `renderUserPrompt`-un 5-ci arqumenti `{{#if text}}` budağını açır — şəkil budağı
       // (`{{#if image}}`) HƏMİŞƏ silinir (python tərəfin öz davranışı, bax prompt.ts).
       const userPrompt = renderUserPrompt(
