@@ -53,9 +53,11 @@ export function computeCostUsd(usage: LLMUsage | null, modelId: string): number 
   const output = billableOutputTokens(normalized) ?? 0;
   // Explicit/implicit Gemini cache: cached input is ~10% of input price (Google 2.5+).
   // Do not invent hits — only discount when usage reports a cached count.
+  // Prefer explicit cache fields; also honor OpenAI-compat `prompt_tokens_details.cached_tokens`
+  // and Google's `total_cached_tokens` (folded into these by `normalizeUsage`).
   const cached =
-    normalized.cached_content_token_count ??
     normalized.prompt_tokens_details?.cached_tokens ??
+    normalized.cached_content_token_count ??
     0;
   const cachedClamped = Math.min(Math.max(0, cached), prompt);
   const uncachedPrompt = Math.max(0, prompt - cachedClamped);

@@ -1,14 +1,24 @@
 // Qat 5 OpenAI-compat SSE streaming — separate from `llm.ts` so cache/telemetry
 // edits there do not wipe this path (COST-LATENCY-SAFE-SEQUENCE addım 5).
+//
+// When an explicit Gemini cache is available, prefer native `streamGenerateContent`
+// so `usageMetadata.cachedContentTokenCount` is reported (OpenAI-compat often omits it).
 
 import { resolveConnection } from "./models";
 import {
   callVisionLLM,
   ensureGeminiSystemCache,
+  geminiNativeBaseUrl,
   normalizeUsage,
+  usageFromGeminiNativeMetadata,
+  cachedTokensFromUsage,
   type LLMResult,
   type LLMUsage,
 } from "./llm";
+
+function logStreamCache(event: string, detail: Record<string, unknown>) {
+  console.warn(`[llm-stream] context_cache ${event}`, detail);
+}
 
 /**
  * Accumulates `delta.content`, calls `onDelta` with the full text so far after
@@ -50,6 +60,20 @@ export async function streamVisionLLM(opts: {
     });
   }
 
+  if (cachedContentName) {
+    const native = await streamNativeWithCache({
+      model,
+      apiKey,
+      baseUrl,
+      cachedContentName,
+      userPrompt: opts.userPrompt,
+      signal: opts.signal,
+      onDelta: opts.onDelta,
+    });
+    if (native) return native;
+    // Fall through to OpenAI-compat stream + extra_body, then inline.
+  }
+
   const messages: Array<{ role: string; content: unknown }> = [];
   if (!cachedContentName) {
     messages.push({ role: "system", content: opts.systemPrompt });
@@ -84,8 +108,13 @@ export async function streamVisionLLM(opts: {
 
   let res = await postStream(payload);
   if (usedCache && res.status >= 400 && res.status < 500 && res.status !== 429) {
-    console.warn(`[llm-stream] cached_content rejected (${res.status}); falling back to inline system`);
+    logStreamCache("skip", {
+      reason: "openai_extra_body_rejected",
+      model,
+      status: res.status,
+    });
     usedCache = false;
+    cachedContentName = null;
     delete payload.extra_body;
     payload.messages = [
       { role: "system", content: opts.systemPrompt },
@@ -182,6 +211,15 @@ export async function streamVisionLLM(opts: {
   lineBuf += decoder.decode();
   flushLineBuf(true);
 
+  if (usedCache && cachedTokensFromUsage(usage) == null) {
+    logStreamCache("warn", {
+      reason: "usage_missing_cached_tokens",
+      path: "openai_sse",
+      model,
+      usage,
+    });
+  }
+
   const latencyMs = performance.now() - started;
   let parsed: unknown | null = null;
   try {
@@ -190,4 +228,137 @@ export async function streamVisionLLM(opts: {
     parsed = null;
   }
   return { parsed, rawText, usage, latencyMs, attempts: 1, model };
+}
+
+async function streamNativeWithCache(opts: {
+  model: string;
+  apiKey: string;
+  baseUrl: string;
+  cachedContentName: string;
+  userPrompt: string;
+  signal?: AbortSignal;
+  onDelta?: (accumulated: string) => void;
+}): Promise<LLMResult | null> {
+  const nativeBase = geminiNativeBaseUrl(opts.baseUrl);
+  if (!/^https?:\/\//i.test(nativeBase)) return null;
+  const url = `${nativeBase}/models/${opts.model}:streamGenerateContent?alt=sse`;
+  const started = performance.now();
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": opts.apiKey,
+      },
+      body: JSON.stringify({
+        cachedContent: opts.cachedContentName,
+        contents: [{ role: "user", parts: [{ text: opts.userPrompt }] }],
+        generationConfig: {
+          temperature: 0.2,
+          responseMimeType: "application/json",
+        },
+      }),
+      signal: opts.signal,
+    });
+  } catch (err) {
+    logStreamCache("skip", {
+      reason: "native_generate_failed",
+      model: opts.model,
+      err: err instanceof Error ? err.message : String(err),
+    });
+    return null;
+  }
+
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => "");
+    logStreamCache("skip", {
+      reason: "native_generate_failed",
+      model: opts.model,
+      status: res.status,
+      err: errBody.slice(0, 240),
+    });
+    return null;
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) {
+    logStreamCache("skip", {
+      reason: "native_generate_failed",
+      model: opts.model,
+      detail: "empty_body",
+    });
+    return null;
+  }
+
+  const decoder = new TextDecoder();
+  let lineBuf = "";
+  let rawText = "";
+  let usage: LLMUsage | null = null;
+
+  const ingest = (rawLine: string) => {
+    const line = rawLine.trim();
+    if (!line.startsWith("data:")) return;
+    const data = line.slice(5).trim();
+    if (!data || data === "[DONE]") return;
+    let chunk: {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+      usageMetadata?: unknown;
+    };
+    try {
+      chunk = JSON.parse(data) as typeof chunk;
+    } catch {
+      return;
+    }
+    const piece =
+      chunk.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+    if (piece) {
+      rawText += piece;
+      opts.onDelta?.(rawText);
+    }
+    if (chunk.usageMetadata) {
+      const next = usageFromGeminiNativeMetadata(chunk.usageMetadata);
+      if (next) usage = next;
+    }
+  };
+
+  const flush = (flushTail: boolean) => {
+    const lines = lineBuf.split("\n");
+    lineBuf = flushTail ? "" : (lines.pop() ?? "");
+    for (const rawLine of lines) ingest(rawLine);
+  };
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    lineBuf += decoder.decode(value, { stream: true });
+    flush(false);
+  }
+  lineBuf += decoder.decode();
+  flush(true);
+
+  if (cachedTokensFromUsage(usage) == null) {
+    logStreamCache("warn", {
+      reason: "usage_missing_cached_tokens",
+      path: "native_streamGenerateContent",
+      model: opts.model,
+      cache: opts.cachedContentName,
+      usage,
+    });
+  }
+
+  let parsed: unknown | null = null;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch {
+    parsed = null;
+  }
+  return {
+    parsed,
+    rawText,
+    usage,
+    latencyMs: performance.now() - started,
+    attempts: 1,
+    model: opts.model,
+  };
 }

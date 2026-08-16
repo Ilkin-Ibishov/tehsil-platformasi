@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (167) · Cursor → Cowork
+Etdim:    Qat 5 `cached_tokens=null` kök səbəb + fix: `ensureGeminiSystemCache` `contents[]` (sysInstruction-only create uğursuz); keşli yol native `generateContent`/`streamGenerateContent`; `normalizeUsage` `total_cached_tokens`; skip logları. Fake hit yox.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Soak Gemini keşi işlətmir. Cold start yeni keş yarada bilər — isti eyni instance-da `cached_tokens`>0. Vercel: `context_cache skip|created|warn`.
+Blok:     OpenAI-compat tək başına etibarlı `cached_tokens` vermir → native keşli yol indi default.
+
 ## 2026-08-17 (166) · Cursor → Cowork
 Etdim:    NDJSON flush: `/finish` `open`+~2KB `pad`, `X-Accel-Buffering`/`no-store`, sync `ReadableStream`; `finish-stream.ts` pad ignore + ADR-017 strip; kamera `cache: no-store` + preview state on confirm. `finish_wait_ms` hələ `final`-ə. Cost meta (163) saxlanıldı.
 Tapşırıq: meta / no ClickUp.

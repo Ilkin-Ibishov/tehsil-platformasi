@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-17: HANDOFF 167 — Qat 5 cache: `contents[]` create + native generate/stream for real `cached_tokens`; skip logs; no fake hits.
 - 2026-08-17: HANDOFF 166 — NDJSON flush pad (~2KB) + headers so phone sees step 1 before final.
 - 2026-08-17: HANDOFF 165 — `formatMath` `\vec` → `→` (unformatted_latex).
 - 2026-08-17: HANDOFF 164 — crop encode bir addım + preview=raw; `encode_ms` crop-only (~4s→~1s gözlənti).

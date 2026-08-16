@@ -79,11 +79,11 @@ function layerCachedTokensOf(solution: {
     cached_content_token_count?: number | null;
   } | null;
 }): number | null {
-  return (
-    solution.usage?.prompt_tokens_details?.cached_tokens ??
-    solution.usage?.cached_content_token_count ??
-    null
-  );
+  const fromDetails = solution.usage?.prompt_tokens_details?.cached_tokens;
+  if (typeof fromDetails === "number" && Number.isFinite(fromDetails)) return fromDetails;
+  const fromCached = solution.usage?.cached_content_token_count;
+  if (typeof fromCached === "number" && Number.isFinite(fromCached)) return fromCached;
+  return null;
 }
 
 export async function POST(req: NextRequest) {

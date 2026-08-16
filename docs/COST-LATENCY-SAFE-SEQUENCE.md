@@ -172,7 +172,10 @@ Sıralamada qalır, çünki ucuz və təhlükəsizdir — amma gözləntini şi�
 
 ### Addım 2 (siyahı 2) — Gemini kontekst keşi
 
-**Status:** ✅ Kod (2026-08-17) — explicit `cachedContents` + OpenAI-compat `extra_body.google.cached_content`; fail → inline. Production `cached_tokens` ölçüsü gözlənilir.
+**Status:** ✅ Kod (2026-08-17) — `cachedContents` indi `contents[]` (sysInstruction-only create
+uğursuz idi); Qat 5 keşli yol native `generateContent` /
+`streamGenerateContent` (OpenAI-compat `cached_tokens` tez-tez boş qalırdı);
+`normalizeUsage` `total_cached_tokens` oxuyur. Skip səbəbləri loglanır. Fake hit yoxdur.
 
 **Problem.** Qat 5 system promptu (~5k token) sorğudan sorğuya eynidir. Hər dəfə tam
 giriş qiyməti ödənilir. `normalizeUsage` artıq keş sahələrini oxuyur; keş **aktiv deyil**.
