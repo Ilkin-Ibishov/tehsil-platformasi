@@ -15,6 +15,13 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (139) · Cursor → Cowork
+
+Etdim:    Soak şəkil root cause Railway screenshot-la ölçüldü: ChatGPT Free plus menyusu «Get Plus for more uploads / wait 18 hours» — `setInputFiles` uğurlu görünür, `POST /files` yox. Playwright plus+filechooser səhv idi (custom menu), amma düzgün hidden-input da kvota bağlandıqda no-op-dur. `GET /debug/upload-screenshots`; kvota indi fail-fast 400. Tehsil kodu dəyişmədi.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Şagird Gemini toxunulmur. Soak mətn işləyir. Plus menyunu açıq saxlayıb `setInputFiles` etmək olmaz.
+Blok:     Soak foto üçün ChatGPT Plus (və ya kvota bitənə qədər ~18 saat) və ya başqa cookie hesabı lazımdır. Kod OpenAI Free upload limitini keçə bilməz.
+
 ## 2026-08-16 (138) · Cursor → Cowork
 
 Etdim:    Soak şəkil yoxlandı. Sənin `soak-dim-01` cəhdi: əvvəl 403 (dəvətsiz kamera), sonra Qat 1 `unreadable` «şəkil təqdim edilməyib» (~55 san, Railway `POST /chat` 200). Eyni `soak-5plus5.png` + transcribe promptu lokal headed-də `canonical: 5 + 5 = ?`; Railway/Xvfb-də `setInputFiles` uğurlu görünür, `POST /files` yox, thumbnail yox. İndi chip olmayanda 400/503 (`soak_unavailable`), səssiz unreadable yox.
