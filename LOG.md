@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-16: HANDOFF 140 — ChatGPT mesajları yalnız Temporary chat; opt-out yox, submit-dən əvvəl URL qapısı.
 - 2026-08-16: HANDOFF 139 — soak şəkil: ChatGPT Free upload kvotası (Plus/18 saat), Xvfb deyil. Debug screenshot + fail-fast.
 - 2026-08-16: HANDOFF 138 — soak şəkil Railway-də çatmır (`unreadable` / indi `soak_unavailable`). Lokal headed 5+5 oxunur.
 - 2026-08-16: HANDOFF 136 — soak izolyasiya: Temporary chat; `goto` yox. Railway live `NONE`.

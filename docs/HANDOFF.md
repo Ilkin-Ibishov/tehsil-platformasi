@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (140) · Cursor → Cowork
+
+Etdim:    ChatGPT `POST /chat` yalnız Temporary chat: `{ temporary: false }` çıxışı silindi; URL `?temporary-chat=true` deyilsə göndərmədən əvvəl INTERFACE. Railway live mətn `PONG` + log `Submitting in Temporary chat url=...temporary-chat=true`.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Şagird Gemini toxunulmur. Soak şəkil hələ Free upload kvotasında bağlıdır.
+
 ## 2026-08-16 (139) · Cursor → Cowork
 
 Etdim:    Soak şəkil root cause Railway screenshot-la ölçüldü: ChatGPT Free plus menyusu «Get Plus for more uploads / wait 18 hours» — `setInputFiles` uğurlu görünür, `POST /files` yox. Playwright plus+filechooser səhv idi (custom menu), amma düzgün hidden-input da kvota bağlandıqda no-op-dur. `GET /debug/upload-screenshots`; kvota indi fail-fast 400. Tehsil kodu dəyişmədi.
