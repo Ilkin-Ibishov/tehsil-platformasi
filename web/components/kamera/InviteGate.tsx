@@ -98,6 +98,7 @@ export function InviteGate({
         onKeyDown={(e) => e.key === "Enter" && submit()}
         placeholder={t("placeholder")}
         autoComplete="off"
+        data-testid="invite-code-input"
         autoCapitalize="off"
         spellCheck={false}
         aria-invalid={error?.kind === "invalid"}

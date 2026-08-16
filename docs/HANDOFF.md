@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (132) · Cursor → Cowork
+
+Etdim:    S2 soak qalereya axını (`86eyn2u6x`): `soak-*` dəvətdə `getUserMedia` yox, `CaptureView` qalereya-birinci; `CropView` ilkin çərçivə `{0,0,1,1}` yalnız soak (`crop-box.ts`). Şagird `STUDENT_CROP_BOX` eyni qalır. Playwright qarmaqları: `capture-gallery-input`, `crop-confirm`, `invite-code-input`. `crop-box.selftest` 4/4.
+Tapşırıq: `86eyn2u6x`.
+Diqqət:   `soak_enabled` sönük qalır — 3× `delivered=true` canlı yükləmə operator env + S3 Playwright. Şagird qalereyası dar çərçivədir. S0+S1+Qat1 commit-ləri hələ push olunmayıb.
+
 ## 2026-08-16 (131) · Cursor → Cowork
 
 Etdim:    S1 PDF→kəsik (`86eyn2pw5`): `scripts/corpus/pdf_to_crops.py` (PyMuPDF heuristika, vision yox), `0067` `corpus` bucket + `corpus_crops` (DİM mətni yox), `0068` service_role GRANT. Selftest 24/24. 5 synthetic QA: hər kəsikdə bir nömrə.

@@ -8,6 +8,7 @@ import { uuidv4 } from "@/lib/telemetry/uuid";
 import { CaptureView, type Captured } from "@/components/kamera/CaptureView";
 import { CropView } from "@/components/kamera/CropView";
 import { InviteGate, getStoredInviteCode, clearStoredInviteCode } from "@/components/kamera/InviteGate";
+import { isSoakInvite } from "@/lib/soak/invite";
 import { LoadingView } from "@/components/hell/LoadingView";
 import { SolveView, type SolveResult } from "@/components/hell/SolveView";
 import { TranscriptConfirmView } from "@/components/hell/TranscriptConfirmView";
@@ -142,7 +143,7 @@ export default function KameraPage() {
 
   // ADR-007 / PHASE-1 S5 invariantı: imtina, seçim və "heç biri" HƏMİŞƏ kəsməyə qayıdır,
   // kameraya YOX — `captured` (orijinal donmuş kadr) TOXUNULMUR, yalnız kəsmə çərçivəsi
-  // sıfırlanır (CropView öz DEFAULT_BOX-unu yenidən mount-da tətbiq edir).
+  // sıfırlanır (CropView `initialCropBox`-u yenidən mount-da tətbiq edir).
   function backToCrop() {
     setSolution(null);
     setSolutionAttemptId(null);
@@ -534,6 +535,7 @@ export default function KameraPage() {
   if (stage === "capture") {
     return (
       <CaptureView
+        galleryOnly={isSoakInvite(inviteCode)}
         onCaptured={(c) => {
           setCaptured(c);
           setStage("crop");
@@ -545,7 +547,12 @@ export default function KameraPage() {
 
   if (stage === "crop" && captured) {
     return (
-      <CropView canvas={captured.canvas} onConfirmed={runSolve} onCancel={() => setStage("capture")} />
+      <CropView
+        canvas={captured.canvas}
+        fillFrame={isSoakInvite(inviteCode)}
+        onConfirmed={runSolve}
+        onCancel={() => setStage("capture")}
+      />
     );
   }
 

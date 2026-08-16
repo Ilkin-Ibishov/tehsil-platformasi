@@ -10,6 +10,9 @@
     "label": "TAPŞIRIĞI ÇƏK",
     "hint": "Bir tənliyi çərçivənin içinə sal. Bütün səhifəni çəkməyə ehtiyac yoxdur.",
     "gallery": "qalereya",
+    "galleryPick": "Şəkil seç",
+    "galleryOnlyTitle": "Kəsiyi yüklə",
+    "galleryOnlyBody": "Kamera lazım deyil. Artıq kəsilmiş sual şəklini seç.",
     "shutterLabel": "Şəkil çək",
     "torchOn": "fənər açıq",
     "torchOff": "fənər",
@@ -25,6 +28,7 @@
   "crop": {
     "label": "KƏSMƏ",
     "hint": "Çərçivəni məsələnin üstünə sürüşdür",
+    "hintSoak": "Kəsik bir sualdır — çərçivə bütün şəkli tutur. Yoxla və təsdiqlə.",
     "retake": "yenidən çək",
     "confirm": "Təsdiqlə"
   },

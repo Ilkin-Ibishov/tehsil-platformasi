@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry";
 import { cropAndResize, type CropRectPct } from "@/lib/image";
+import { initialCropBox } from "@/lib/crop-box";
 
-const DEFAULT_BOX: CropRectPct = { x: 0.1, y: 0.28, w: 0.8, h: 0.44 };
 const MIN_SIZE = 0.12;
 const MAX_PX = 1600;
 
@@ -15,14 +15,17 @@ export function CropView({
   canvas,
   onConfirmed,
   onCancel,
+  fillFrame = false,
 }: {
   canvas: HTMLCanvasElement;
   onConfirmed: (result: { blob: Blob; width: number; height: number; rawBlob: Blob | null }) => void;
   onCancel: () => void;
+  fillFrame?: boolean;
 }) {
   const t = useTranslations("crop");
   const imgWrapRef = useRef<HTMLDivElement>(null);
-  const [box, setBox] = useState<CropRectPct>(DEFAULT_BOX);
+  const initialBox = initialCropBox({ soak: fillFrame });
+  const [box, setBox] = useState<CropRectPct>(initialBox);
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const adjustCount = useRef(0);
@@ -32,14 +35,14 @@ export function CropView({
     canvas.toBlob((blob) => {
       if (blob) setImgUrl(URL.createObjectURL(blob));
     }, "image/jpeg", 0.92);
-    trackEvent("crop.screen_opened", { default_box_ratio: DEFAULT_BOX.w / DEFAULT_BOX.h });
+    trackEvent("crop.screen_opened", { default_box_ratio: initialBox.w / initialBox.h });
     return () => {
       setImgUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
         return null;
       });
     };
-  }, [canvas]);
+  }, [canvas, initialBox]);
 
   function clamp(v: number, lo: number, hi: number) {
     return Math.min(hi, Math.max(lo, v));
@@ -242,7 +245,7 @@ export function CropView({
           </div>
         </div>
 
-        <span style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>{t("hint")}</span>
+        <span style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>{fillFrame ? t("hintSoak") : t("hint")}</span>
       </div>
 
       <div style={{ position: "sticky", bottom: 0, background: "var(--bg)", display: "flex", justifyContent: "space-between", gap: 16, padding: "18px 20px 26px" }}>
@@ -252,6 +255,7 @@ export function CropView({
         <button
           type="button"
           onClick={confirm}
+          data-testid="crop-confirm"
           disabled={busy || !imgUrl}
           style={{ minHeight: "var(--tap)", padding: "0 28px", border: "none", borderRadius: "var(--rad)", background: "var(--acc)", color: "var(--accink)", fontFamily: "inherit", fontSize: 15, fontWeight: 700, cursor: busy ? "not-allowed" : "pointer", opacity: busy ? 0.6 : 1 }}
         >

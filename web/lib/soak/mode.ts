@@ -3,6 +3,9 @@
 // `soak-*` Gemini-yə düşmür (avtomatik keçid yoxdur).
 
 import { getBoolConfig, readConfigValue } from "../app-config";
+import { isSoakInvite } from "./invite";
+
+export { isSoakInvite };
 
 type PoolLike = { query<T = unknown>(text: string, params?: unknown[]): Promise<{ rows: T[] }> };
 
@@ -16,10 +19,6 @@ export type SoakMode =
   | { kind: "blocked"; reason: "disabled" | "missing_env" | "unhealthy" | "auth" }
   | { kind: "chatgpt_web" }
   | { kind: "gemini" };
-
-export function isSoakInvite(inviteCode: unknown): boolean {
-  return typeof inviteCode === "string" && inviteCode.startsWith("soak-");
-}
 
 export function llmAbortMs(mode: SoakMode): number {
   return mode.kind === "chatgpt_web" ? SOAK_LLM_ABORT_MS : STUDENT_LLM_ABORT_MS;

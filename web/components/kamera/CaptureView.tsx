@@ -4,16 +4,25 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry";
 
-type Stage = "requesting" | "live" | "permission-denied" | "not-supported";
+type Stage = "requesting" | "live" | "permission-denied" | "not-supported" | "gallery-only";
 
 export type Captured = {
   canvas: HTMLCanvasElement;
   width: number;
   height: number;
   torchUsed: boolean;
+  source: "camera" | "gallery";
 };
 
-export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured) => void; onCancel: (stage: string) => void }) {
+export function CaptureView({
+  onCaptured,
+  onCancel,
+  galleryOnly = false,
+}: {
+  onCaptured: (c: Captured) => void;
+  onCancel: (stage: string) => void;
+  galleryOnly?: boolean;
+}) {
   const t = useTranslations("kamera");
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -28,7 +37,7 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
   // `navigator` olmadığı üçün "not-supported" server HTML-ə bişib qalır və hidratasiyadan sonra
   // BİR DƏHA yoxlanmır — real brauzerdə kamera olsa belə əbədi "dəstəklənmir" göstərilirdi
   // (bu, real Chromium-da tunel üzərindən sınayanda tapılan həqiqi bug idi).
-  const [stage, setStage] = useState<Stage>("requesting");
+  const [stage, setStage] = useState<Stage>(galleryOnly ? "gallery-only" : "requesting");
   const [torchOn, setTorchOn] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
   const torchUsedRef = useRef(false);
@@ -44,6 +53,8 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
   }, []);
 
   useEffect(() => {
+    if (galleryOnly) return;
+
     let cancelled = false;
 
     (async () => {
@@ -82,7 +93,7 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
       cancelled = true;
       streamRef.current?.getTracks().forEach((tr) => tr.stop());
     };
-  }, []);
+  }, [galleryOnly]);
 
   function toggleTorch() {
     const track = streamRef.current?.getVideoTracks()[0];
@@ -124,13 +135,20 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
           px_h: canvas.height,
           bytes: blob?.size ?? null,
           torch_used: torchUsedRef.current,
+          source: "camera",
         });
       },
       "image/jpeg",
       0.9
     );
 
-    onCaptured({ canvas, width: canvas.width, height: canvas.height, torchUsed: torchUsedRef.current });
+    onCaptured({
+      canvas,
+      width: canvas.width,
+      height: canvas.height,
+      torchUsed: torchUsedRef.current,
+      source: "camera",
+    });
   }
 
   function cancel() {
@@ -162,7 +180,7 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
         torch_used: false,
         source: "gallery",
       });
-      onCaptured({ canvas, width: canvas.width, height: canvas.height, torchUsed: false });
+      onCaptured({ canvas, width: canvas.width, height: canvas.height, torchUsed: false, source: "gallery" });
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
@@ -194,12 +212,21 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
             <video ref={setVideoEl} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           )}
 
-          <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-            <span style={{ position: "absolute", top: 16, left: 16, width: 30, height: 30, borderTop: "3px solid var(--acc)", borderLeft: "3px solid var(--acc)", borderTopLeftRadius: "var(--radsm)" }} />
-            <span style={{ position: "absolute", top: 16, right: 16, width: 30, height: 30, borderTop: "3px solid var(--acc)", borderRight: "3px solid var(--acc)", borderTopRightRadius: "var(--radsm)" }} />
-            <span style={{ position: "absolute", bottom: 16, left: 16, width: 30, height: 30, borderBottom: "3px solid var(--acc)", borderLeft: "3px solid var(--acc)", borderBottomLeftRadius: "var(--radsm)" }} />
-            <span style={{ position: "absolute", bottom: 16, right: 16, width: 30, height: 30, borderBottom: "3px solid var(--acc)", borderRight: "3px solid var(--acc)", borderBottomRightRadius: "var(--radsm)" }} />
-          </div>
+          {stage !== "gallery-only" && (
+            <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+              <span style={{ position: "absolute", top: 16, left: 16, width: 30, height: 30, borderTop: "3px solid var(--acc)", borderLeft: "3px solid var(--acc)", borderTopLeftRadius: "var(--radsm)" }} />
+              <span style={{ position: "absolute", top: 16, right: 16, width: 30, height: 30, borderTop: "3px solid var(--acc)", borderRight: "3px solid var(--acc)", borderTopRightRadius: "var(--radsm)" }} />
+              <span style={{ position: "absolute", bottom: 16, left: 16, width: 30, height: 30, borderBottom: "3px solid var(--acc)", borderLeft: "3px solid var(--acc)", borderBottomLeftRadius: "var(--radsm)" }} />
+              <span style={{ position: "absolute", bottom: 16, right: 16, width: 30, height: 30, borderBottom: "3px solid var(--acc)", borderRight: "3px solid var(--acc)", borderBottomRightRadius: "var(--radsm)" }} />
+            </div>
+          )}
+
+          {stage === "gallery-only" && (
+            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14, padding: 20 }}>
+              <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: 20 }}>{t("galleryOnlyTitle")}</span>
+              <span style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>{t("galleryOnlyBody")}</span>
+            </div>
+          )}
 
           {stage === "permission-denied" && (
             <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14, padding: 20 }}>
@@ -231,48 +258,76 @@ export function CaptureView({ onCaptured, onCancel }: { onCaptured: (c: Captured
         )}
       </div>
 
+      {/* UX düzəlişi (Ilkin, 2026-08-15): `capture="environment"` mobil brauzerdə seçim
+          dialoqunu ATLAYIB birbaşa kameranı açırdı — "qalereya" düyməsi faktiki kameraya
+          gedirdi. Bu atribut YALNIZ "birbaşa kamera" istəyəndə lazımdır; qalereyanın da
+          seçim kimi görünməsi üçün silinməlidir — brauzer bundan sonra native "çək/qalereya"
+          seçicisini göstərir. Grid uşağı DEYİL — Playwright `data-testid` ilə `setInputFiles`. */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        data-testid="capture-gallery-input"
+        onChange={handleFileSelected}
+        style={{ display: "none" }}
+      />
+
       <div style={{ position: "sticky", bottom: 0, background: "var(--bg)", display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 16, padding: "18px 20px 26px" }}>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          style={{ justifySelf: "start", minHeight: 44, padding: 0, border: "none", background: "transparent", color: "var(--t2)", fontFamily: "inherit", fontSize: 14, cursor: "pointer" }}
-        >
-          {t("gallery")}
-        </button>
-        {/* UX düzəlişi (Ilkin, 2026-08-15): `capture="environment"` mobil brauzerdə seçim
-            dialoqunu ATLAYIB birbaşa kameranı açırdı — "qalereya" düyməsi faktiki kameraya
-            gedirdi. Bu atribut YALNIZ "birbaşa kamera" istəyəndə lazımdır; qalereyanın da
-            seçim kimi görünməsi üçün silinməlidir — brauzer bundan sonra native "çək/qalereya"
-            seçicisini göstərir. */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileSelected}
-          style={{ display: "none" }}
-        />
-        <button
-          type="button"
-          onClick={shoot}
-          disabled={stage !== "live"}
-          aria-label={t("shutterLabel")}
-          style={{
-            width: 76,
-            height: 76,
-            borderRadius: "50%",
-            border: "3px solid var(--bor)",
-            background: "transparent",
-            cursor: stage === "live" ? "pointer" : "not-allowed",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            justifySelf: "center",
-            opacity: stage === "live" ? 1 : 0.4,
-          }}
-        >
-          <span style={{ width: 58, height: 58, borderRadius: "50%", background: "var(--acc)" }} />
-        </button>
-        {torchSupported ? (
+        {galleryOnly ? (
+          <span />
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            style={{ justifySelf: "start", minHeight: 44, padding: 0, border: "none", background: "transparent", color: "var(--t2)", fontFamily: "inherit", fontSize: 14, cursor: "pointer" }}
+          >
+            {t("gallery")}
+          </button>
+        )}
+        {galleryOnly ? (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              minHeight: "var(--tap)",
+              padding: "0 28px",
+              border: "none",
+              borderRadius: "var(--rad)",
+              background: "var(--acc)",
+              color: "var(--accink)",
+              fontFamily: "inherit",
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: "pointer",
+              justifySelf: "center",
+            }}
+          >
+            {t("galleryPick")}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={shoot}
+            disabled={stage !== "live"}
+            aria-label={t("shutterLabel")}
+            style={{
+              width: 76,
+              height: 76,
+              borderRadius: "50%",
+              border: "3px solid var(--bor)",
+              background: "transparent",
+              cursor: stage === "live" ? "pointer" : "not-allowed",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              justifySelf: "center",
+              opacity: stage === "live" ? 1 : 0.4,
+            }}
+          >
+            <span style={{ width: 58, height: 58, borderRadius: "50%", background: "var(--acc)" }} />
+          </button>
+        )}
+        {!galleryOnly && torchSupported ? (
           <button
             type="button"
             onClick={toggleTorch}
