@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (150) · Cursor → Cowork
+
+Etdim:    Canary: `soak-dim-01` + `q001.jpg` → transcribe+finish production. `kind=corpus_soak`, `delivered=true`, `match_path=llm`, Gemini (~5s+16s). `topic_code=ALG.FUNCTION_RANGE`.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   S0 qəbulu (1 şəkil uçdan-uca) keçdi. `ALG.FUNCTION_RANGE` üçün mövzu faylı yoxdur — Qat 5 `math.md` fallback. Növbəti: 5/5 transkripsiya qapısı və ya 30-luq partiya.
+
 ## 2026-08-16 (149) · Cursor → Cowork
 
 Etdim:    `pdf_to_crops --upload`: 51/51 `ix-riyaziyyat-2009` → `corpus` bucket + `corpus_crops`. `load_env` boş `.env.local` placeholder-ini kök `.env` üzərinə basmır.
