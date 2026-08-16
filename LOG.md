@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-17: HANDOFF 156 — Qat 1 `reasoning_effort: "none"` (transcribe only); Qat 5 unchanged.
 - 2026-08-17: HANDOFF 155 — timing props (encode/transcribe/finish wait + storage/db) + fail cost.
 - 2026-08-17: HANDOFF 154 — safe-pack doc: telefon ölçü dərsləri (LLM≠HTTP, encode, tez təsdiq).
 - 2026-08-17: HANDOFF 153 — `COST-LATENCY-SAFE-SEQUENCE.md` (3→2→1→4→5 safe pack).
