@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (149) · Cursor → Cowork
+
+Etdim:    `pdf_to_crops --upload`: 51/51 `ix-riyaziyyat-2009` → `corpus` bucket + `corpus_crops`. `load_env` boş `.env.local` placeholder-ini kök `.env` üzərinə basmır.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Upload lokal kök `.env` service_role ilə oldu. Vercel production `SUPABASE_SERVICE_ROLE_KEY` pull-da hələ boş görünür — captures/storage runtime üçün Dashboard-da doldurulduğunu yoxla.
+
 ## 2026-08-16 (148) · Cursor → Cowork
 
 Etdim:    Production deploy `389243a` ERROR: `prompt.selftest.mts` tsconfig exclude-da yox idi (TS5097). Exclude əlavə edildi. Upload: Vercel `SUPABASE_SERVICE_ROLE_KEY` boş — 51 kəsik Storage-a getmədi.

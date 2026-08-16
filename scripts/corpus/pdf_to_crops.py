@@ -37,11 +37,18 @@ def sanitize_pdf_ref(raw: str) -> str:
 
 def load_env() -> None:
     try:
-        from dotenv import load_dotenv
+        from dotenv import load_dotenv, dotenv_values
     except ImportError:
         return
-    load_dotenv(ROOT / "web" / ".env.local")
+    # Kök .env əvvəl; lokal boş placeholder (vercel pull "") köhnə dəyəri örtməsin.
     load_dotenv(ROOT / ".env")
+    local = ROOT / "web" / ".env.local"
+    if local.is_file():
+        for key, val in dotenv_values(local).items():
+            if key and val:
+                import os
+
+                os.environ[key] = val
 
 
 def crop_jpeg(page, rect: list[float], zoom: float) -> tuple[bytes, int, int]:
