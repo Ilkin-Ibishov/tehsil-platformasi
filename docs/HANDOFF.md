@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (153) · Cursor → Cowork
+
+Etdim:    `docs/COST-LATENCY-SAFE-SEQUENCE.md` — təhlükəsiz paket icra planı (ardıcıllıq 3→2→1→4→5: Qat1 thinking off → kontekst keşi → Storage/DB defer → ADR-030 mövzu faylları → Qat5 streaming). Qəbul, geri alma, ölçü protokolu, kənar siyahı.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Qat 5 reasoning_effort və flash-lite bu sənəddə yoxdur. Kod dəyişməyib.
+
 ## 2026-08-17 (152) · Cursor → Cowork
 
 Etdim:    `batch-30`: gate-5 finish (5) + full pipeline (13) → production `web-dusky-xi-74`, `soak-dim-01`. **15/18 ok**, hamısı `match_path=llm`. Fail: q011/q021/q028 (`unreadable`, «Həll yoxlanışdan keçmədi.» — LINEAR_EQUATION / RADICALS / TRIG.SPECIAL_ANGLES). Ok finish ≈$0.023/sual (cəmi ~$0.35), orta ~18s (11–46s). Nəticə: `tmp/corpus/ix-riyaziyyat-2009/batch-30/batch.json`.

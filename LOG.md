@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-17: HANDOFF 153 — `COST-LATENCY-SAFE-SEQUENCE.md` (3→2→1→4→5 safe pack).
 - 2026-08-17: HANDOFF 151–152 — 5/5 gate PASS; batch 15/18 ok (3 unreadable verify).
 - 2026-08-16: HANDOFF 150 — soak Gemini canary q001 delivered=true.
 - 2026-08-16: HANDOFF 149 — ix-riyaziyyat 51/51 corpus upload.
