@@ -74,17 +74,23 @@ həmişə **HTTP/klient wall** nəzərdə tutulurdu — AI deyil.
 
 ### 0.3 Logging — nə düzgün, nə boşdur
 
-| Siqnal | Status |
+| Siqnal | Status (2026-08-17 sonra) |
 |---|---|
-| Funnel hadisələri + `ts_client` | Düzgün; telefon testini yenidən qurmaq olur |
+| Funnel hadisələri + `ts_client` | Düzgün |
 | `ocr_captures.latency_ms` (LLM) | Düzgün |
-| `meta.latency_ms` (transcribe cavabı) | Düzgün = LLM, HTTP cəmi deyil |
-| Server `storage_ms` / `route_total_ms` | **Yoxdur** |
-| Klient `encode_ms`, `waited_ms` (crop→transcript, confirm→steps) | **Yoxdur** (interval `ts_client` fərqi ilə təxmini çıxarılır) |
-| Uğursuz Qat 5 xərci `attempt_items`-də | **Yoxdur** (pul ödənilib, sətir yazılmayıb) |
+| `meta.latency_ms` (transcribe) | Düzgün = **LLM only** |
+| Server `llm_ms` / `storage_ms` / `db_ms` / `route_total_ms` | **Əlavə edildi** — `/transcribe` `meta` + `transcript.shown` props |
+| Klient `encode_ms` | **Əlavə edildi** — `crop.confirmed`, `solve.requested` |
+| Klient `transcribe_wait_ms` | **Əlavə edildi** — `transcript.shown` |
+| Klient `finish_wait_ms` | **Əlavə edildi** — `solve.response` / `solve.failed` |
+| `cached_tokens` | **Əlavə edildi** — meta + hadisə (keş aktiv olanda >0) |
+| Uğursuz Qat 5 `cost_usd` | **Əlavə edildi** — `finish` `unreadable` `meta` + `solve.failed` / `solve.cascade` `persist_ok:false` |
 
-Paket işləyəndə qəbul ölçüsünə əlavə edin: `ocr_captures.latency_ms` **və**
-`solve.requested`→`transcript.shown` intervalı. Yalnız birini yazmaq yenə qarışdırır.
+Taksonomiya: `docs/TELEMETRY.md` (mövcud hadisə adlarına prop; yeni ad yoxdur, `solve.cascade` sənədləşdirildi).
+
+Paket ölçüsündə **üç siqnal** məcburidir: LLM (`latency_ms`/`llm_ms`) · klient wall
+(`encode_ms` / `transcribe_wait_ms` / `finish_wait_ms`) · server I/O (`storage_ms`+`db_ms`).
+Yalnız birini yazmaq yenə qarışdırır.
 
 ### 0.4 Xərc (yenilənmiş)
 
@@ -280,19 +286,38 @@ xərc eyni qala bilər.
 
 ## 5. Ölçü protokolu
 
-Hər addım üçün **eyni üç siqnal**:
+Hər addım üçün **eyni üç siqnal** (deploy sonrası birbaşa props; köhnə run-lar üçün
+`ts_client` fərqi ehtiyatdır):
 
-1. **LLM:** `ocr_captures.latency_ms`, `cost_usd` (Qat 1); finish `meta.latency_ms` / usage (Qat 5).
-2. **Şagird wall:** `events` `ts_client` fərqləri:
-   - `crop.confirmed` → `solve.requested` (encode)
-   - `solve.requested` → `transcript.shown` (transcribe HTTP)
-   - `transcript.confirmed` → `solve.response` | `solve.failed` (finish gözləməsi)
-3. **Nəticə:** `match_path`, `status`, `attempt_items.delivered` (uğurlu).
+1. **LLM:** `ocr_captures.latency_ms` və ya hadisə `llm_ms` / `meta.latency_ms` (Qat 1);
+   finish `layer_latency_ms` / `solve.response.latency_ms` (Qat 5).
+2. **Şagird wall (props):**
+   - `encode_ms` — `crop.confirmed` / `solve.requested`
+   - `transcribe_wait_ms` — `transcript.shown`
+   - `finish_wait_ms` — `solve.response` | `solve.failed`
+3. **Server I/O:** `storage_ms`, `db_ms`, `route_total_ms` (`transcript.shown` və ya
+   `/transcribe` `meta`).
+4. **Nəticə:** `match_path`, `status`, `attempt_items.delivered`; fail-də
+   `solve.failed.cost_usd` / `solve.cascade.persist_ok`.
 
 Invite: sabit soak və ya şagird. Nəticə: `tmp/.../safe-pack-step-N.json` + HANDOFF.
 
 Telefon smoke (n=1–2) paket qəbulunu əvəz etmir, amma I/O addımından sonra **məcburi**
 yoxlamadır (encode yalnız real cihazda görünür).
+
+### 5.1 Diagnostika SQL (telefon / production)
+
+```sql
+-- Son cəhdin latensiya props-ları
+select name, ts_client, props
+from public.events
+where attempt_id = '<uuid>'
+  and name in (
+    'crop.confirmed','solve.requested','transcript.shown',
+    'transcript.confirmed','solve.response','solve.failed','solve.cascade'
+  )
+order by ts_client;
+```
 
 ---
 

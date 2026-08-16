@@ -102,14 +102,24 @@ capture.cancelled              props: {stage}                  ← tərk etmə
 
 crop.screen_opened             props: {default_box_ratio}
 crop.adjusted                  props: {adjust_count}           ← S3: neçə dəfə düzəltdi
-crop.confirmed                 props: {crop_ratio, px_w, px_h}
+crop.confirmed                 props: {crop_ratio, px_w, px_h, encode_ms}
+                               ← encode_ms: kəsik+raw JPEG (CropView.confirm wall)
 crop.cancelled                                                  ← tərk etmə
 
-solve.requested                props: {attempt_id, image_bytes}
+solve.requested                props: {attempt_id, image_bytes, encode_ms}
+                               ← encode_ms: CropView-dən (crop.confirmed ilə eyni)
 solve.waiting_abandoned        props: {waited_ms}              ← S7, KRİTİK: 16.8 san gözləmədə çıxdı
 solve.response                 props: {status, ocr_confidence, latency_ms, match_path,
-                                       cost_usd, tokens_in, tokens_out, step_count}
-solve.failed                   props: {reason, http_status, attempts}
+                                       cost_usd, tokens_in, tokens_out, step_count,
+                                       finish_wait_ms, llm_ms, storage_ms, db_ms, route_total_ms,
+                                       cached_tokens}
+                               ← finish_wait_ms: transcript.confirmed → cavab (klient)
+                               ← llm/storage/db/route_total_ms: YALNIZ kaskad Qat 1 meta
+                                 echo (transcribe cavabından); Qat 5-də əsasən null
+                               ← cached_tokens: prompt keş hit (varsa)
+solve.failed                   props: {reason, http_status, attempts, cost_usd, latency_ms,
+                                       finish_wait_ms}
+                               ← cost_usd/latency_ms: uğursuz Qat 5 belə LLM pulunu göstərir
 solve.timeout                  props: {timeout_ms}             ← server yazır (SYSTEM-REVIEW §C2):
                                                                    LLM çağırışı ~45 san-da kəsildi,
                                                                    klient solve.failed görür, bura
@@ -190,12 +200,31 @@ transkripsiya təsdiq ekranı ayrıca bir mərhələyə çevrildi və hadisələ
 yazıldı. Planlanan adlar tarixi qeyd kimi saxlanılır, **canlı taksonomiya `transcript.*`-dır**:
 
 ```
-transcript.shown               props: {ocr_confidence}     ← Qat 1 mətni şagirdə göstərildi
+transcript.shown               props: {ocr_confidence, transcribe_wait_ms,
+                                       llm_ms, storage_ms, db_ms, route_total_ms, cached_tokens}
+                               ← transcribe_wait_ms: solve.requested → transcript.shown (klient)
+                               ← llm/storage/db/route_total_ms: server `/transcribe` meta
 transcript.confirmed           props: {corrected: bool}    ← "Düzdür" — `corrected` mətnin
                                                               dəyişib-dəyişmədiyini deyir
 transcript.corrected           props: {}                   ← şagird mətni redaktə etdi →
                                                               fon sorğusu abort, YENİ sorğu
 transcript.rejected            props: {}                   ← "Bu mənim məsələm deyil"
+
+### Kaskad server (ADR-020) → S6
+
+```
+solve.cascade                  props: {
+                                 layer, match_path, declined,
+                                 transcribe_cache_hit, transcribe_cost_usd, transcribe_latency_ms,
+                                 transcribe_storage_ms, transcribe_db_ms, transcribe_route_total_ms,
+                                 layer_cost_usd, layer_latency_ms, total_cost_usd,
+                                 has_figure, ocr_confidence, attempt_kind, soak_provider,
+                                 persist_ok
+                               }
+                               ← transcribe_*_ms: klientin ötürdüyü Qat 1 parçalanma (telemetriya)
+                               ← persist_ok: false olanda layer cavabı var, DB/yoxlama fail
+                               ← layer=none: həll qurulmayıb (layer_cost yox)
+```
 ```
 
 ~~`ocr.correction_offered` / `ocr.correction_made` / `ocr.correction_skipped`~~ — planlandı,

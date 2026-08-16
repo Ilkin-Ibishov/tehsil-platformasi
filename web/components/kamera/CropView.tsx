@@ -18,7 +18,13 @@ export function CropView({
   fillFrame = false,
 }: {
   canvas: HTMLCanvasElement;
-  onConfirmed: (result: { blob: Blob; width: number; height: number; rawBlob: Blob | null }) => void;
+  onConfirmed: (result: {
+    blob: Blob;
+    width: number;
+    height: number;
+    rawBlob: Blob | null;
+    encodeMs: number;
+  }) => void;
   onCancel: () => void;
   fillFrame?: boolean;
 }) {
@@ -146,13 +152,9 @@ export function CropView({
 
   async function confirm() {
     setBusy(true);
+    const encodeStarted = Date.now();
     try {
       const result = await cropAndResize(canvas, canvas.width, canvas.height, box, MAX_PX);
-      trackEvent("crop.confirmed", {
-        crop_ratio: Number((box.w / box.h).toFixed(3)),
-        px_w: result.width,
-        px_h: result.height,
-      });
       // S1 (86eymwght) — orijinal kəsilməmiş kadr, ADR-024: kəsmə bug-larını YALNIZ orijinal
       // sübut edə bilər. Tam çərçivə (crop rekt {0,0,1,1}), eyni maxPx qaydası — çəkiliş
       // özündən böyük saxlamağa ehtiyac yoxdur, server storage limiti 2MB-dir.
@@ -162,7 +164,14 @@ export function CropView({
           return null;
         }
       );
-      onConfirmed({ ...result, rawBlob: raw?.blob ?? null });
+      const encodeMs = Date.now() - encodeStarted;
+      trackEvent("crop.confirmed", {
+        crop_ratio: Number((box.w / box.h).toFixed(3)),
+        px_w: result.width,
+        px_h: result.height,
+        encode_ms: encodeMs,
+      });
+      onConfirmed({ ...result, rawBlob: raw?.blob ?? null, encodeMs });
     } finally {
       setBusy(false);
     }

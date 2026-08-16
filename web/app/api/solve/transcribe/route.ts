@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
   const imageHash = imageSha256(imageBytes);
   const label = typeof selectedLabel === "string" && selectedLabel ? selectedLabel : "";
 
+  const routeStarted = performance.now();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), llmAbortMs(soak.mode));
   let outcome;
@@ -121,6 +122,15 @@ export async function POST(req: NextRequest) {
         ...(outcome.refusal.candidates ? { candidates: outcome.refusal.candidates } : {}),
         attempt_id: null,
         match_path: outcome.cacheHit ? "image_cache" : "llm",
+        meta: {
+          latency_ms: Math.round(outcome.latencyMs),
+          llm_ms: Math.round(outcome.latencyMs),
+          storage_ms: 0,
+          db_ms: 0,
+          route_total_ms: Math.round(performance.now() - routeStarted),
+          cost_usd: outcome.costUsd,
+          cached_tokens: outcome.usage?.prompt_tokens_details?.cached_tokens ?? outcome.usage?.cached_content_token_count ?? null,
+        },
       },
       { status: 200 }
     );
@@ -135,6 +145,7 @@ export async function POST(req: NextRequest) {
   // (`outcome.cacheHit`) belə şəkil YENƏ yüklənir — hər çəkiliş öz sübutunu saxlamalıdır
   // (ocr-capture.ts-in "hər çəkiliş öz korpus sətrini alır" prinsipi ilə eyni).
   const captureIdHint = reserveCaptureId();
+  const storageStarted = performance.now();
   const uploaded = await uploadCaptureImages({
     idHint: captureIdHint,
     cropBytes: imageBytes,
@@ -142,7 +153,9 @@ export async function POST(req: NextRequest) {
     rawBytes: imageRawBytes,
     rawMime: imageRaw instanceof Blob ? imageRaw.type || "image/jpeg" : null,
   });
+  const storageMs = performance.now() - storageStarted;
 
+  const dbStarted = performance.now();
   const captureId = await writeOcrCapture(pool, {
     id: captureIdHint,
     ocrRaw: outcome.transcript.canonical,
@@ -156,6 +169,8 @@ export async function POST(req: NextRequest) {
     height: uploaded?.height ?? null,
     bytes: uploaded?.bytes ?? null,
   });
+  const dbMs = performance.now() - dbStarted;
+  const routeTotalMs = performance.now() - routeStarted;
 
   return NextResponse.json(
     {
@@ -171,7 +186,16 @@ export async function POST(req: NextRequest) {
       detected_language: outcome.transcript.detectedLanguage,
       has_figure: outcome.transcript.hasFigure,
       match_path: outcome.cacheHit ? "image_cache" : "llm",
-      meta: { latency_ms: Math.round(outcome.latencyMs), cost_usd: outcome.costUsd },
+      meta: {
+        // latency_ms = LLM only (mövcud müqavilə / ocr_captures.latency_ms ilə eyni)
+        latency_ms: Math.round(outcome.latencyMs),
+        llm_ms: Math.round(outcome.latencyMs),
+        storage_ms: Math.round(storageMs),
+        db_ms: Math.round(dbMs),
+        route_total_ms: Math.round(routeTotalMs),
+        cost_usd: outcome.costUsd,
+        cached_tokens: outcome.usage?.prompt_tokens_details?.cached_tokens ?? outcome.usage?.cached_content_token_count ?? null,
+      },
     },
     { status: 200 }
   );

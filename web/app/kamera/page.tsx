@@ -26,7 +26,7 @@ type Stage = "invite" | "capture" | "crop" | "submitting" | "solved" | "refused"
 type Candidate = { label: string; preview: string };
 // S1 (86eymwght): `rawBlob` — kəsilməmiş orijinal kadr, ADR-024. `null` ola bilər (encode
 // uğursuz olub, best-effort) — server bu halda yalnız kəsilmiş şəkli saxlayır.
-type CroppedResult = { blob: Blob; width: number; height: number; rawBlob: Blob | null };
+type CroppedResult = { blob: Blob; width: number; height: number; rawBlob: Blob | null; encodeMs: number };
 
 // `/api/solve/transcribe`-in "ok" cavabı — TranscriptConfirmView-ə və fon `/finish`
 // çağırışına ötürülən forma.
@@ -40,7 +40,14 @@ type CascadeTranscript = {
   ocrConfidence: string | null;
   detectedLanguage: string | null;
   hasFigure: boolean;
-  meta: { latencyMs: number; costUsd: number | null };
+  meta: {
+    latencyMs: number;
+    costUsd: number | null;
+    storageMs: number | null;
+    dbMs: number | null;
+    routeTotalMs: number | null;
+    cachedTokens: number | null;
+  };
   matchPath: string;
 };
 
@@ -75,6 +82,7 @@ export default function KameraPage() {
   const candidatesShownAtRef = useRef<number>(0);
   const screenOpenedFired = useRef(false);
   const currentAttemptIdRef = useRef<string | undefined>(undefined);
+  const finishWaitStartedRef = useRef<number | null>(null);
 
   // docs/TELEMETRY.md: solve.waiting_abandoned (S7, KRİTİK) — istifadəçi cavab gözləyərkən
   // SƏHİFƏNİN ÖZÜNÜ tərk edir (geri, tab bağlama, marşrut dəyişimi). `pendingSince` sorğu
@@ -177,7 +185,11 @@ export default function KameraPage() {
     setStage("submitting");
     // eslint-disable-next-line react-hooks/purity -- yalnız CropView-in `onConfirmed`/`pickCandidate`-dən çağırılır, render zamanı YOX (bax `pickCandidate`-in üstündəki şərh)
     pendingSince.current = Date.now();
-    trackEvent("solve.requested", { image_bytes: result.blob.size, selected_label: selectedLabel ?? null });
+    trackEvent("solve.requested", {
+      image_bytes: result.blob.size,
+      selected_label: selectedLabel ?? null,
+      encode_ms: result.encodeMs,
+    });
 
     try {
       const form = new FormData();
@@ -308,42 +320,93 @@ export default function KameraPage() {
         locale: "az",
         attempt_id: currentAttemptIdRef.current ?? null,
         capture_id: t.captureId,
-        transcribe_meta: { cache_hit: t.matchPath === "image_cache", cost_usd: t.meta.costUsd, latency_ms: t.meta.latencyMs },
+        transcribe_meta: {
+          cache_hit: t.matchPath === "image_cache",
+          cost_usd: t.meta.costUsd,
+          latency_ms: t.meta.latencyMs,
+          storage_ms: t.meta.storageMs,
+          db_ms: t.meta.dbMs,
+          route_total_ms: t.meta.routeTotalMs,
+        },
         transcript: { ...transcriptPayload(t), canonical: canonicalOverride },
       }),
     });
     return res.json();
   }
 
+  function finishWaitMs(): number | null {
+    if (finishWaitStartedRef.current === null) return null;
+    return Date.now() - finishWaitStartedRef.current;
+  }
+
   // Server tərəfi Qat 2-5-i həll edə bilmədi (`status !== "ok"`) VƏ ya şəbəkə xətası —
   // mövcud "refused" ekranına yönləndirir (backToCrop invariantı ORADA artıq qorunur).
-  function handleFinishFailure(reasonKey: "unreadable" | "network_error") {
-    trackEvent("solve.failed", { reason: reasonKey, http_status: null, attempts: 1 });
+  function handleFinishFailure(
+    reasonKey: "unreadable" | "network_error",
+    extra?: { cost_usd?: number | null; latency_ms?: number | null }
+  ) {
+    trackEvent("solve.failed", {
+      reason: reasonKey,
+      http_status: null,
+      attempts: 1,
+      cost_usd: extra?.cost_usd ?? null,
+      latency_ms: extra?.latency_ms ?? null,
+      finish_wait_ms: finishWaitMs(),
+    });
+    finishWaitStartedRef.current = null;
     setRefusalReason(null);
     setRefusalStatus("unreadable");
     setStage("refused");
   }
 
   function applyFinishResult(body: Record<string, unknown>) {
+    const meta = body.meta as
+      | {
+          latency_ms?: number;
+          cost_usd?: number | null;
+          tokens_in?: number | null;
+          tokens_out?: number | null;
+          layer_cost_usd?: number | null;
+          layer_latency_ms?: number | null;
+        }
+      | undefined;
     if (body.status && body.status !== "ok") {
-      handleFinishFailure("unreadable");
+      handleFinishFailure("unreadable", {
+        cost_usd: meta?.cost_usd ?? meta?.layer_cost_usd ?? null,
+        latency_ms: meta?.latency_ms ?? meta?.layer_latency_ms ?? null,
+      });
       return;
     }
     if (!body.canonical || !Array.isArray(body.steps) || body.steps.length === 0) {
-      trackEvent("solve.failed", { reason: "empty_solution", http_status: 200, attempts: 1 });
+      trackEvent("solve.failed", {
+        reason: "empty_solution",
+        http_status: 200,
+        attempts: 1,
+        cost_usd: meta?.cost_usd ?? null,
+        latency_ms: meta?.latency_ms ?? null,
+        finish_wait_ms: finishWaitMs(),
+      });
+      finishWaitStartedRef.current = null;
       setStage("done");
       return;
     }
     trackEvent("solve.response", {
       status: "ok",
       ocr_confidence: cascadeTranscript?.ocrConfidence ?? null,
-      latency_ms: (body.meta as { latency_ms?: number } | undefined)?.latency_ms ?? null,
+      latency_ms: meta?.latency_ms ?? null,
       match_path: body.match_path ?? null,
-      cost_usd: (body.meta as { cost_usd?: number | null } | undefined)?.cost_usd ?? null,
-      tokens_in: (body.meta as { tokens_in?: number | null } | undefined)?.tokens_in ?? null,
-      tokens_out: (body.meta as { tokens_out?: number | null } | undefined)?.tokens_out ?? null,
+      cost_usd: meta?.cost_usd ?? null,
+      tokens_in: meta?.tokens_in ?? null,
+      tokens_out: meta?.tokens_out ?? null,
       step_count: (body.steps as unknown[]).length,
+      finish_wait_ms: finishWaitMs(),
+      llm_ms: cascadeTranscript?.meta.latencyMs ?? null,
+      storage_ms: cascadeTranscript?.meta.storageMs ?? null,
+      db_ms: cascadeTranscript?.meta.dbMs ?? null,
+      route_total_ms: cascadeTranscript?.meta.routeTotalMs ?? null,
+      cached_tokens: cascadeTranscript?.meta.cachedTokens ?? null,
     });
+    finishWaitStartedRef.current = null;
     setSolution({
       canonical: body.canonical as string,
       steps: body.steps as SolveResult["steps"],
@@ -358,7 +421,11 @@ export default function KameraPage() {
     setStage("submitting");
     // eslint-disable-next-line react-hooks/purity -- eyni izah, submitSolve-in üstündəki şərhə bax
     pendingSince.current = Date.now();
-    trackEvent("solve.requested", { image_bytes: result.blob.size, selected_label: selectedLabel ?? null });
+    trackEvent("solve.requested", {
+      image_bytes: result.blob.size,
+      selected_label: selectedLabel ?? null,
+      encode_ms: result.encodeMs,
+    });
 
     try {
       const form = new FormData();
@@ -371,6 +438,7 @@ export default function KameraPage() {
       form.append("subject", "math");
       if (selectedLabel) form.append("selected_label", selectedLabel);
 
+      const transcribeWaitStarted = Date.now();
       const res = await fetch("/api/solve/transcribe", { method: "POST", body: form });
 
       if (res.status === 403) {
@@ -423,6 +491,16 @@ export default function KameraPage() {
         return;
       }
 
+      const bodyMeta = body.meta as
+        | {
+            latency_ms?: number;
+            cost_usd?: number | null;
+            storage_ms?: number;
+            db_ms?: number;
+            route_total_ms?: number;
+            cached_tokens?: number | null;
+          }
+        | undefined;
       const transcript: CascadeTranscript = {
         captureId: typeof body.capture_id === "string" ? body.capture_id : null,
         canonical: body.canonical,
@@ -434,13 +512,25 @@ export default function KameraPage() {
         detectedLanguage: typeof body.detected_language === "string" ? body.detected_language : null,
         hasFigure: body.has_figure === true,
         meta: {
-          latencyMs: body.meta?.latency_ms ?? 0,
-          costUsd: typeof body.meta?.cost_usd === "number" ? body.meta.cost_usd : null,
+          latencyMs: bodyMeta?.latency_ms ?? 0,
+          costUsd: typeof bodyMeta?.cost_usd === "number" ? bodyMeta.cost_usd : null,
+          storageMs: typeof bodyMeta?.storage_ms === "number" ? bodyMeta.storage_ms : null,
+          dbMs: typeof bodyMeta?.db_ms === "number" ? bodyMeta.db_ms : null,
+          routeTotalMs: typeof bodyMeta?.route_total_ms === "number" ? bodyMeta.route_total_ms : null,
+          cachedTokens: typeof bodyMeta?.cached_tokens === "number" ? bodyMeta.cached_tokens : null,
         },
         matchPath: typeof body.match_path === "string" ? body.match_path : "llm",
       };
       setCascadeTranscript(transcript);
-      trackEvent("transcript.shown", { ocr_confidence: transcript.ocrConfidence });
+      trackEvent("transcript.shown", {
+        ocr_confidence: transcript.ocrConfidence,
+        transcribe_wait_ms: Date.now() - transcribeWaitStarted,
+        llm_ms: transcript.meta.latencyMs,
+        storage_ms: transcript.meta.storageMs,
+        db_ms: transcript.meta.dbMs,
+        route_total_ms: transcript.meta.routeTotalMs,
+        cached_tokens: transcript.meta.cachedTokens,
+      });
 
       // Fon çağırışı — DƏRHAL, şagird HƏLƏ mətni oxumamış başlayır. `handleConfirm`-in
       // "düzəliş yoxdur" budağı bunu GÖZLƏYİR, TƏKRAR sorğu GÖNDƏRMİR.
@@ -462,6 +552,7 @@ export default function KameraPage() {
     if (!cascadeTranscript) return;
     const corrected = finalText !== cascadeTranscript.canonical;
     trackEvent("transcript.confirmed", { corrected });
+    finishWaitStartedRef.current = Date.now();
 
     if (!corrected) {
       const inFlight = backgroundFinishRef.current;

@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (155) · Cursor → Cowork
+
+Etdim:    Latensiya/xərc telemetriya: `/transcribe` `meta` (`llm_ms`,`storage_ms`,`db_ms`,`route_total_ms`,`cached_tokens`); klient `encode_ms`/`transcribe_wait_ms`/`finish_wait_ms`; fail `cost_usd` + `solve.cascade.persist_ok`. `TELEMETRY.md` + `COST-LATENCY-SAFE-SEQUENCE.md` §0.3/§5.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Production-da görmək üçün `main` deploy lazımdır. `latency_ms` hələ LLM-only (reqressiya yox).
+
 ## 2026-08-17 (154) · Cursor → Cowork
 
 Etdim:    `docs/COST-LATENCY-SAFE-SEQUENCE.md` yeniləndi: telefon funnel (§0) — Qat1 LLM ~2s ≠ HTTP 6–10s; crop açılışı ~80ms; encode ~4s; tez “Düzdür” = Qat5 gözləməsi; cəhd B `unreadable`. Addım 3 = server I/O + klient encode. Ölçü protokolu üç siqnal.

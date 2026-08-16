@@ -39,6 +39,9 @@ type Body = {
     cache_hit?: unknown;
     cost_usd?: unknown;
     latency_ms?: unknown;
+    storage_ms?: unknown;
+    db_ms?: unknown;
+    route_total_ms?: unknown;
   };
   transcript?: {
     canonical?: unknown;
@@ -115,6 +118,10 @@ export async function POST(req: NextRequest) {
   const transcribeCacheHit = body.transcribe_meta?.cache_hit === true;
   const transcribeCostUsd = typeof body.transcribe_meta?.cost_usd === "number" ? body.transcribe_meta.cost_usd : null;
   const transcribeLatencyMs = typeof body.transcribe_meta?.latency_ms === "number" ? body.transcribe_meta.latency_ms : 0;
+  const transcribeStorageMs = typeof body.transcribe_meta?.storage_ms === "number" ? body.transcribe_meta.storage_ms : null;
+  const transcribeDbMs = typeof body.transcribe_meta?.db_ms === "number" ? body.transcribe_meta.db_ms : null;
+  const transcribeRouteTotalMs =
+    typeof body.transcribe_meta?.route_total_ms === "number" ? body.transcribe_meta.route_total_ms : null;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), llmAbortMs(soak.mode));
@@ -145,9 +152,24 @@ export async function POST(req: NextRequest) {
       declined: declinedLayers.join(","),
       transcribe_cache_hit: transcribeCacheHit,
       transcribe_cost_usd: transcribeCostUsd,
+      transcribe_latency_ms: Math.round(transcribeLatencyMs),
+      transcribe_storage_ms: transcribeStorageMs,
+      transcribe_db_ms: transcribeDbMs,
+      transcribe_route_total_ms: transcribeRouteTotalMs,
+      persist_ok: false,
     });
     return NextResponse.json(
-      { schema_version: 1, status: "unreadable", reason: "Həll qurula bilmədi, yenidən cəhd et.", declined: declinedLayers },
+      {
+        schema_version: 1,
+        status: "unreadable",
+        reason: "Həll qurula bilmədi, yenidən cəhd et.",
+        declined: declinedLayers,
+        meta: {
+          cost_usd: transcribeCostUsd,
+          latency_ms: Math.round(transcribeLatencyMs),
+          layer_cost_usd: null,
+        },
+      },
       { status: 200 }
     );
   }
@@ -167,11 +189,38 @@ export async function POST(req: NextRequest) {
   });
 
   if (!persisted.ok) {
+    await logEvent(pool, deviceId, sessionId, "solve.cascade", {
+      layer: solution.layer,
+      match_path: solution.matchPath,
+      declined: declinedLayers.join(","),
+      transcribe_cache_hit: transcribeCacheHit,
+      transcribe_cost_usd: transcribeCostUsd,
+      transcribe_latency_ms: Math.round(transcribeLatencyMs),
+      transcribe_storage_ms: transcribeStorageMs,
+      transcribe_db_ms: transcribeDbMs,
+      transcribe_route_total_ms: transcribeRouteTotalMs,
+      layer_cost_usd: solution.costUsd,
+      layer_latency_ms: Math.round(solution.latencyMs),
+      total_cost_usd: totalCostUsd,
+      has_figure: transcript.hasFigure,
+      ocr_confidence: transcript.ocrConfidence,
+      attempt_kind: attemptKindFor(soak.mode),
+      soak_provider: soak.mode.kind === "student" ? null : soak.mode.kind,
+      persist_ok: false,
+      persist_kind: persisted.kind,
+    });
     return NextResponse.json(
       {
         schema_version: 1,
         status: "unreadable",
         reason: persisted.kind === "rejected" ? "Həll yoxlanışdan keçmədi." : "Server xətası, yenidən cəhd et.",
+        meta: {
+          cost_usd: totalCostUsd,
+          latency_ms: Math.round(transcribeLatencyMs + solution.latencyMs),
+          layer_cost_usd: solution.costUsd,
+          layer_latency_ms: Math.round(solution.latencyMs),
+          layer: solution.layer,
+        },
       },
       { status: 200 }
     );
@@ -190,6 +239,9 @@ export async function POST(req: NextRequest) {
     transcribe_cache_hit: transcribeCacheHit,
     transcribe_cost_usd: transcribeCostUsd,
     transcribe_latency_ms: Math.round(transcribeLatencyMs),
+    transcribe_storage_ms: transcribeStorageMs,
+    transcribe_db_ms: transcribeDbMs,
+    transcribe_route_total_ms: transcribeRouteTotalMs,
     layer_cost_usd: solution.costUsd,
     layer_latency_ms: Math.round(solution.latencyMs),
     total_cost_usd: totalCostUsd,
@@ -197,6 +249,7 @@ export async function POST(req: NextRequest) {
     ocr_confidence: transcript.ocrConfidence,
     attempt_kind: attemptKindFor(soak.mode),
     soak_provider: soak.mode.kind === "student" ? null : soak.mode.kind,
+    persist_ok: true,
   });
 
   return NextResponse.json(
