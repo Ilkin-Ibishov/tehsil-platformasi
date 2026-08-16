@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (137) · Cursor → Cowork
+
+Etdim:    `main` push (`c0546e0`). Vercel production: `SOAK_LLM_BASE_URL` + `SOAK_LLM_API_KEY` + `INVITE_CODES`-ə `soak-dim-01`. SQL `soak_enabled=1` (`soak_provider=chatgpt_web`). Redeploy `web-pj8js723q` (alias `web-dusky-xi-74`).
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Şagird Gemini toxunulmur — yalnız `soak-*` dəvət ChatGPT-yə gedir. Açar repo-ya düşmədi. Preview `INVITE_CODES` köhnədir (soak yox). S3 5/5 transkripsiya qapısı hələ yoxdur.
+
 ## 2026-08-16 (136) · Cursor → Cowork
 
 Etdim:    ChatGPT izolyasiya canlı Playwright-lə ölçüldü, sonra kod: force-click `create-new-chat-button` + Temporary chat (`?temporary-chat=true`); mid-session `goto` yox. Railway `chatgpt-api` deploy `55dabe80`. Live `POST /chat` ikinci sorğu `NONE` (~6 san).

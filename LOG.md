@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-16: HANDOFF 137 — soak production: env + `soak_enabled=1` + `main` push + redeploy.
 - 2026-08-16: HANDOFF 136 — soak izolyasiya: Temporary chat; `goto` yox. Railway live `NONE`.
 - 2026-08-16: HANDOFF 135 — Qat 1 typed+şəkil, Qat 5 `.txt`; ChatGPT hər sorğuda yeni söhbət. Railway deploy.
 - 2026-08-16: HANDOFF 134 — Railway chatgpt-api eyni URL-də `authMode=cookie`; soak health idle+cookie qəbul edir.
