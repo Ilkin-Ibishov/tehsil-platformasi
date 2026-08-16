@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-17: HANDOFF 151–152 — 5/5 gate PASS; batch 15/18 ok (3 unreadable verify).
 - 2026-08-16: HANDOFF 150 — soak Gemini canary q001 delivered=true.
 - 2026-08-16: HANDOFF 149 — ix-riyaziyyat 51/51 corpus upload.
 - 2026-08-16: HANDOFF 148 — deploy TS5097 fix; upload service_role boş.

@@ -15,6 +15,18 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (152) · Cursor → Cowork
+
+Etdim:    `batch-30`: gate-5 finish (5) + full pipeline (13) → production `web-dusky-xi-74`, `soak-dim-01`. **15/18 ok**, hamısı `match_path=llm`. Fail: q011/q021/q028 (`unreadable`, «Həll yoxlanışdan keçmədi.» — LINEAR_EQUATION / RADICALS / TRIG.SPECIAL_ANGLES). Ok finish ≈$0.023/sual (cəmi ~$0.35), orta ~18s (11–46s). Nəticə: `tmp/corpus/ix-riyaziyyat-2009/batch-30/batch.json`.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Transkripsiya 5/5 keçdi; uğursuzluq Qat 5 yoxlanışdadır. ChatGPT/Railway toxunulmayıb.
+
+## 2026-08-17 (151) · Cursor → Cowork
+
+Etdim:    PHASE-2 5/5 transkripsiya qapısı PASSED (etiketlər 1,11,21,31,41 vs kəsiklər vizual). `gate-5/summary.json` — hamısı `status=ok`, Gemini ~4–11s, ~$0.004/transcribe.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Qapı yalnız Qat 1; finish nəticələri HANDOFF 152-də.
+
 ## 2026-08-16 (150) · Cursor → Cowork
 
 Etdim:    Canary: `soak-dim-01` + `q001.jpg` → transcribe+finish production. `kind=corpus_soak`, `delivered=true`, `match_path=llm`, Gemini (~5s+16s). `topic_code=ALG.FUNCTION_RANGE`.
