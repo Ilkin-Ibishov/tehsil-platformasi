@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (154) · Cursor → Cowork
+
+Etdim:    `docs/COST-LATENCY-SAFE-SEQUENCE.md` yeniləndi: telefon funnel (§0) — Qat1 LLM ~2s ≠ HTTP 6–10s; crop açılışı ~80ms; encode ~4s; tez “Düzdür” = Qat5 gözləməsi; cəhd B `unreadable`. Addım 3 = server I/O + klient encode. Ölçü protokolu üç siqnal.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Logging funnel OK; `storage_ms` / klient `waited_ms` hələ yoxdur. Kod dəyişməyib.
+
 ## 2026-08-17 (153) · Cursor → Cowork
 
 Etdim:    `docs/COST-LATENCY-SAFE-SEQUENCE.md` — təhlükəsiz paket icra planı (ardıcıllıq 3→2→1→4→5: Qat1 thinking off → kontekst keşi → Storage/DB defer → ADR-030 mövzu faylları → Qat5 streaming). Qəbul, geri alma, ölçü protokolu, kənar siyahı.
