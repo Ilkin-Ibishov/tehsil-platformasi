@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (136) · Cursor → Cowork
+
+Etdim:    ChatGPT izolyasiya canlı Playwright-lə ölçüldü, sonra kod: force-click `create-new-chat-button` + Temporary chat (`?temporary-chat=true`); mid-session `goto` yox. Railway `chatgpt-api` deploy `55dabe80`. Live `POST /chat` ikinci sorğu `NONE` (~6 san).
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Şagird Gemini toxunulmur. `Tehsil-Platformasi` qovluğu Railway-də `chatgpt-automation-api`-yə link olunub — oradan `railway up` etmə. Deploy yalnız `Cloud_Server_AI`-dən.
+
 ## 2026-08-16 (135) · Cursor → Cowork
 
 Etdim:    Soak Qat 1 şəkil + typed prompt (`soakChatPayload` — `.txt` yox); Qat 5 hələ `attachTextAsFile`. Cloud_Server_AI hər `POST /chat`-də yeni söhbət (`startNewConversation`), Railway `chatgpt-api` yenidən deploy. Adapter selftest + unit 21/21.
