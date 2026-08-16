@@ -1,6 +1,6 @@
 # Təhlükəsiz paket — xərc və latensiya ardıcıllığı (3 → 2 → 1 → 4 → 5)
 
-**Status:** İcra — addım 1–3 kodda · **2026-08-17**
+**Status:** İcra — addım 1–3 kodda, addım 4 məzmun · **2026-08-17**
 **Rejim:** How-to (iş ardıcıllığı) + ölçülmüş kontekst
 **Toxunur:** `web/lib/llm.ts` · `web/app/api/solve/transcribe` · `web/lib/storage.ts` ·
 `web/lib/cascade/ocr-capture.ts` · `web/components/kamera/CropView.tsx` ·
@@ -239,6 +239,10 @@ telefonda ~80 ms idi — əsas ağrı burası deyil; ağrı **Təsdiqlə-dən so
 ---
 
 ### Addım 4 (siyahı 4) — ADR-030 mövzu promptlarını genişləndir
+
+**Status:** ✅ Məzmun (2026-08-17) — soak/telefon mövzuları üçün 6 fayl
+(`FUNCTION_RANGE`, `SEQUENCES`, `RADICALS`, `TRIANGLE_ANGLES`, `VECTORS`,
+`SPECIAL_ANGLES`). `core.md` / `error_code` toxunulmayıb.
 
 **Problem.** Çox `topic_code` üçün mövzu faylı yoxdur → ümumi `math.md`. Token və
 nümunə keyfiyyəti. Telefon fail (sual 83) və soak `unreadable` halları ayrıca

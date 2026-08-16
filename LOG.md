@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-17: HANDOFF 159 — ADR-030 mövzu faylları (6 soak/telefon topic).
 - 2026-08-17: HANDOFF 156 — Qat 1 `reasoning_effort: "none"` (transcribe only); Qat 5 unchanged.
 - 2026-08-17: HANDOFF 155 — timing props (encode/transcribe/finish wait + storage/db) + fail cost.
 - 2026-08-17: HANDOFF 154 — safe-pack doc: telefon ölçü dərsləri (LLM≠HTTP, encode, tez təsdiq).

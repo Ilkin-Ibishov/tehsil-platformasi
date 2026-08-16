@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (159) · Cursor → Cowork
+
+Etdim:    Safe-pack addım 4 (ADR-030): `prompts/solve/math/` — `ALG.FUNCTION_RANGE`, `ALG.SEQUENCES`, `ALG.RADICALS`, `GEO.TRIANGLE_ANGLES`, `GEO.VECTORS`, `TRIG.SPECIAL_ANGLES`. Loader yoxlandı; `core.md` toxunulmayıb.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Digər `topic_code`-lar hələ `math.md` fallback. Keyfiyyət soak/golden ilə ölçülməlidir.
+
 ## 2026-08-17 (158) · Cursor → Cowork
 
 Etdim:    Safe-pack addım 3: `/transcribe` Storage `after()` defer + yüngül DB insert; `CropView` crop-first + paralel `rawPromise` (ADR-024). `patchOcrCaptureStorage`. `tsc` OK.
