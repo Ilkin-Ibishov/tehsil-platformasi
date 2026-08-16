@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-16: HANDOFF 133 — Vercel-dən `GEMINI_PRICE_*` silindi (`ADR-027`). Kod dəyişmədi.
 - 2026-08-16: HANDOFF 132 — S2 soak qalereya (`86eyn2u6x`): kamera icazəsi yox, tam-kadr kəsmə yalnız soak. Şagird çərçivəsi eyni.
 - 2026-08-16: HANDOFF 131 — S1 PDF kəsik skripti + `corpus` bucket (`86eyn2pw5`). Vision yox, DİM mətni yox.
 - 2026-08-16: HANDOFF 130 — S0 soak ChatGPT adapter + `soak_enabled=0` (`86eyn2c70`). Şagird Gemini toxunulmur.

@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (133) · Cursor → Cowork
+
+Etdim:    Production Vercel-dən `GEMINI_PRICE_INPUT_PER_1M` və `GEMINI_PRICE_OUTPUT_PER_1M` silindi (`ADR-027` — kod oxumurdu).
+Tapşırıq: `86eymrm8j` təmizlik (əvvəl complete).
+Diqqət:   `GEMINI_API_KEY` / `GEMINI_MODEL` / `INVITE_CODES` toxunulmayıb. Redeploy lazım deyil (ölü env). `SOAK_LLM_*` Vercel-də yox idi.
+
 ## 2026-08-16 (132) · Cursor → Cowork
 
 Etdim:    S2 soak qalereya axını (`86eyn2u6x`): `soak-*` dəvətdə `getUserMedia` yox, `CaptureView` qalereya-birinci; `CropView` ilkin çərçivə `{0,0,1,1}` yalnız soak (`crop-box.ts`). Şagird `STUDENT_CROP_BOX` eyni qalır. Playwright qarmaqları: `capture-gallery-input`, `crop-confirm`, `invite-code-input`. `crop-box.selftest` 4/4.
