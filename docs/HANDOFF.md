@@ -15,6 +15,13 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (138) · Cursor → Cowork
+
+Etdim:    Soak şəkil yoxlandı. Sənin `soak-dim-01` cəhdi: əvvəl 403 (dəvətsiz kamera), sonra Qat 1 `unreadable` «şəkil təqdim edilməyib» (~55 san, Railway `POST /chat` 200). Eyni `soak-5plus5.png` + transcribe promptu lokal headed-də `canonical: 5 + 5 = ?`; Railway/Xvfb-də `setInputFiles` uğurlu görünür, `POST /files` yox, thumbnail yox. İndi chip olmayanda 400/503 (`soak_unavailable`), səssiz unreadable yox.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Şagird Gemini toxunulmur. Soak şəkil yolu Railway-də hələ bağlıdır — mətn ChatGPT işləyir. Tehsil kodu dəyişmədi.
+Blok:     Railway Xvfb-də ChatGPT şəkil qəbul etmir. Növbəti: headed/VNC və ya başqa upload yolu; soak foto qapısı buna qədər bağlanmalıdır.
+
 ## 2026-08-16 (137) · Cursor → Cowork
 
 Etdim:    `main` push (`c0546e0`). Vercel production: `SOAK_LLM_BASE_URL` + `SOAK_LLM_API_KEY` + `INVITE_CODES`-ə `soak-dim-01`. SQL `soak_enabled=1` (`soak_provider=chatgpt_web`). Redeploy `web-pj8js723q` (alias `web-dusky-xi-74`).
