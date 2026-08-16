@@ -3,6 +3,7 @@
 `pdf_to_golden_set.py` və `corpus/pdf_to_crops.py` eyni heuristikanı paylaşır.
 """
 
+import re
 from collections import defaultdict
 
 
@@ -20,6 +21,17 @@ def parse_col_x_ranges(spec: str) -> list[tuple[float, float]]:
     return out
 
 
+def parse_label_num(text: str) -> int | None:
+    """Sual etiketindən nömrə. `28.` / `28)` / `28.Hesablayın:` işləyir; `2x` yox."""
+    t = text.strip()
+    if not t:
+        return None
+    if t.isdigit():
+        return int(t)
+    m = re.match(r"^(\d{1,3})[.\)]", t)
+    return int(m.group(1)) if m else None
+
+
 def find_question_labels(doc, question_pages: range, col_x_ranges, n_questions: int, *, strict: bool = True):
     """Sual nömrələrini ardıcıl tapır. Hər etiket: dict(page, num, y0, col)."""
     expected = 1
@@ -33,11 +45,11 @@ def find_question_labels(doc, question_pages: range, col_x_ranges, n_questions: 
         cands = []
         for w in words:
             x0, y0, _x1, _y1, text = w[0], w[1], w[2], w[3], w[4]
-            t = text.strip().rstrip(".").rstrip(")")
-            if not t.isdigit():
+            val = parse_label_num(text)
+            if val is None:
                 continue
             if any(lo <= x0 <= hi for lo, hi in col_x_ranges):
-                cands.append((x0, y0, int(t)))
+                cands.append((x0, y0, val))
         col1 = sorted([c for c in cands if c[0] < page_mid], key=lambda c: c[1])
         col2 = sorted([c for c in cands if c[0] >= page_mid], key=lambda c: c[1])
         for x0, y0, val in col1 + col2:

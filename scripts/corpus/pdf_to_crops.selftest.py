@@ -15,7 +15,13 @@ try:
 except ImportError:
     raise SystemExit("pip install pymupdf")
 
-from layout import compute_crop_boxes, find_question_labels, parse_col_x_ranges, parse_range
+from layout import (
+    compute_crop_boxes,
+    find_question_labels,
+    parse_col_x_ranges,
+    parse_label_num,
+    parse_range,
+)
 from pdf_to_crops import crop_jpeg, main as crops_main, sanitize_pdf_ref
 
 fails = 0
@@ -47,7 +53,9 @@ def make_synthetic_pdf(path: Path, n_questions: int = 24, per_page: int = 8) -> 
         right = page_nums[rows:]
         for row, num in enumerate(left):
             y = 60 + row * 180
-            page.insert_text((50, y), f"{num}.", fontsize=14)
+            # Q28 tipində yapışıq etiket (ix-riyaziyyat.pdf)
+            label = f"{num}.Hesablayın:" if num == 8 else f"{num}."
+            page.insert_text((50, y), label, fontsize=14)
             page.insert_text((74, y), "2x+3=7", fontsize=11)
         for row, num in enumerate(right):
             y = 60 + row * 180
@@ -59,6 +67,10 @@ def make_synthetic_pdf(path: Path, n_questions: int = 24, per_page: int = 8) -> 
 
 def run() -> int:
     check("sanitize", sanitize_pdf_ref("DIM 2025 v1.pdf"), "dim-2025-v1.pdf")
+    check("label: 28.", parse_label_num("28."), 28)
+    check("label: glued", parse_label_num("28.Hesablayın:"), 28)
+    check("label: 2x yox", parse_label_num("2x"), None)
+    check("label: bare", parse_label_num("12"), 12)
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)

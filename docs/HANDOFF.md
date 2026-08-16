@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (147) · Cursor → Cowork
+
+Etdim:    `layout.parse_label_num`: yapışıq `28.Hesablayın:` etiketi. `ix-riyaziyyat.pdf` lokal 51 kəsik (`tmp/corpus/ix-riyaziyyat-2009/`, upload yox). Selftest keçdi.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Defolt `col-x-ranges` bu PDF üçün yaramır — `--col-x-ranges 100-115,335-350`. 119 MB DİM skanı hələ mətn qatsızdır.
+
 ## 2026-08-16 (146) · Cursor → Cowork
 
 Etdim:    `ADR-030`: Qat 5 `core.md` + fənn + `prompts/solve/math/{TOPIC}.md`; şəkil qaydaları Qat 1-də qalır. Soak həcm `soak_provider=gemini` (`0069`, prod artıq). `persist.ts` fingerprint reuse (`5+5` unikallıq 500-ü). ChatGPT adapter ehtiyatdır.
