@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-17: HANDOFF 166 — NDJSON flush pad (~2KB) + headers so phone sees step 1 before final.
 - 2026-08-17: HANDOFF 165 — `formatMath` `\vec` → `→` (unformatted_latex).
 - 2026-08-17: HANDOFF 164 — crop encode bir addım + preview=raw; `encode_ms` crop-only (~4s→~1s gözlənti).
 - 2026-08-17: HANDOFF 163 — stream Qat 5 usage/cost (`include_usage` + SSE flush); finish meta layer_cost.

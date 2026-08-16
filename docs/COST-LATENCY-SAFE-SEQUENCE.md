@@ -260,14 +260,18 @@ araşdırılmalıdır; mövzu faylı bəzi fail-ləri azalda bilər, hamısını
 
 **Status:** ✅ Kod (2026-08-17) — `/finish` NDJSON (`Accept: application/x-ndjson`), Qat 5
 `streamVisionLLM` + qismən `steps[]` çıxarışı, kamera `LoadingView` preview. Soak JSON
-saxlanır. Production-da Vercel buffering ölçüsü gözlənilir (best-effort).
+saxlanır. **Flush möhkəmləndirmə (HANDOFF 166):** `open` + ~2KB `pad` NDJSON sətri,
+`X-Accel-Buffering: no`, `Cache-Control: no-cache, no-store, no-transform`, sync
+`ReadableStream` enqueue (Safari/WebKit ~1KB qapısı + proxy).
 
 **Problem.** “Düzdür” düyməsi fon `/finish` promise-ini gözləyir. Tez basılanda
 (~1 san sonra) şagird **bütün qalan Qat 5**-i hiss edir (~19 san, telefon cəhd B).
 Gec basılanda (cəhd A) ani görünür. Streaming ilk addımı erkən göstərir; divar və
-xərc eyni qala bilər.
+xərc eyni qala bilər. Kiçik `step` sətirləri pad olmadan WebKit-də axının sonuna
+qədər tutulur — `finish_wait_ms` ~20s qalır, preview görünmür.
 
-**Dəyişiklik səthi.** `finish` route · kamera UI · `ADR-017` (`check.accept` serverdə).
+**Dəyişiklik səthi.** `finish` route · `finish-stream.ts` · kamera UI · `ADR-017`
+(`check.accept` strip).
 
 **Məqsəd.** İlk tam addım gələn kimi UI; tam sənəd axın sonunda; yoxlama serverdə.
 
@@ -277,10 +281,12 @@ xərc eyni qala bilər.
 2. Xərc və tam LLM vaxtı əhəmiyyətli dəyişmir.
 3. Abort / düzəliş təhlükəsizdir.
 4. Yarımçıq JSON göstərilmir.
+5. Telefon: LoadingView-də addım 1 `final`-dən əvvəl görünür (pad/flush işləyir).
 
-**Geri alma.** Tək JSON cavab.
+**Geri alma.** Tək JSON cavab; pad sətrini silmək yalnız flush-u zəiflədir.
 
-**Risk.** Vercel/proxy buffering qazancı silə bilər. Mobil şəbəkədə ölçün.
+**Risk.** Bəzi CDN-lər hələ tam buffer edə bilər; pad + header best-effort.
+`finish_wait_ms` hələ `final`-ə qədər ölçülür (dəyişməz).
 
 ---
 

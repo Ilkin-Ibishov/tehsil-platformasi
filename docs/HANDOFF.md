@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (166) · Cursor → Cowork
+Etdim:    NDJSON flush: `/finish` `open`+~2KB `pad`, `X-Accel-Buffering`/`no-store`, sync `ReadableStream`; `finish-stream.ts` pad ignore + ADR-017 strip; kamera `cache: no-store` + preview state on confirm. `finish_wait_ms` hələ `final`-ə. Cost meta (163) saxlanıldı.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Telefon: tez Düzdür → LoadingView addım 1 `final`-dən əvvəl. `finish_wait_ms` ~20s qala bilər (tam LLM); uğur = preview erkən.
+
 ## 2026-08-17 (165) · Cursor → Cowork
 Etdim:    `formatMath` — `\vec{…}` / `\vec a` → `→…` (`web/lib/math-format.ts` + selftest). `render.unformatted_latex` `\vec` artıq atılmamalıdır.
 Tapşırıq: meta / no ClickUp.

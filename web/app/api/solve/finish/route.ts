@@ -49,12 +49,28 @@ function wantsNdjson(req: NextRequest): boolean {
   return (req.headers.get("accept") ?? "").includes("application/x-ndjson");
 }
 
+// Safari/WebKit holds streamed bodies until ~1024 bytes arrive (Next.js streaming guide).
+// Tiny first `step` lines alone never clear that gate on phone, so preview looks like a
+// full ~20s wait. Pad once at open so later NDJSON lines can flush progressively.
+// Documented: docs/COST-LATENCY-SAFE-SEQUENCE.md § addım 5.
+const NDJSON_FLUSH_PAD_BYTES = 2048;
+
 function ndjsonHeaders(): HeadersInit {
   return {
     "Content-Type": "application/x-ndjson; charset=utf-8",
-    "Cache-Control": "no-cache, no-transform",
+    "Cache-Control": "no-cache, no-store, no-transform",
+    // Nginx / some reverse proxies; Vercel forwards it. Chunked transfer is implicit
+    // for a streaming Response body (do not set Transfer-Encoding manually).
     "X-Accel-Buffering": "no",
   };
+}
+
+function ndjsonFlushPadChunk(encoder: TextEncoder): Uint8Array {
+  // Valid NDJSON line the client ignores (`type: "pad"`). Spaces fill byte budget.
+  const prefix = '{"type":"pad","_":"';
+  const suffix = '"}\n';
+  const fill = Math.max(0, NDJSON_FLUSH_PAD_BYTES - prefix.length - suffix.length);
+  return encoder.encode(`${prefix}${" ".repeat(fill)}${suffix}`);
 }
 
 function layerCachedTokensOf(solution: {
@@ -161,48 +177,50 @@ export async function POST(req: NextRequest) {
   }
 
   const encoder = new TextEncoder();
-  const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
-  const writer = writable.getWriter();
-  const writeLine = async (obj: unknown) => {
-    await writer.write(encoder.encode(`${JSON.stringify(obj)}\n`));
-  };
-  let writeChain: Promise<void> = Promise.resolve();
-  const enqueueLine = (obj: unknown) => {
-    writeChain = writeChain.then(() => writeLine(obj));
-    return writeChain;
-  };
-
-  void (async () => {
-    try {
-      const payload = await runFinishCore({
-        ...coreArgs,
-        onPublicStep: (step) => {
-          void enqueueLine({ type: "step", step });
-        },
-      });
-      await enqueueLine({ type: "final", ...payload });
-    } catch (err) {
-      if (err instanceof SoakTransportError) {
-        const error = err.reason === "auth" ? "soak_auth_expired" : "soak_unavailable";
-        await enqueueLine({ type: "final", schema_version: 1, status: "unreadable", error, reason: "Soak əlçatan deyil." });
-      } else {
-        console.error("[finish] stream error:", err);
-        await enqueueLine({
-          type: "final",
-          schema_version: 1,
-          status: "unreadable",
-          reason: "Server xətası, yenidən cəhd et.",
-        });
-      }
-    } finally {
+  const readable = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const writeLine = (obj: unknown) => {
+        controller.enqueue(encoder.encode(`${JSON.stringify(obj)}\n`));
+      };
       try {
-        await writeChain;
-        await writer.close();
-      } catch {
-        /* closed */
+        // First bytes leave immediately — before Qat 5 work — so proxies/WebKit start
+        // delivering; step lines that follow are no longer stuck behind a 1KB buffer.
+        writeLine({ type: "open" });
+        controller.enqueue(ndjsonFlushPadChunk(encoder));
+
+        const payload = await runFinishCore({
+          ...coreArgs,
+          onPublicStep: (step) => {
+            try {
+              writeLine({ type: "step", step });
+            } catch (err) {
+              console.error("[finish] step enqueue failed:", err);
+            }
+          },
+        });
+        writeLine({ type: "final", ...payload });
+      } catch (err) {
+        if (err instanceof SoakTransportError) {
+          const error = err.reason === "auth" ? "soak_auth_expired" : "soak_unavailable";
+          writeLine({ type: "final", schema_version: 1, status: "unreadable", error, reason: "Soak əlçatan deyil." });
+        } else {
+          console.error("[finish] stream error:", err);
+          writeLine({
+            type: "final",
+            schema_version: 1,
+            status: "unreadable",
+            reason: "Server xətası, yenidən cəhd et.",
+          });
+        }
+      } finally {
+        try {
+          controller.close();
+        } catch {
+          /* closed */
+        }
       }
-    }
-  })();
+    },
+  });
 
   return new Response(readable, { status: 200, headers: ndjsonHeaders() });
 }

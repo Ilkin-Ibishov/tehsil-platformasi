@@ -326,7 +326,9 @@ export default function KameraPage() {
   function onFinishStreamStep(step: FinishPreviewStep) {
     if (finishPreviewRef.current) return;
     finishPreviewRef.current = step;
-    if (stageRef.current === "submitting") setFinishPreviewStep(step);
+    // Set even on confirm — LoadingView only mounts when submitting; early state
+    // means first paint already has the preview once Düzdür is pressed.
+    setFinishPreviewStep(step);
   }
 
   async function callFinish(
@@ -338,8 +340,11 @@ export default function KameraPage() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        // NDJSON stream — do not buffer as a single JSON body. (Browsers forbid setting
+        // Accept-Encoding; server pads + X-Accel-Buffering for WebKit/proxy flush.)
         Accept: "application/x-ndjson",
       },
+      cache: "no-store",
       signal,
       body: JSON.stringify({
         device_id: getDeviceId(),
