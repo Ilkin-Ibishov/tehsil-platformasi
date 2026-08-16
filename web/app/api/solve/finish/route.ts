@@ -371,6 +371,8 @@ async function runFinishCore(opts: {
       tokens_in: solution.usage?.prompt_tokens ?? null,
       tokens_out: billableOutputTokens(solution.usage),
       cached_tokens: layerCachedTokens,
+      layer_cost_usd: solution.costUsd,
+      layer_latency_ms: Math.round(solution.latencyMs),
       leaked: persisted.leaked,
       layer: solution.layer,
     },

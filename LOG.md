@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-08-17: HANDOFF 164 — crop encode bir addım + preview=raw; `encode_ms` crop-only (~4s→~1s gözlənti).
+- 2026-08-17: HANDOFF 163 — stream Qat 5 usage/cost (`include_usage` + SSE flush); finish meta layer_cost.
 - 2026-08-17: HANDOFF 162 — Qat 5 NDJSON streaming (finish → LoadingView first step); ADR-017.
 - 2026-08-17: HANDOFF 161 — Qat 5 keş Map + finish `cached_tokens` telemetriya.
 - 2026-08-17: HANDOFF 160 — CropView raw prefetch; confirm no longer awaits full-frame encode.

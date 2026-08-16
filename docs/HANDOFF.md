@@ -15,6 +15,16 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (164) · Cursor → Cowork
+Etdim:    `cropAndResize` bir addımda kəs+≤maxPx (`createImageBitmap` / `drawImage`); `CropView` preview=raw prefetch (tamölçülü toBlob silindi); confirm raw gözləmir. `encode_ms` = yalnız kəsik (`TELEMETRY.md`).
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Gözləntilən telefon `encode_ms` ~4s → ~0.8–1.5s (12MP qalereya). Tez Təsdiqlə hələ raw itirə bilər. Finish/stream/keş toxunulmayıb.
+
+## 2026-08-17 (163) · Cursor → Cowork
+Etdim:    Streaming Qat 5 xərc/token bərpası: `llm-stream.ts` `stream_options.include_usage` + SSE quyruq flush; `/finish` final `meta.layer_cost_usd`/`layer_latency_ms`. `solve-text` → `computeCostUsd` → `attempt_items.cost_usd` axını dəyişmədi, usage indi gəlir.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Telefon smoke `2ce04d21` təkrar: `layer_cost_usd` və `tokens_in/out` null olmamalı; `total_cost_usd` Qat1+Qat5.
+
 ## 2026-08-17 (162) · Cursor → Cowork
 
 Etdim:    Safe-pack addım 5: Qat 5 NDJSON axını — `llm-stream.ts` + `stream-steps.ts`, `/finish` `Accept: application/x-ndjson`, kamera `finish-stream.ts` + `LoadingView` preview. `check.accept` strip (ADR-017). Soak JSON qalır. `finish_wait_ms` saxlanılır. `tsc` OK.

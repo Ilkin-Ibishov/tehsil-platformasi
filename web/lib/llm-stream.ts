@@ -61,6 +61,8 @@ export async function streamVisionLLM(opts: {
     temperature: 0.2,
     response_format: { type: "json_object" },
     stream: true,
+    // Without this, Gemini/OpenAI-compat SSE chunks omit `usage` → Qat 5 cost/tokens stay null.
+    stream_options: { include_usage: true },
     messages,
   };
   if (cachedContentName) {
@@ -139,34 +141,46 @@ export async function streamVisionLLM(opts: {
   let rawText = "";
   let usage: LLMUsage | null = null;
 
+  const ingestSseLine = (rawLine: string) => {
+    const line = rawLine.trim();
+    if (!line.startsWith("data:")) return;
+    const data = line.slice(5).trim();
+    if (!data || data === "[DONE]") return;
+    let chunk: {
+      choices?: Array<{ delta?: { content?: string }; message?: { content?: string } }>;
+      usage?: unknown;
+    };
+    try {
+      chunk = JSON.parse(data) as typeof chunk;
+    } catch {
+      return;
+    }
+    const delta = chunk.choices?.[0]?.delta?.content ?? chunk.choices?.[0]?.message?.content ?? "";
+    if (delta) {
+      rawText += delta;
+      opts.onDelta?.(rawText);
+    }
+    // Final include_usage chunk often has empty choices; do not require delta.
+    if (chunk.usage) {
+      const next = normalizeUsage(chunk.usage);
+      if (next) usage = next;
+    }
+  };
+
+  const flushLineBuf = (flushTail: boolean) => {
+    const lines = lineBuf.split("\n");
+    lineBuf = flushTail ? "" : (lines.pop() ?? "");
+    for (const rawLine of lines) ingestSseLine(rawLine);
+  };
+
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
     lineBuf += decoder.decode(value, { stream: true });
-    const lines = lineBuf.split("\n");
-    lineBuf = lines.pop() ?? "";
-    for (const rawLine of lines) {
-      const line = rawLine.trim();
-      if (!line.startsWith("data:")) continue;
-      const data = line.slice(5).trim();
-      if (!data || data === "[DONE]") continue;
-      let chunk: {
-        choices?: Array<{ delta?: { content?: string }; message?: { content?: string } }>;
-        usage?: unknown;
-      };
-      try {
-        chunk = JSON.parse(data) as typeof chunk;
-      } catch {
-        continue;
-      }
-      const delta = chunk.choices?.[0]?.delta?.content ?? chunk.choices?.[0]?.message?.content ?? "";
-      if (delta) {
-        rawText += delta;
-        opts.onDelta?.(rawText);
-      }
-      if (chunk.usage) usage = normalizeUsage(chunk.usage);
-    }
+    flushLineBuf(false);
   }
+  lineBuf += decoder.decode();
+  flushLineBuf(true);
 
   const latencyMs = performance.now() - started;
   let parsed: unknown | null = null;
