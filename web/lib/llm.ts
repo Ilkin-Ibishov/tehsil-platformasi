@@ -93,6 +93,12 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Gemini OpenAI-uyğun `reasoning_effort`. Qat 1 üçün `none` (düşünməni söndür / minimum);
+// Qat 5-ə VERİLMƏMƏLİDİR — COST-LATENCY-SAFE-SEQUENCE addım 1. Gemini 3 Flash-də
+// `none` tam sönməyə bilər (Google: 3 modellərdə thinking söndürülə bilmir); o zaman
+// API `minimal`-ə map edir və ya rədd edir — ölçüdə `thoughts_token_count` ilə yoxla.
+export type ReasoningEffort = "none" | "minimal" | "low" | "medium" | "high";
+
 // ADR-020 (kaskad): `image*` sahələri artıq OPTIONAL-dır və `model` override edilə bilir.
 //   Qat 1 → şəkil VAR, `active_transcribe_model` (0065: gemini-3.7-flash)
 //   Qat 5 → şəkil YOX (sırf mətn), bahalı model (`GEMINI_MODEL`)
@@ -105,6 +111,8 @@ export async function callVisionLLM(opts: {
   imageMime?: string;
   model?: string;
   signal?: AbortSignal;
+  /** Yalnız Qat 1 (transcribe). Qat 5 çağırışına ötürmə. */
+  reasoningEffort?: ReasoningEffort;
 }): Promise<LLMResult> {
   const model = opts.model || process.env.GEMINI_MODEL;
   if (!model) {
@@ -129,7 +137,7 @@ export async function callVisionLLM(opts: {
       ]
     : opts.userPrompt;
 
-  const payload = {
+  const payload: Record<string, unknown> = {
     model,
     temperature: 0.2,
     response_format: { type: "json_object" },
@@ -138,6 +146,9 @@ export async function callVisionLLM(opts: {
       { role: "user", content: userContent },
     ],
   };
+  if (opts.reasoningEffort !== undefined) {
+    payload.reasoning_effort = opts.reasoningEffort;
+  }
 
   const url = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
   let attempts = 0;

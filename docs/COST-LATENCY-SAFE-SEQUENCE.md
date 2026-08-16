@@ -1,6 +1,6 @@
 # Təhlükəsiz paket — xərc və latensiya ardıcıllığı (3 → 2 → 1 → 4 → 5)
 
-**Status:** İcra planı (qəbul gözləyir) · **2026-08-17 yeniləndi** (telefon funnel + ölçü düzəlişi)
+**Status:** İcra — addım 1 kodda · **2026-08-17** (telefon funnel + ölçü düzəlişi)
 **Rejim:** How-to (iş ardıcıllığı) + ölçülmüş kontekst
 **Toxunur:** `web/lib/llm.ts` · `web/app/api/solve/transcribe` · `web/lib/storage.ts` ·
 `web/lib/cascade/ocr-capture.ts` · `web/components/kamera/CropView.tsx` ·
@@ -141,6 +141,8 @@ keçməyin.
 ---
 
 ### Addım 1 (siyahı 3) — Qat 1 düşünməni söndür
+
+**Status:** ✅ Kod (2026-08-17) — `reasoningEffort: "none"` yalnız `cascade/transcribe.ts` → `callVisionLLM`. Production ölçüsü gözlənilir.
 
 **Problem.** Transkripsiya OCR + təsnifatdır. Model düşünmə tokeni yandıra bilər.
 Telefon ölçüsündə LLM artıq ~2 san-dir; soak-da bəzən daha uzun. Xərc qazancı kiçikdir;

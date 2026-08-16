@@ -188,6 +188,8 @@ export async function transcribe(opts: {
             imageMime: opts.imageMime,
             model,
             signal: opts.signal,
+            // COST-LATENCY-SAFE-SEQUENCE addım 1: yalnız Qat 1. Qat 5 toxunulmur.
+            reasoningEffort: "none",
           });
         }
     } catch (err) {

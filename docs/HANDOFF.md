@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (156) · Cursor → Cowork
+
+Etdim:    Safe-pack addım 1: Qat 1 `reasoning_effort: "none"` (`web/lib/llm.ts` + `cascade/transcribe.ts`). Qat 5 toxunulmayıb. `tsc --noEmit` OK.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Gemini 3 Flash-də thinking tam sönməyə bilər (Google: `none` əsasən 2.5). Ölçüdə `thoughts_token_count` / `latency_ms` yoxla.
+
 ## 2026-08-17 (155) · Cursor → Cowork
 
 Etdim:    Latensiya/xərc telemetriya: `/transcribe` `meta` (`llm_ms`,`storage_ms`,`db_ms`,`route_total_ms`,`cached_tokens`); klient `encode_ms`/`transcribe_wait_ms`/`finish_wait_ms`; fail `cost_usd` + `solve.cascade.persist_ok`. `TELEMETRY.md` + `COST-LATENCY-SAFE-SEQUENCE.md` §0.3/§5.
