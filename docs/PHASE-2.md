@@ -86,6 +86,10 @@ açır.
 2. Tək vision+həll çağırışı (həcm üçün; `match_path` ayrıca etiketlənir, production
    kaskadı ilə qarışdırılmır)
 
+Üçüncü təklif (qəbul edilməyib): bir adi ChatGPT söhbəti, prompt bir dəfə, növbə
+ardıcıl — `docs/SOAK-SHARED-CONVERSATION.md`. Temporary chat izolyasiyasını güzəştə
+gedir; bleed qapısı keçmədən icra yoxdur.
+
 Paralel Playwright növbə 10-u aşmamalıdır — bir worker, 5/dəq ritm.
 
 ## Memarlıq

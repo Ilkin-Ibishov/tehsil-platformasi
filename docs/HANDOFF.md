@@ -15,6 +15,41 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (145) · Cursor → Cowork
+
+Etdim:    OQ-8 canlı: Plus adi söhbətdə `.txt` attach oxunmur (chip var, canary yox, «no file attached»). `fill()` chip-i silir; filesiz Send sönük; `type` yanında da model oxumur. `docs/SOAK-SHARED-CONVERSATION.md` S18. Railway `CHATGPT_CONVERSATION_MODE` yenidən `temporary`.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Şagird Gemini toxunulmur. Soak izolyasiya Temporary-yə qayıdır. İki-fayl prime bu Playwright yolla yerinə yetirilmir.
+Blok:     OQ-9 — sahib: paylaşılan söhbətdə `fill()` bir dəfə, yoxsa Temporary qalır, yoxsa PHASE-2 tək çağırış.
+
+## 2026-08-16 (144) · Cursor → Cowork
+
+Etdim:    `docs/SOAK-SHARED-CONVERSATION.md` — sahib: prime iki ayrı `.txt` (`transcribe.md`, `core.md`); bir söhbət=100 kəsik. OQ-2/OQ-5 bağlı. Composer bir attachment → iki növbə addımı. 202+ mesaj Plus tavanı ilə toqquşa bilər (S9).
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Kod/ADR hələ yox. Şagird Gemini toxunulmur.
+Blok:     Adi söhbətdə `.txt` oxunurmu (OQ-8) və AC-bleed=0 cavabsız icra yoxdur. Plus 3 saatlıq tavan <202 mesajdırsa 100-lük tələb ziddir.
+
+## 2026-08-16 (143) · Cursor → Cowork
+
+Etdim:    Soak sürət təklifi tələb sənədi: `docs/SOAK-SHARED-CONVERSATION.md` (paylaşılan adi söhbət, prime bir dəfə, FIFO növbə). `PHASE-2.md`-ə işarə. Kod yox, ADR yox — qəbul/bleed qapısı sahibdə.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Şagird Gemini toxunulmur. Növbə artıq FIFO-dur. Temporary chat sızma əleyhinə canlı ölçülüb; bu təklif onu bilərəkdən güzəştə gedir.
+Blok:     OQ-2 (hansı prime faylı) və AC-bleed (n=10 marker sızması=0) cavabsız icra yoxdur.
+
+## 2026-08-16 (142) · Cursor → Cowork
+
+Etdim:    Railway Hobby təsdiqləndi (`memory.limit_mb=8192`). Qat 5 `fill()` 21346 simvol, Chromium çökmür (~1.5 GB). ChatGPT cavab verir (~570 simvol, 4–5 san). `POST /api/solve/finish` hələ `unreadable` / «Server xətası» — kaskad həlli gəlir, `persist.ts` DB-yə yaza bilmir (son 2 saatda `user_capture` sətri yoxdur).
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Şagird Gemini toxunulmur. Trial 1 GB OOM bağlandı. Temporary chat `.txt` hələ oxunmur — Qat 5 fill istifadə edir.
+Blok:     Qat 5 persist DB xətası — Vercel `[cascade/persist] yeni həll DB xətası` logu lazımdır.
+
+## 2026-08-16 (141) · Cursor → Cowork
+
+Etdim:    Plus cookie ilə soak axını ölçüldü. Qat 1 production `POST /api/solve/transcribe` (`soak-dim-01`, `soak-5plus5.png`) `status=ok`, `canonical` `5+5=?`, `topic_code=ARITH.ADDITION`, `capture_id=c63eeca5-…`, ~23 san. Qat 5 `finish` əvvəl `unreadable` (`llm_text`): Temporary chat `.txt` oxumur («attachment isn't available in this chat session»). Sonra Railway `attachTextAsFile`-i `fill()`/`insertText` etdi — 22k `core.md` headed Chromium-u 1 GB Trial-də `Target crashed` (OOM). `web/lib/soak/adapter.ts` Qat 5-də artıq `.txt`/`pasteText` göndərmir (Vercel-ə getməyib).
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Şagird Gemini toxunulmur. Qat 1 şəkil Plus-da işləyir. Telegram cookie export-u silinsin.
+Blok:     Qat 5 (22k prompt + Temporary chat) Trial 1 GB-də ölmür. Seçim: Railway yaddaşı (Hobby) və ya soak Qat 5 promptunu qısaltmaq — izolyasiyanı söndürmək crop-to-crop qanama qaytarır.
+
 ## 2026-08-16 (140) · Cursor → Cowork
 
 Etdim:    ChatGPT `POST /chat` yalnız Temporary chat: `{ temporary: false }` çıxışı silindi; URL `?temporary-chat=true` deyilsə göndərmədən əvvəl INTERFACE. Railway live mətn `PONG` + log `Submitting in Temporary chat url=...temporary-chat=true`.
