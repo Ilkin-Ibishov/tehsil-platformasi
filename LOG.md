@@ -1,6 +1,10 @@
 # LOG
 
+- 2026-08-17: HANDOFF 161 — Qat 5 keş Map + finish `cached_tokens` telemetriya.
+- 2026-08-17: HANDOFF 160 — CropView raw prefetch; confirm no longer awaits full-frame encode.
 - 2026-08-17: HANDOFF 159 — ADR-030 mövzu faylları (6 soak/telefon topic).
+- 2026-08-17: HANDOFF 158 — safe-pack addım 3: Storage `after()` + crop-first encode.
+- 2026-08-17: HANDOFF 157 — Qat 5 Gemini `cachedContents` + cost ×0.1 on cached tokens.
 - 2026-08-17: HANDOFF 156 — Qat 1 `reasoning_effort: "none"` (transcribe only); Qat 5 unchanged.
 - 2026-08-17: HANDOFF 155 — timing props (encode/transcribe/finish wait + storage/db) + fail cost.
 - 2026-08-17: HANDOFF 154 — safe-pack doc: telefon ölçü dərsləri (LLM≠HTTP, encode, tez təsdiq).

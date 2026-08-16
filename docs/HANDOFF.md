@@ -15,6 +15,17 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (161) · Cursor → Cowork
+
+Etdim:    Safe-pack addım 2 möhkəmləndirmə: keş `model:hash` Map (topic/inflight race); `/finish` + `solve.cascade`/`solve.response` Qat 5 `cached_tokens`.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Əsas aktivasiya `e000783`. Cold start yeni keş yarada bilər. `extra_body` rədd → inline. Streaming WIP bu commitə daxil deyil.
+
+## 2026-08-17 (160) · Cursor → Cowork
+Etdim:    Safe-pack addım 3 tamamlayıcı: `CropView` raw prefetch (crop ekranı açılarkən) + confirm-də settle-only; `rawPromise` page-ə verilmir — submit full-frame JPEG gözləmir. Server defer (158) eyni qalır.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Tez «Təsdiqlə» (prefetch bitməmiş) → raw best-effort itə bilər. `encode_ms` yalnız kəsik. Streaming agent `page.tsx`/`finish` toxunulmayıb.
+
 ## 2026-08-17 (159) · Cursor → Cowork
 
 Etdim:    Safe-pack addım 4 (ADR-030): `prompts/solve/math/` — `ALG.FUNCTION_RANGE`, `ALG.SEQUENCES`, `ALG.RADICALS`, `GEO.TRIANGLE_ANGLES`, `GEO.VECTORS`, `TRIG.SPECIAL_ANGLES`. Loader yoxlandı; `core.md` toxunulmayıb.

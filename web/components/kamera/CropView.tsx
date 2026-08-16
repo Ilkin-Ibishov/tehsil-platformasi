@@ -37,13 +37,28 @@ export function CropView({
   const [busy, setBusy] = useState(false);
   const adjustCount = useRef(0);
   const drag = useRef<{ handle: Handle; startX: number; startY: number; startBox: CropRectPct } | null>(null);
+  // ADR-024 raw — crop düzəlişi zamanı (~saniyələr) paralel encode; confirm-də gözləmə.
+  const rawPrefetchRef = useRef<Promise<Blob | null> | null>(null);
 
   useEffect(() => {
     canvas.toBlob((blob) => {
       if (blob) setImgUrl(URL.createObjectURL(blob));
     }, "image/jpeg", 0.92);
+    rawPrefetchRef.current = cropAndResize(
+      canvas,
+      canvas.width,
+      canvas.height,
+      { x: 0, y: 0, w: 1, h: 1 },
+      MAX_PX
+    )
+      .then((r) => r.blob)
+      .catch((err) => {
+        console.error("[CropView] raw prefetch xətası (best-effort):", err);
+        return null;
+      });
     trackEvent("crop.screen_opened", { default_box_ratio: initialBox.w / initialBox.h });
     return () => {
+      rawPrefetchRef.current = null;
       setImgUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
         return null;
@@ -155,29 +170,33 @@ export function CropView({
     setBusy(true);
     const encodeStarted = Date.now();
     try {
-      // COST-LATENCY-SAFE-SEQUENCE addım 3: crop bitən kimi UI irəliləsin; raw (ADR-024)
-      // paralel işləsin və submit tərəfində gözlənsin — ardıcıl ~8s encode UI-ni bloklamasın.
-      const rawPromise = cropAndResize(
-        canvas,
-        canvas.width,
-        canvas.height,
-        { x: 0, y: 0, w: 1, h: 1 },
-        MAX_PX
-      )
-        .then((r) => r.blob)
-        .catch((err) => {
-          console.error("[CropView] orijinal kadr encode xətası (best-effort, davam edilir):", err);
-          return null;
-        });
+      // COST-LATENCY-SAFE-SEQUENCE addım 3: yalnız kəsik encode kritik yolda.
+      // Raw prefetch (mount-da) adətən crop düzəlişi bitməmiş hazırdır — `rawPromise`
+      // page-ə verilmir ki, submit ~8s full-frame JPEG gözləməsin.
+      const rawPromise =
+        rawPrefetchRef.current ??
+        cropAndResize(canvas, canvas.width, canvas.height, { x: 0, y: 0, w: 1, h: 1 }, MAX_PX)
+          .then((r) => r.blob)
+          .catch((err) => {
+            console.error("[CropView] orijinal kadr encode xətası (best-effort, davam edilir):", err);
+            return null;
+          });
       const result = await cropAndResize(canvas, canvas.width, canvas.height, box, MAX_PX);
       const encodeMs = Date.now() - encodeStarted;
+      // Prefetch bitibsə microtask-də gəlir; yoxdursa null — submit bloklanmır.
+      const rawBlob = await Promise.race([
+        rawPromise,
+        new Promise<null>((resolve) => {
+          setTimeout(() => resolve(null), 0);
+        }),
+      ]);
       trackEvent("crop.confirmed", {
         crop_ratio: Number((box.w / box.h).toFixed(3)),
         px_w: result.width,
         px_h: result.height,
         encode_ms: encodeMs,
       });
-      onConfirmed({ ...result, rawBlob: null, encodeMs, rawPromise });
+      onConfirmed({ ...result, rawBlob, encodeMs });
     } finally {
       setBusy(false);
     }

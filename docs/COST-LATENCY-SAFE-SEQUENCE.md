@@ -196,7 +196,7 @@ giriş qiyməti ödənilir. `normalizeUsage` artıq keş sahələrini oxuyur; ke
 
 ### Addım 3 (siyahı 1) — Kritik yoldan I/O çıxar (server + klient)
 
-**Status:** ✅ Kod (2026-08-17) — server: DB əvvəl, Storage `after()`; klient: crop-first + paralel raw. Telefon smoke qəbulu gözlənilir.
+**Status:** ✅ Kod (2026-08-17) — server: DB əvvəl, Storage `after()`; klient: raw prefetch + confirm settle-only (submit full-frame gözləmir). Telefon smoke qəbulu gözlənilir.
 
 **Problem (iki yer).**
 
