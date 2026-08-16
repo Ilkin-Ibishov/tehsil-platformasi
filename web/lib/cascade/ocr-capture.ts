@@ -110,6 +110,29 @@ export async function writeOcrCapture(
   }
 }
 
+/** COST-LATENCY-SAFE-SEQUENCE addım 3: Storage cavabdan sonra — path/ölçü patch. */
+export async function patchOcrCaptureStorage(
+  pool: Pool,
+  opts: {
+    id: string;
+    storagePath: string;
+    width: number | null;
+    height: number | null;
+    bytes: number | null;
+  }
+): Promise<void> {
+  try {
+    await pool.query(
+      `update public.ocr_captures
+          set storage_path = $2, width = $3, height = $4, bytes = $5
+        where id = $1 and storage_path is null`,
+      [opts.id, opts.storagePath, opts.width, opts.height, opts.bytes]
+    );
+  } catch (err) {
+    console.error("[cascade/ocr-capture] storage patch xətası:", err);
+  }
+}
+
 // `writeOcrCapture`-ın ÖZÜNDƏN ƏVVƏL çağırılır — `id`-ni əvvəlcədən ayırıb Storage path-i
 // üçün istifadə etmək məqsədilə. Bax yuxarıdakı şərh.
 export function reserveCaptureId(): string {

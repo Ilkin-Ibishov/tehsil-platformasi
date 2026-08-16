@@ -24,6 +24,7 @@ export function CropView({
     height: number;
     rawBlob: Blob | null;
     encodeMs: number;
+    rawPromise?: Promise<Blob | null>;
   }) => void;
   onCancel: () => void;
   fillFrame?: boolean;
@@ -154,16 +155,21 @@ export function CropView({
     setBusy(true);
     const encodeStarted = Date.now();
     try {
-      const result = await cropAndResize(canvas, canvas.width, canvas.height, box, MAX_PX);
-      // S1 (86eymwght) — orijinal kəsilməmiş kadr, ADR-024: kəsmə bug-larını YALNIZ orijinal
-      // sübut edə bilər. Tam çərçivə (crop rekt {0,0,1,1}), eyni maxPx qaydası — çəkiliş
-      // özündən böyük saxlamağa ehtiyac yoxdur, server storage limiti 2MB-dir.
-      const raw = await cropAndResize(canvas, canvas.width, canvas.height, { x: 0, y: 0, w: 1, h: 1 }, MAX_PX).catch(
-        (err) => {
+      // COST-LATENCY-SAFE-SEQUENCE addım 3: crop bitən kimi UI irəliləsin; raw (ADR-024)
+      // paralel işləsin və submit tərəfində gözlənsin — ardıcıl ~8s encode UI-ni bloklamasın.
+      const rawPromise = cropAndResize(
+        canvas,
+        canvas.width,
+        canvas.height,
+        { x: 0, y: 0, w: 1, h: 1 },
+        MAX_PX
+      )
+        .then((r) => r.blob)
+        .catch((err) => {
           console.error("[CropView] orijinal kadr encode xətası (best-effort, davam edilir):", err);
           return null;
-        }
-      );
+        });
+      const result = await cropAndResize(canvas, canvas.width, canvas.height, box, MAX_PX);
       const encodeMs = Date.now() - encodeStarted;
       trackEvent("crop.confirmed", {
         crop_ratio: Number((box.w / box.h).toFixed(3)),
@@ -171,7 +177,7 @@ export function CropView({
         px_h: result.height,
         encode_ms: encodeMs,
       });
-      onConfirmed({ ...result, rawBlob: raw?.blob ?? null, encodeMs });
+      onConfirmed({ ...result, rawBlob: null, encodeMs, rawPromise });
     } finally {
       setBusy(false);
     }

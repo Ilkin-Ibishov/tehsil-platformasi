@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (158) · Cursor → Cowork
+
+Etdim:    Safe-pack addım 3: `/transcribe` Storage `after()` defer + yüngül DB insert; `CropView` crop-first + paralel `rawPromise` (ADR-024). `patchOcrCaptureStorage`. `tsc` OK.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Telefon smoke məcburi — `encode_ms` / `transcribe_wait_ms` / `storage_ms≈0`. Storage uğursuz olsa sətir `storage_path` null qala bilər (best-effort).
+
 ## 2026-08-17 (157) · Cursor → Cowork
 
 Etdim:    Safe-pack addım 2: Qat 5 explicit Gemini `cachedContents` (`ensureGeminiSystemCache` + `useContextCache` in `solve-text.ts`). Fail → inline system. `cost.ts` cached token ×0.1. `tsc` OK.

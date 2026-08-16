@@ -1,6 +1,6 @@
 # Təhlükəsiz paket — xərc və latensiya ardıcıllığı (3 → 2 → 1 → 4 → 5)
 
-**Status:** İcra — addım 1–2 kodda · **2026-08-17**
+**Status:** İcra — addım 1–3 kodda · **2026-08-17**
 **Rejim:** How-to (iş ardıcıllığı) + ölçülmüş kontekst
 **Toxunur:** `web/lib/llm.ts` · `web/app/api/solve/transcribe` · `web/lib/storage.ts` ·
 `web/lib/cascade/ocr-capture.ts` · `web/components/kamera/CropView.tsx` ·
@@ -195,6 +195,8 @@ giriş qiyməti ödənilir. `normalizeUsage` artıq keş sahələrini oxuyur; ke
 ---
 
 ### Addım 3 (siyahı 1) — Kritik yoldan I/O çıxar (server + klient)
+
+**Status:** ✅ Kod (2026-08-17) — server: DB əvvəl, Storage `after()`; klient: crop-first + paralel raw. Telefon smoke qəbulu gözlənilir.
 
 **Problem (iki yer).**
 

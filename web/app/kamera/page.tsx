@@ -26,7 +26,15 @@ type Stage = "invite" | "capture" | "crop" | "submitting" | "solved" | "refused"
 type Candidate = { label: string; preview: string };
 // S1 (86eymwght): `rawBlob` — kəsilməmiş orijinal kadr, ADR-024. `null` ola bilər (encode
 // uğursuz olub, best-effort) — server bu halda yalnız kəsilmiş şəkli saxlayır.
-type CroppedResult = { blob: Blob; width: number; height: number; rawBlob: Blob | null; encodeMs: number };
+type CroppedResult = {
+  blob: Blob;
+  width: number;
+  height: number;
+  rawBlob: Blob | null;
+  encodeMs: number;
+  /** Crop bitəndən sonra hələ işləyən raw encode — ADR-024; submit gözləyə bilər. */
+  rawPromise?: Promise<Blob | null>;
+};
 
 // `/api/solve/transcribe`-in "ok" cavabı — TranscriptConfirmView-ə və fon `/finish`
 // çağırışına ötürülən forma.
@@ -194,7 +202,8 @@ export default function KameraPage() {
     try {
       const form = new FormData();
       form.append("image", result.blob, "problem.jpg");
-      if (result.rawBlob) form.append("image_raw", result.rawBlob, "problem-raw.jpg");
+      const rawBlob = result.rawBlob ?? (result.rawPromise ? await result.rawPromise : null);
+      if (rawBlob) form.append("image_raw", rawBlob, "problem-raw.jpg");
       form.append("device_id", getDeviceId());
       form.append("invite_code", inviteCode ?? "");
       form.append("grade", "11");
@@ -430,7 +439,8 @@ export default function KameraPage() {
     try {
       const form = new FormData();
       form.append("image", result.blob, "problem.jpg");
-      if (result.rawBlob) form.append("image_raw", result.rawBlob, "problem-raw.jpg");
+      const rawBlob = result.rawBlob ?? (result.rawPromise ? await result.rawPromise : null);
+      if (rawBlob) form.append("image_raw", rawBlob, "problem-raw.jpg");
       form.append("device_id", getDeviceId());
       form.append("invite_code", inviteCode ?? "");
       form.append("grade", "11");

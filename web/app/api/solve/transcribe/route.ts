@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { pool } from "@/lib/db";
 import { transcribe, imageSha256 } from "@/lib/cascade/transcribe";
-import { writeOcrCapture, reserveCaptureId } from "@/lib/cascade/ocr-capture";
+import { writeOcrCapture, reserveCaptureId, patchOcrCaptureStorage } from "@/lib/cascade/ocr-capture";
 import { uploadCaptureImages } from "@/lib/storage";
 import { checkInviteCode, checkCostCeiling, checkDailyLimit, logInviteRedemption } from "@/lib/cascade/guards";
 import { soakGate } from "@/lib/soak/gate";
@@ -144,17 +144,11 @@ export async function POST(req: NextRequest) {
   // insert-dən ƏVVƏL bilinsin, DB sətri və bucket obyekti eyni ID-ni paylaşsın. Keş-hitdə
   // (`outcome.cacheHit`) belə şəkil YENƏ yüklənir — hər çəkiliş öz sübutunu saxlamalıdır
   // (ocr-capture.ts-in "hər çəkiliş öz korpus sətrini alır" prinsipi ilə eyni).
+  //
+  // COST-LATENCY-SAFE-SEQUENCE addım 3: kritik yolda YALNIZ yüngül DB insert (~100ms).
+  // Ağır Storage (crop+raw, ~0.5–1s+) `after()` ilə cavabdan SONRA — `capture_id` müqaviləsi
+  // pozulmur; finalize sətir artıq mövcuddur.
   const captureIdHint = reserveCaptureId();
-  const storageStarted = performance.now();
-  const uploaded = await uploadCaptureImages({
-    idHint: captureIdHint,
-    cropBytes: imageBytes,
-    cropMime: image.type || "image/jpeg",
-    rawBytes: imageRawBytes,
-    rawMime: imageRaw instanceof Blob ? imageRaw.type || "image/jpeg" : null,
-  });
-  const storageMs = performance.now() - storageStarted;
-
   const dbStarted = performance.now();
   const captureId = await writeOcrCapture(pool, {
     id: captureIdHint,
@@ -164,13 +158,36 @@ export async function POST(req: NextRequest) {
     model: outcome.model || null, // ADR-023: HƏQİQƏTƏN işlədilən model, env-dən təxmin YOX
     latencyMs: Math.round(outcome.latencyMs),
     costUsd: outcome.costUsd,
-    storagePath: uploaded?.storagePath ?? null,
-    width: uploaded?.width ?? null,
-    height: uploaded?.height ?? null,
-    bytes: uploaded?.bytes ?? null,
+    storagePath: null,
+    width: null,
+    height: null,
+    bytes: null,
   });
   const dbMs = performance.now() - dbStarted;
   const routeTotalMs = performance.now() - routeStarted;
+
+  after(async () => {
+    try {
+      const uploaded = await uploadCaptureImages({
+        idHint: captureIdHint,
+        cropBytes: imageBytes,
+        cropMime: image.type || "image/jpeg",
+        rawBytes: imageRawBytes,
+        rawMime: imageRaw instanceof Blob ? imageRaw.type || "image/jpeg" : null,
+      });
+      if (uploaded) {
+        await patchOcrCaptureStorage(pool, {
+          id: captureIdHint,
+          storagePath: uploaded.storagePath,
+          width: uploaded.width,
+          height: uploaded.height,
+          bytes: uploaded.bytes,
+        });
+      }
+    } catch (err) {
+      console.error("[transcribe] deferred storage xətası:", err);
+    }
+  });
 
   return NextResponse.json(
     {
@@ -190,7 +207,8 @@ export async function POST(req: NextRequest) {
         // latency_ms = LLM only (mövcud müqavilə / ocr_captures.latency_ms ilə eyni)
         latency_ms: Math.round(outcome.latencyMs),
         llm_ms: Math.round(outcome.latencyMs),
-        storage_ms: Math.round(storageMs),
+        // Storage defer olunub — kritik yol ölçüsündə 0; real upload `after`-də.
+        storage_ms: 0,
         db_ms: Math.round(dbMs),
         route_total_ms: Math.round(routeTotalMs),
         cost_usd: outcome.costUsd,
