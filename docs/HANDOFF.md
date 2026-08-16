@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (157) · Cursor → Cowork
+
+Etdim:    Safe-pack addım 2: Qat 5 explicit Gemini `cachedContents` (`ensureGeminiSystemCache` + `useContextCache` in `solve-text.ts`). Fail → inline system. `cost.ts` cached token ×0.1. `tsc` OK.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   İsti sorğuda `cached_tokens`>0 gözlə. Vercel cold start hər instance yeni keş yarada bilər. OpenAI-compat `extra_body` rədd etsə fallback işləyir — HANDOFF-da gap qeyd.
+
 ## 2026-08-17 (156) · Cursor → Cowork
 
 Etdim:    Safe-pack addım 1: Qat 1 `reasoning_effort: "none"` (`web/lib/llm.ts` + `cascade/transcribe.ts`). Qat 5 toxunulmayıb. `tsc --noEmit` OK.

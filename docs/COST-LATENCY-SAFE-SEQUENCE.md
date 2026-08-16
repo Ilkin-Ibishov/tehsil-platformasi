@@ -1,6 +1,6 @@
 # Təhlükəsiz paket — xərc və latensiya ardıcıllığı (3 → 2 → 1 → 4 → 5)
 
-**Status:** İcra — addım 1 kodda · **2026-08-17** (telefon funnel + ölçü düzəlişi)
+**Status:** İcra — addım 1–2 kodda · **2026-08-17**
 **Rejim:** How-to (iş ardıcıllığı) + ölçülmüş kontekst
 **Toxunur:** `web/lib/llm.ts` · `web/app/api/solve/transcribe` · `web/lib/storage.ts` ·
 `web/lib/cascade/ocr-capture.ts` · `web/components/kamera/CropView.tsx` ·
@@ -171,6 +171,8 @@ Sıralamada qalır, çünki ucuz və təhlükəsizdir — amma gözləntini şi�
 ---
 
 ### Addım 2 (siyahı 2) — Gemini kontekst keşi
+
+**Status:** ✅ Kod (2026-08-17) — explicit `cachedContents` + OpenAI-compat `extra_body.google.cached_content`; fail → inline. Production `cached_tokens` ölçüsü gözlənilir.
 
 **Problem.** Qat 5 system promptu (~5k token) sorğudan sorğuya eynidir. Hər dəfə tam
 giriş qiyməti ödənilir. `normalizeUsage` artıq keş sahələrini oxuyur; keş **aktiv deyil**.

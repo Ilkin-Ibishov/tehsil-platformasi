@@ -51,7 +51,20 @@ export function computeCostUsd(usage: LLMUsage | null, modelId: string): number 
 
   const prompt = billablePromptTokens(normalized) ?? 0;
   const output = billableOutputTokens(normalized) ?? 0;
-  return (prompt / 1_000_000) * price.inputPer1M + (output / 1_000_000) * price.outputPer1M;
+  // Explicit/implicit Gemini cache: cached input is ~10% of input price (Google 2.5+).
+  // Do not invent hits — only discount when usage reports a cached count.
+  const cached =
+    normalized.cached_content_token_count ??
+    normalized.prompt_tokens_details?.cached_tokens ??
+    0;
+  const cachedClamped = Math.min(Math.max(0, cached), prompt);
+  const uncachedPrompt = Math.max(0, prompt - cachedClamped);
+  const cachedRate = price.inputPer1M * 0.1;
+  return (
+    (uncachedPrompt / 1_000_000) * price.inputPer1M +
+    (cachedClamped / 1_000_000) * cachedRate +
+    (output / 1_000_000) * price.outputPer1M
+  );
 }
 
 export function sumCostUsd(a: number | null, b: number | null): number | null {

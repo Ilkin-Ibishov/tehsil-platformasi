@@ -91,7 +91,13 @@ export function makeTextSolveLayer(pool: Pool): SolveLayer {
           if (ctx.useSoakAdapter) {
             result = await callSoakChat({ systemPrompt: system, userPrompt, signal: ctx.signal });
           } else {
-            result = await callVisionLLM({ systemPrompt: system, userPrompt, model: activeModel, signal: ctx.signal });
+            result = await callVisionLLM({
+              systemPrompt: system,
+              userPrompt,
+              model: activeModel,
+              signal: ctx.signal,
+              useContextCache: true,
+            });
           }
         } catch (err) {
           if (err instanceof SoakTransportError) throw err;
