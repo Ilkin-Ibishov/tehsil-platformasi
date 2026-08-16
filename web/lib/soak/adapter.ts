@@ -28,6 +28,22 @@ export function isRetryableSoakStatus(status: number, errorCode?: string): boole
   return RETRYABLE_STATUS.has(status);
 }
 
+export type SoakHealthBody = {
+  status?: unknown;
+  browser?: { healthy?: unknown; idle?: unknown; authMode?: unknown };
+};
+
+// Cookie məcburidir (PHASE-2). Idle shutdown `browser.healthy=false` yazır, amma
+// növbəti `/chat` brauzeri ~6 san-ə oyadır — bunu outage sayma.
+export function interpretSoakHealth(body: SoakHealthBody | null): { ok: true } | { ok: false; reason: "unhealthy" | "auth" } {
+  if (!body) return { ok: false, reason: "unhealthy" };
+  if (body.browser?.authMode !== "cookie") return { ok: false, reason: "auth" };
+  if (body.status !== "healthy") return { ok: false, reason: "unhealthy" };
+  if (body.browser.healthy === true) return { ok: true };
+  if (body.browser.idle === true) return { ok: true };
+  return { ok: false, reason: "unhealthy" };
+}
+
 function stripFence(text: string): string {
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
   return (fence ? fence[1] : text).trim();
@@ -85,18 +101,11 @@ export async function checkSoakHealth(signal?: AbortSignal): Promise<{ ok: true 
     healthCache = { at: now, ok: false, reason: "unhealthy" };
     return { ok: false, reason: "unhealthy" };
   }
-  const body = (await res.json().catch(() => null)) as {
-    status?: unknown;
-    browser?: { healthy?: unknown; authMode?: unknown };
-  } | null;
-  const authMode = body?.browser?.authMode;
-  if (authMode !== "cookie") {
-    healthCache = { at: now, ok: false, reason: "auth" };
-    return { ok: false, reason: "auth" };
-  }
-  if (body?.status !== "healthy" || body?.browser?.healthy !== true) {
-    healthCache = { at: now, ok: false, reason: "unhealthy" };
-    return { ok: false, reason: "unhealthy" };
+  const body = (await res.json().catch(() => null)) as SoakHealthBody | null;
+  const interpreted = interpretSoakHealth(body);
+  if (!interpreted.ok) {
+    healthCache = { at: now, ok: false, reason: interpreted.reason };
+    return interpreted;
   }
   healthCache = { at: now, ok: true };
   return { ok: true };

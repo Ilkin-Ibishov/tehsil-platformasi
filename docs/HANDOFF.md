@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (134) · Cursor → Cowork
+
+Etdim:    Mövcud Railway `chatgpt-api` yenidən deploy (`https://chatgpt-api-production-2f21.up.railway.app`) — yeni servis yox. `/health` indi `authMode=cookie`. Soak qapısı idle+cookie-ni sağlam sayır (`interpretSoakHealth`). Selftest 29/29.
+Tapşırıq: meta / no ClickUp (S0 qapısının live yoxlaması).
+Diqqət:   `soak_enabled` sönük, `SOAK_LLM_*` Vercel-də hələ yox. Şagird Gemini toxunulmur. Cloud_Server_AI git repo deyil — dəyişiklik Railway-ə `railway up` ilə getdi.
+
 ## 2026-08-16 (133) · Cursor → Cowork
 
 Etdim:    Production Vercel-dən `GEMINI_PRICE_INPUT_PER_1M` və `GEMINI_PRICE_OUTPUT_PER_1M` silindi (`ADR-027` — kod oxumurdu).

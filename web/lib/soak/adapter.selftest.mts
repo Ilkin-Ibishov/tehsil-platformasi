@@ -1,7 +1,7 @@
 // Soak adapter selftest — LLM/DB ÇAĞIRILMIR (mock pool).
 // npx tsx web/lib/soak/adapter.selftest.mts
 
-import { extractJsonFromSoakResponse, isRetryableSoakStatus } from "./adapter.ts";
+import { extractJsonFromSoakResponse, interpretSoakHealth, isRetryableSoakStatus } from "./adapter.ts";
 import { isSoakInvite, resolveSoakMode, usesSoakAdapter, skipImageCache, attemptKindFor } from "./mode.ts";
 import { computeCostUsd } from "../cost.ts";
 
@@ -43,6 +43,32 @@ check("retry: QUEUE_FULL", isRetryableSoakStatus(429, "QUEUE_FULL"), true);
 check("retry: TIMEOUT", isRetryableSoakStatus(504, "TIMEOUT"), true);
 check("retry: AUTH_EXPIRED yox", isRetryableSoakStatus(401, "AUTH_EXPIRED"), false);
 check("retry: 401 yox", isRetryableSoakStatus(401), false);
+
+check(
+  "health: cookie + healthy",
+  interpretSoakHealth({ status: "healthy", browser: { healthy: true, idle: false, authMode: "cookie" } }),
+  { ok: true }
+);
+check(
+  "health: cookie + idle (brauzer sönük)",
+  interpretSoakHealth({ status: "healthy", browser: { healthy: false, idle: true, authMode: "cookie" } }),
+  { ok: true }
+);
+check(
+  "health: guest",
+  interpretSoakHealth({ status: "healthy", browser: { healthy: true, idle: false, authMode: "guest" } }),
+  { ok: false, reason: "auth" }
+);
+check(
+  "health: authMode yox",
+  interpretSoakHealth({ status: "healthy", browser: { healthy: true, idle: false } }),
+  { ok: false, reason: "auth" }
+);
+check(
+  "health: crash (idle deyil, healthy false)",
+  interpretSoakHealth({ status: "healthy", browser: { healthy: false, idle: false, authMode: "cookie" } }),
+  { ok: false, reason: "unhealthy" }
+);
 
 check("cost: chatgpt_web 0 yazılmır", computeCostUsd(null, "chatgpt_web"), null);
 
