@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (135) · Cursor → Cowork
+
+Etdim:    Soak Qat 1 şəkil + typed prompt (`soakChatPayload` — `.txt` yox); Qat 5 hələ `attachTextAsFile`. Cloud_Server_AI hər `POST /chat`-də yeni söhbət (`startNewConversation`), Railway `chatgpt-api` yenidən deploy. Adapter selftest + unit 21/21.
+Tapşırıq: meta / no ClickUp (soak izolyasiya + attachment).
+Diqqət:   Şagird Gemini toxunulmur. `soak_enabled` sönük. Kiçik JSON ping (20 simvoldan qısa) multimodal wait-i 120 san saxlayır — Tehsil promptu kifayət qədər uzundur. Image+txt eyni mesajda yox.
+
 ## 2026-08-16 (134) · Cursor → Cowork
 
 Etdim:    Mövcud Railway `chatgpt-api` yenidən deploy (`https://chatgpt-api-production-2f21.up.railway.app`) — yeni servis yox. `/health` indi `authMode=cookie`. Soak qapısı idle+cookie-ni sağlam sayır (`interpretSoakHealth`). Selftest 29/29.

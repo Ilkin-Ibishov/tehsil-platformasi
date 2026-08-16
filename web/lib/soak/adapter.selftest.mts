@@ -1,7 +1,7 @@
 // Soak adapter selftest — LLM/DB ÇAĞIRILMIR (mock pool).
 // npx tsx web/lib/soak/adapter.selftest.mts
 
-import { extractJsonFromSoakResponse, interpretSoakHealth, isRetryableSoakStatus } from "./adapter.ts";
+import { extractJsonFromSoakResponse, interpretSoakHealth, isRetryableSoakStatus, soakChatPayload } from "./adapter.ts";
 import { isSoakInvite, resolveSoakMode, usesSoakAdapter, skipImageCache, attemptKindFor } from "./mode.ts";
 import { computeCostUsd } from "../cost.ts";
 
@@ -34,6 +34,13 @@ check(
   { a: 1 }
 );
 check("extract: JSON yoxdur", extractJsonFromSoakResponse("heç nə"), null);
+
+const qat1 = soakChatPayload({ systemPrompt: "sys", userPrompt: "usr", imageBase64: "abc" });
+check("qat1: şəkil var", typeof qat1.image, "string");
+check("qat1: .txt yox (şəkli silməsin)", qat1.attachTextAsFile, undefined);
+const qat5 = soakChatPayload({ systemPrompt: "sys", userPrompt: "usr" });
+check("qat5: şəkil yox", qat5.image, undefined);
+check("qat5: .txt var", qat5.attachTextAsFile, true);
 
 check("invite: şagird soak deyil", isSoakInvite("abc123"), false);
 check("invite: soak- prefiksi", isSoakInvite("soak-dim-01"), true);

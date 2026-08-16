@@ -72,6 +72,26 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// ChatGPT composer keeps ONE attachment. Uploading a .txt after an image
+// replaces the thumbnail (live Playwright 2026-08-16). So Qat 1 (image)
+// types the prompt; Qat 5 (no image, ~22k core.md) still uses the file.
+export function soakChatPayload(opts: {
+  systemPrompt: string;
+  userPrompt: string;
+  imageBase64?: string;
+  imageMime?: string;
+}): Record<string, unknown> {
+  const text = `${opts.systemPrompt}\n\n${opts.userPrompt}`;
+  const payload: Record<string, unknown> = { text };
+  if (opts.imageBase64) {
+    const mime = opts.imageMime || "image/jpeg";
+    payload.image = `data:${mime};base64,${opts.imageBase64}`;
+  } else {
+    payload.attachTextAsFile = true;
+  }
+  return payload;
+}
+
 function soakConnection(): { baseUrl: string; apiKey: string } | null {
   const baseUrl = process.env.SOAK_LLM_BASE_URL;
   const apiKey = process.env.SOAK_LLM_API_KEY;
@@ -123,12 +143,7 @@ export async function callSoakChat(opts: {
     throw new SoakTransportError("SOAK_LLM_BASE_URL/SOAK_LLM_API_KEY yoxdur", "unhealthy");
   }
 
-  const text = `${opts.systemPrompt}\n\n${opts.userPrompt}`;
-  const payload: Record<string, unknown> = { text, attachTextAsFile: true };
-  if (opts.imageBase64) {
-    const mime = opts.imageMime || "image/jpeg";
-    payload.image = `data:${mime};base64,${opts.imageBase64}`;
-  }
+  const payload = soakChatPayload(opts);
 
   let attempts = 0;
   let latencyMs = 0;

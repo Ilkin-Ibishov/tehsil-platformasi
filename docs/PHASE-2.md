@@ -74,7 +74,10 @@ keçmir. ToS/cookie riski sahibindir (`ADR-029`).
 
 **Timeout.** App-də `/api/solve` və transcribe/finish **45 san** abort edir. ChatGPT
 servisinin `REQUEST_TIMEOUT` 150 san-dir. Soak bayrağı olanda abort ≥150 san olmalıdır,
-yoxsa növbə boşuna dolar. Uzun solve promptu üçün `attachTextAsFile: true` (100k hədd).
+yoxsa növbə boşuna dolar. `attachTextAsFile: true` yalnız şəkil yoxdursa (Qat 5,
+~22k `core.md`). Qat 1 şəkil + typed prompt göndərir — eyni mesajda `.txt`
+ChatGPT composer-də şəkil thumbnail-ini əvəz edir (2026-08-16). Hər `POST /chat`
+yeni söhbət açır (Cloud_Server_AI `startNewConversation`).
 
 **Sürət seçimi.** Kaskad 2 LLM çağırışıdır. Soak-da iki variant:
 1. Eyni kaskad (dürüst latensiya/keyfiyyət, yavaş: ~2.5 həll/dəq)

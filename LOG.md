@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-16: HANDOFF 135 — Qat 1 typed+şəkil, Qat 5 `.txt`; ChatGPT hər sorğuda yeni söhbət. Railway deploy.
 - 2026-08-16: HANDOFF 134 — Railway chatgpt-api eyni URL-də `authMode=cookie`; soak health idle+cookie qəbul edir.
 - 2026-08-16: HANDOFF 133 — Vercel-dən `GEMINI_PRICE_*` silindi (`ADR-027`). Kod dəyişmədi.
 - 2026-08-16: HANDOFF 132 — S2 soak qalereya (`86eyn2u6x`): kamera icazəsi yox, tam-kadr kəsmə yalnız soak. Şagird çərçivəsi eyni.
