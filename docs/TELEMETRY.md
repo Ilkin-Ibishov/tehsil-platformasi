@@ -116,7 +116,8 @@ solve.response                 props: {status, ocr_confidence, latency_ms, match
                                ← finish_wait_ms: transcript.confirmed → cavab (klient)
                                ← llm/storage/db/route_total_ms: YALNIZ kaskad Qat 1 meta
                                  echo (transcribe cavabından); Qat 5-də əsasən null
-                               ← cached_tokens: prompt keş hit (varsa)
+                               ← cached_tokens: Qat 5 finish meta (explicit kontekst keşi);
+                                 yoxdursa Qat 1 transcribe echo
 solve.failed                   props: {reason, http_status, attempts, cost_usd, latency_ms,
                                        finish_wait_ms}
                                ← cost_usd/latency_ms: uğursuz Qat 5 belə LLM pulunu göstərir

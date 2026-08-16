@@ -375,6 +375,7 @@ export default function KameraPage() {
           cost_usd?: number | null;
           tokens_in?: number | null;
           tokens_out?: number | null;
+          cached_tokens?: number | null;
           layer_cost_usd?: number | null;
           layer_latency_ms?: number | null;
         }
@@ -413,7 +414,11 @@ export default function KameraPage() {
       storage_ms: cascadeTranscript?.meta.storageMs ?? null,
       db_ms: cascadeTranscript?.meta.dbMs ?? null,
       route_total_ms: cascadeTranscript?.meta.routeTotalMs ?? null,
-      cached_tokens: cascadeTranscript?.meta.cachedTokens ?? null,
+      // Qat 5 explicit cache hit (finish meta); fall back to Qat 1 only if finish omitted it.
+      cached_tokens:
+        typeof meta?.cached_tokens === "number"
+          ? meta.cached_tokens
+          : (cascadeTranscript?.meta.cachedTokens ?? null),
     });
     finishWaitStartedRef.current = null;
     setSolution({

@@ -232,6 +232,11 @@ export async function POST(req: NextRequest) {
   // mətndir — düzəliş edilibsə düzəldilmiş, edilməyibsə eyni.
   await finalizeOcrCapture(pool, { captureId, ocrFinal: transcript.canonical, attemptItemId: persisted.itemId });
 
+  const layerCachedTokens =
+    solution.usage?.prompt_tokens_details?.cached_tokens ??
+    solution.usage?.cached_content_token_count ??
+    null;
+
   await logEvent(pool, deviceId, sessionId, "solve.cascade", {
     layer: solution.layer,
     match_path: solution.matchPath,
@@ -250,6 +255,7 @@ export async function POST(req: NextRequest) {
     attempt_kind: attemptKindFor(soak.mode),
     soak_provider: soak.mode.kind === "student" ? null : soak.mode.kind,
     persist_ok: true,
+    cached_tokens: layerCachedTokens,
   });
 
   return NextResponse.json(
@@ -266,6 +272,7 @@ export async function POST(req: NextRequest) {
         latency_ms: Math.round(transcribeLatencyMs + solution.latencyMs),
         tokens_in: solution.usage?.prompt_tokens ?? null,
         tokens_out: billableOutputTokens(solution.usage),
+        cached_tokens: layerCachedTokens,
         leaked: persisted.leaked,
         layer: solution.layer,
       },

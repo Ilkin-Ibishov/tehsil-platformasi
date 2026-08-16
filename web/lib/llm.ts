@@ -30,8 +30,10 @@ type ContextCacheEntry = {
   expiresAtMs: number;
 };
 
-let contextCacheEntry: ContextCacheEntry | null = null;
-let contextCacheInflight: Promise<string | null> | null = null;
+/** Warm process memory: one entry per `model:promptHash` (topic prompts differ). */
+const contextCacheEntries = new Map<string, ContextCacheEntry>();
+/** In-flight creates keyed by `model:promptHash` — never share across different prompts. */
+const contextCacheInflight = new Map<string, Promise<string | null>>();
 
 function promptHash(text: string): string {
   return createHash("sha256").update(text).digest("hex").slice(0, 24);
@@ -59,19 +61,17 @@ export async function ensureGeminiSystemCache(opts: {
   if (opts.systemPrompt.length < CONTEXT_CACHE_MIN_CHARS) return null;
 
   const hash = promptHash(opts.systemPrompt);
+  const inflightKey = `${opts.model}:${hash}`;
   const now = Date.now();
-  if (
-    contextCacheEntry &&
-    contextCacheEntry.model === opts.model &&
-    contextCacheEntry.promptHash === hash &&
-    contextCacheEntry.expiresAtMs > now + CONTEXT_CACHE_REFRESH_MARGIN_MS
-  ) {
-    return contextCacheEntry.name;
+  const warm = contextCacheEntries.get(inflightKey);
+  if (warm && warm.expiresAtMs > now + CONTEXT_CACHE_REFRESH_MARGIN_MS) {
+    return warm.name;
   }
 
-  if (contextCacheInflight) return contextCacheInflight;
+  const existing = contextCacheInflight.get(inflightKey);
+  if (existing) return existing;
 
-  contextCacheInflight = (async () => {
+  const createPromise = (async () => {
     const nativeBase = geminiNativeBaseUrl(opts.baseUrl);
     const url = `${nativeBase}/cachedContents`;
     try {
@@ -101,22 +101,23 @@ export async function ensureGeminiSystemCache(opts: {
       const expiresAtMs = body.expireTime
         ? Date.parse(body.expireTime)
         : now + CONTEXT_CACHE_TTL_SEC * 1000;
-      contextCacheEntry = {
+      contextCacheEntries.set(inflightKey, {
         name: body.name,
         model: opts.model,
         promptHash: hash,
         expiresAtMs: Number.isFinite(expiresAtMs) ? expiresAtMs : now + CONTEXT_CACHE_TTL_SEC * 1000,
-      };
+      });
       return body.name;
     } catch (err) {
       console.warn("[llm] Gemini cachedContents create error:", err);
       return null;
     } finally {
-      contextCacheInflight = null;
+      contextCacheInflight.delete(inflightKey);
     }
   })();
 
-  return contextCacheInflight;
+  contextCacheInflight.set(inflightKey, createPromise);
+  return createPromise;
 }
 
 
@@ -308,7 +309,9 @@ export async function callVisionLLM(opts: {
       attempt === 1
     ) {
       console.warn(`[llm] cached_content rejected (${res.status}); falling back to inline system`);
-      contextCacheEntry = null;
+      if (cachedContentName) {
+        contextCacheEntries.delete(`${model}:${promptHash(opts.systemPrompt)}`);
+      }
       usedCache = false;
       delete payload.extra_body;
       payload.messages = [
