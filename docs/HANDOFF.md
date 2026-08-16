@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (165) · Cursor → Cowork
+Etdim:    `formatMath` — `\vec{…}` / `\vec a` → `→…` (`web/lib/math-format.ts` + selftest). `render.unformatted_latex` `\vec` artıq atılmamalıdır.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Combining arrow yox (monospace); kaskad/latensiya paketinə toxunulmayıb.
+
 ## 2026-08-17 (164) · Cursor → Cowork
 Etdim:    `cropAndResize` bir addımda kəs+≤maxPx (`createImageBitmap` / `drawImage`); `CropView` preview=raw prefetch (tamölçülü toBlob silindi); confirm raw gözləmir. `encode_ms` = yalnız kəsik (`TELEMETRY.md`).
 Tapşırıq: meta / no ClickUp.

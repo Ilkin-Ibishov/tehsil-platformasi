@@ -33,6 +33,11 @@ const CASES: [string, string][] = [
   ["a \\quad b", "a b"],
   ["\\text{en} = 5", "en = 5"],
   ["\\bar{x}", "x"],
+  // `\vec` production-da `render.unformatted_latex` atırdı — ox prefiksi (combining yox).
+  ["\\vec{a}", "→a"],
+  ["\\vec{AB}", "→AB"],
+  ["\\vec a", "→a"],
+  ["|\\vec{a}| = 5", "|→a| = 5"],
   // HANDOFF (55): onluq vergül VƏ siyahı vergülü eyni mətndə — siyahı ";"-ə keçir
   ["x_1 = 3.5, x_2 = 2.5", "x₁ = 3,5; x₂ = 2,5"],
   // onluq YOXdursa siyahı vergülü toxunulmur (birmənalıdır)
@@ -61,6 +66,7 @@ const UNFORMATTED_CASES: [string, string | null][] = [
   ["\\alpha + \\beta", "\\beta"],
   ["x_1 \\in \\mathbb{N}", null],
   ["k = \\tan\\alpha", null],
+  ["\\vec{a} + \\vec{b}", null],
 ];
 
 for (const [input, expectedToken] of UNFORMATTED_CASES) {

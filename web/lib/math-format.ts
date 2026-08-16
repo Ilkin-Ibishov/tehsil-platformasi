@@ -57,6 +57,10 @@ export function formatMath(src: string, locale: string = "az"): string {
   // \bar{x} → x (HANDOFF 55: "çətindirsə sadəcə x" — combining macron (x̄) monospace şriftdə
   // (JetBrains Mono) etibarsız render olunur, üzərindən xətt YOX, hərf saxlanılır)
   text = text.replace(/\\bar\{([^{}]*)\}/g, "$1");
+  // \vec{a} → →a — combining right-arrow-above (a⃗) eyni monospace səbəbindən etibarsızdır;
+  // görünən ox prefiksi vektor mənasını saxlayır (`render.unformatted_latex` `\vec` ölçüsü).
+  text = text.replace(/\\vec\{([^{}]*)\}/g, "→$1");
+  text = text.replace(/\\vec\b\s*([A-Za-z])/g, "→$1");
 
   // \frac{a}{b} → (a)/(b) — ADR-015 məhdudiyyəti: kəsrlər unicode-da yaxşı çıxmır, KaTeX YOX
   text = text.replace(LATEX_FRAC_RE, "($1)/($2)");
