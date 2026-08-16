@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (131) · Cursor → Cowork
+
+Etdim:    S1 PDF→kəsik (`86eyn2pw5`): `scripts/corpus/pdf_to_crops.py` (PyMuPDF heuristika, vision yox), `0067` `corpus` bucket + `corpus_crops` (DİM mətni yox), `0068` service_role GRANT. Selftest 24/24. 5 synthetic QA: hər kəsikdə bir nömrə.
+Tapşırıq: `86eyn2pw5`.
+Diqqət:   `--upload` bu mühitdə işləmədi (service-role yox). Real DİM PDF git-də yoxdur. Operator: `python scripts/corpus/pdf_to_crops.py --pdf … --upload`. S0+Qat1 commit-ləri hələ push olunmayıb.
+
 ## 2026-08-16 (130) · Cursor → Cowork
 
 Etdim:    S0 soak adapter (`86eyn2c70`): `0066` `soak_enabled=0` / `soak_provider=chatgpt_web`. Yalnız `soak-*` dəvət ChatGPT `POST /chat`-ə gedir; şagird Gemini. cost_usd 0 yazılmır. `kind=corpus_soak`. Keş və bank soak-da atlanır. `adapter.selftest` keçdi.

@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-16: HANDOFF 131 — S1 PDF kəsik skripti + `corpus` bucket (`86eyn2pw5`). Vision yox, DİM mətni yox.
 - 2026-08-16: HANDOFF 130 — S0 soak ChatGPT adapter + `soak_enabled=0` (`86eyn2c70`). Şagird Gemini toxunulmur.
 - 2026-08-16: HANDOFF 129 — Qat 1 `gemini-3.7-flash` (`0065`), prompt v12 dövri son addım, `transcribe.md` v2. `86eyn2bgc`.
 - 2026-08-16: HANDOFF 128 — S-pre1 ilişmə keçidi (`86eyn28kn`), S-pre2 prompt v11 1–6 + 1 addımlıq nümunə (`86eyn28kq`).

@@ -24,3 +24,5 @@ evals/text-set.jsonl
 evals/text-set*.jsonl
 .playwright-mcp/
 tmp/
+
+# Faza 2 S1 korpus kəsikləri — DİM şəkilləri git-ə düşmür (tmp/ artıq örtür)

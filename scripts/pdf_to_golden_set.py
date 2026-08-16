@@ -47,7 +47,6 @@ saxlanmır, YALNIZ "hansı variant düzgündür" məlumatı.
 import argparse
 import json
 import re
-from collections import defaultdict
 from pathlib import Path
 
 try:
@@ -55,69 +54,7 @@ try:
 except ImportError:
     raise SystemExit("pip install pymupdf")
 
-
-def parse_range(spec: str) -> range:
-    """'0-7' -> range(0,8). '8-9' -> range(8,10)."""
-    lo, hi = spec.split("-")
-    return range(int(lo), int(hi) + 1)
-
-
-def find_question_labels(doc, question_pages: range, col_x_ranges, n_questions: int):
-    """Sual nömrə etiketlərini ardıcıl (1..n_questions) tapır. Hər etiket: dict(page,num,y0,col)."""
-    expected = 1
-    labels = []
-    for pi in question_pages:
-        if expected > n_questions:
-            break
-        p = doc[pi]
-        page_mid = p.rect.width / 2
-        words = p.get_text("words")
-        cands = []
-        for w in words:
-            x0, y0, x1, y1, text = w[0], w[1], w[2], w[3], w[4]
-            t = text.strip().rstrip(".").rstrip(")")
-            if not t.isdigit():
-                continue
-            if any(lo <= x0 <= hi for lo, hi in col_x_ranges):
-                cands.append((x0, y0, int(t)))
-        col1 = sorted([c for c in cands if c[0] < page_mid], key=lambda c: c[1])
-        col2 = sorted([c for c in cands if c[0] >= page_mid], key=lambda c: c[1])
-        for x0, y0, val in col1 + col2:
-            if val == expected:
-                col = 1 if x0 < page_mid else 2
-                labels.append({"page": pi, "num": expected, "y0": y0, "col": col})
-                expected += 1
-                if expected > n_questions:
-                    break
-    missing = set(range(1, n_questions + 1)) - {l["num"] for l in labels}
-    if missing:
-        raise RuntimeError(
-            f"Sual nömrələri tapılmadı: {sorted(missing)} — col_x_ranges/n_questions-u yoxla, "
-            "PDF fərqli sütun mövqeyi/say işlədə bilər."
-        )
-    return labels
-
-
-def compute_crop_boxes(doc, labels, top_margin=6, footer_margin=20):
-    by_pc = defaultdict(list)
-    for l in labels:
-        by_pc[(l["page"], l["col"])].append(l)
-    for k in by_pc:
-        by_pc[k].sort(key=lambda l: l["y0"])
-
-    boxes = []
-    for l in labels:
-        p = doc[l["page"]]
-        page_w, page_h = p.rect.width, p.rect.height
-        page_mid = page_w / 2
-        siblings = by_pc[(l["page"], l["col"])]
-        idx = siblings.index(l)
-        y_top = max(0, l["y0"] - top_margin)
-        y_bottom = siblings[idx + 1]["y0"] - top_margin if idx + 1 < len(siblings) else page_h - footer_margin
-        x_left = 20 if l["col"] == 1 else page_mid - 5
-        x_right = page_mid + 5 if l["col"] == 1 else page_w - 15
-        boxes.append({"num": l["num"], "page": l["page"], "rect": [x_left, y_top, x_right, y_bottom]})
-    return boxes
+from corpus.layout import compute_crop_boxes, find_question_labels, parse_col_x_ranges, parse_range
 
 
 def render_crops(doc, boxes, out_dir: Path, zoom: float = 3.0):
@@ -167,16 +104,13 @@ def main():
     )
     args = ap.parse_args()
 
-    col_x_ranges = []
-    for part in args.col_x_ranges.split(","):
-        lo, hi = part.split("-")
-        col_x_ranges.append((float(lo), float(hi)))
+    col_x_ranges = parse_col_x_ranges(args.col_x_ranges)
 
     doc = fitz.open(args.pdf)
     q_pages = parse_range(args.question_pages)
     a_pages = parse_range(args.answer_key_pages)
 
-    labels = find_question_labels(doc, q_pages, col_x_ranges, args.n_questions)
+    labels, _missing = find_question_labels(doc, q_pages, col_x_ranges, args.n_questions)
     boxes = compute_crop_boxes(doc, labels)
 
     repo_root = Path(__file__).resolve().parent.parent
