@@ -1,11 +1,11 @@
 # Təhlükəsiz paket — xərc və latensiya ardıcıllığı (3 → 2 → 1 → 4 → 5)
 
-**Status:** İcra — addım 1–3 kodda, addım 4 məzmun · **2026-08-17**
+**Status:** İcra — addım 1–5 kodda (4 məzmun) · **2026-08-17**
 **Rejim:** How-to (iş ardıcıllığı) + ölçülmüş kontekst
 **Toxunur:** `web/lib/llm.ts` · `web/app/api/solve/transcribe` · `web/lib/storage.ts` ·
 `web/lib/cascade/ocr-capture.ts` · `web/components/kamera/CropView.tsx` ·
 `prompts/solve/math/` · `ADR-017` · `ADR-020` · `ADR-024` · `ADR-030` ·
-`web/app/kamera/page.tsx`
+`web/app/kamera/page.tsx` · `web/app/api/solve/finish` · `stream-steps.ts` · `LoadingView`
 **Sahə xaricində:** Qat 5 `reasoning_effort` endirmək · flash-lite marşrutu · offline
 kitab bişirmə · sympy-əvvəl · ChatGPT/Railway soak
 
@@ -260,6 +260,10 @@ araşdırılmalıdır; mövzu faylı bəzi fail-ləri azalda bilər, hamısını
 ---
 
 ### Addım 5 (siyahı 5) — Qat 5 axını (streaming)
+
+**Status:** ✅ Kod (2026-08-17) — `/finish` NDJSON (`Accept: application/x-ndjson`), Qat 5
+`streamVisionLLM` + qismən `steps[]` çıxarışı, kamera `LoadingView` preview. Soak JSON
+saxlanır. Production-da Vercel buffering ölçüsü gözlənilir (best-effort).
 
 **Problem.** “Düzdür” düyməsi fon `/finish` promise-ini gözləyir. Tez basılanda
 (~1 san sonra) şagird **bütün qalan Qat 5**-i hiss edir (~19 san, telefon cəhd B).

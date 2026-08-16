@@ -74,7 +74,9 @@
       "stage1": "şəkil göndərilir",
       "stage2": "şəkil oxunur",
       "stage3": "addımlar qurulur",
-      "stage4": "az qaldı"
+      "stage4": "az qaldı",
+      "previewStep": "addım",
+      "previewMore": "qalan addımlar qurulur"
     },
     "problem": {
       "label": "SUAL",

@@ -12,6 +12,7 @@ import { isSoakInvite } from "@/lib/soak/invite";
 import { LoadingView } from "@/components/hell/LoadingView";
 import { SolveView, type SolveResult } from "@/components/hell/SolveView";
 import { TranscriptConfirmView } from "@/components/hell/TranscriptConfirmView";
+import { readFinishNdjson, type FinishPreviewStep } from "@/lib/kamera/finish-stream";
 
 // ADR-020 / ClickUp 86eykj7x2 — transkripsiya təsdiq ekranı YALNIZ server kaskadı açıq
 // olanda mənalıdır (o, `/api/solve/transcribe`+`/api/solve/finish` iki-endpoint axınına
@@ -77,12 +78,15 @@ export default function KameraPage() {
   // yanlışlıqla kaskad yoluna DÜŞMÜR.
   const [cascadeUiEnabled, setCascadeUiEnabled] = useState(false);
   const [cascadeTranscript, setCascadeTranscript] = useState<CascadeTranscript | null>(null);
+  const [finishPreviewStep, setFinishPreviewStep] = useState<FinishPreviewStep | null>(null);
   // ADR-020 / 86eykj7x2: "fon prosesi davam etsin, şagird səhv görüb müdaxilə edərsə
   // dayandırılsın". Təsdiq ekranı göstərilən KİMİ `/api/solve/finish` FONDA başladılır
   // (`AbortController` ilə) — şagird düzəliş etsə `abort()` çağırılır, əvəzinə düzəldilmiş
   // mətnlə YENİ çağırış gedir. `promise` `handleConfirm`-in "düzəliş yoxdur" budağında
   // GÖZLƏNİLİR — belə desək, fon işi TƏSDİQ üçün lazım olan işin ÖZÜDÜR, təkrar edilmir.
   const backgroundFinishRef = useRef<{ controller: AbortController; promise: Promise<Record<string, unknown>> } | null>(null);
+  const stageRef = useRef(stage);
+  const finishPreviewRef = useRef<FinishPreviewStep | null>(null);
   // ADR-007 Qat 2/3: kəsilmiş şəkil şagird namizəd seçəndə TƏKRAR göndərilir (`selected_label`
   // ilə) — yeni çəkiliş/kəsmə tələb OLUNMUR. Son uğurlu kəsmə nəticəsini saxlamaq lazımdır ki,
   // `/api/solve`-ə ikinci çağırışda eyni bloblanmış şəkli göndərə bilək.
@@ -99,6 +103,9 @@ export default function KameraPage() {
   // (submitting → solved) heç vaxt bunu tetiklə bilmir, çünki onlar `pendingSince`-i
   // cavab gələn kimi təmizləyir, unmount-dan ƏVVƏL.
   const pendingSince = useRef<number | null>(null);
+  useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
   useEffect(() => {
     return () => {
       if (pendingSince.current !== null) {
@@ -148,6 +155,8 @@ export default function KameraPage() {
     setCandidates(null);
     setCaptured(null);
     setCascadeTranscript(null);
+    setFinishPreviewStep(null);
+    finishPreviewRef.current = null;
     backgroundFinishRef.current?.controller.abort();
     backgroundFinishRef.current = null;
     lastCroppedRef.current = null;
@@ -167,6 +176,8 @@ export default function KameraPage() {
     setRefusalStatus(null);
     setCandidates(null);
     setCascadeTranscript(null);
+    setFinishPreviewStep(null);
+    finishPreviewRef.current = null;
     backgroundFinishRef.current?.controller.abort();
     backgroundFinishRef.current = null;
     setStage("crop");
@@ -312,8 +323,12 @@ export default function KameraPage() {
     };
   }
 
-  // `/api/solve/finish`-ə çağırış. `signal` klientdə ləğv edilə bilməsi üçün (şagird
-  // düzəliş edəndə köhnə fon sorğusu DAYANDIRILIR — ClickUp 86eykj7x2-nin məcburi tələbi).
+  function onFinishStreamStep(step: FinishPreviewStep) {
+    if (finishPreviewRef.current) return;
+    finishPreviewRef.current = step;
+    if (stageRef.current === "submitting") setFinishPreviewStep(step);
+  }
+
   async function callFinish(
     t: CascadeTranscript,
     canonicalOverride: string,
@@ -321,7 +336,10 @@ export default function KameraPage() {
   ): Promise<Record<string, unknown>> {
     const res = await fetch("/api/solve/finish", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/x-ndjson",
+      },
       signal,
       body: JSON.stringify({
         device_id: getDeviceId(),
@@ -340,7 +358,7 @@ export default function KameraPage() {
         transcript: { ...transcriptPayload(t), canonical: canonicalOverride },
       }),
     });
-    return res.json();
+    return readFinishNdjson(res, onFinishStreamStep);
   }
 
   function finishWaitMs(): number | null {
@@ -365,6 +383,8 @@ export default function KameraPage() {
     finishWaitStartedRef.current = null;
     setRefusalReason(null);
     setRefusalStatus("unreadable");
+    setFinishPreviewStep(null);
+    finishPreviewRef.current = null;
     setStage("refused");
   }
 
@@ -421,6 +441,8 @@ export default function KameraPage() {
           : (cascadeTranscript?.meta.cachedTokens ?? null),
     });
     finishWaitStartedRef.current = null;
+    setFinishPreviewStep(null);
+    finishPreviewRef.current = null;
     setSolution({
       canonical: body.canonical as string,
       steps: body.steps as SolveResult["steps"],
@@ -549,6 +571,8 @@ export default function KameraPage() {
 
       // Fon çağırışı — DƏRHAL, şagird HƏLƏ mətni oxumamış başlayır. `handleConfirm`-in
       // "düzəliş yoxdur" budağı bunu GÖZLƏYİR, TƏKRAR sorğu GÖNDƏRMİR.
+      finishPreviewRef.current = null;
+      setFinishPreviewStep(null);
       const controller = new AbortController();
       const promise = callFinish(transcript, transcript.canonical, controller.signal).catch(
         (err) => ({ status: "network_error", __error: err instanceof Error ? err.message : String(err) })
@@ -572,6 +596,7 @@ export default function KameraPage() {
     if (!corrected) {
       const inFlight = backgroundFinishRef.current;
       setStage("submitting");
+      if (finishPreviewRef.current) setFinishPreviewStep(finishPreviewRef.current);
       if (!inFlight) {
         // Nəzəri: "confirm" mərhələsinə YALNIZ fon çağırışı başladıqdan sonra keçilir.
         handleFinishFailure("network_error");
@@ -594,6 +619,8 @@ export default function KameraPage() {
     // məcburi tələbi), düzəldilmiş mətnlə YENİ sorğu gedir.
     trackEvent("transcript.corrected", {});
     backgroundFinishRef.current?.controller.abort();
+    finishPreviewRef.current = null;
+    setFinishPreviewStep(null);
     const controller = new AbortController();
     setStage("submitting");
     try {
@@ -665,7 +692,7 @@ export default function KameraPage() {
   if (stage === "submitting") {
     // ADR-020: "confirm"-dən sonrakı gözləmə (fon /finish) canonical-ı ARTIQ bilir —
     // LoadingView-in `questionText` sahəsi (HANDOFF 49 §3a-dan bəri hazır) məhz bunun üçün.
-    return <LoadingView questionText={cascadeTranscript?.canonical} />;
+    return <LoadingView questionText={cascadeTranscript?.canonical} previewStep={finishPreviewStep} />;
   }
 
   if (stage === "confirm" && cascadeTranscript) {

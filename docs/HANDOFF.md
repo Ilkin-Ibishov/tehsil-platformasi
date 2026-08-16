@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (162) · Cursor → Cowork
+
+Etdim:    Safe-pack addım 5: Qat 5 NDJSON axını — `llm-stream.ts` + `stream-steps.ts`, `/finish` `Accept: application/x-ndjson`, kamera `finish-stream.ts` + `LoadingView` preview. `check.accept` strip (ADR-017). Soak JSON qalır. `finish_wait_ms` saxlanılır. `tsc` OK.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Vercel/proxy buffering true streaming-i silə bilər — telefon smoke ilə ölçün. Cavab yoxlaması yalnız `final` + persist-dən sonra. Preview yalnız title/explanation.
+
 ## 2026-08-17 (161) · Cursor → Cowork
 
 Etdim:    Safe-pack addım 2 möhkəmləndirmə: keş `model:hash` Map (topic/inflight race); `/finish` + `solve.cascade`/`solve.response` Qat 5 `cached_tokens`.

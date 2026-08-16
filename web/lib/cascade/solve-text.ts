@@ -21,10 +21,12 @@
 import type { Pool } from "pg";
 import { loadPromptTemplates, renderUserPrompt } from "../prompt";
 import { callVisionLLM, type LLMUsage } from "../llm";
+import { streamVisionLLM } from "../llm-stream";
 import { computeCostUsd } from "../cost";
 import { getActiveModel } from "../models";
 import { validateStep } from "../verify/schema";
 import { callSoakChat, SoakTransportError } from "../soak/adapter";
+import { extractNewDisplayableSteps, toPublicPreviewStep } from "./stream-steps";
 import type { CascadeContext, FinalAnswer, LayerSolution, PublicStep, RawStep, SolveLayer, StepAnswerRow } from "./types";
 
 type StepSchemaOutput = {
@@ -90,6 +92,26 @@ export function makeTextSolveLayer(pool: Pool): SolveLayer {
         try {
           if (ctx.useSoakAdapter) {
             result = await callSoakChat({ systemPrompt: system, userPrompt, signal: ctx.signal });
+          } else if (ctx.onPublicStep && call === 1) {
+            let emitted = 0;
+            result = await streamVisionLLM({
+              systemPrompt: system,
+              userPrompt,
+              model: activeModel,
+              signal: ctx.signal,
+              useContextCache: true,
+              onDelta: (accumulated: string) => {
+                const { steps: fresh, emittedCount } = extractNewDisplayableSteps(accumulated, emitted);
+                emitted = emittedCount;
+                for (const raw of fresh) {
+                  try {
+                    ctx.onPublicStep?.(toPublicPreviewStep(raw));
+                  } catch (err) {
+                    console.error("[cascade/solve-text] onPublicStep xətası:", err);
+                  }
+                }
+              },
+            });
           } else {
             result = await callVisionLLM({
               systemPrompt: system,

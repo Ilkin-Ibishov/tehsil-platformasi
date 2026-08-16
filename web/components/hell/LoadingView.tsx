@@ -18,11 +18,21 @@ const STAGES: { afterMs: number; key: string }[] = [
   { afterMs: 13000, key: "stage4" },
 ];
 
-// HANDOFF (49) §3a: `ADR-014` (təklif, hələ qəbul edilməyib) — triaj çağırışı qayıdanda
-// "Sualı oxudum: …" mətni BURAYA (`questionText`) düşəcək. İndi heç bir çağıran ötürmür
-// (boş qalır, heç nə render olunmur) — sahə mərhələ mətnindən (`STAGES`) QƏSDƏN ayrılıb ki,
-// ADR-014 gələndə struktur dəyişməsin, yalnız marşrutlaşdırma (kamera/page.tsx-də prop ötürülməsi).
-export function LoadingView({ questionText }: { questionText?: string }) {
+export type LoadingPreviewStep = {
+  index?: number;
+  title?: string;
+  explanation?: string;
+};
+
+// HANDOFF (49) §3a + COST-LATENCY-SAFE-SEQUENCE addım 5: `questionText` təsdiqlənmiş
+// canonical; `previewStep` Qat 5 axınından gələn ilk tamamlanmış addımdır (accept YOX).
+export function LoadingView({
+  questionText,
+  previewStep,
+}: {
+  questionText?: string;
+  previewStep?: LoadingPreviewStep | null;
+}) {
   const t = useTranslations("hell.loading");
   const [elapsedMs, setElapsedMs] = useState(0);
 
@@ -42,35 +52,65 @@ export function LoadingView({ questionText }: { questionText?: string }) {
       {questionText && (
         <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>{questionText}</p>
       )}
-      <div
-        style={{
-          height: 56,
-          width: "44%",
-          borderRadius: "var(--rad)",
-          background: "var(--sur)",
-          animation: "th-breathe 1400ms ease-in-out infinite both",
-        }}
-      />
-      <div
-        style={{
-          height: 12,
-          width: "86%",
-          borderRadius: 99,
-          background: "var(--sur)",
-          animation: "th-breathe 1400ms ease-in-out infinite both",
-          animationDelay: "200ms",
-        }}
-      />
-      <div
-        style={{
-          height: 12,
-          width: "62%",
-          borderRadius: 99,
-          background: "var(--sur)",
-          animation: "th-breathe 1400ms ease-in-out infinite both",
-          animationDelay: "400ms",
-        }}
-      />
+      {previewStep?.title && previewStep?.explanation ? (
+        <section
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            padding: 16,
+            borderRadius: "var(--rad)",
+            background: "var(--sur)",
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--t3)",
+            }}
+          >
+            {t("previewStep")}
+            {typeof previewStep.index === "number" ? ` ${previewStep.index}` : ""}
+          </span>
+          <h2 style={{ margin: 0, fontFamily: "var(--hfont)", fontSize: 18, fontWeight: 700 }}>{previewStep.title}</h2>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, color: "var(--t1)" }}>{previewStep.explanation}</p>
+        </section>
+      ) : (
+        <>
+          <div
+            style={{
+              height: 56,
+              width: "44%",
+              borderRadius: "var(--rad)",
+              background: "var(--sur)",
+              animation: "th-breathe 1400ms ease-in-out infinite both",
+            }}
+          />
+          <div
+            style={{
+              height: 12,
+              width: "86%",
+              borderRadius: 99,
+              background: "var(--sur)",
+              animation: "th-breathe 1400ms ease-in-out infinite both",
+              animationDelay: "200ms",
+            }}
+          />
+          <div
+            style={{
+              height: 12,
+              width: "62%",
+              borderRadius: 99,
+              background: "var(--sur)",
+              animation: "th-breathe 1400ms ease-in-out infinite both",
+              animationDelay: "400ms",
+            }}
+          />
+        </>
+      )}
       <span
         style={{
           fontFamily: "var(--font-mono)",
@@ -80,7 +120,7 @@ export function LoadingView({ questionText }: { questionText?: string }) {
           color: "var(--t3)",
         }}
       >
-        {t(stageKey)}
+        {previewStep?.title ? t("previewMore") : t(stageKey)}
       </span>
       <style>{`@keyframes th-breathe { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.65; } }`}</style>
     </main>

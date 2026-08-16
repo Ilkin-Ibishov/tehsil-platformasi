@@ -134,6 +134,11 @@ export type CascadeContext = {
   requestedSubject: string;
   signal?: AbortSignal;
   useSoakAdapter?: boolean;
+  /**
+   * COST-LATENCY-SAFE-SEQUENCE addım 5: Qat 5 axını zamanı hər tamamlanmış
+   * PublicStep (accept YOX — ADR-017). Bank/şablon qatları bunu çağırmır.
+   */
+  onPublicStep?: (step: PublicStep) => void;
 };
 
 export type SolveLayer = {

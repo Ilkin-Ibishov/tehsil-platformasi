@@ -6,23 +6,15 @@ import { persistSolution } from "@/lib/cascade/persist";
 import { finalizeOcrCapture, rejectOcrCapture } from "@/lib/cascade/ocr-capture";
 import { checkInviteCode, logEvent } from "@/lib/cascade/guards";
 import { sumCostUsd, billableOutputTokens } from "@/lib/cost";
-import type { Transcript } from "@/lib/cascade/types";
+import type { PublicStep, Transcript } from "@/lib/cascade/types";
 import { soakGate } from "@/lib/soak/gate";
-import { attemptKindFor, llmAbortMs, usesSoakAdapter } from "@/lib/soak/mode";
+import { attemptKindFor, llmAbortMs, usesSoakAdapter, type SoakMode } from "@/lib/soak/mode";
 import { SoakTransportError } from "@/lib/soak/adapter";
 
-// ChatGPT soak 150s timeout + buffer (PHASE-2). Şagird çağırışı yenə ~45 san abort edir.
 export const maxDuration = 180;
+export const dynamic = "force-dynamic";
 
-// POST /api/solve/finish — ClickUp 86eykj7x2 / ADR-020.
-//
-// `/api/solve/transcribe`-in cütüdür. Şəkil GÖRMÜR — yalnız Qat 1-in (ARTIQ təsdiqlənmiş və
-// ya edilməmiş) transkripsiyasını qəbul edir və Qat 2-5-i işlədir. Klient bunu iki halda çağırır:
-//   1. Təsdiq ekranı görünən KİMİ, fonda (şagird HƏLƏ oxumaqdadır) — nikbin öncədən başlatma.
-//   2. Şagird mətni DÜZƏLDİB təsdiqləyəndə — YENİ sorğu, düzəldilmiş `canonical` ilə.
-// Bu ikisinin İKİSİ DƏ eyni endpoint-dir; fərq YALNIZ klientin göndərdiyi `canonical`-dadır.
-// "Fon prosesi dayandırılsın" tələbi (ClickUp 86eykj7x2) klient tərəfində `AbortController`
-// ilə həll olunur (`kamera/page.tsx`) — server bunu bilmir, sadəcə AbortSignal-a hörmət edir.
+// POST /api/solve/finish — ClickUp 86eykj7x2 / ADR-020 + COST-LATENCY addım 5 NDJSON.
 type Body = {
   device_id?: unknown;
   invite_code?: unknown;
@@ -30,11 +22,6 @@ type Body = {
   attempt_id?: unknown;
   capture_id?: unknown;
   rejected?: unknown;
-  // Klientin `/transcribe`-dən aldığı meta — `solve.cascade` hadisəsinin
-  // `transcribe_*` sahələrini doldurmaq üçün (HANDOFF-84-də Cowork-a bildirilən sxem).
-  // Server BURADA transkripsiyanın ÖZÜNÜ TƏKRAR hesablamır, yalnız artıq bilinən ədədləri
-  // hadisəyə ötürür — güvən sərhədi `cost_usd`/`latency_ms` üçün aşağıdır (yalnız
-  // TELEMETRİYA, DB yazısına təsir etmir).
   transcribe_meta?: {
     cache_hit?: unknown;
     cost_usd?: unknown;
@@ -56,6 +43,32 @@ type Body = {
 };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+type FinishPayload = Record<string, unknown>;
+
+function wantsNdjson(req: NextRequest): boolean {
+  return (req.headers.get("accept") ?? "").includes("application/x-ndjson");
+}
+
+function ndjsonHeaders(): HeadersInit {
+  return {
+    "Content-Type": "application/x-ndjson; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    "X-Accel-Buffering": "no",
+  };
+}
+
+function layerCachedTokensOf(solution: {
+  usage?: {
+    prompt_tokens_details?: { cached_tokens?: number | null };
+    cached_content_token_count?: number | null;
+  } | null;
+}): number | null {
+  return (
+    solution.usage?.prompt_tokens_details?.cached_tokens ??
+    solution.usage?.cached_content_token_count ??
+    null
+  );
+}
 
 export async function POST(req: NextRequest) {
   let body: Body;
@@ -77,10 +90,6 @@ export async function POST(req: NextRequest) {
 
   const captureId = typeof body.capture_id === "string" ? body.capture_id : null;
 
-  // ── Rədd yolu: şagird "bu düz deyil, yenidən çəkirəm" deyib ────────────────────────────
-  // Heç bir LLM çağırılmır, heç nə yazılmır — YALNIZ korpus qeydi (ClickUp 86eymfg85-in
-  // `correction_kind='rejected'` halı). Gündəlik limit SAYILMIR (ADR-007: imtina limitdən
-  // kənardır) — burada zatən `attempt_items` yazılmır, yəni limit sayğacı toxunulmur.
   if (body.rejected === true) {
     await rejectOcrCapture(pool, captureId);
     return NextResponse.json({ schema_version: 1, status: "rejected" }, { status: 200 });
@@ -123,28 +132,127 @@ export async function POST(req: NextRequest) {
   const transcribeRouteTotalMs =
     typeof body.transcribe_meta?.route_total_ms === "number" ? body.transcribe_meta.route_total_ms : null;
 
+  const coreArgs = {
+    deviceId,
+    studentRef: invite.studentRef,
+    soakMode: soak.mode,
+    transcript,
+    locale,
+    sessionId,
+    captureId,
+    transcribeCacheHit,
+    transcribeCostUsd,
+    transcribeLatencyMs,
+    transcribeStorageMs,
+    transcribeDbMs,
+    transcribeRouteTotalMs,
+  };
+
+  if (!wantsNdjson(req)) {
+    try {
+      return NextResponse.json(await runFinishCore(coreArgs), { status: 200 });
+    } catch (err) {
+      if (err instanceof SoakTransportError) {
+        const error = err.reason === "auth" ? "soak_auth_expired" : "soak_unavailable";
+        return NextResponse.json({ error }, { status: 503 });
+      }
+      throw err;
+    }
+  }
+
+  const encoder = new TextEncoder();
+  const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
+  const writer = writable.getWriter();
+  const writeLine = async (obj: unknown) => {
+    await writer.write(encoder.encode(`${JSON.stringify(obj)}\n`));
+  };
+  let writeChain: Promise<void> = Promise.resolve();
+  const enqueueLine = (obj: unknown) => {
+    writeChain = writeChain.then(() => writeLine(obj));
+    return writeChain;
+  };
+
+  void (async () => {
+    try {
+      const payload = await runFinishCore({
+        ...coreArgs,
+        onPublicStep: (step) => {
+          void enqueueLine({ type: "step", step });
+        },
+      });
+      await enqueueLine({ type: "final", ...payload });
+    } catch (err) {
+      if (err instanceof SoakTransportError) {
+        const error = err.reason === "auth" ? "soak_auth_expired" : "soak_unavailable";
+        await enqueueLine({ type: "final", schema_version: 1, status: "unreadable", error, reason: "Soak əlçatan deyil." });
+      } else {
+        console.error("[finish] stream error:", err);
+        await enqueueLine({
+          type: "final",
+          schema_version: 1,
+          status: "unreadable",
+          reason: "Server xətası, yenidən cəhd et.",
+        });
+      }
+    } finally {
+      try {
+        await writeChain;
+        await writer.close();
+      } catch {
+        /* closed */
+      }
+    }
+  })();
+
+  return new Response(readable, { status: 200, headers: ndjsonHeaders() });
+}
+
+async function runFinishCore(opts: {
+  deviceId: string;
+  studentRef: string;
+  soakMode: SoakMode;
+  transcript: Transcript;
+  locale: string;
+  sessionId: string;
+  captureId: string | null;
+  transcribeCacheHit: boolean;
+  transcribeCostUsd: number | null;
+  transcribeLatencyMs: number;
+  transcribeStorageMs: number | null;
+  transcribeDbMs: number | null;
+  transcribeRouteTotalMs: number | null;
+  onPublicStep?: (step: PublicStep) => void;
+}): Promise<FinishPayload> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), llmAbortMs(soak.mode));
+  const timeoutId = setTimeout(() => controller.abort(), llmAbortMs(opts.soakMode));
   let solution;
   let declinedLayers: string[];
   try {
     ({ solution, declinedLayers } = await runCascade(buildLayers(pool), {
-      transcript,
-      locale,
-      requestedGrade: transcript.grade,
-      requestedSubject: transcript.subject,
+      transcript: opts.transcript,
+      locale: opts.locale,
+      requestedGrade: opts.transcript.grade,
+      requestedSubject: opts.transcript.subject,
       signal: controller.signal,
-      useSoakAdapter: usesSoakAdapter(soak.mode),
+      useSoakAdapter: usesSoakAdapter(opts.soakMode),
+      onPublicStep: opts.onPublicStep,
     }));
-  } catch (err) {
-    if (err instanceof SoakTransportError) {
-      const error = err.reason === "auth" ? "soak_auth_expired" : "soak_unavailable";
-      return NextResponse.json({ error }, { status: 503 });
-    }
-    throw err;
   } finally {
     clearTimeout(timeoutId);
   }
+
+  const {
+    deviceId,
+    sessionId,
+    transcript,
+    transcribeCacheHit,
+    transcribeCostUsd,
+    transcribeLatencyMs,
+    transcribeStorageMs,
+    transcribeDbMs,
+    transcribeRouteTotalMs,
+    soakMode,
+  } = opts;
 
   if (!solution) {
     await logEvent(pool, deviceId, sessionId, "solve.cascade", {
@@ -158,20 +266,17 @@ export async function POST(req: NextRequest) {
       transcribe_route_total_ms: transcribeRouteTotalMs,
       persist_ok: false,
     });
-    return NextResponse.json(
-      {
-        schema_version: 1,
-        status: "unreadable",
-        reason: "Həll qurula bilmədi, yenidən cəhd et.",
-        declined: declinedLayers,
-        meta: {
-          cost_usd: transcribeCostUsd,
-          latency_ms: Math.round(transcribeLatencyMs),
-          layer_cost_usd: null,
-        },
+    return {
+      schema_version: 1,
+      status: "unreadable",
+      reason: "Həll qurula bilmədi, yenidən cəhd et.",
+      declined: declinedLayers,
+      meta: {
+        cost_usd: transcribeCostUsd,
+        latency_ms: Math.round(transcribeLatencyMs),
+        layer_cost_usd: null,
       },
-      { status: 200 }
-    );
+    };
   }
 
   const totalCostUsd = sumCostUsd(transcribeCostUsd, solution.costUsd);
@@ -181,11 +286,11 @@ export async function POST(req: NextRequest) {
     transcript,
     sessionId,
     deviceId,
-    studentRef: invite.studentRef,
+    studentRef: opts.studentRef,
     requestedSubject: transcript.subject,
-    locale,
+    locale: opts.locale,
     totalCostUsd,
-    attemptKind: attemptKindFor(soak.mode),
+    attemptKind: attemptKindFor(soakMode),
   });
 
   if (!persisted.ok) {
@@ -204,38 +309,32 @@ export async function POST(req: NextRequest) {
       total_cost_usd: totalCostUsd,
       has_figure: transcript.hasFigure,
       ocr_confidence: transcript.ocrConfidence,
-      attempt_kind: attemptKindFor(soak.mode),
-      soak_provider: soak.mode.kind === "student" ? null : soak.mode.kind,
+      attempt_kind: attemptKindFor(soakMode),
+      soak_provider: soakMode.kind === "student" ? null : soakMode.kind,
       persist_ok: false,
       persist_kind: persisted.kind,
     });
-    return NextResponse.json(
-      {
-        schema_version: 1,
-        status: "unreadable",
-        reason: persisted.kind === "rejected" ? "Həll yoxlanışdan keçmədi." : "Server xətası, yenidən cəhd et.",
-        meta: {
-          cost_usd: totalCostUsd,
-          latency_ms: Math.round(transcribeLatencyMs + solution.latencyMs),
-          layer_cost_usd: solution.costUsd,
-          layer_latency_ms: Math.round(solution.latencyMs),
-          layer: solution.layer,
-        },
+    return {
+      schema_version: 1,
+      status: "unreadable",
+      reason: persisted.kind === "rejected" ? "Həll yoxlanışdan keçmədi." : "Server xətası, yenidən cəhd et.",
+      meta: {
+        cost_usd: totalCostUsd,
+        latency_ms: Math.round(transcribeLatencyMs + solution.latencyMs),
+        layer_cost_usd: solution.costUsd,
+        layer_latency_ms: Math.round(solution.latencyMs),
+        layer: solution.layer,
       },
-      { status: 200 }
-    );
+    };
   }
 
-  // `ocr_captures.ocr_final`/`corrected`/`correction_kind`/`edit_distance` BURADA yazılır —
-  // `ocr_raw` (Qat 1-in ilk oxunuşu) ARTIQ `/transcribe`-də yazılıb (ClickUp 86eymfg85-in
-  // "təsdiqdən ƏVVƏL" tələbi). `transcript.canonical` bu nöqtədə klientin göndərdiyi SON
-  // mətndir — düzəliş edilibsə düzəldilmiş, edilməyibsə eyni.
-  await finalizeOcrCapture(pool, { captureId, ocrFinal: transcript.canonical, attemptItemId: persisted.itemId });
+  await finalizeOcrCapture(pool, {
+    captureId: opts.captureId,
+    ocrFinal: transcript.canonical,
+    attemptItemId: persisted.itemId,
+  });
 
-  const layerCachedTokens =
-    solution.usage?.prompt_tokens_details?.cached_tokens ??
-    solution.usage?.cached_content_token_count ??
-    null;
+  const layerCachedTokens = layerCachedTokensOf(solution);
 
   await logEvent(pool, deviceId, sessionId, "solve.cascade", {
     layer: solution.layer,
@@ -252,31 +351,28 @@ export async function POST(req: NextRequest) {
     total_cost_usd: totalCostUsd,
     has_figure: transcript.hasFigure,
     ocr_confidence: transcript.ocrConfidence,
-    attempt_kind: attemptKindFor(soak.mode),
-    soak_provider: soak.mode.kind === "student" ? null : soak.mode.kind,
+    attempt_kind: attemptKindFor(soakMode),
+    soak_provider: soakMode.kind === "student" ? null : soakMode.kind,
     persist_ok: true,
     cached_tokens: layerCachedTokens,
   });
 
-  return NextResponse.json(
-    {
-      schema_version: 1,
-      status: "ok",
-      canonical: transcript.canonical,
-      steps: persisted.steps,
-      attempt_id: persisted.sessionId,
-      match_path: solution.matchPath,
-      verification: { ...persisted.verification, verified_at: new Date().toISOString() },
-      meta: {
-        cost_usd: totalCostUsd,
-        latency_ms: Math.round(transcribeLatencyMs + solution.latencyMs),
-        tokens_in: solution.usage?.prompt_tokens ?? null,
-        tokens_out: billableOutputTokens(solution.usage),
-        cached_tokens: layerCachedTokens,
-        leaked: persisted.leaked,
-        layer: solution.layer,
-      },
+  return {
+    schema_version: 1,
+    status: "ok",
+    canonical: transcript.canonical,
+    steps: persisted.steps,
+    attempt_id: persisted.sessionId,
+    match_path: solution.matchPath,
+    verification: { ...persisted.verification, verified_at: new Date().toISOString() },
+    meta: {
+      cost_usd: totalCostUsd,
+      latency_ms: Math.round(transcribeLatencyMs + solution.latencyMs),
+      tokens_in: solution.usage?.prompt_tokens ?? null,
+      tokens_out: billableOutputTokens(solution.usage),
+      cached_tokens: layerCachedTokens,
+      leaked: persisted.leaked,
+      layer: solution.layer,
     },
-    { status: 200 }
-  );
+  };
 }

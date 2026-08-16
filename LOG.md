@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-17: HANDOFF 162 — Qat 5 NDJSON streaming (finish → LoadingView first step); ADR-017.
 - 2026-08-17: HANDOFF 161 — Qat 5 keş Map + finish `cached_tokens` telemetriya.
 - 2026-08-17: HANDOFF 160 — CropView raw prefetch; confirm no longer awaits full-frame encode.
 - 2026-08-17: HANDOFF 159 — ADR-030 mövzu faylları (6 soak/telefon topic).
