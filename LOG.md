@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-16: HANDOFF 148 — deploy TS5097 fix; upload service_role boş.
 - 2026-08-16: HANDOFF 147 — yapışıq sual etiketi + ix-riyaziyyat 51 lokal kəsik.
 - 2026-08-16: HANDOFF 146 — ADR-030 mövzu promptu + soak Gemini. Fingerprint reuse. `86eyn6zth`.
 - 2026-08-16: HANDOFF 145 — OQ-8 fail: Plus adi söhbətdə `.txt` chip var, model oxumur. Soak yenidən Temporary.

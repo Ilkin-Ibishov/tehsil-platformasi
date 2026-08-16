@@ -15,6 +15,13 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-16 (148) · Cursor → Cowork
+
+Etdim:    Production deploy `389243a` ERROR: `prompt.selftest.mts` tsconfig exclude-da yox idi (TS5097). Exclude əlavə edildi. Upload: Vercel `SUPABASE_SERVICE_ROLE_KEY` boş — 51 kəsik Storage-a getmədi.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Alias hələ köhnə Ready deploy-dadır (`web-lybl3gfmb`). Service role doldurulmadan `--upload` və captures yazısı işləmir.
+Blok:     Sahib: Supabase Dashboard-dan `SUPABASE_SERVICE_ROLE_KEY`-i Vercel production + `web/.env.local`-a yaz.
+
 ## 2026-08-16 (147) · Cursor → Cowork
 
 Etdim:    `layout.parse_label_num`: yapışıq `28.Hesablayın:` etiketi. `ix-riyaziyyat.pdf` lokal 51 kəsik (`tmp/corpus/ix-riyaziyyat-2009/`, upload yox). Selftest keçdi.
