@@ -96,7 +96,7 @@ components/kamera/    CaptureView, CropView, InviteGate (dəvət kodu, ADR-012)
 lib/
   db.ts               pg Pool, DATABASE_URL-dən (S1a lokal, S1b Supabase — kod dəyişmir)
   design-tokens.ts   ../docs/DESIGN-TOKENS.json → CSS custom property (ADR-002, tək mənbə)
-  image.ts            kəs → (yalnız lazımdırsa) ≤1600px kiçilt — sıra sabitdir
+  image.ts            kəs + ≤1600px bir addımda (createImageBitmap / drawImage) — aralıq tamölçülü canvas yox
   prompt.ts            ../prompts/solve/{core,math}.md-dən System/User oxuyur (eval ilə TƏK MƏNBƏ)
   llm.ts / cost.ts     Gemini (OpenAI-uyğun) çağırışı, xərc hesablaması
   verify/               schema.ts (ajv), answer.ts (mathjs, ADR-012), leak.ts — scripts/lib portu

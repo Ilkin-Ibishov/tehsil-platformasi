@@ -2,7 +2,9 @@
 // şəkillərlə ölçülüb (bax docs/PHASE-1.md → S2). İki qayda buradan gəlir:
 //   1. Kəsmə faiz-əsaslıdır (0..1, şəklin təbii ölçüsünə nisbətən) — CSS piksel/mənbə
 //      piksel qarışıqlığı struktur olaraq mümkün deyil, miqyaslama unudula bilməz.
-//   2. Əvvəl kəs (tam həllediciliklə), SONRA ≤maxPx-ə kiçilt. Sıra dəyişməz.
+//   2. Çıxış ≤maxPx — kəs + kiçilt bir addımda (tamölçülü aralıq canvas YOX). Əvvəl
+//      tam kəs→sonra kiçilt telefonlarda 4000×3000 üçün ~4s divar yaradırdı; bir
+//      drawImage / createImageBitmap eyni həllediciliyə ~1s ətrafı düşür.
 
 export type CropRectPct = { x: number; y: number; w: number; h: number }; // 0..1, şəklin təbii ölçüsünə nisbətən
 
@@ -22,35 +24,50 @@ export async function cropAndResize(
 ): Promise<{ blob: Blob; width: number; height: number }> {
   const sx = Math.round(cropPct.x * naturalWidth);
   const sy = Math.round(cropPct.y * naturalHeight);
-  const sw = Math.round(cropPct.w * naturalWidth);
-  const sh = Math.round(cropPct.h * naturalHeight);
+  const sw = Math.max(1, Math.round(cropPct.w * naturalWidth));
+  const sh = Math.max(1, Math.round(cropPct.h * naturalHeight));
 
-  // 1) KƏS — tam mənbə həllediciliyi ilə, kiçiltmə YOX.
-  const cropCanvas = document.createElement("canvas");
-  cropCanvas.width = sw;
-  cropCanvas.height = sh;
-  const cropCtx = cropCanvas.getContext("2d");
-  if (!cropCtx) throw new Error("2d context alınmadı");
-  cropCtx.drawImage(source, sx, sy, sw, sh, 0, 0, sw, sh);
-
-  // 2) SONRA kiçilt — yalnız uzun tərəf maxPx-i keçirsə.
   const longestSide = Math.max(sw, sh);
   const scale = longestSide > maxPx ? maxPx / longestSide : 1;
   const outW = Math.max(1, Math.round(sw * scale));
   const outH = Math.max(1, Math.round(sh * scale));
 
-  let finalCanvas = cropCanvas;
-  if (scale < 1) {
-    const resized = document.createElement("canvas");
-    resized.width = outW;
-    resized.height = outH;
-    const rctx = resized.getContext("2d");
-    if (!rctx) throw new Error("2d context alınmadı");
-    // Brauzer defoltu "low"-dur — 3000px→1600px kimi bir addımlıq kiçiltmədə çap mətnində
-    // alias/moiré yaradır (HANDOFF 24). Bu, birbaşa OCR dəqiqliyinə təsir edir.
-    rctx.imageSmoothingQuality = "high";
-    rctx.drawImage(cropCanvas, 0, 0, outW, outH);
-    finalCanvas = resized;
+  const finalCanvas = document.createElement("canvas");
+  finalCanvas.width = outW;
+  finalCanvas.height = outH;
+  const ctx = finalCanvas.getContext("2d");
+  if (!ctx) throw new Error("2d context alınmadı");
+
+  // createImageBitmap crop+resize bir addımda (tez-tez GPU); uğursuz olsa drawImage.
+  let drew = false;
+  if (typeof createImageBitmap === "function") {
+    try {
+      const opts: ImageBitmapOptions = { resizeQuality: "high" };
+      if (scale < 1) {
+        opts.resizeWidth = outW;
+        opts.resizeHeight = outH;
+      }
+      const bitmap = await createImageBitmap(
+        source as ImageBitmapSource,
+        sx,
+        sy,
+        sw,
+        sh,
+        opts
+      );
+      ctx.drawImage(bitmap, 0, 0, outW, outH);
+      bitmap.close();
+      drew = true;
+    } catch {
+      // Safari / köhnə mühit — aşağıdakı drawImage fallback.
+    }
+  }
+  if (!drew) {
+    // Brauzer defoltu "low"-dur — 3000px→1600px bir addımda çap mətnində alias/moiré
+    // riski (HANDOFF 24). High smoothing + birbaşa mənbədən çıxış ölçüsünə çəkmə.
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(source, sx, sy, sw, sh, 0, 0, outW, outH);
   }
 
   if (grayscale) {
@@ -67,8 +84,10 @@ export async function cropAndResize(
     gctx.putImageData(imgData, 0, 0);
   }
 
-  const blob = await new Promise<Blob | null>((resolve) => finalCanvas.toBlob(resolve, "image/jpeg", quality));
+  const blob = await new Promise<Blob | null>((resolve) =>
+    finalCanvas.toBlob(resolve, "image/jpeg", quality)
+  );
   if (!blob) throw new Error("JPEG encode alınmadı");
 
-  return { blob, width: finalCanvas.width, height: finalCanvas.height };
+  return { blob, width: outW, height: outH };
 }

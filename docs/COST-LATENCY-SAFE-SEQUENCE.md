@@ -50,7 +50,7 @@ həmişə **HTTP/klient wall** nəzərdə tutulurdu — AI deyil.
 |---|---|---|
 | `photo_taken` → `crop.screen_opened` | **0.08** | Crop “gec açılır” hissi telemetriyada **yoxdur** |
 | Crop düzəlişi | ~18 | İstifadəçi |
-| `crop.confirmed` → `solve.requested` | **~4.1** | Telefonda **ikinci encode** (kəsik artıq yazılıb; sonra raw `cropAndResize`) |
+| `crop.confirmed` → `solve.requested` | **~4.1** (köhnə) | Əvvəl: ikinci raw encode. İndi: raw prefetch + settle-only; `encode_ms` = kəsik-only. Biraddımlı kəs+kiçilt sonrası gözləntilən ~0.8–1.5s (telefon 12MP) |
 | `solve.requested` → `transcript.shown` | **~9.9** | Şəbəkə + server; LLM yalnız **1.93 san** (`ocr_captures`) |
 | Mətn oxuma | ~32 | İstifadəçi |
 | `transcript.confirmed` → `solve.response` | **~0** | Fon `/finish` artıq bitmişdi |
@@ -204,12 +204,9 @@ giriş qiyməti ödənilir. `normalizeUsage` artıq keş sahələrini oxuyur; ke
 `writeOcrCapture`. Telefon cəhdində LLM ~2 san, `solve.requested`→`transcript.shown`
 ~6–10 san → fərqin böyük hissəsi şəbəkə + Storage/DB + cold start ola bilər.
 
-**B — Klient.** `CropView.confirm`: `crop.confirmed` hadisəsindən **sonra** hələ raw
-kadr üçün ikinci `cropAndResize` (~4 san ölçülüb), **sonra** `solve.requested`.
-Şagird “Təsdiqlə” basıb spinner görür; AI hələ başlamayıb.
-
-Əlavə: crop ekranı açılarkən tam kadr `toBlob` (preview). Shutter→crop açılışı
-telefonda ~80 ms idi — əsas ağrı burası deyil; ağrı **Təsdiqlə-dən sonradır**.
+**B — Klient.** Əvvəl: confirm-də kəsik + raw ardıcıl (~4–8s). İndi: raw mount
+prefetch + confirm settle-only; `cropAndResize` bir addımda kəs+≤maxPx (tamölçülü
+aralıq canvas yox); preview eyni raw JPEG-dən. `encode_ms` = kəsik wall.
 
 **Dəyişiklik səthi.**
 

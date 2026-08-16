@@ -103,11 +103,13 @@ capture.cancelled              props: {stage}                  ← tərk etmə
 crop.screen_opened             props: {default_box_ratio}
 crop.adjusted                  props: {adjust_count}           ← S3: neçə dəfə düzəltdi
 crop.confirmed                 props: {crop_ratio, px_w, px_h, encode_ms}
-                               ← encode_ms: kəsik+raw JPEG (CropView.confirm wall)
+                               ← encode_ms: YALNIZ kəsik JPEG wall (CropView.confirm →
+                                 cropAndResize). Raw ADR-024 mount-da prefetch / best-effort —
+                                 encode_ms-ə DAXİL DEYİL (HANDOFF 160+).
 crop.cancelled                                                  ← tərk etmə
 
 solve.requested                props: {attempt_id, image_bytes, encode_ms}
-                               ← encode_ms: CropView-dən (crop.confirmed ilə eyni)
+                               ← encode_ms: CropView-dən (crop.confirmed ilə eyni; crop-only)
 solve.waiting_abandoned        props: {waited_ms}              ← S7, KRİTİK: 16.8 san gözləmədə çıxdı
 solve.response                 props: {status, ocr_confidence, latency_ms, match_path,
                                        cost_usd, tokens_in, tokens_out, step_count,

@@ -41,9 +41,12 @@ export function CropView({
   const rawPrefetchRef = useRef<Promise<Blob | null> | null>(null);
 
   useEffect(() => {
-    canvas.toBlob((blob) => {
-      if (blob) setImgUrl(URL.createObjectURL(blob));
-    }, "image/jpeg", 0.92);
+    // Bir ≤MAX_PX JPEG: həm ADR-024 raw, həm preview. Tamölçülü toBlob (əvvəl q=0.92)
+    // + ayrı raw encode əvəzinə — qalereya 12MP-də iki dəfə encode edilməsin.
+    // Confirm `!imgUrl` ilə bağlıdır → prefetch bitməmiş Təsdiqlə yoxdur; beləcə
+    // kəsik encode raw ilə main-thread-də toqquşmur (encode_ms şişmir).
+    let previewUrl: string | null = null;
+    let cancelled = false;
     rawPrefetchRef.current = cropAndResize(
       canvas,
       canvas.width,
@@ -51,18 +54,26 @@ export function CropView({
       { x: 0, y: 0, w: 1, h: 1 },
       MAX_PX
     )
-      .then((r) => r.blob)
+      .then((r) => {
+        const url = URL.createObjectURL(r.blob);
+        if (cancelled) {
+          URL.revokeObjectURL(url);
+          return r.blob;
+        }
+        previewUrl = url;
+        setImgUrl(url);
+        return r.blob;
+      })
       .catch((err) => {
         console.error("[CropView] raw prefetch xətası (best-effort):", err);
         return null;
       });
     trackEvent("crop.screen_opened", { default_box_ratio: initialBox.w / initialBox.h });
     return () => {
+      cancelled = true;
       rawPrefetchRef.current = null;
-      setImgUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setImgUrl(null);
     };
   }, [canvas, initialBox]);
 
@@ -168,28 +179,24 @@ export function CropView({
 
   async function confirm() {
     setBusy(true);
+    // Busy boyasını boyasın — sonra kəsik encode (encode_ms yalnız bunu ölçür).
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
     const encodeStarted = Date.now();
     try {
-      // COST-LATENCY-SAFE-SEQUENCE addım 3: yalnız kəsik encode kritik yolda.
-      // Raw prefetch (mount-da) adətən crop düzəlişi bitməmiş hazırdır — `rawPromise`
-      // page-ə verilmir ki, submit ~8s full-frame JPEG gözləməsin.
-      const rawPromise =
-        rawPrefetchRef.current ??
-        cropAndResize(canvas, canvas.width, canvas.height, { x: 0, y: 0, w: 1, h: 1 }, MAX_PX)
-          .then((r) => r.blob)
-          .catch((err) => {
-            console.error("[CropView] orijinal kadr encode xətası (best-effort, davam edilir):", err);
-            return null;
-          });
+      // COST-LATENCY-SAFE-SEQUENCE: kritik yol = yalnız kəsik JPEG.
+      // Raw mount-da prefetch; bitməyibsə null (ADR-024 best-effort) — confirm/submit gözləmir.
+      const rawPromise = rawPrefetchRef.current;
       const result = await cropAndResize(canvas, canvas.width, canvas.height, box, MAX_PX);
       const encodeMs = Date.now() - encodeStarted;
-      // Prefetch bitibsə microtask-də gəlir; yoxdursa null — submit bloklanmır.
-      const rawBlob = await Promise.race([
-        rawPromise,
-        new Promise<null>((resolve) => {
-          setTimeout(() => resolve(null), 0);
-        }),
-      ]);
+      let rawBlob: Blob | null = null;
+      if (rawPromise) {
+        rawBlob = await Promise.race([
+          rawPromise,
+          new Promise<null>((resolve) => {
+            setTimeout(() => resolve(null), 0);
+          }),
+        ]);
+      }
       trackEvent("crop.confirmed", {
         crop_ratio: Number((box.w / box.h).toFixed(3)),
         px_w: result.width,
