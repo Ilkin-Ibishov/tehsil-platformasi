@@ -1,5 +1,7 @@
 # Fizika həll promptları
 
-`ADR-026`: fənn qovluğu indi mövcuddur; məzmun Faza 1 riyaziyyat qapısından SONRA
-yazılır. Loader `prompts/solve/physics.md` tapmayanda `math.md`-ə düşür.
-`prompts/solve/physics/{TOPIC_CODE}.md` faylları hələ yoxdur — uydurma.
+`ADR-026` / E1.3: `prompts/solve/physics.md` fənn nümunəsi + 10 mövzu faylı
+(`MECH.*`, `THERMO.*`, `ELEC.*`, `OPT.REFRACTION`). Loader `physics.md` tapanda
+`math.md`-ə düşmür — `prompt.subject_fallback` yazılmır.
+`visual` nümunəsi E2.4 qapısından sonra əlavə olunur (`force_diagram` kind YOXDUR).
+

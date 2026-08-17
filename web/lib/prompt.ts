@@ -117,10 +117,12 @@ export function loadPromptTemplates(opts: LoadPromptOpts = {}): PromptLoadResult
 // Qat 1 (transkripsiya) şablonları — `loadPromptTemplates` ilə EYNİ çıxarma məntiqi, ayrı fayl.
 // `{{MATH_EXAMPLE}}` yer tutucusu BURADA YOXDUR: Qat 1 addım nümunəsi görmür (nümunəni görsə
 // həll etməyə başlayır — v2→v3 dərsi, "model qaydadan çox nümunəni təqlid edir").
-export function loadTranscribeTemplates(): { system: string; userTemplate: string } {
+export function loadTranscribeTemplates(opts: { subject?: string } = {}): { system: string; userTemplate: string } {
   const text = fs.readFileSync(TRANSCRIBE_PATH, "utf-8");
+  const branch =
+    opts.subject === "physics" ? extractBlockOptional(text, "Fizika şaxəsi") ?? "" : "";
   return {
-    system: extractBlock(text, "System", TRANSCRIBE_PATH),
+    system: extractBlock(text, "System", TRANSCRIBE_PATH).replace("{{SUBJECT_BRANCH}}", branch ? `${branch}\n` : ""),
     userTemplate: extractBlock(text, "User (dəyişənlərlə)", TRANSCRIBE_PATH),
   };
 }

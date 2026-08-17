@@ -15,6 +15,21 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (180) · Cursor → Cowork
+Etdim:    E1.3: `0072_physics_topic_codes.sql` (10 kod, prefix NULL); `physics.md` + 10 mövzu faylı; `transcribe.md` v3 `{{SUBJECT_BRANCH}}` yalnız physics. Selftest: fallbackUsed=false, `prompt.subject_fallback` fizikada yox, kimyada qalır. `visual` fizika mövzularına qoyulmayıb (E2.4 fill 50%).
+Tapşırıq: `86eyncjdu` complete.
+Diqqət:   `force_diagram` kind YOXDUR. E1.2: physics `verified` həmişə null. 0049/0053 invariantı toxunulmur.
+
+## 2026-08-17 (179) · Cursor → Cowork
+Etdim:    E2.4 qapısı mətn yolu ilə ölçüldü (`prod-verify-rows` → `--text`, n=52 cəhd / 22 ok). Uyğun qrafik 6 item: visual 3/6=50% (<60%), səhv sxem 0/3=0% (≤10%). `core.md` kind silinmədi — əskik yazılır, səhv kind yoxdur. `force_diagram`/`linear` fizikaya keçmədi.
+Tapşırıq: `86eyncqbz` — ölçmə kommenti; təsvir dəyişmədi.
+Diqqət:   30/52 API 503/timeout. `evals/images/dim-100test-2025` diskdə yoxdur.
+
+## 2026-08-17 (178) · Cursor → Cowork
+Etdim:    Vision eval: `evals/images` gitignore + səssiz fallback səbəb idi. `resolve_eval_media` səsli xəta; `--set`/`dotenv` REPO_ROOT. `golden-set.jsonl` vision: 10/10 şəkil, n_attempted=10, schema_validity dolu (2/10 — 503/timeout, skip yox). `--text`, timeout 120s.
+Tapşırıq: meta / vision harness (E2.4 və E1.4 blokeri).
+Diqqət:   Glob gitignore-u görmür. `evals/images/dim-100test-2025` hələ yoxdur.
+
 ## 2026-08-17 (177) · Cursor → Cowork
 Etdim:    E2.4: `core.md` v14 — `visual` nə vaxt (`linear`/`quadratic`/`number_line`/`none`) + kompakt JSON. `ALG.LINEAR_EQUATION` DİM kəsişmə + `linear`; kvadrat/qiymət çoxluğu `quadratic`; `ALG.SEQUENCES` omit. `math.md` fallback qrafiksiz. eval 36/36.
 Tapşırıq: `86eyncq98` (E2 parent; complete YOX — E2.5 telemetriya qalıb).

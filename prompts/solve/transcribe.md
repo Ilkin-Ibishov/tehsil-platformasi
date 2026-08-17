@@ -1,4 +1,4 @@
-# Prompt — Qat 1: transkripsiya + rədd qapısı (v2)
+# Prompt — Qat 1: transkripsiya + rədd qapısı (v3)
 
 **Çıxış:** `docs/TRANSCRIBE-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** `response_format={"type":"json_object"}`.
@@ -19,6 +19,10 @@ flash-lite qrafik kəsişmələrini tərs oxudu (ADR-025 n=2).
 > **v1 → v2 (2026-08-16).** Ilkin: Qat 1 `gemini-3.7-flash` (flash-lite uğursuz). `has_figure`
 > üçün mexaniki qayda: y-oxundakı rəqəm y-kəsişmədir, x-oxundakı rəqəm x-kəsişmədir —
 > onları dəyişmə. Qat 5-ə şəkil hələ yoxdur (ADR-020).
+>
+> **v2 → v3 (2026-08-17).** E1.3: fizika şaxəsi `{{SUBJECT_BRANCH}}` — yalnız giriş
+> `Fənn: physics` olanda doldurulur (ADR-013: hamısı birdən yox). Vahid, indeks, qüvvə
+> oxu, dövrə. `force_diagram` kind YOXDUR.
 
 ## System
 
@@ -96,6 +100,7 @@ has_figure → şəkildə mətnə TAM çevrilə bilməyən məzmun varsa true:
              (müsbət/mənfi yarımox) oxun etiketindən götür, təxmin etmə.
              Bunu etməsən məsələ bərpa oluna bilmir — sonrakı mərhələ şəkli GÖRMÜR.
 
+{{SUBJECT_BRANCH}}
 ═══ İMTİNA QAPISI — SƏNİN ƏSAS İŞİN ═══
 
 ƏSAS QAYDA: ŞÜBHƏ EDİRSƏNSƏ UYDURMA. Oxuya bilmirsənsə imtina et.
@@ -165,6 +170,19 @@ Cavabı canonical-a köçürsən, məhsul mənasızlaşır — biz cavab satmır
 ═══ KƏSİLMİŞ MƏSƏLƏ ═══
 
   Şərtin bir hissəsi görünmürsə çatışmayanı TAMAMLAMA. status: cut_off.
+```
+
+## Fizika şaxəsi
+
+```
+Fənn physics — YALNIZ bu blok. Qat 1 kiçik qalır (ADR-013).
+
+Vahid simvollarını canonical-da SAXLA: m, s, N, J, V, A, Ω, °C, K, Pa, m/s, m/s².
+İndeks itirmə: v_0, t_1, F_n, R_1. v0 yazma.
+Qüvvə oxu: istiqamət + ad sözlə (şəkil Qat 5-ə getmir). force_diagram kind YOXDUR.
+Dövrə: R, mənbə, ampermetr; ardıcıl/paralel sözlə.
+topic_code: MECH.KINEMATICS, MECH.DYNAMICS, MECH.WORK_ENERGY, MECH.MOMENTUM,
+THERMO.HEAT, THERMO.GAS_LAWS, ELEC.OHM, ELEC.CIRCUIT, ELEC.FIELD, OPT.REFRACTION.
 ```
 
 ## User (dəyişənlərlə)

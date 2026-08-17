@@ -3,7 +3,7 @@
 import { chdir } from "node:process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadPromptTemplates } from "./prompt.ts";
+import { loadPromptTemplates, loadTranscribeTemplates, subjectUsesMathFallback } from "./prompt.ts";
 
 chdir(path.join(fileURLToPath(new URL(".", import.meta.url)), ".."));
 
@@ -37,12 +37,29 @@ check("naməlum mövzu: fənn fallback", unknown.system.includes("Sahəsi 40"), 
 const traversal = loadPromptTemplates({ subject: "math", topicCode: "../core" });
 check("path traversal: ignore, fallback", traversal.system.includes("Sahəsi 40"), true);
 
-const physics = loadPromptTemplates({ subject: "physics", topicCode: "ARITH.ADDITION" });
+const physics = loadPromptTemplates({ subject: "physics", topicCode: "MECH.KINEMATICS" });
 check("mövcud fənn: fallbackUsed=false", qat5.fallbackUsed, false);
 check("mövcud fənn: requestedSubject=math", qat5.requestedSubject, "math");
-check("olmayan fənn: fallbackUsed=true", physics.fallbackUsed, true);
-check("olmayan fənn: requestedSubject=physics", physics.requestedSubject, "physics");
-check("physics qovluğunda mövzu yox: math.md fallback", physics.system.includes("Sahəsi 40"), true);
+check("physics.md: fallbackUsed=false", physics.fallbackUsed, false);
+check("physics.md: requestedSubject=physics", physics.requestedSubject, "physics");
+check("physics + KINEMATICS nümunə", physics.system.includes("MECH.KINEMATICS"), true);
+check("physics math fallback YOX", physics.system.includes("Sahəsi 40"), false);
+check("physics subject sahəsi", physics.system.includes('"subject": "physics"'), true);
+check("physics values vahidsiz", physics.system.includes('"16"'), true);
+
+const chem = loadPromptTemplates({ subject: "chemistry" });
+check("chemistry hələ fallbackUsed=true", chem.fallbackUsed, true);
+check("chemistry requestedSubject", chem.requestedSubject, "chemistry");
+check("subjectUsesMathFallback physics=false", subjectUsesMathFallback("physics"), false);
+check("subjectUsesMathFallback chemistry=true", subjectUsesMathFallback("chemistry"), true);
+
+const tMath = loadTranscribeTemplates({ subject: "math" });
+check("transcribe math: fizika şaxəsi yox", tMath.system.includes("v_0"), false);
+check("transcribe math: placeholder qalmır", tMath.system.includes("{{SUBJECT_BRANCH}}"), false);
+const tPhys = loadTranscribeTemplates({ subject: "physics" });
+check("transcribe physics: indeks qaydası", tPhys.system.includes("v_0"), true);
+check("transcribe physics: dövrə", tPhys.system.includes("ardıcıl/paralel"), true);
+check("transcribe physics: Qat 1 hələ kiçik", tPhys.system.length - tMath.system.length < 800, true);
 
 if (fails) {
   console.log(`\n${fails} uğursuz.`);

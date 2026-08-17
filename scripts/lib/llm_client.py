@@ -23,11 +23,15 @@ from typing import Optional
 import httpx
 from dotenv import load_dotenv
 
-load_dotenv()
+# cwd-dən asılı olmayaraq repo kökündəki .env — əks halda `scripts/`-dən işlədəndə
+# MODEL/API_KEY tapılmır və vision eval "skip" kimi görünür.
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(_REPO_ROOT / ".env")
 
 RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 MAX_ATTEMPTS = 3
-RETRY_BASE_DELAY_S = 1.0
+RETRY_BASE_DELAY_S = 4.0
+HTTP_TIMEOUT_S = 120.0
 
 
 class ConfigError(RuntimeError):
@@ -44,6 +48,7 @@ class LLMConfig:
     temperature: float = 0.2
     json_mode: bool = True
     image_max_px: int = 1600
+    force_text: bool = False
 
 
 def load_config():
@@ -161,11 +166,20 @@ def call_vision_llm(cfg, system_prompt, user_prompt, image_path=None):
     resp = None
     latency_ms = None
     attempts = 0
-    with httpx.Client(timeout=60.0) as client:
+    last_exc = None
+    with httpx.Client(timeout=HTTP_TIMEOUT_S) as client:
         for attempt in range(1, MAX_ATTEMPTS + 1):
             attempts = attempt
             started = time.perf_counter()
-            resp = client.post(url, headers=headers, json=payload)
+            try:
+                resp = client.post(url, headers=headers, json=payload)
+            except httpx.TimeoutException as exc:
+                latency_ms = (time.perf_counter() - started) * 1000
+                last_exc = exc
+                if attempt < MAX_ATTEMPTS:
+                    time.sleep(RETRY_BASE_DELAY_S * (2 ** (attempt - 1)))
+                    continue
+                raise
             latency_ms = (time.perf_counter() - started) * 1000
 
             if resp.status_code in RETRYABLE_STATUS_CODES and attempt < MAX_ATTEMPTS:
@@ -173,6 +187,8 @@ def call_vision_llm(cfg, system_prompt, user_prompt, image_path=None):
                 continue
             break
 
+    if resp is None:
+        raise last_exc or RuntimeError("LLM çağırışı cavabsız qaldı")
     resp.raise_for_status()
     body = resp.json()
     raw_text = body["choices"][0]["message"]["content"]

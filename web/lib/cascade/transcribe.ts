@@ -158,7 +158,7 @@ export async function transcribe(opts: {
   }
 
   // --- LLM. Sxem pozulsa BİR dəfə təkrar (monolit yolun eyni qaydası).
-  const { system, userTemplate } = loadTranscribeTemplates();
+  const { system, userTemplate } = loadTranscribeTemplates({ subject: opts.subject });
   const userPrompt = renderUserPrompt(userTemplate, opts.grade, opts.subject, opts.locale);
   const imageBase64 = opts.imageBytes.toString("base64");
   const model = activeTranscribeModel;

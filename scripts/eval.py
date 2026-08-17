@@ -25,7 +25,7 @@ for _stream in (sys.stdout, sys.stderr):
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from lib import leak, llm_client, prompt_loader, report, schema_check, steps_compare, verify
-from lib.pipelines import PIPELINES
+from lib.pipelines import PIPELINES, resolve_eval_media, eval_image_path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 RESULTS_DIR = REPO_ROOT / "evals" / "results"
@@ -42,7 +42,35 @@ def load_items(set_path):
     return items
 
 
-def run(pipeline_name, set_path, today, image_max_px=None):
+def resolve_set_path(set_path):
+    """`--set` cwd-yə nisbidir; tapılmasa repo kökündən yoxla (scripts/ cwd fərqi)."""
+    if set_path.exists():
+        return set_path.resolve()
+    alt = REPO_ROOT / set_path
+    if alt.exists():
+        return alt.resolve()
+    return set_path
+
+
+def preflight_images(items, force_text):
+    """Şəkil sahəsi olan itemlər üçün disk yoxlaması. 0 tapılsa eval-ı skip etmə — xəta ilə çıx."""
+    if force_text:
+        return 0, 0, []
+    listed = 0
+    missing = []
+    for item in items:
+        rel = item.get("image")
+        if not rel:
+            continue
+        listed += 1
+        path = eval_image_path(rel)
+        if path is None or not path.exists():
+            missing.append(rel)
+    return listed, listed - len(missing), missing
+
+
+def run(pipeline_name, set_path, today, image_max_px=None, force_text=False, limit=None):
+    set_path = resolve_set_path(set_path)
     if not set_path.exists():
         print(f"Xəta: {set_path} tapılmadı.", file=sys.stderr)
         return 1
@@ -56,6 +84,23 @@ def run(pipeline_name, set_path, today, image_max_px=None):
             "--set evals/fixtures.jsonl"
         )
         return 0
+
+    if limit is not None:
+        items = items[:limit]
+
+    listed, found, missing = preflight_images(items, force_text)
+    if listed:
+        print(f"Vision: {found}/{listed} şəkil tapıldı ({REPO_ROOT / 'evals' / 'images'})")
+        if missing:
+            print(f"  çatışmayan: {', '.join(missing[:5])}{'…' if len(missing) > 5 else ''}", file=sys.stderr)
+        if found == 0:
+            print(
+                "Xəta: bu dəst şəkil istəyir, amma heç biri diskdə yoxdur. "
+                "`evals/images/` .gitignore-dadır — Glob/indeks onu görmür; pathlib ilə yoxla. "
+                "Mətn yolu üçün --text və canonical lazımdır.",
+                file=sys.stderr,
+            )
+            return 1
 
     try:
         cfg = llm_client.load_config()
@@ -71,6 +116,7 @@ def run(pipeline_name, set_path, today, image_max_px=None):
 
     if image_max_px is not None:
         cfg.image_max_px = image_max_px
+    cfg.force_text = force_text
 
     pipeline_fn = PIPELINES[pipeline_name]
 
@@ -158,6 +204,69 @@ def _selftest_cases():
     return len(cases), failures
 
 
+def _selftest_image_resolve():
+    """Vision skip-inin kökü: gitignore + səssiz fallback. Şəkil varsa path işləməli,
+    yoxdursa error (canonical-a keçmə)."""
+    failures = []
+    item = {"id": "r01", "image": "images/photo_2026-08-05_22-15-36.jpg"}
+    path, text, err = resolve_eval_media(item)
+    ok = err is None and path is not None and path.exists() and text is None
+    print(f"[{'PASS' if ok else 'FAIL'}] vision_image_exists  path={path} err={err}")
+    if not ok:
+        failures.append("vision_image_exists")
+
+    missing_item = {"id": "ghost", "image": "images/does-not-exist.jpg", "canonical": "x=1"}
+    path2, text2, err2 = resolve_eval_media(missing_item)
+    ok2 = err2 is not None and path2 is None and text2 is None
+    print(f"[{'PASS' if ok2 else 'FAIL'}] missing_image_is_error  err={err2}")
+    if not ok2:
+        failures.append("missing_image_is_error")
+
+    text_item = {"id": "t1", "image": "images/does-not-exist.jpg", "canonical": "3x=12"}
+    path3, text3, err3 = resolve_eval_media(text_item, force_text=True)
+    ok3 = err3 is None and path3 is None and text3 == "3x=12"
+    print(f"[{'PASS' if ok3 else 'FAIL'}] force_text_uses_canonical  text={text3}")
+    if not ok3:
+        failures.append("force_text_uses_canonical")
+
+    return failures
+
+
+def _selftest_physics_prompt():
+    """E1.3: physics.md + MECH.KINEMATICS nümunəsi math fallback deyil, sxem validdir."""
+    failures = []
+    system, _ = prompt_loader.load_prompt_templates(
+        subject="physics", topic_code="MECH.KINEMATICS"
+    )
+    ok = (
+        '"subject": "physics"' in system
+        and "MECH.KINEMATICS" in system
+        and "Sahəsi 40" not in system
+    )
+    print(f"[{'PASS' if ok else 'FAIL'}] physics_kinematics_example")
+    if not ok:
+        failures.append("physics_kinematics_example")
+        return failures
+    try:
+        example = prompt_loader.extract_example_json(system)
+    except (ValueError, json.JSONDecodeError) as exc:
+        print(f"[FAIL] physics_example_valid  {exc}")
+        failures.append("physics_example_valid")
+        return failures
+    schema_valid, schema_errors = schema_check.validate(example)
+    structural = steps_compare.check_structure(example.get("steps", [])) if schema_valid else None
+    ok_b = schema_valid and structural and structural["all_pass"] and example.get("subject") == "physics"
+    values = (example.get("final_answer") or {}).get("values") or []
+    unitless = all("m" not in str(v).lower() and "N" not in str(v) for v in values)
+    ok_b = ok_b and unitless
+    print(f"[{'PASS' if ok_b else 'FAIL'}] physics_example_valid  schema={schema_valid} structural={structural} values={values}")
+    if not ok_b:
+        if not schema_valid:
+            print(f"  schema_errors={schema_errors}")
+        failures.append("physics_example_valid")
+    return failures
+
+
 def _selftest_prompt_schema_invariants():
     """86eyhnv2r: prompt ↔ sxem invariantı, API çağırışı olmadan.
     İSTİQAMƏT BİRTƏRƏFLİDİR — sınarsa düzəldiləcək şey promptdur, STEP-SCHEMA.json və ya
@@ -208,8 +317,11 @@ def _selftest_prompt_schema_invariants():
 def selftest():
     n_cases, case_failures = _selftest_cases()
     invariant_failures = _selftest_prompt_schema_invariants()
-    failures = case_failures + invariant_failures
-    total = n_cases + 2  # 2 = prompt_enum_coverage + prompt_example_valid
+    image_failures = _selftest_image_resolve()
+    physics_failures = _selftest_physics_prompt()
+    failures = case_failures + invariant_failures + image_failures + physics_failures
+    extra = 2 + 3 + 2  # prompt invariants + image-resolve + physics
+    total = n_cases + extra
 
     if failures:
         print(f"\n⚠ Harness özü sınıqdır: {', '.join(failures)}. Qapı ölçmədən əvvəl bunu düzəlt.")
@@ -233,6 +345,11 @@ def main():
         "--image-max-px", dest="image_max_px", type=int, default=None,
         help="Şəkil kiçiltmə hədəfi (default: .env-dəki IMAGE_MAX_PX, ya da 1600). 800/1200/1600 müqayisəsi üçün."
     )
+    parser.add_argument(
+        "--text", action="store_true",
+        help="Şəkli ignore et, canonical mətn yolu (E2.4 visual ölçməsi). canonical məcburidir.",
+    )
+    parser.add_argument("--limit", type=int, default=None, help="Yalnız ilk N item (smoke).")
     args = parser.parse_args()
 
     if args.selftest:
@@ -243,7 +360,14 @@ def main():
         parser.error("--pipeline və --set birlikdə lazımdır (və ya --compare / --selftest istifadə et)")
 
     today = date.today().isoformat()
-    return run(args.pipeline, args.set_path, today, image_max_px=args.image_max_px)
+    return run(
+        args.pipeline,
+        args.set_path,
+        today,
+        image_max_px=args.image_max_px,
+        force_text=args.text,
+        limit=args.limit,
+    )
 
 
 if __name__ == "__main__":

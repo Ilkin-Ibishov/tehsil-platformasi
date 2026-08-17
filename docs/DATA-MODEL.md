@@ -219,7 +219,7 @@ OCR training korpusu VƏ forensika. Hər çəkiliş üçün **iki fayl** yazıl�
 datadır. Silinmə tarixi `ocr_captures.created_at + 90 gün`-dən hesablanır, bucket obyekti
 `storage_path` ilə 1-1 uyğundur. Bax `INVARIANTS.md` INV-09.
 
-## `public.topic_codes` / `public.error_codes` — taksonomiya (`0051`, `0058`, `0061`)
+## `public.topic_codes` / `public.error_codes` — taksonomiya (`0051`, `0058`, `0061`, `0072`)
 
 Kodların yeganə DB mənbəyi. FK YOXDUR (şagird axını qırılmasın) —
 `trg_register_topic_code`/`trg_register_error_code` naməlum kodu `active=false,
@@ -230,3 +230,6 @@ needs_review=true` ilə avtomatik qeydə alır, `v_taxonomy_review`-da görünü
   (tarixi `step_events` sətirləri qırılmasın).
 - **RLS hər ikisində AKTİVDİR** (`0061`): `app_runtime` üçün full policy (trigger-lər hər
   şagird sorğusunda bu cədvəllərə insert edir), `anon`/`authenticated` üçün heç bir policy.
+- Fizika ağacı (`0072`): `MECH.KINEMATICS/DYNAMICS/WORK_ENERGY/MOMENTUM`,
+  `THERMO.HEAT/GAS_LAWS`, `ELEC.OHM/CIRCUIT/FIELD`, `OPT.REFRACTION` —
+  `fingerprint_prefix` NULL, `bank_matchable=false` (0053 invariantı toxunulmur).

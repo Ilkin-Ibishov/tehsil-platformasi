@@ -252,14 +252,35 @@ const physicsLogged = await runCascade([answering], {
     physicsEvents.push(name);
   },
 });
-check("runCascade: physics fallback hadisəsi", physicsEvents, ["prompt.subject_fallback"]);
-check("runCascade: physics qeyri-strict həll verir", physicsLogged.solution?.layer, "bank_fingerprint");
+check("runCascade: physics fallback hadisəsi YOX", physicsEvents, []);
+check("runCascade: physics həll verir", physicsLogged.solution?.layer, "bank_fingerprint");
 
 try {
   await runCascade([answering], { ...physicsCtx, strictSubject: true });
-  check("runCascade: strict physics throw", "no-throw", "throw");
+  check("runCascade: strict physics throw YOX", "no-throw", "no-throw");
 } catch (err) {
-  check("runCascade: strict physics UnsupportedSubjectError", err instanceof UnsupportedSubjectError, true);
+  check("runCascade: strict physics throw YOX", err instanceof UnsupportedSubjectError ? "throw" : String(err), "no-throw");
+}
+
+const chemCtx: CascadeContext = {
+  ...ctx,
+  transcript: { ...ctx.transcript, subject: "chemistry" },
+  requestedSubject: "chemistry",
+};
+const chemEvents: string[] = [];
+await runCascade([answering], {
+  ...chemCtx,
+  logEvent: async (name) => {
+    chemEvents.push(name);
+  },
+});
+check("runCascade: chemistry fallback hadisəsi", chemEvents, ["prompt.subject_fallback"]);
+
+try {
+  await runCascade([answering], { ...chemCtx, strictSubject: true });
+  check("runCascade: strict chemistry throw", "no-throw", "throw");
+} catch (err) {
+  check("runCascade: strict chemistry UnsupportedSubjectError", err instanceof UnsupportedSubjectError, true);
 }
 
 console.log(fails === 0 ? "\nHAMISI KEÇDİ" : `\n${fails} TEST UĞURSUZ`);

@@ -1,5 +1,12 @@
 # LOG
 
+- 2026-08-17: HANDOFF 180 — E1.3 physics.md + 0072 (10 topic) + transcribe v3 şaxə.
+  Selftest: physics fallback yox; visual mövzu faylına qoyulmayıb (E2.4 fill 50%).
+  `86eyncjdu` complete. eval 41/41.
+- 2026-08-17: HANDOFF 179 — E2.4 qapı: 22 ok / 52; fill 3/6=50% (keçmədi), səhv sxem 0%.
+  Kind silinmədi. `86eyncqbz` komment. dim-100test şəkilləri diskdə yox.
+- 2026-08-17: HANDOFF 178 — vision eval işləyir: 10/10 şəkil, n_attempted=10, skip yox.
+  Kök: gitignore + səssiz fallback. 8/10 Gemini 503/timeout. `--text` + 120s timeout.
 - 2026-08-17: HANDOFF 177 — E2.4 prompt: `visual` nə vaxt; linear/quadratic nümunə; sequences omit; eval 36/36.
 - 2026-08-17: HANDOFF 176 — E2.3 Should-fix: WebView `r`, reuse visual backfill UPDATE, eval=prod strip, revealed graph; 36/36.
 - 2026-08-17: HANDOFF 175 — E2.3 SVG renderer + payload persist + strip unknown kind; eval 35/35.

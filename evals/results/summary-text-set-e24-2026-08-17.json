@@ -1,0 +1,410 @@
+{
+  "pipeline": "B",
+  "set": "C:\\Programming\\Tehsil-Platformasi\\evals\\text-set-e24.jsonl",
+  "date": "2026-08-17",
+  "prompt_version": "v14",
+  "metrics": {
+    "n_total": 52,
+    "n_attempted": 52,
+    "n_not_implemented": 0,
+    "schema_validity": {
+      "rate": 0.4230769230769231,
+      "matched": 22,
+      "n": 52
+    },
+    "final_answer_accuracy": {
+      "rate": 0.38461538461538464,
+      "matched": 20,
+      "n": 52
+    },
+    "leak_rate": {
+      "rate": 0.045454545454545456,
+      "matched": 1,
+      "n": 22
+    },
+    "verify_conflict": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 22
+    },
+    "verify_conflict_ids": [],
+    "choice_match_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "hallucination_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "false_refusal_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 22
+    },
+    "status_match_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "step_split_structural": {
+      "count_ok": {
+        "rate": 1.0,
+        "matched": 22,
+        "n": 22
+      },
+      "checks_present": {
+        "rate": 1.0,
+        "matched": 22,
+        "n": 22
+      },
+      "index_sequential": {
+        "rate": 1.0,
+        "matched": 22,
+        "n": 22
+      },
+      "ends_with_verification": {
+        "rate": 0.7727272727272727,
+        "matched": 17,
+        "n": 22
+      },
+      "error_codes_distinct": {
+        "rate": 1.0,
+        "matched": 22,
+        "n": 22
+      },
+      "all_pass": {
+        "rate": 0.7727272727272727,
+        "matched": 17,
+        "n": 22
+      }
+    },
+    "step_split_pedagogical": {
+      "rate": null,
+      "matched": 0,
+      "n": 0,
+      "note": "insan rəyi yoxdur — qapı natamam"
+    },
+    "avg_cost_usd": 0.0199915,
+    "avg_latency_ms": 14887.597400003207,
+    "gate_eligible": true,
+    "gate_pass": null,
+    "gate_status": "NATAMAM — insan rəyi yoxdur — qapı natamam (addım bölgüsünün pedaqoji hissəsi)"
+  },
+  "items": [
+    {
+      "id": "e999d2df-3be7-445a-8f4f-3c3ae20d02fe",
+      "final_answer_correct": true,
+      "model_values": [
+        "32"
+      ]
+    },
+    {
+      "id": "d0ba8d14-f254-48d8-ad67-a2e5d87f2598",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "4e5589ee-7334-4cf5-9422-f5119e2da030",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "7d80a1bc-39bc-4a6f-b5ea-0f61e98303d9",
+      "final_answer_correct": true,
+      "model_values": [
+        "\\sqrt{61}",
+        "sqrt(61)"
+      ]
+    },
+    {
+      "id": "68ab804a-a3ff-45ae-afee-4f4b1bdb0b19",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "66863437-16b3-4741-85b6-eeb6aeda9be0",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "77d8bf50-909e-47ea-b9b1-c3dc183846bb",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "d1079634-d809-4258-be20-fde13aa47935",
+      "final_answer_correct": true,
+      "model_values": [
+        "10"
+      ]
+    },
+    {
+      "id": "a3c86d24-b428-4a5e-805d-14b4f0d3225d",
+      "final_answer_correct": true,
+      "model_values": [
+        "2"
+      ]
+    },
+    {
+      "id": "f1989cff-c49a-4362-bf07-cb32dde53ff7",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "2ff4cf65-dcd8-42f5-b81b-9822a4c88315",
+      "final_answer_correct": true,
+      "model_values": [
+        "1282"
+      ]
+    },
+    {
+      "id": "0b823b00-82d4-40a2-9cca-64418d30a3e4",
+      "final_answer_correct": true,
+      "model_values": [
+        "0.8",
+        "0,8"
+      ]
+    },
+    {
+      "id": "40ecc0cc-6b71-4134-8174-7b4f4e16d03a",
+      "final_answer_correct": true,
+      "model_values": [
+        "5xy^3\\sqrt{3x}"
+      ]
+    },
+    {
+      "id": "762a075a-53b4-409d-988d-e0f67eae06c5",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "4abeb44d-69a7-4c4b-8f90-6ba5c01b5b6f",
+      "final_answer_correct": true,
+      "model_values": [
+        "\\frac{6-x}{x+3}",
+        "(6-x)/(x+3)"
+      ]
+    },
+    {
+      "id": "1ebccbb9-a042-431a-9b6b-9147f61faf04",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "1bdb3aa6-1817-4128-a6f9-4e099842f9e0",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "6e69f3dd-bd83-424d-b3a7-e49153328358",
+      "final_answer_correct": true,
+      "model_values": [
+        "80"
+      ]
+    },
+    {
+      "id": "aefea8f9-ef3b-4ad8-af2c-d0cf5818d967",
+      "final_answer_correct": true,
+      "model_values": [
+        "7"
+      ]
+    },
+    {
+      "id": "f62a3579-3f23-4d98-abfb-42486d0bf959",
+      "final_answer_correct": false,
+      "model_values": [
+        "[5; +\\infty)",
+        "[5; +\\infty]"
+      ]
+    },
+    {
+      "id": "bcd32cd6-9d79-42de-a171-c5d9245dc36a",
+      "final_answer_correct": true,
+      "model_values": [
+        "[5; +\\infty)",
+        "[5;+\\infty)"
+      ]
+    },
+    {
+      "id": "9e9b5bb1-536e-4364-bbb5-60187597bc36",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "5b8cac8a-b852-4422-8fab-c181c089f463",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "b8a25aff-c1d6-4152-a206-5e25b48c921b",
+      "final_answer_correct": false,
+      "model_values": [
+        "2/3(x-1)(x-3)",
+        "\\frac{2}{3}(x-1)(x-3)"
+      ]
+    },
+    {
+      "id": "551cf207-5ba9-43d3-8c49-d4967b5a82b9",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "7a0b0855-3578-4b01-b060-7f380f454af5",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "6ec88e97-00ad-4945-8976-739477a7aa2e",
+      "final_answer_correct": true,
+      "model_values": [
+        "83"
+      ]
+    },
+    {
+      "id": "77fb22ff-e843-46bf-91d2-89d42e31deda",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "44f1241e-0acc-4a39-96ff-f3886a8419c9",
+      "final_answer_correct": true,
+      "model_values": [
+        "(-14; 14)",
+        "(-14, 14)",
+        "-14 < a < 14"
+      ]
+    },
+    {
+      "id": "95c044f0-3b3f-4784-ad7f-f8e14bbbff3b",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "de65db00-7636-4b31-9be7-a755ec3b4ec0",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "458b9cd0-2885-47b4-8cf5-6ccf8d63b585",
+      "final_answer_correct": true,
+      "model_values": [
+        "-\\sqrt{3}x",
+        "-sqrt(3)x"
+      ]
+    },
+    {
+      "id": "4249c550-ba49-47e1-9a65-668426bbb293",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "ecd6c6c9-0371-4c49-8bc9-bedd29dc3d5e",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "37b129cd-8d7c-4e73-91e4-1f5308418103",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "306bc373-a105-45cb-8736-5054a9ec2791",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "e86e411f-6f60-429c-b600-afd84d27ed73",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "e1e02c33-c196-4e11-b9c3-1574d15b897b",
+      "final_answer_correct": true,
+      "model_values": [
+        "20"
+      ]
+    },
+    {
+      "id": "48f43b43-987f-4bc5-ad32-99bf1d1c4f52",
+      "final_answer_correct": true,
+      "model_values": [
+        "10"
+      ]
+    },
+    {
+      "id": "bb207130-6b1f-40be-b1c3-63dab6141a8f",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "4fdb6866-146d-4313-a238-d26ba598417f",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "2970ad8f-06bc-4623-b611-61efb4c390c6",
+      "final_answer_correct": true,
+      "model_values": [
+        "k>0, b<0"
+      ]
+    },
+    {
+      "id": "a03f46ad-75ee-4743-a4e2-8231494d95d8",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "c26b91ac-ca1d-4270-9c53-2ec7c9680dea",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "2df7ae67-3266-494f-a12e-d676e5711026",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "4a2fa001-76b9-4024-9869-396dddfd5028",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "ebc3ef01-874c-4d57-b7f2-f6360725527a",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "eec50e7d-eccf-4749-a3c5-de67df5340f3",
+      "final_answer_correct": true,
+      "model_values": [
+        "4/15"
+      ]
+    },
+    {
+      "id": "a1c1689d-a134-434d-8609-64b37d758350",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "7abbcfc3-2e46-44d9-9a43-6996c67395c1",
+      "final_answer_correct": false,
+      "model_values": null
+    },
+    {
+      "id": "7082409e-df0c-46ed-aaff-ba6ee242baca",
+      "final_answer_correct": true,
+      "model_values": [
+        "7"
+      ]
+    },
+    {
+      "id": "09c27b4c-b0e0-4956-b84a-0681263c2ff2",
+      "final_answer_correct": true,
+      "model_values": [
+        "7"
+      ]
+    }
+  ]
+}
