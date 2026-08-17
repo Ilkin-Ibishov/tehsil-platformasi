@@ -32,6 +32,7 @@ import { makeTemplateLayer } from "./template";
 import { makeTextSolveLayer } from "./solve-text";
 import type { CascadeContext, LayerSolution, SolveLayer } from "./types";
 import { SoakTransportError } from "../soak/adapter";
+import { subjectUsesMathFallback, UnsupportedSubjectError } from "../prompt";
 
 export function buildLayers(pool: Pool): SolveLayer[] {
   return [
@@ -52,6 +53,17 @@ export type CascadeRun = {
 
 export async function runCascade(layers: SolveLayer[], ctx: CascadeContext): Promise<CascadeRun> {
   const declinedLayers: string[] = [];
+  const requested = ctx.transcript.subject;
+  if (subjectUsesMathFallback(requested)) {
+    await ctx.logEvent?.("prompt.subject_fallback", {
+      requested_subject: requested,
+      used_subject: "math",
+    });
+    if (ctx.strictSubject) {
+      throw new UnsupportedSubjectError(requested);
+    }
+  }
+
   // Soak ChatGPT ölçür — bank/şablon Gemini keşini Qat 5-ə buraxmasın (ADR-029).
   const queue = ctx.useSoakAdapter ? layers.filter((layer) => layer.id === "llm_text") : layers;
 
@@ -62,6 +74,7 @@ export async function runCascade(layers: SolveLayer[], ctx: CascadeContext): Pro
       solution = await layer.run(ctx);
     } catch (err) {
       if (err instanceof SoakTransportError) throw err;
+      if (err instanceof UnsupportedSubjectError) throw err;
       // Bir qatın XƏTASI kaskadı dayandırmır — növbəti qat cəhd edilir. Səbəb: Qat 2-nin DB
       // sorğusu qırılsa (grant regresiyası, gate-78/T1 kimi) şagird həll ALMALIDIR, sadəcə
       // bahalı yolla. Xəta LOGA düşür ki, səssiz deqradasiya olmasın.

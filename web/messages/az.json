@@ -39,6 +39,8 @@
     "doneHome": "Ana ekrana qayıt",
     "refusedTitle": "Bu şəkli oxuya bilmədim",
     "refusedBody": "Kəsmə çərçivəsini dəyişib yenidən sına.",
+    "refusedUnsupportedTitle": "Bu fənn hələ dəstəklənmir",
+    "refusedUnsupportedBody": "Riyaziyyat şəklini çək. Fizika və kimya tezliklə gələcək.",
     "refusedRetake": "Yenidən kəs",
     "candidatesTitle": "Hansını həll edim?",
     "candidatesNoneOfThese": "heç biri — yenidən kəs",

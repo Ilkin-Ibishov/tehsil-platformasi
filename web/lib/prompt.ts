@@ -57,11 +57,36 @@ function stripImageRules(system: string): string {
   return system.replace(/\n═══ ŞƏKİL GİRİŞİ[\s\S]*?(?=\n═══ MƏZMUN QAYDALARI)/, "\n");
 }
 
-export function loadPromptTemplates(opts: LoadPromptOpts = {}): { system: string; userTemplate: string } {
+export type PromptLoadResult = {
+  system: string;
+  userTemplate: string;
+  fallbackUsed: boolean;
+  requestedSubject: string;
+};
+
+export class UnsupportedSubjectError extends Error {
+  readonly requestedSubject: string;
+  constructor(requestedSubject: string) {
+    super(`unsupported subject: ${requestedSubject}`);
+    this.name = "UnsupportedSubjectError";
+    this.requestedSubject = requestedSubject;
+  }
+}
+
+export function subjectUsesMathFallback(subject?: string): boolean {
+  const requested = subject?.trim() || "math";
+  const folder = subjectFolder(requested);
+  if (folder === "math") return false;
+  return readOptional(path.join(PROMPTS_DIR, `${folder}.md`)) === null;
+}
+
+export function loadPromptTemplates(opts: LoadPromptOpts = {}): PromptLoadResult {
   const coreText = fs.readFileSync(CORE_PATH, "utf-8");
+  const requestedSubject = opts.subject?.trim() || "math";
   const folder = subjectFolder(opts.subject);
   const subjectPath = path.join(PROMPTS_DIR, `${folder}.md`);
   const subjectText = readOptional(subjectPath);
+  const fallbackUsed = subjectText === null && folder !== "math";
   const exampleSource = subjectText === null ? MATH_PATH : subjectPath;
   const exampleText = subjectText ?? fs.readFileSync(MATH_PATH, "utf-8");
   let example = extractBlock(exampleText, "Nümunə", exampleSource);
@@ -86,7 +111,7 @@ export function loadPromptTemplates(opts: LoadPromptOpts = {}): { system: string
     system = stripImageRules(system);
   }
   const userTemplate = extractBlock(coreText, "User (dəyişənlərlə)", CORE_PATH);
-  return { system, userTemplate };
+  return { system, userTemplate, fallbackUsed, requestedSubject };
 }
 
 // Qat 1 (transkripsiya) şablonları — `loadPromptTemplates` ilə EYNİ çıxarma məntiqi, ayrı fayl.

@@ -718,10 +718,12 @@ export default function KameraPage() {
     return (
       <main style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 16, padding: "24px var(--page-pad-x)" }}>
         <h1 style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: "var(--hsize)", margin: 0 }}>
-          {t("refusedTitle")}
+          {refusalStatus === "unsupported" ? t("refusedUnsupportedTitle") : t("refusedTitle")}
         </h1>
         <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)", margin: 0 }}>
-          {refusalReason ?? t("refusedBody")}
+          {refusalStatus === "unsupported"
+            ? (refusalReason ?? t("refusedUnsupportedBody"))
+            : (refusalReason ?? t("refusedBody"))}
         </p>
         <button
           type="button"

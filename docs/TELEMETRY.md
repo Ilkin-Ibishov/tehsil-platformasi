@@ -128,6 +128,12 @@ solve.timeout                  props: {timeout_ms}             ← server yazır
                                                                    klient solve.failed görür, bura
                                                                    server-tərəfli SƏBƏB üçündür
 
+prompt.subject_fallback        props: {requested_subject, used_subject}
+                               ← E1.1 (86eyncj10): `prompts/solve/{subject}.md` yoxdur,
+                                 math.md nümunəsi yükləndi. INV-11: səssiz fallback YOX.
+                                 `app_config.prompt_strict_subject=1` olanda bu hadisədən
+                                 SONRA status=unsupported qayıdır, riyaziyyat həlli YOX.
+
 problem.expanded               props: {step_index}             ← HANDOFF 116: həll ekranında
                                                                    yığılmış sual mətni açıldı.
                                                                    Tezlik Qat 1 / transkripsiya

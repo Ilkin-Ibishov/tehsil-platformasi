@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID, createHash } from "node:crypto";
 import { pool } from "@/lib/db";
-import { loadPromptTemplates, renderUserPrompt } from "@/lib/prompt";
+import { loadPromptTemplates, renderUserPrompt, UnsupportedSubjectError } from "@/lib/prompt";
 import { callVisionLLM } from "@/lib/llm";
 import { computeCostUsd, sumCostUsd, billableOutputTokens, sumTokens } from "@/lib/cost";
 import { getActiveModel } from "@/lib/models";
@@ -400,13 +400,27 @@ export async function POST(req: NextRequest) {
       }).catch((err) => console.error("[/api/solve] capture/storage xətası (kaskad budağı):", err));
 
       // ── Qat 2..5 — şəkil ARTIQ YOXDUR, yalnız mətn ────────────────────────────────────
-      const { solution, declinedLayers } = await runCascade(buildLayers(pool), {
-        transcript: t1.transcript,
-        locale,
-        requestedGrade: grade,
-        requestedSubject: subject,
-        signal: controller.signal,
-      });
+      let solution;
+      let declinedLayers: string[];
+      try {
+        ({ solution, declinedLayers } = await runCascade(buildLayers(pool), {
+          transcript: t1.transcript,
+          locale,
+          requestedGrade: grade,
+          requestedSubject: subject,
+          signal: controller.signal,
+          strictSubject: await getBoolConfig(pool, "prompt_strict_subject", "PROMPT_STRICT_SUBJECT"),
+          logEvent: (name, props) => logEvent(deviceId, sessionId, name, props),
+        }));
+      } catch (err) {
+        if (err instanceof UnsupportedSubjectError) {
+          return NextResponse.json(
+            { schema_version: 1, status: "unsupported", reason: "Bu fənn hələ dəstəklənmir." },
+            { status: 200 }
+          );
+        }
+        throw err;
+      }
 
       if (!solution) {
         await logEvent(deviceId, sessionId, "solve.cascade", {
@@ -501,7 +515,20 @@ export async function POST(req: NextRequest) {
   }
 
   // 3) Prompt — TƏK MƏNBƏ prompts/solve-step.md-dən (ADR-012).
-  const { system, userTemplate } = loadPromptTemplates();
+  const loaded = loadPromptTemplates({ subject });
+  if (loaded.fallbackUsed) {
+    await logEvent(deviceId, sessionId, "prompt.subject_fallback", {
+      requested_subject: loaded.requestedSubject,
+      used_subject: "math",
+    });
+    if (await getBoolConfig(pool, "prompt_strict_subject", "PROMPT_STRICT_SUBJECT")) {
+      return NextResponse.json(
+        { schema_version: 1, status: "unsupported", reason: "Bu fənn hələ dəstəklənmir." },
+        { status: 200 }
+      );
+    }
+  }
+  const { system, userTemplate } = loaded;
   let userPrompt = renderUserPrompt(userTemplate, grade, subject, locale);
   if (typeof selectedLabel === "string" && selectedLabel) {
     userPrompt += `\n\nYalnız "${selectedLabel}" etiketli/nömrəli məsələni həll et, kadrdakı digərlərini görməzdən gəl.`;
@@ -638,7 +665,11 @@ export async function POST(req: NextRequest) {
     costUsd: computeCostUsd(usage, usedModel),
   }).catch((err) => console.error("[/api/solve] capture/storage xətası (monolit budaq):", err));
 
-  const { verified, reason: verificationReason } = verifyFinalAnswer(parsed.canonical, finalAnswer.values);
+  const { verified, reason: verificationReason, method: verificationMethod } = verifyFinalAnswer(
+    parsed.canonical,
+    finalAnswer.values,
+    parsed.subject ?? subject,
+  );
   const leaked = detectLeak(parsed.steps ?? [], finalAnswer.values);
 
   // Server qaydası 1 (PHASE-1): verified=false göstərilmir. AMMA `verified` üç haldır
@@ -654,12 +685,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // verified === true → sympy təsdiqlədi. verified === null → yoxlanıla bilmədi, model
+  // verified === true → mathjs təsdiqlədi. verified === null → yoxlanıla bilmədi, model
   // çıxışına etibar edilir (STEP-SCHEMA verification.method="none" məhz bunun üçündür).
-  const verificationMethod = verified === true ? "sympy" : "none";
-  // HANDOFF (68) cədvəli: capture + sympy təsdiqi → auto_verified (bankda görünür),
-  // capture + təsdiqsiz → draft (görünmür, yalnız çəkən şagird görür — client tərəfi
-  // ayrıca sorğu ilə deyil, elə bu cavabın özü ilə göstərir, bank görünürlüyünə aid deyil).
   const reviewStatus = verified === true ? "auto_verified" : "draft";
   const costUsd = computeCostUsd(usage, usedModel);
   // Klient telemetriya üçün bu ID-ni artıq kamera ekranı açılanda yaradıb (lib/telemetry
@@ -834,7 +861,7 @@ export async function POST(req: NextRequest) {
       match_path: cacheHit ? "image_cache" : "llm",
       // S5 (86eymwgkv) — ƏVVƏLLƏR HƏMİŞƏ `verified: true` idi (`verificationMethod`='none'
       // olanda BELƏ) — klient sympy təsdiqi ilə "yoxlanılmadı" halını ayırd edə bilmirdi.
-      verification: { verified: verified === true, method: verificationMethod, reason: verificationReason, verified_at: new Date().toISOString() },
+      verification: { verified, method: verificationMethod, reason: verificationReason, verified_at: new Date().toISOString() },
       meta: {
         latency_ms: Math.round(latencyMs),
         cost_usd: costUsd,

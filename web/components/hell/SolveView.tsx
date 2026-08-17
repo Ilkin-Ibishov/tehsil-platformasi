@@ -23,7 +23,7 @@ export type SolveResult = {
   // S5 (86eymwgkv) — sympy `equationCrossCheck` təsdiqləyə bilmədi (söz məsələsi, çoxdəyişənli
   // tənlik və s.). Bilinmirsə (köhnə klient axını, sahə göndərilmirsə) `undefined` — şagirdə
   // heç nə göstərilmir (defolt "sükut" halı, YALANDAN xəbərdarlıq etmə).
-  verified?: boolean;
+  verified?: boolean | null;
 };
 
 type FinalAnswer = { latex: string; values: string[]; choice?: string };
@@ -558,13 +558,9 @@ export function SolveView({
           </span>
           <span style={{ color: "var(--acc)", fontSize: 14 }}>✓</span>
         </div>
-        {solution.verified === false && (
-          // S5 (86eymwgkv) — `verification.verified` `false` (server `equationCrossCheck`
-          // sinifidir: `null`-u DA `false` kimi ötürür, sərt `false` DEYİL — bax
-          // `web/lib/cascade/persist.ts`/`route.ts`-in `verified: verified === true` sətri).
-          // Xəbərdarlıq YALNIZ göstərilir, cavabı GİZLƏTMİR — server qaydası 1 artıq QƏTİ
-          // ziddiyyəti (`verified===false`) əvvəlcədən rədd edib, bura çatan hər şey ya
-          // sympy-təsdiqli, ya "yoxlanıla bilmədi"dir.
+        {solution.verified !== true && solution.verified !== undefined && (
+          // S5 (86eymwgkv) — `null` = yoxlanılmadı nişanı; `false` semantik olaraq gizlətmədir
+          // və server onu bura çatdırmır. `undefined` = köhnə klient, nişan yox.
           <div style={{ margin: "0 var(--page-pad-x)", fontSize: 13, color: "var(--warn)" }}>
             {t("answer.unverified")}
           </div>

@@ -137,9 +137,13 @@ function hasUsableSteps(row: BankRow): row is BankRow & { steps: PublicStep[] } 
 //    oxuyan gələcək kod bankın 217 sualını səssizcə gizlədərdi.
 function bankVerification(row: BankRow): { verified: boolean; method: string } {
   const method = row.verification_method;
+  const mapped =
+    method === "sympy" || method === "mathjs_equation" ? "mathjs_equation"
+    : method === "mathjs_unit" || method === "human" || method === "none" ? method
+    : "none";
   return {
     verified: true,
-    method: method === "sympy" || method === "human" || method === "none" ? method : "none",
+    method: mapped,
   };
 }
 

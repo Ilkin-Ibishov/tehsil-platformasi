@@ -90,7 +90,8 @@
         "method": {
           "type": "string",
           "enum": [
-            "sympy",
+            "mathjs_equation",
+            "mathjs_unit",
             "human",
             "none"
           ]

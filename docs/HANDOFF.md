@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (171) · Cursor → Cowork
+Etdim:    Faza 3 ilk dilim — E1.2 `web/lib/verify/answer.ts` (çoxdəyişənli, söz/placeholder, inradius/kompleks/ehtimal null); `sympy`→`mathjs_*` + `0070`; E1.1 `loadPromptTemplates` fallback telemetriya + `prompt_strict_subject` (`0071`, `TELEMETRY.md`); baseline `evals/results/summary-golden-set-2026-08-17.json` (52 prod replay: 42.3% verified, 0 false).
+Tapşırıq: `86eyncj7k` + `86eyncj10`.
+Diqqət:   Vision golden-set eval lokalda işləmədi (`evals/images` yox). `schema_version` bump edilmədi. Topic fallback (ADR-030) toxunulmadı.
+
 ## 2026-08-17 (170) · Cursor → Cowork
 Etdim:    Telefon smoke: xam LaTeX UI. `formatMath` — ∠ ° ⊥ √(…) yunan/trig; `formatMathProse` izah/təsdiq/banner. Təsdiqdə «Düzdür» dəyişməyibsə orijinal canonical (fon `/finish`). Selftest 50/50.
 Tapşırıq: `86eykm8ja` (smoke tapıntısı; tam E2E açıq qalır).

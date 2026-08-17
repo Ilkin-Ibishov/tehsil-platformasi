@@ -10,6 +10,8 @@ import type { PublicStep, Transcript } from "@/lib/cascade/types";
 import { soakGate } from "@/lib/soak/gate";
 import { attemptKindFor, llmAbortMs, usesSoakAdapter, type SoakMode } from "@/lib/soak/mode";
 import { SoakTransportError } from "@/lib/soak/adapter";
+import { getBoolConfig } from "@/lib/app-config";
+import { UnsupportedSubjectError } from "@/lib/prompt";
 
 export const maxDuration = 180;
 export const dynamic = "force-dynamic";
@@ -246,6 +248,7 @@ async function runFinishCore(opts: {
   let solution;
   let declinedLayers: string[];
   try {
+    const strictSubject = await getBoolConfig(pool, "prompt_strict_subject", "PROMPT_STRICT_SUBJECT");
     ({ solution, declinedLayers } = await runCascade(buildLayers(pool), {
       transcript: opts.transcript,
       locale: opts.locale,
@@ -254,7 +257,18 @@ async function runFinishCore(opts: {
       signal: controller.signal,
       useSoakAdapter: usesSoakAdapter(opts.soakMode),
       onPublicStep: opts.onPublicStep,
+      strictSubject,
+      logEvent: (name, props) => logEvent(pool, opts.deviceId, opts.sessionId, name, props),
     }));
+  } catch (err) {
+    if (err instanceof UnsupportedSubjectError) {
+      return {
+        schema_version: 1,
+        status: "unsupported",
+        reason: "Bu fənn hələ dəstəklənmir.",
+      };
+    }
+    throw err;
   } finally {
     clearTimeout(timeoutId);
   }

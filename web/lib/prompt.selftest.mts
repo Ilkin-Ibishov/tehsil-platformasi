@@ -38,6 +38,10 @@ const traversal = loadPromptTemplates({ subject: "math", topicCode: "../core" })
 check("path traversal: ignore, fallback", traversal.system.includes("Sahəsi 40"), true);
 
 const physics = loadPromptTemplates({ subject: "physics", topicCode: "ARITH.ADDITION" });
+check("mövcud fənn: fallbackUsed=false", qat5.fallbackUsed, false);
+check("mövcud fənn: requestedSubject=math", qat5.requestedSubject, "math");
+check("olmayan fənn: fallbackUsed=true", physics.fallbackUsed, true);
+check("olmayan fənn: requestedSubject=physics", physics.requestedSubject, "physics");
 check("physics qovluğunda mövzu yox: math.md fallback", physics.system.includes("Sahəsi 40"), true);
 
 if (fails) {

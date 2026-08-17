@@ -1,5 +1,8 @@
 # LOG
 
+- 2026-08-17: Faza3 dilim0 — eval baseline 08-14 commit + summary-golden-set-2026-08-17 (52 prod verify replay; vision evals/images yox).
+- 2026-08-17: Faza3 E1.2 `86eyncj7k` — verify genişləndi (42.3% true, 0 false); mathjs method; 0070; 24 selftest.
+- 2026-08-17: Faza3 E1.1 `86eyncj10` — prompt.subject_fallback + prompt_strict_subject (0071); cascade/route UI.
 - 2026-08-17: HANDOFF 170 — UI LaTeX → test-toplusu simvolları (`∠` `°` `⊥` `√(…)`); təsdiq/izah `formatMathProse`.
 - 2026-08-17: HANDOFF 169 — ClickUp: S8+valideyn, oxunmadı UI, ARITHMETIC bağlandı; safe-pack `86eyna6ru`.
 - 2026-08-17: HANDOFF 168 — Vercel: `llm.ts` UTF-8; CI eslint purity/InviteGate/SolveView.
@@ -64,3 +67,13 @@
 - Yeni: INV-11 (status yalan danismir), CLAUDE.md ders 7, DATA-MODEL-e captures bucket + taksonomiya bolmeleri. Aciq qalan: 90 gunluk silme cron-u YOXDUR (INV-09), dizayndaki "Sekil telefonda qalir" metni yalandir.
 - Rebase: lokal main 14 commit geri idi (origin f36dcd6). Blok 103-113-un getirdikleri ile yeniden uzlasdirildi: n=99 eval (107), 0063 step_events, ADR-025/026.
 - 2026-08-15: Qerar (Ilkin) - hell ekraninda sualin metni gorunmelidir. Task HANDOFF blok 115-de (ClickUp rate-limit). Esas sebeb ADR-025: sehv transkripsiya yalniz confirm ekraninda tutula bilir; problem.expanded telemetriyasi Qat 1 keyfiyyetinin proxy siqnalidir.
+
+## 2026-08-17 - Cowork (ClickUp faza yenilenmesi)
+- Faza 2 listi yaradildi: S3 (soak axini avtomatlasdirmasi, urgent) + S4 (100+ soak analizi). S0-S2 artiq bagli.
+- Bagi: 86eykm8ja telefon kecidi (Ilkin el ile yoxladi), 86eymfg9z OpenCV (klient downscale ile evez olundu), 86eyhk10u 30 DIM sehifesi (n=99 dataset).
+- 86eymfgge (862 distraktor) Faza 4 - Sagird dalgasina kocuruldu; sagird deveti bu fazada deyil.
+- Faza 3 acildi (fenn + vizual + derslik): F1-F4 fenn genislenmesi, V1-V3 vizual izah (ADR-031 gozlenir), D1-D2 derslikler.
+
+- 2026-08-17: Faza 3 BA strukturu - E1 (fenn, 6 alt-task), E2 (vizual, 5 alt-task), E3 (derslik, 5 alt-task). Kohne duz siyahi silindi.
+- 2026-08-17: Kod auditi - prompt.ts subject fallback SESSIZ (physics.md yoxdur -> math numunesi); verify/answer.ts mathjs-dir, method='sympy' etiketi yalandir; verified===false hell GIZLEDIR (fizikada yanlis musbet riski). ADR-031 gozlenir.
+- 2026-08-17: E2.1 qerari - oz SVG generatoru (saf funksiya, klientde render). JSXGraph/Mafs alinmir (interaktivlik sahedan kenardir), serverde SVG gonderilmir (NDJSON yuku). Eyni modul serverde snapshot testi + E2.4 toplu baxis ucun. ADR-031 yazilacaq.

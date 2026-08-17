@@ -16,6 +16,7 @@ import { stripAccept, buildStepAnswerRows } from "./solve-text.ts";
 import { runCascade } from "./run.ts";
 import type { CascadeContext, LayerSolution, SolveLayer } from "./types.ts";
 import { SoakTransportError } from "../soak/adapter.ts";
+import { UnsupportedSubjectError } from "../prompt.ts";
 
 let fails = 0;
 
@@ -179,7 +180,7 @@ const ctx = {
 } satisfies CascadeContext;
 
 function fakeSolution(layer: LayerSolution["layer"]): LayerSolution {
-  return { layer, matchPath: "hash", questionId: "q-1", steps: [], verification: { verified: true, method: "sympy" }, costUsd: 0, latencyMs: 0, usage: null };
+  return { layer, matchPath: "hash", questionId: "q-1", steps: [], verification: { verified: true, method: "mathjs_equation" }, costUsd: 0, latencyMs: 0, usage: null };
 }
 
 const declining: SolveLayer = { id: "bank_hash", run: async () => null };
@@ -238,6 +239,28 @@ check("runCascade: soak yalnız llm_text (bank skip)", [soakSkipBank.solution?.l
   "llm_text",
   [],
 ]);
+
+const physicsCtx: CascadeContext = {
+  ...ctx,
+  transcript: { ...ctx.transcript, subject: "physics" },
+  requestedSubject: "physics",
+};
+const physicsEvents: string[] = [];
+const physicsLogged = await runCascade([answering], {
+  ...physicsCtx,
+  logEvent: async (name) => {
+    physicsEvents.push(name);
+  },
+});
+check("runCascade: physics fallback hadisəsi", physicsEvents, ["prompt.subject_fallback"]);
+check("runCascade: physics qeyri-strict həll verir", physicsLogged.solution?.layer, "bank_fingerprint");
+
+try {
+  await runCascade([answering], { ...physicsCtx, strictSubject: true });
+  check("runCascade: strict physics throw", "no-throw", "throw");
+} catch (err) {
+  check("runCascade: strict physics UnsupportedSubjectError", err instanceof UnsupportedSubjectError, true);
+}
 
 console.log(fails === 0 ? "\nHAMISI KEÇDİ" : `\n${fails} TEST UĞURSUZ`);
 process.exit(fails === 0 ? 0 : 1);

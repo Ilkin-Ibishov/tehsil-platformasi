@@ -5,6 +5,11 @@
 // sympy → mathjs: sympy.simplify tam simvolik idi, amma yekun yoxlama HƏMİŞƏ ədədidir
 // (residual.is_number → abs(complex(residual)) < 1e-6). Simvolu ədədi qiymətlə əvəz edib
 // ədədi hesablamaq eyni nəticəni verir — CAS lazım deyil (ADR-012, "Bilinən fərq" bölməsi).
+//
+// E1.2 (86eyncj7k): tək-dəyişənli tənlikdən əlavə (a) canonical-dakı məlum dəyişən
+// qiymətlərini yerinə qoyub çoxdəyişənlini tək-dəyişənliyə endirmək, (b) tənlik çıxmasa da
+// ədədi ifadini qiymətləndirmək. Yeni yollar YALNIZ `true`/`null` qaytarır — `false` gizlədir
+// və "yeni gizlətmə yoxdur" qəbul şərtini pozardı. Köhnə tək-dəyişənli yol hələ `false` verir.
 
 import { evaluate, subtract, abs as mAbs } from "mathjs";
 
@@ -15,9 +20,9 @@ const LATEX_SEGMENT_RE = /\$(.+?)\$/g;
 export const LATEX_FRAC_RE = /\\frac\{([^{}]*)\}\{([^{}]*)\}/g;
 export const LATEX_SQRT_RE = /\\sqrt\{([^{}]*)\}/g;
 
-// sympy-nin implicit-multiplication transformunun best-effort qarşılığı (ADR-012 "Bilinən fərq").
-// Yalnız RƏQƏM-əsaslı bitişikliyi həll edir (5x, 2(x+1), )x, )(  ) — hərf-hərf bitişikliyinə
-// toxunmur, çünki funksiya adları ilə (sqrt, log) qarışa bilər.
+export type VerificationReason = "no_equation_extracted" | "no_single_variable_equation" | null;
+export type VerificationMethod = "mathjs_equation" | "mathjs_unit" | "human" | "none";
+
 function insertImplicitMultiplication(text: string): string {
   let out = text;
   out = out.replace(/(\d)(?=[a-zA-Z(])/g, "$1*");
@@ -25,11 +30,18 @@ function insertImplicitMultiplication(text: string): string {
   return out;
 }
 
-// `log_b(x)` / `logb(x)` (ixtiyari əsas) → `log(x,b)` — mathjs-in `log(x, base)` sırasına uyğun.
-// Arqument daxilində mötərizələr iç-içə ola bilər (`log_2((x-1)/3)`), ona görə regex əvəzinə
-// scripts/lib/verify.py::_convert_log_base-un eyni balanslaşdırılmış mötərizə sayğacı işlədilir
-// (HANDOFF 37/38, c03 — bu, əvvəllər YALNIZ golden cavabda idi, indi şagird cavabında da işləyir,
-// SYSTEM-REVIEW §B1).
+function insertLetterTimes(text: string): string {
+  return text.replace(/[a-zA-Z]{2,}/g, (word) => {
+    if (KNOWN_NAMES.has(word.toLowerCase())) return word;
+    if (word.length === 2) return `${word[0]}*${word[1]}`;
+    return word;
+  });
+}
+
+function normalizeEq(raw: string): string {
+  return insertLetterTimes(normalize(raw));
+}
+
 const LOG_BASE_RE = /\blog_?(\d+)\(/g;
 
 function convertLogBase(text: string): string {
@@ -59,18 +71,7 @@ function convertLogBase(text: string): string {
 }
 
 function normalize(raw: string): string {
-  // HANDOFF 104 (2026-08-14, Ilkin-in əl testi): "Müsbət" DB-dəki accept dəyəri "müsbət"-ə
-  // BƏRABƏR SAYILMIRDI — sətir bərabərliyi HƏRF BÖYÜKLÜYÜNƏ HƏSSAS idi, ədədi-ekvivalent yol
-  // isə söz-cavabları (riyazi ifadə deyil) heç vaxt tuta bilmir. `toLocaleLowerCase("az")`
-  // (sadə `.toLowerCase()` YOX — JS-in defolt reyestri Azərbaycan/Türk "İ" hərfini "i̇" kimi
-  // (nöqtəli, iki simvol) çevirir, "I"-ni "i" yox "ı" olmalıdır) — Azərbaycan mətni üçün
-  // düzgün registr çevrilməsi.
   let text = raw.trim().toLocaleLowerCase("az");
-  // LaTeX-in açıq boşluq əmri (`\ `) əvvəlcə HƏQİQİ boşluğa çevrilir, SONRA bütün boşluqlar
-  // silinir — sympy/mathjs onlara həssas deyil, amma gizli-vurma qaydası (aşağıda) boşluq
-  // varlığından asılıdır; əvvəlcədən silmək "2x+1" ilə "2 x + 1"-i eyni nəticəyə gətirir
-  // (SYSTEM-REVIEW §B1). Sıra vacibdir: `\ ` əvvəl çevrilməlidir, əks halda strip onun
-  // boşluğunu aparıb tək "\" saxlayar.
   text = text.replace(/\\ /g, " ");
   text = text.replace(/\s+/g, "");
   text = text.replace(/−/g, "-");
@@ -83,6 +84,7 @@ function normalize(raw: string): string {
   text = text.replace(/\bln\(/g, "log(");
   text = convertLogBase(text);
   text = text.replace(/\\left|\\right/g, "");
+  text = text.replace(/\\text\{[^}]*\}/g, "");
   text = insertImplicitMultiplication(text.trim());
   return text.trim();
 }
@@ -119,14 +121,9 @@ function magnitude(x: unknown): number | null {
   }
 }
 
-function valueSatisfies(valueStr: string, lhs: string, rhs: string, symbol: string): boolean {
-  const value = evalNumeric(normalize(valueStr));
-  if (value === null) return false;
-  const lhsVal = evalNumeric(lhs, { [symbol]: value });
-  const rhsVal = evalNumeric(rhs, { [symbol]: value });
-  if (lhsVal === null || rhsVal === null) return false;
+function numbersClose(a: unknown, b: unknown): boolean {
   try {
-    const residual = subtract(lhsVal as never, rhsVal as never);
+    const residual = subtract(a as never, b as never);
     const mag = magnitude(residual);
     return mag !== null && mag < 1e-6;
   } catch {
@@ -134,61 +131,340 @@ function valueSatisfies(valueStr: string, lhs: string, rhs: string, symbol: stri
   }
 }
 
-function extractEquations(canonical: string): string[] {
+function valueSatisfies(
+  valueStr: string,
+  lhs: string,
+  rhs: string,
+  symbol: string,
+  extras: Record<string, unknown> = {},
+): boolean {
+  const value = evalNumeric(normalize(valueStr));
+  if (value === null) return false;
+  const scope = { ...extras, [symbol]: value };
+  const lhsVal = evalNumeric(lhs, scope);
+  const rhsVal = evalNumeric(rhs, scope);
+  if (lhsVal === null || rhsVal === null) return false;
+  return numbersClose(lhsVal, rhsVal);
+}
+
+function valuesMatchComputed(values: string[], computed: unknown): boolean {
+  return values.some((v) => {
+    const got = evalNumeric(normalize(v));
+    if (got === null) return false;
+    return numbersClose(got, computed);
+  });
+}
+
+function splitEquationChunks(text: string): string[] {
+  return text
+    .split(/\n|;/)
+    .flatMap((line) => line.split(/,(?=\s*[A-Za-z\\][^=,]{0,40}=)/))
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+// Köhnə çıxarma (E1.2-dən əvvəl): `$...$` varsa YALNIZ onlar, yoxdursa bütün canonical.
+// `verified=false` gizlətməsi YALNIZ bu yoldan gəlir — yeni əhatə gizlətmə əlavə etməsin.
+function extractEquationsLegacy(canonical: string): string[] {
   const segments = [...canonical.matchAll(LATEX_SEGMENT_RE)].map((m) => m[1]);
   const candidates = segments.length > 0 ? segments : [canonical];
   return candidates.filter((c) => c.includes("="));
 }
 
+function extractEquationStrings(canonical: string): string[] {
+  const latex = [...canonical.matchAll(LATEX_SEGMENT_RE)].map((m) => m[1]);
+  const withoutLatex = canonical.replace(LATEX_SEGMENT_RE, "\n");
+  const chunks: string[] = [];
+  for (const piece of [...latex, withoutLatex]) {
+    for (const part of splitEquationChunks(piece)) {
+      if (part.includes("=") || part.includes("?")) chunks.push(part);
+    }
+  }
+  return [...new Set(chunks)];
+}
+
+function clipProse(text: string): string {
+  const cut = text.search(/\s+[A-Za-zƏəIıÖöÜüĞğÇçŞş]{4,}/);
+  return (cut === -1 ? text : text.slice(0, cut)).trim();
+}
+
 function parseEquationSides(eqStr: string): { lhs: string; rhs: string } | null {
   const idx = eqStr.indexOf("=");
   if (idx === -1) return null;
-  const lhs = normalize(eqStr.slice(0, idx));
-  const rhs = normalize(eqStr.slice(idx + 1));
+  const lhs = normalizeEq(clipProse(eqStr.slice(0, idx)));
+  let rhsRaw = eqStr.slice(idx + 1);
+  const q = rhsRaw.indexOf("?");
+  if (q !== -1) rhsRaw = rhsRaw.slice(0, q);
+  const rhs = normalizeEq(clipProse(rhsRaw));
   return { lhs, rhs };
 }
 
-// S5 (86eymwgkv) — `null` niyə qaytarıldığını izah edən kod. `question_translations.
-// verification_reason`-a yazılır ki, "yoxlanıla bilmədi" statistikası SƏBƏBLƏ ölçülə bilsin
-// (məs. "çoxu söz məsələsidir" vs "parser boşluqdur" fərqli hərəkət tələb edir).
-export type VerificationReason = "no_equation_extracted" | "no_single_variable_equation" | null;
+type ParsedEq = { lhs: string; rhs: string; symbols: Set<string> };
+
+function parseAllEquations(canonical: string): ParsedEq[] {
+  const out: ParsedEq[] = [];
+  for (const eqStr of extractEquationStrings(canonical)) {
+    const sides = parseEquationSides(eqStr);
+    if (!sides) continue;
+    const symbols = new Set([...freeSymbols(sides.lhs), ...freeSymbols(sides.rhs)]);
+    out.push({ ...sides, symbols });
+  }
+  return out;
+}
+
+const POINT_RE =
+  /(?:^|[^A-Za-z])[A-Za-z]\s*(?:\\left)?\s*\(\s*([^;,()]+)\s*[;,]\s*([^;,()]+)\s*(?:\\right)?\s*\)/g;
+
+function extractPointBindings(canonical: string): Record<string, unknown> {
+  const bindings: Record<string, unknown> = {};
+  const matches = [...canonical.matchAll(POINT_RE)];
+  if (matches.length !== 1) return bindings;
+  const x = evalNumeric(normalize(matches[0][1]));
+  const y = evalNumeric(normalize(matches[0][2]));
+  if (x === null || y === null) return bindings;
+  bindings.x = x;
+  bindings.y = y;
+  return bindings;
+}
+
+function assignmentBindings(parsed: ParsedEq[]): Record<string, unknown> {
+  const bindings: Record<string, unknown> = {};
+  for (const eq of parsed) {
+    if (eq.symbols.size !== 1) continue;
+    const symbol = [...eq.symbols][0];
+    const lhsFree = freeSymbols(eq.lhs);
+    const rhsFree = freeSymbols(eq.rhs);
+    if (lhsFree.size === 1 && rhsFree.size === 0) {
+      const v = evalNumeric(eq.rhs);
+      if (v !== null) bindings[symbol] = v;
+    } else if (rhsFree.size === 1 && lhsFree.size === 0) {
+      const v = evalNumeric(eq.lhs);
+      if (v !== null) bindings[symbol] = v;
+    }
+  }
+  return bindings;
+}
+
+function tryPlaceholderArithmetic(canonical: string, values: string[]): boolean | null {
+  for (const chunk of extractEquationStrings(canonical)) {
+    if (!chunk.includes("?")) continue;
+    const before = chunk.split("?")[0];
+    const lhsRaw = before.includes("=") ? before.slice(0, before.indexOf("=")) : before;
+    const lhs = normalize(lhsRaw);
+    if (!lhs || freeSymbols(lhs).size !== 0) continue;
+    const computed = evalNumeric(lhs);
+    if (computed === null) continue;
+    if (valuesMatchComputed(values, computed)) return true;
+  }
+  return null;
+}
+
+function tryNumericExpression(canonical: string, values: string[]): boolean | null {
+  const stripped = canonical
+    .replace(/\n[A-Ea-e][).]\s*[\s\S]*/g, "")
+    .replace(/Variantlar:.*/is, "")
+    .trim();
+
+  const computeCandidates: string[] = [];
+  const hesabla = stripped.match(/Hesablayın:\s*([^\n]+)/i);
+  if (hesabla) computeCandidates.push(hesabla[1]);
+
+  const sumPhrase = stripped.match(/^\s*([0-9+\-*/^().,\s√\\a-zA-Z]+?)\s*,?\s*cəmi?\s/i);
+  if (sumPhrase) computeCandidates.push(sumPhrase[1]);
+
+  const latex = [...stripped.matchAll(LATEX_SEGMENT_RE)].map((m) => m[1]).filter((s) => !s.includes("="));
+  computeCandidates.push(...latex);
+
+  if (/^\s*\\sqrt\{[^}]+\}\s*$/.test(stripped) || /^\s*[0-9+\-*/^().,\s\\sqrt\{\}]+\s*$/.test(stripped.replace(/cəmi?\s+tapılmalıdır\.?/i, ""))) {
+    computeCandidates.push(stripped.replace(/cəmi?\s+tapılmalıdır\.?/i, ""));
+  }
+
+  for (const raw of computeCandidates) {
+    const expr = normalize(raw.replace(/\?.*$/, ""));
+    if (!expr || expr.includes("=") || freeSymbols(expr).size !== 0) continue;
+    const computed = evalNumeric(expr);
+    if (computed === null) continue;
+    if (valuesMatchComputed(values, computed)) return true;
+  }
+  return null;
+}
+
+function tryArithmeticSequence(canonical: string, values: string[]): boolean | null {
+  if (!/silsil/i.test(canonical)) return null;
+  const m = canonical.match(/([0-9xX+\-*/^()\\]+)\s*;\s*([0-9xX+\-*/^()\\]+)\s*;\s*([0-9xX+\-*/^()\\]+)/);
+  if (!m) return null;
+  const a = normalize(m[1]);
+  const b = normalize(m[2]);
+  const c = normalize(m[3]);
+  const symbols = new Set([...freeSymbols(a), ...freeSymbols(b), ...freeSymbols(c)]);
+  if (symbols.size !== 1) return null;
+  const symbol = [...symbols][0];
+  // 2·orta = birinci + üçüncü
+  return values.some((v) => valueSatisfies(v, `(${a})+(${c})`, `2*(${b})`, symbol)) ? true : null;
+}
+
+function tryTriangleThirdAngle(canonical: string, values: string[]): boolean | null {
+  if (!/buca/i.test(canonical)) return null;
+  const degrees = [...canonical.matchAll(/(\d+)\s*°/g)].map((m) => Number(m[1]));
+  if (degrees.length !== 2) return null;
+  const third = 180 - degrees[0] - degrees[1];
+  if (third <= 0 || third >= 180) return null;
+  return valuesMatchComputed(values, third) ? true : null;
+}
+
+function tryCircleRadiusFromArea(canonical: string, values: string[]): boolean | null {
+  if (!/radius|radiusunu|sahəsi/i.test(canonical)) return null;
+  const m = canonical.match(/(\d+)\s*\\pi|(\d+)\s*π/);
+  if (!m) return null;
+  const areaOverPi = Number(m[1] ?? m[2]);
+  if (!Number.isFinite(areaOverPi) || areaOverPi <= 0) return null;
+  const r = Math.sqrt(areaOverPi);
+  return valuesMatchComputed(values, r) ? true : null;
+}
+
+function tryLineInterceptSum(canonical: string, values: string[]): boolean | null {
+  if (!/k\s*\+\s*b|k\+b/i.test(canonical)) return null;
+  const yInt = canonical.match(/y oxunu\s+(-?\d+)/i);
+  const xInt = canonical.match(/x oxunu\s+(-?\d+)/i);
+  if (!yInt || !xInt) return null;
+  const b = Number(yInt[1]);
+  const x0 = Number(xInt[1]);
+  if (!Number.isFinite(b) || !Number.isFinite(x0) || x0 === 0) return null;
+  const k = -b / x0;
+  return valuesMatchComputed(values, k + b) ? true : null;
+}
+
+function clipBeforeVariants(text: string): string {
+  return text.split(/\n\s*[A-Ea-e][).]/)[0];
+}
+
+function tryRightTriangleInradius(canonical: string, values: string[]): boolean | null {
+  if (!/katet|daxilinə/i.test(canonical)) return null;
+  const sides = [...clipBeforeVariants(canonical).matchAll(/(\d+)\s*sm/gi)].map((m) => Number(m[1]));
+  if (sides.length !== 2) return null;
+  const [a, b] = sides;
+  const c = Math.hypot(a, b);
+  if (Math.abs(c - Math.round(c)) > 1e-6) return null;
+  const r = (a + b - c) / 2;
+  return valuesMatchComputed(values, r) ? true : null;
+}
+
+function tryMinIntegerComplexRootParameter(canonical: string, values: string[]): boolean | null {
+  if (!/kompleks/i.test(canonical)) return null;
+  const m = canonical.match(/x\s*(?:\^2|²|2)\s*\+\s*(\d+)\s*x\s*\+\s*([a-zA-Z])\s*=\s*0/i);
+  if (!m) return null;
+  const b = Number(m[1]);
+  const param = m[2];
+  if (param !== "m" || !Number.isFinite(b)) return null;
+  const threshold = (b * b) / 4;
+  const minInt = Number.isInteger(threshold) ? threshold + 1 : Math.floor(threshold) + 1;
+  return valuesMatchComputed(values, minInt) ? true : null;
+}
+
+function answerIsNonRootContext(canonical: string): boolean {
+  return /ehtimal|kompleks|parametr/i.test(canonical);
+}
+
+function reduceWithBindings(eq: ParsedEq, bindings: Record<string, unknown>): ParsedEq {
+  const remaining = new Set([...eq.symbols].filter((s) => !(s in bindings)));
+  return { ...eq, symbols: remaining };
+}
+
+function valuesSatisfySomeEq(eqs: ParsedEq[], values: string[], extras: Record<string, unknown>): boolean {
+  return values.every((v) =>
+    eqs.some((eq) => {
+      if (eq.symbols.size !== 1) return false;
+      return valueSatisfies(v, eq.lhs, eq.rhs, [...eq.symbols][0], extras);
+    }),
+  );
+}
 
 /** `verify.py::equation_cross_check`-in TS portu. `true`/`false`/`null` qaytarır —
- * `null` = canonical-dan yoxlanıla bilən tək-dəyişənli tənlik çıxarıla bilmədi. */
+ * `null` = canonical-dan yoxlanıla bilən tənlik/ifadə çıxarıla bilmədi. */
 export function equationCrossCheck(
   canonical: string,
   values: string[]
 ): { verified: boolean | null; reason: VerificationReason } {
   if (!values || values.length === 0) return { verified: false, reason: null };
 
-  const equations = extractEquations(canonical);
-  if (equations.length === 0) return { verified: null, reason: "no_equation_extracted" };
-
-  const parsed: { lhs: string; rhs: string; symbol: string }[] = [];
-  for (const eqStr of equations) {
+  const legacy: ParsedEq[] = [];
+  for (const eqStr of extractEquationsLegacy(canonical)) {
     const sides = parseEquationSides(eqStr);
     if (!sides) continue;
     const symbols = new Set([...freeSymbols(sides.lhs), ...freeSymbols(sides.rhs)]);
-    if (symbols.size !== 1) continue;
-    parsed.push({ ...sides, symbol: [...symbols][0] });
+    if (symbols.size === 1) legacy.push({ ...sides, symbols });
+  }
+  if (legacy.length > 0) {
+    if (valuesSatisfySomeEq(legacy, values, {})) return { verified: true, reason: null };
+    const complexParamEarly = tryMinIntegerComplexRootParameter(canonical, values);
+    if (complexParamEarly === true) return { verified: true, reason: null };
+    if (answerIsNonRootContext(canonical)) return { verified: null, reason: null };
+    return { verified: false, reason: null };
   }
 
-  if (parsed.length === 0) return { verified: null, reason: "no_single_variable_equation" };
+  const parsed = parseAllEquations(canonical);
+  const point = extractPointBindings(canonical);
+  const assigned = { ...point, ...assignmentBindings(parsed) };
 
-  for (const valueStr of values) {
-    const ok = parsed.some(({ lhs, rhs, symbol }) => valueSatisfies(valueStr, lhs, rhs, symbol));
-    if (!ok) return { verified: false, reason: null };
+  const reduced: ParsedEq[] = [];
+  for (const eq of parsed) {
+    if (eq.symbols.size <= 1) continue;
+    const next = reduceWithBindings(eq, assigned);
+    if (next.symbols.size === 1) reduced.push(next);
   }
-  return { verified: true, reason: null };
+
+  if (reduced.length > 0 && valuesSatisfySomeEq(reduced, values, assigned)) {
+    return { verified: true, reason: null };
+  }
+
+  const placeholder = tryPlaceholderArithmetic(canonical, values);
+  if (placeholder === true) return { verified: true, reason: null };
+
+  const numeric = tryNumericExpression(canonical, values);
+  if (numeric === true) return { verified: true, reason: null };
+
+  const sequence = tryArithmeticSequence(canonical, values);
+  if (sequence === true) return { verified: true, reason: null };
+
+  const triangle = tryTriangleThirdAngle(canonical, values);
+  if (triangle === true) return { verified: true, reason: null };
+
+  const circle = tryCircleRadiusFromArea(canonical, values);
+  if (circle === true) return { verified: true, reason: null };
+
+  const intercepts = tryLineInterceptSum(canonical, values);
+  if (intercepts === true) return { verified: true, reason: null };
+
+  const inradius = tryRightTriangleInradius(canonical, values);
+  if (inradius === true) return { verified: true, reason: null };
+
+  const complexParam = tryMinIntegerComplexRootParameter(canonical, values);
+  if (complexParam === true) return { verified: true, reason: null };
+
+  if (parsed.some((eq) => eq.symbols.size !== 1 && eq.lhs !== "")) {
+    return { verified: null, reason: "no_single_variable_equation" };
+  }
+  if (parsed.length === 0) return { verified: null, reason: "no_equation_extracted" };
+  return { verified: null, reason: "no_single_variable_equation" };
+}
+
+function methodFor(verified: boolean | null): VerificationMethod {
+  return verified === true ? "mathjs_equation" : "none";
 }
 
 /** `verify.py::verify_final_answer`-in istehsalat yolu (golden_values yoxdur, ADR-012).
+ * `subject !== "math"` olanda həmişə `null` — fizikada yanlış gizlətmə riskini sıfırlayır (E1.2).
  * `verified`: true/false/null, `reason` YALNIZ `verified===null` olanda mənalıdır. */
 export function verifyFinalAnswer(
   canonical: string,
-  values: string[]
-): { verified: boolean | null; reason: VerificationReason } {
-  return equationCrossCheck(canonical, values);
+  values: string[],
+  subject?: string,
+): { verified: boolean | null; reason: VerificationReason; method: VerificationMethod } {
+  if (subject !== undefined && subject !== "math") {
+    return { verified: null, reason: null, method: "none" };
+  }
+  const result = equationCrossCheck(canonical, values);
+  return { ...result, method: methodFor(result.verified) };
 }
 
 /** SYSTEM-REVIEW-2026-08-07 §B1: şagirdin S4-də yazdığı cavab `check.accept`-in EYNİ
@@ -205,11 +481,5 @@ export function studentAnswerMatches(input: string, accept: string): boolean {
   const inputVal = evalNumeric(normInput);
   const acceptVal = evalNumeric(normAccept);
   if (inputVal === null || acceptVal === null) return false;
-  try {
-    const residual = subtract(inputVal as never, acceptVal as never);
-    const mag = magnitude(residual);
-    return mag !== null && mag < 1e-6;
-  } catch {
-    return false;
-  }
+  return numbersClose(inputVal, acceptVal);
 }

@@ -96,9 +96,10 @@ export type LayerSolution =
       steps: PublicStep[];
       // Bank sətrinin ÖZ yoxlama qeydi (`question_translations.verified`/`verification_method`).
       // Yenidən yoxlanılMIR: sətir yaradılanda artıq yoxlanıb və `review_status` onu bankda
-      // görünən edən şərtdir. `method` STEP-SCHEMA-nın enum-una (`sympy|human|none`) sadiqdir —
-      // "bank" adlı üçüncü dəyər UYDURULMUR, sxem onu qəbul etməzdi.
-      verification: { verified: boolean; method: string };
+      // görünən edən şərtdir. `method` STEP-SCHEMA-nın enum-una
+      // (`mathjs_equation|mathjs_unit|human|none`) sadiqdir — "bank" adlı üçüncü dəyər
+      // UYDURULMUR, sxem onu qəbul etməzdi.
+      verification: { verified: boolean | null; method: string };
       newQuestion?: never;
       costUsd: number | null;
       latencyMs: number;
@@ -139,6 +140,8 @@ export type CascadeContext = {
    * PublicStep (accept YOX — ADR-017). Bank/şablon qatları bunu çağırmır.
    */
   onPublicStep?: (step: PublicStep) => void;
+  logEvent?: (name: string, props: Record<string, unknown>) => Promise<void>;
+  strictSubject?: boolean;
 };
 
 export type SolveLayer = {

@@ -33,7 +33,7 @@ export type PersistResult =
       // ona görə DB-yə yazandan SONRA buradan qaytarılır.
       itemId: string;
       steps: PublicStep[];
-      verification: { verified: boolean; method: string; reason?: string | null };
+      verification: { verified: boolean | null; method: string; reason?: string | null };
       leaked: boolean;
     }
   // `rejected` — sympy QƏTİ ZİDDİYYƏT tapdı (`verified === false`). Server qaydası 1
@@ -105,16 +105,17 @@ export async function persistSolution(opts: {
 
   // ── Qat 5 yolu: yeni həll ────────────────────────────────────────────────────────────
   const { finalAnswer, stepAnswerRows, rawSteps, model: usedModel } = solution.newQuestion;
-  const { verified, reason: verificationReason } = verifyFinalAnswer(transcript.canonical, finalAnswer.values);
+  const { verified, reason: verificationReason, method: verificationMethod } = verifyFinalAnswer(
+    transcript.canonical,
+    finalAnswer.values,
+    transcript.subject,
+  );
   const leaked = detectLeak(rawSteps, finalAnswer.values);
 
   // `verified` ÜÇ haldır: `false` = QƏTİ ZİDDİYYƏT (gizlədilir), `null` = yoxlanıla bilmədi
-  // (göstərilir, `method='none'`), `true` = sympy təsdiqlədi. Bu fərq canlı sınaqda tapılıb,
-  // bax `/api/solve`-un öz şərhi — `null`-u `false` kimi rədd etmək mətn məsələlərinin
-  // hamısını udurdu.
+  // (göstərilir, `method='none'`), `true` = mathjs təsdiqlədi.
   if (verified === false) return { ok: false, kind: "rejected" };
 
-  const verificationMethod = verified === true ? "sympy" : "none";
   const reviewStatus = verified === true ? "auto_verified" : "draft";
   const hash = canonicalHash(transcript.canonical);
   const fingerprint = numericFingerprint(transcript.canonical);
@@ -258,10 +259,9 @@ export async function persistSolution(opts: {
       sessionId,
       itemId,
       steps: servedSteps,
-      // S5 (86eymwgkv) — bura ƏVVƏLLƏR HƏMİŞƏ `verified: true` yazırdı (`verificationMethod`
-      // 'none' olanda BELƏ) — klient sympy təsdiqi ilə "yoxlanılmadı, modelin çıxışına
-      // etibar edilir" halını AYIRD EDƏ BİLMİRDİ. İndi HƏQİQİ nəticə yazılır.
-      verification: { verified: verified === true, method: verificationMethod, reason: verificationReason },
+      // S5 (86eymwgkv) — `verified` üç haldır: true / false / null. `method='none'` olanda
+      // `true` göndərmək INV-11 pozuntusudur; `null`-u `false`-a yıxmaq nişanı oğurlayırdı.
+      verification: { verified, method: verificationMethod, reason: verificationReason },
       leaked,
     };
   } catch (err) {
