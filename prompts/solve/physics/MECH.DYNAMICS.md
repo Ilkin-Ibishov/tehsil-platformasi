@@ -1,6 +1,14 @@
 # MECH.DYNAMICS — dinamika
 
-Nyutonun II qanunu. Qüvvə diaqramı sözlə canonical-da; `force_diagram` kind YOXDUR.
+Nyutonun II qanunu. Qüvvə oxları görünəndə `visual.kind=force_diagram`.
+`values` vahidsiz; vahid `latex`-də (E1.2).
+
+## Əlavə qaydalar
+
+```
+F=ma / sərbəst cisim üçün visual YAZ: {"kind":"force_diagram","body":"m","forces":[{"label":"F","dir_deg":0,"rel":1}]}.
+dir_deg: 0=sağ, 90=yuxarı. SVG/path YOX. verified yazma (server null).
+```
 
 ## Nümunə
 
@@ -13,6 +21,11 @@ Nyutonun II qanunu. Qüvvə diaqramı sözlə canonical-da; `force_diagram` kind
   "grade": 9,
   "topic_code": "MECH.DYNAMICS",
   "detected_language": "az",
+  "visual": {
+    "kind": "force_diagram",
+    "body": "m",
+    "forces": [{"label": "F", "dir_deg": 0, "rel": 1}]
+  },
   "final_answer": {
     "latex": "F = 6\\ \\mathrm{N}",
     "values": ["6"]

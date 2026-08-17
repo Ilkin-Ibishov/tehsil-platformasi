@@ -38,6 +38,30 @@ check("number_line", {
 }, true);
 check("linear", { ...BASE, visual: { kind: "linear", k: -1, b: 2 } }, true);
 check("quadratic", { ...BASE, visual: { kind: "quadratic", a: 1, b: -2, c: 0 } }, true);
+check("triangle", {
+  ...BASE,
+  visual: {
+    kind: "triangle",
+    vertices: [
+      { label: "A", x: 0, y: 0 },
+      { label: "B", x: 4, y: 0 },
+      { label: "C", x: 1, y: 3 },
+    ],
+    highlight: "C",
+  },
+}, true);
+check("circle", {
+  ...BASE,
+  visual: { kind: "circle", center: { x: 0, y: 0, label: "O" }, r: 3, radius_label: "R" },
+}, true);
+check("force_diagram", {
+  ...BASE,
+  visual: { kind: "force_diagram", body: "m", forces: [{ label: "F", dir_deg: 0, rel: 1 }] },
+}, true);
+check("cartesian", {
+  ...BASE,
+  visual: { kind: "cartesian", points: [{ x: 0, y: 0 }, { x: 2, y: 4 }], label: "s=t^2" },
+}, true);
 check("unknown kind rejected", { ...BASE, visual: { kind: "hyperbola" } }, false);
 check("svg path extra rejected", { ...BASE, visual: { kind: "linear", k: 1, b: 0, svg: "<path/>" } }, false);
 check("linear missing b rejected", { ...BASE, visual: { kind: "linear", k: 1 } }, false);

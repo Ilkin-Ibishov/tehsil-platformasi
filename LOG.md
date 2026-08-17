@@ -1,5 +1,8 @@
 # LOG
 
+- 2026-08-17: HANDOFF 182 — E2.6 visual kind: triangle, circle, force_diagram, cartesian
+  (sxem v2, bump yox). Renderer + selftest. GEO.* və MECH.DYNAMICS/KINEMATICS nümunə.
+  Naməlum kind hələ atılır. eval 48/48. core.md visual kiçildilmədi (v15 əlavə).
 - 2026-08-17: HANDOFF 181 — eval retry: 503/429/timeout 5 cəhd, `failed` n_attempted-dən çıxır.
   Vision golden-set: api_failure_rate 1/10=10%, n_attempted=9/10 (qapı keçdi). 48/48 selftest.
   `failed` səhv cavab sayılmır. core.md visual kiçildilmədi.

@@ -335,8 +335,144 @@
             "b": { "type": "number" },
             "c": { "type": "number" }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "vertices"],
+          "properties": {
+            "kind": { "const": "triangle" },
+            "vertices": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["x", "y"],
+                "properties": {
+                  "x": { "type": "number" },
+                  "y": { "type": "number" },
+                  "label": { "type": "string", "maxLength": 8 }
+                }
+              }
+            },
+            "sides": {
+              "type": "array",
+              "maxItems": 3,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["from", "to"],
+                "properties": {
+                  "from": { "type": "string", "maxLength": 8 },
+                  "to": { "type": "string", "maxLength": 8 },
+                  "label": { "type": "string", "maxLength": 12 }
+                }
+              }
+            },
+            "angles": {
+              "type": "array",
+              "maxItems": 3,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["at", "label"],
+                "properties": {
+                  "at": { "type": "string", "maxLength": 8 },
+                  "label": { "type": "string", "maxLength": 12 }
+                }
+              }
+            },
+            "highlight": { "type": "string", "maxLength": 16, "description": "Təpə etiketi (C) və ya tərəf (AB)" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "center", "r"],
+          "properties": {
+            "kind": { "const": "circle" },
+            "center": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["x", "y"],
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "label": { "type": "string", "maxLength": 8 }
+              }
+            },
+            "r": { "type": "number", "exclusiveMinimum": 0 },
+            "radius_label": { "type": "string", "maxLength": 8 },
+            "chord": { "$ref": "#/$defs/visual_segment" },
+            "tangent": { "$ref": "#/$defs/visual_segment" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "body", "forces"],
+          "properties": {
+            "kind": { "const": "force_diagram" },
+            "body": { "type": "string", "maxLength": 16 },
+            "forces": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["label", "dir_deg", "rel"],
+                "properties": {
+                  "label": { "type": "string", "maxLength": 12 },
+                  "dir_deg": { "type": "number", "description": "0=sağ, 90=yuxarı (fizika)" },
+                  "rel": { "type": "number", "exclusiveMinimum": 0, "maximum": 2, "description": "Nisbi ox uzunluğu" }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "points"],
+          "properties": {
+            "kind": { "const": "cartesian" },
+            "points": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 40,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["x", "y"],
+                "properties": {
+                  "x": { "type": "number" },
+                  "y": { "type": "number" }
+                }
+              }
+            },
+            "label": { "type": "string", "maxLength": 24 },
+            "x_min": { "type": "number" },
+            "x_max": { "type": "number" },
+            "y_min": { "type": "number" },
+            "y_max": { "type": "number" }
+          }
         }
       ]
+    },
+    "visual_segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x1", "y1", "x2", "y2"],
+      "properties": {
+            "x1": { "type": "number" },
+            "y1": { "type": "number" },
+            "x2": { "type": "number" },
+            "y2": { "type": "number" },
+            "label": { "type": "string", "maxLength": 12 }
+      }
     },
     "error_code_labels_az": {
       "description": "UI etiketləri. Kod dəyişməz, etiket tərcümə oluna bilər. i18n faylına köçürülür.",

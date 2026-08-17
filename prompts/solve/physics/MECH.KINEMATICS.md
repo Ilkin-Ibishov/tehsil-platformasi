@@ -1,6 +1,14 @@
 # MECH.KINEMATICS — kinematika
 
 Bərabərtəcilli hərəkət. `values` vahidsiz; vahid `latex`-də (E1.2).
+s(t) / v(t) qrafiki kömək edirsə `visual.kind=cartesian` (linear/quadratic əvəzi deyil).
+
+## Əlavə qaydalar
+
+```
+s-t və ya v-t qrafiki kömək edirsə visual YAZ: {"kind":"cartesian","points":[...],"label":"s=t^2"}.
+Tək ədəd düsturunda (yalnız s tap) visual YAZMA. SVG/path YOX. verified yazma.
+```
 
 ## Nümunə
 
@@ -13,6 +21,15 @@ Bərabərtəcilli hərəkət. `values` vahidsiz; vahid `latex`-də (E1.2).
   "grade": 9,
   "topic_code": "MECH.KINEMATICS",
   "detected_language": "az",
+  "visual": {
+    "kind": "cartesian",
+    "points": [
+      {"x": 0, "y": 0},
+      {"x": 2, "y": 4},
+      {"x": 4, "y": 16}
+    ],
+    "label": "s=t^2"
+  },
   "final_answer": {
     "latex": "s = 16\\ \\mathrm{m}",
     "values": ["16"]

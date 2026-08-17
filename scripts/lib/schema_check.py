@@ -115,7 +115,159 @@ def parse_visual(raw):
                 pt["open"] = True
             points.append(pt)
         return {"kind": "number_line", "min": raw["min"], "max": raw["max"], "points": points}
+    if kind == "triangle":
+        if _extra_keys(raw, {"kind", "vertices", "sides", "angles", "highlight"}):
+            return None
+        vertices_raw = raw.get("vertices")
+        if not isinstance(vertices_raw, list) or len(vertices_raw) != 3:
+            return None
+        vertices = []
+        for v in vertices_raw:
+            if not isinstance(v, dict) or _extra_keys(v, {"x", "y", "label"}):
+                return None
+            if not _is_finite_number(v.get("x")) or not _is_finite_number(v.get("y")):
+                return None
+            label = v.get("label")
+            if label is not None and (not isinstance(label, str) or len(label) > 8):
+                return None
+            pt = {"x": v["x"], "y": v["y"]}
+            if label is not None:
+                pt["label"] = label
+            vertices.append(pt)
+        out = {"kind": "triangle", "vertices": vertices}
+        if "sides" in raw:
+            sides_raw = raw["sides"]
+            if not isinstance(sides_raw, list) or len(sides_raw) > 3:
+                return None
+            sides = []
+            for s in sides_raw:
+                if not isinstance(s, dict) or _extra_keys(s, {"from", "to", "label"}):
+                    return None
+                if not isinstance(s.get("from"), str) or len(s["from"]) > 8:
+                    return None
+                if not isinstance(s.get("to"), str) or len(s["to"]) > 8:
+                    return None
+                side = {"from": s["from"], "to": s["to"]}
+                lab = s.get("label")
+                if lab is not None:
+                    if not isinstance(lab, str) or len(lab) > 12:
+                        return None
+                    side["label"] = lab
+                sides.append(side)
+            out["sides"] = sides
+        if "angles" in raw:
+            angles_raw = raw["angles"]
+            if not isinstance(angles_raw, list) or len(angles_raw) > 3:
+                return None
+            angles = []
+            for a in angles_raw:
+                if not isinstance(a, dict) or _extra_keys(a, {"at", "label"}):
+                    return None
+                if not isinstance(a.get("at"), str) or len(a["at"]) > 8:
+                    return None
+                if not isinstance(a.get("label"), str) or len(a["label"]) > 12:
+                    return None
+                angles.append({"at": a["at"], "label": a["label"]})
+            out["angles"] = angles
+        highlight = raw.get("highlight")
+        if highlight is not None:
+            if not isinstance(highlight, str) or len(highlight) > 16:
+                return None
+            out["highlight"] = highlight
+        return out
+    if kind == "circle":
+        if _extra_keys(raw, {"kind", "center", "r", "radius_label", "chord", "tangent"}):
+            return None
+        center = raw.get("center")
+        if not isinstance(center, dict) or _extra_keys(center, {"x", "y", "label"}):
+            return None
+        if not _is_finite_number(center.get("x")) or not _is_finite_number(center.get("y")):
+            return None
+        if not _is_finite_number(raw.get("r")) or raw["r"] <= 0:
+            return None
+        c = {"x": center["x"], "y": center["y"]}
+        if center.get("label") is not None:
+            if not isinstance(center["label"], str) or len(center["label"]) > 8:
+                return None
+            c["label"] = center["label"]
+        out = {"kind": "circle", "center": c, "r": raw["r"]}
+        rlab = raw.get("radius_label")
+        if rlab is not None:
+            if not isinstance(rlab, str) or len(rlab) > 8:
+                return None
+            out["radius_label"] = rlab
+        for key in ("chord", "tangent"):
+            if key not in raw:
+                continue
+            seg = _parse_segment(raw[key])
+            if seg is None:
+                return None
+            out[key] = seg
+        return out
+    if kind == "force_diagram":
+        if _extra_keys(raw, {"kind", "body", "forces"}):
+            return None
+        if not isinstance(raw.get("body"), str) or len(raw["body"]) > 16:
+            return None
+        forces_raw = raw.get("forces")
+        if not isinstance(forces_raw, list) or not (1 <= len(forces_raw) <= 8):
+            return None
+        forces = []
+        for f in forces_raw:
+            if not isinstance(f, dict) or _extra_keys(f, {"label", "dir_deg", "rel"}):
+                return None
+            if not isinstance(f.get("label"), str) or len(f["label"]) > 12:
+                return None
+            if not _is_finite_number(f.get("dir_deg")) or not _is_finite_number(f.get("rel")):
+                return None
+            if f["rel"] <= 0 or f["rel"] > 2:
+                return None
+            forces.append({"label": f["label"], "dir_deg": f["dir_deg"], "rel": f["rel"]})
+        return {"kind": "force_diagram", "body": raw["body"], "forces": forces}
+    if kind == "cartesian":
+        if _extra_keys(raw, {"kind", "points", "label", "x_min", "x_max", "y_min", "y_max"}):
+            return None
+        pts_raw = raw.get("points")
+        if not isinstance(pts_raw, list) or not (2 <= len(pts_raw) <= 40):
+            return None
+        points = []
+        for p in pts_raw:
+            if not isinstance(p, dict) or _extra_keys(p, {"x", "y"}):
+                return None
+            if not _is_finite_number(p.get("x")) or not _is_finite_number(p.get("y")):
+                return None
+            points.append({"x": p["x"], "y": p["y"]})
+        out = {"kind": "cartesian", "points": points}
+        lab = raw.get("label")
+        if lab is not None:
+            if not isinstance(lab, str) or len(lab) > 24:
+                return None
+            out["label"] = lab
+        for key in ("x_min", "x_max", "y_min", "y_max"):
+            if key in raw:
+                if not _is_finite_number(raw[key]):
+                    return None
+                out[key] = raw[key]
+        if "x_min" in out and "x_max" in out and out["x_max"] <= out["x_min"]:
+            return None
+        if "y_min" in out and "y_max" in out and out["y_max"] <= out["y_min"]:
+            return None
+        return out
     return None
+
+
+def _parse_segment(raw):
+    if not isinstance(raw, dict) or _extra_keys(raw, {"x1", "y1", "x2", "y2", "label"}):
+        return None
+    if not all(_is_finite_number(raw.get(k)) for k in ("x1", "y1", "x2", "y2")):
+        return None
+    seg = {"x1": raw["x1"], "y1": raw["y1"], "x2": raw["x2"], "y2": raw["y2"]}
+    lab = raw.get("label")
+    if lab is not None:
+        if not isinstance(lab, str) or len(lab) > 12:
+            return None
+        seg["label"] = lab
+    return seg
 
 
 def strip_unknown_visual(obj):

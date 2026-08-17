@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v14)
+# Prompt — addım sxemi generasiyası (v15)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -106,6 +106,10 @@
 > yazmasa şagird qrafik görmür. `visual` bölməsi NƏ VAXT hansı `kind` (linear /
 > quadratic / number_line / none) + hər kind üçün sxemə uyğun kompakt JSON.
 > SVG/path/img qadağanı və naməlum kind qadağanı eyni qalır. `schema_version` 2.
+>
+> **v14 → v15 (2026-08-17).** E2.6: `triangle`, `circle`, `force_diagram`, `cartesian`
+> oneOf-a əlavə (v2 bump YOX). linear/quadratic/number_line qalır. Naməlum kind
+> hələ visual-ı atır, həll qalır.
 
 ## System
 
@@ -166,8 +170,8 @@ final_answer.choice — variantlı məsələdə düzgün variantın etiketi ("B"
 
 visual — opsional KÖK sahəsi. Qrafik addımı GÖRMƏYƏ kömək edəndə YAZ; əks halda
 sahəni BURAX (və ya {"kind": "none"}). Vizual IZAHDIR — check/error_code əvəzi DEYİL.
-kind YALNIZ: none | number_line | linear | quadratic. Başqa kind UYDURMA
-(hiperbola, dairə, vektor, 3D yoxdur). k, b, a, c, min, max, x — ƏDƏD, sətir YOX.
+kind YALNIZ: none | number_line | linear | quadratic | triangle | circle | force_diagram | cartesian.
+Başqa kind UYDURMA (hiperbola, dövrə, 3D yoxdur). k, b, a, c, min, max, x, y, r, dir_deg, rel — ƏDƏD, sətir YOX.
 SVG, path, d, img, viewBox, polyline, d3 — QADAĞAN. Əlavə sahə → server visual-ı
 atır, həll qalır.
 
@@ -189,6 +193,22 @@ NƏ VAXT hansı kind (obyekt TAMDIR — rəng/path əlavə etmə):
                max, points (≤8). points[].x məcburi; label ≤16; open=true açıq dairə.
                {"kind": "number_line", "min": -2, "max": 6, "points": [{"x": 2, "label": "A", "open": false}, {"x": 5, "label": "B", "open": true}]}
                Tək hesab və ya tək a_n ədədi üçün YAZMA.
+
+  triangle     üçbucaq: təpə/tərəf/bucaq etiketi. Məcburi: kind, vertices (tam 3).
+               sides/angles/highlight opsional. highlight = təpə ("C") və ya tərəf ("AB").
+               {"kind": "triangle", "vertices": [{"label": "A", "x": 0, "y": 0}, {"label": "B", "x": 4, "y": 0}, {"label": "C", "x": 1, "y": 3}], "angles": [{"at": "C", "label": "75°"}], "highlight": "C"}
+
+  circle       dairə: mərkəz + radius. Məcburi: kind, center {x,y}, r>0.
+               radius_label, chord, tangent opsional.
+               {"kind": "circle", "center": {"x": 0, "y": 0, "label": "O"}, "r": 3, "radius_label": "R", "chord": {"x1": -2, "y1": 2, "x2": 2, "y2": 2, "label": "AB"}}
+
+  force_diagram cisim + adlandırılmış qüvvə oxları. Məcburi: kind, body, forces (1–8).
+               dir_deg: 0=sağ, 90=yuxarı. rel nisbi uzunluq (0–2].
+               {"kind": "force_diagram", "body": "m", "forces": [{"label": "F", "dir_deg": 0, "rel": 1}, {"label": "mg", "dir_deg": 270, "rel": 0.8}]}
+
+  cartesian    ümumi funksiya: nümunələnmiş nöqtələr + ox. linear/quadratic ƏVƏZİ DEYİL.
+               Məcburi: kind, points (≥2). label opsional.
+               {"kind": "cartesian", "points": [{"x": 0, "y": 0}, {"x": 2, "y": 4}, {"x": 4, "y": 16}], "label": "s=t^2"}
 
 ═══ error_code — YALNIZ BU 11 DƏYƏRDƏN BİRİ ═══
 

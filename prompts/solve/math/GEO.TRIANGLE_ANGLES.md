@@ -1,6 +1,14 @@
 # GEO.TRIANGLE_ANGLES — üçbucaq bucaqları
 
 Daxili bucaqların cəmi 180°. Naməlum bucağı digər ikisindən tap.
+Bucaqlar görünəndə `visual.kind=triangle`.
+
+## Əlavə qaydalar
+
+```
+Bucaq tapmaq / 180° cəmi üçün visual YAZ: {"kind":"triangle","vertices":[...],"angles":[...],"highlight":"C"}.
+SVG/path YOX. Naməlum kind UYDURMA.
+```
 
 ## Nümunə
 
@@ -13,6 +21,20 @@ Daxili bucaqların cəmi 180°. Naməlum bucağı digər ikisindən tap.
   "grade": 7,
   "topic_code": "GEO.TRIANGLE_ANGLES",
   "detected_language": "az",
+  "visual": {
+    "kind": "triangle",
+    "vertices": [
+      {"label": "A", "x": 0, "y": 0},
+      {"label": "B", "x": 4, "y": 0},
+      {"label": "C", "x": 1, "y": 3}
+    ],
+    "angles": [
+      {"at": "A", "label": "40°"},
+      {"at": "B", "label": "65°"},
+      {"at": "C", "label": "C"}
+    ],
+    "highlight": "C"
+  },
   "final_answer": {
     "latex": "75^\\circ",
     "values": ["75"]
