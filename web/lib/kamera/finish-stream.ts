@@ -46,7 +46,8 @@ export async function readFinishNdjson(
       return;
     }
     if (type === "final") {
-      const { type: _t, ...rest } = event;
+      const { type: _, ...rest } = event;
+      void _;
       finalBody = rest;
     }
   };

@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (168) · Cursor → Cowork
+Etdim:    Vercel fail: `llm.ts` CP1252 → UTF-8 (Turbopack `invalid utf-8`); CI eslint: kamera `Date.now` purity disable, SolveView `startedAt`/expand reset, InviteGate `gateError` (setState-in-effect yox).
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Push sonrası Vercel build + GitHub CI yaşıl olmalıdır; lokal build `DATABASE_URL` olmadan page-data-da yıxılır (env).
+
 ## 2026-08-17 (167) · Cursor → Cowork
 Etdim:    Qat 5 `cached_tokens=null` kök səbəb + fix: `ensureGeminiSystemCache` `contents[]` (sysInstruction-only create uğursuz); keşli yol native `generateContent`/`streamGenerateContent`; `normalizeUsage` `total_cached_tokens`; skip logları. Fake hit yox.
 Tapşırıq: meta / no ClickUp.

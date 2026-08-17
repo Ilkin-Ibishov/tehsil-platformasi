@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 // Dəvət kodu ictimai URL-in arxasındakı ödənişli açarı qoruyur (docs/PHASE-1.md S3, ADR-012).
@@ -37,11 +37,9 @@ export function InviteGate({
   const t = useTranslations("invite");
   const [value, setValue] = useState("");
   const [checking, setChecking] = useState(false);
-  const [error, setError] = useState<GateError | null>(invalid ? { kind: "invalid" } : null);
-
-  useEffect(() => {
-    if (invalid) setError({ kind: "invalid" });
-  }, [invalid]);
+  const [error, setError] = useState<GateError | null>(null);
+  // Derive from prop — avoid setState-in-effect when parent marks invite invalid.
+  const gateError: GateError | null = error ?? (invalid ? { kind: "invalid" } : null);
 
   async function submit() {
     const code = value.trim();
@@ -75,7 +73,7 @@ export function InviteGate({
     }
   }
 
-  const errorText = error?.kind === "invalid" ? t("invalid") : error?.kind === "network" ? t("networkError") : null;
+  const errorText = gateError?.kind === "invalid" ? t("invalid") : gateError?.kind === "network" ? t("networkError") : null;
 
   return (
     <main style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 16, padding: "24px var(--page-pad-x)" }}>
@@ -101,13 +99,13 @@ export function InviteGate({
         data-testid="invite-code-input"
         autoCapitalize="off"
         spellCheck={false}
-        aria-invalid={error?.kind === "invalid"}
+        aria-invalid={gateError?.kind === "invalid"}
         disabled={checking}
         style={{
           minHeight: "var(--tap)",
           padding: "0 16px",
           borderRadius: "var(--rad)",
-          border: error ? "1px solid var(--warn)" : "1px solid var(--bor)",
+          border: gateError ? "1px solid var(--warn)" : "1px solid var(--bor)",
           background: "var(--sur)",
           color: "var(--t1)",
           fontSize: 16,

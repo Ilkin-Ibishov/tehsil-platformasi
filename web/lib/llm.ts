@@ -1,14 +1,14 @@
-// Provider-agnostik vision LLM ça??r??? ? OpenAI-uy?un /chat/completions (CLAUDE.md: Gemini
+// Provider-agnostik vision LLM Ã§a??r??? ? OpenAI-uy?un /chat/completions (CLAUDE.md: Gemini
 // gemini-3.6-flash, OpenAI-uy?un endpoint). scripts/lib/llm_client.py::call_vision_llm-in
-// istehsalat-üçün-laz?m-olan hiss?sinin TS portu (image ön emal? YOX ? klient art?q k?sib
-// ?1600px-? kiçildib gönd?rir, ADR-001/S2).
+// istehsalat-Ã¼Ã§Ã¼n-laz?m-olan hiss?sinin TS portu (image Ã¶n emal? YOX ? klient art?q k?sib
+// ?1600px-? kiÃ§ildib gÃ¶nd?rir, ADR-001/S2).
 //
 // API_KEY YALNIZ SERVERD? (CLAUDE.md) ? bu modul "use client" DEY?L, App Router route
-// handler-l?rind?n (server-only) ça??r?l?r.
+// handler-l?rind?n (server-only) Ã§a??r?l?r.
 //
-// ADR-022: hans? model ?ST?FAD? OLUNDU?U n?tic?d? (`LLMResult.model`) qaytar?l?r ? ça??ran
-// bunu `computeCostUsd`-a ötürm?lidir. Bu, `opts.model`in `undefined` qal?b `GEMINI_MODEL`-?
-// dü?düyü hallar? da ?hat? edir; ça??ran özü hans? modelin i?l?diyini T?XM?N ETM?M?L?D?R.
+// ADR-022: hans? model ?ST?FAD? OLUNDU?U n?tic?d? (`LLMResult.model`) qaytar?l?r ? Ã§a??ran
+// bunu `computeCostUsd`-a Ã¶tÃ¼rm?lidir. Bu, `opts.model`in `undefined` qal?b `GEMINI_MODEL`-?
+// dÃ¼?dÃ¼yÃ¼ hallar? da ?hat? edir; Ã§a??ran Ã¶zÃ¼ hans? modelin i?l?diyini T?XM?N ETM?M?L?D?R.
 
 import { createHash } from "crypto";
 import { resolveConnection } from "./models";
@@ -206,17 +206,17 @@ export async function ensureGeminiSystemCache(opts: {
   return createPromise;
 }
 
-// SYSTEM-REVIEW-2026-08-07 §C2 (HANDOFF 41): ?vv?ll?r burada heç bir timeout/abort yox idi ?
-// i?l?m?si platforman?n defolt k?sm? vaxt?na gör? T?SADÜF? idi. Timeout m?suliyy?ti ça??rana
+// SYSTEM-REVIEW-2026-08-07 Â§C2 (HANDOFF 41): ?vv?ll?r burada heÃ§ bir timeout/abort yox idi ?
+// i?l?m?si platforman?n defolt k?sm? vaxt?na gÃ¶r? T?SADÃœF? idi. Timeout m?suliyy?ti Ã§a??rana
 // (`/api/solve`) verilib ? o, `AbortController`-i ~45 san-da i?? sal?r, `opts.signal` bura
-// g?lir, `fetch`-? ötürülür. Burada AYRICA timeout QURULMUR ki, iki f?rqli saat bir-birini
-// ötm?sin.
+// g?lir, `fetch`-? Ã¶tÃ¼rÃ¼lÃ¼r. Burada AYRICA timeout QURULMUR ki, iki f?rqli saat bir-birini
+// Ã¶tm?sin.
 
 export type LLMUsage = {
   prompt_tokens?: number;
   completion_tokens?: number;
   total_tokens?: number;
-  // OpenRouter v? b?zi gateway-l?r USD/kredit gönd?rir. Gemini/OpenAI gönd?rmir.
+  // OpenRouter v? b?zi gateway-l?r USD/kredit gÃ¶nd?rir. Gemini/OpenAI gÃ¶nd?rmir.
   cost?: number;
   cost_usd?: number;
   prompt_tokens_details?: { cached_tokens?: number };
@@ -263,7 +263,7 @@ export function usageFromGeminiNativeMetadata(raw: unknown): LLMUsage | null {
 }
 
 // Gemini OpenAI-uy?un qat? b?z?n camelCase (`promptTokens`) v? ya `total_tokens`
-// (dü?ünm? daxil) qaytar?r. Ça??ranlar yaln?z snake_case görsün.
+// (dÃ¼?Ã¼nm? daxil) qaytar?r. Ã‡a??ranlar yaln?z snake_case gÃ¶rsÃ¼n.
 // Also: Google docs name implicit hits as `usage.total_cached_tokens`.
 export function normalizeUsage(raw: unknown): LLMUsage | null {
   const u = asRecord(raw);
@@ -337,8 +337,8 @@ export type LLMResult = {
   usage: LLMUsage | null;
   latencyMs: number;
   attempts: number;
-  // ADR-022: H?Q?Q?T?N ça??r?lan model ID-si ? `opts.model` verilm?yibs? `GEMINI_MODEL`-in
-  // öz d?y?ridir, ça??ran bunu t?xmin etm?k ?v?zin? buradan oxumal?d?r.
+  // ADR-022: H?Q?Q?T?N Ã§a??r?lan model ID-si ? `opts.model` verilm?yibs? `GEMINI_MODEL`-in
+  // Ã¶z d?y?ridir, Ã§a??ran bunu t?xmin etm?k ?v?zin? buradan oxumal?d?r.
   model: string;
 };
 
@@ -426,17 +426,17 @@ async function generateWithCachedContent(opts: {
   }
 }
 
-// Gemini OpenAI-uy?un `reasoning_effort`. Qat 1 üçün `none` (dü?ünm?ni söndür / minimum);
+// Gemini OpenAI-uy?un `reasoning_effort`. Qat 1 Ã¼Ã§Ã¼n `none` (dÃ¼?Ã¼nm?ni sÃ¶ndÃ¼r / minimum);
 // Qat 5-? VER?LM?M?L?D?R ? COST-LATENCY-SAFE-SEQUENCE add?m 1. Gemini 3 Flash-d?
-// `none` tam sönm?y? bil?r (Google: 3 modell?rd? thinking söndürül? bilmir); o zaman
-// API `minimal`-? map edir v? ya r?dd edir ? ölçüd? `thoughts_token_count` il? yoxla.
+// `none` tam sÃ¶nm?y? bil?r (Google: 3 modell?rd? thinking sÃ¶ndÃ¼rÃ¼l? bilmir); o zaman
+// API `minimal`-? map edir v? ya r?dd edir ? Ã¶lÃ§Ã¼d? `thoughts_token_count` il? yoxla.
 export type ReasoningEffort = "none" | "minimal" | "low" | "medium" | "high";
 
 // ADR-020 (kaskad): `image*` sah?l?ri art?q OPTIONAL-d?r v? `model` override edil? bilir.
 //   Qat 1 ? ??kil VAR, `active_transcribe_model` (0065: gemini-3.7-flash)
 //   Qat 5 ? ??kil YOX (s?rf m?tn), bahal? model (`GEMINI_MODEL`)
-// ??kil verilm?y?nd? `content` massiv deyil, sad? s?tir kimi gönd?rilir ? bu, OpenAI-uy?un
-// endpointl?rd? m?tn-yaln?z sor?unun standart formas?d?r v? vision tokeni öd?nilmir.
+// ??kil verilm?y?nd? `content` massiv deyil, sad? s?tir kimi gÃ¶nd?rilir ? bu, OpenAI-uy?un
+// endpointl?rd? m?tn-yaln?z sor?unun standart formas?d?r v? vision tokeni Ã¶d?nilmir.
 export async function callVisionLLM(opts: {
   systemPrompt: string;
   userPrompt: string;
@@ -444,7 +444,7 @@ export async function callVisionLLM(opts: {
   imageMime?: string;
   model?: string;
   signal?: AbortSignal;
-  /** Yaln?z Qat 1 (transcribe). Qat 5 ça??r???na ötürm?. */
+  /** Yaln?z Qat 1 (transcribe). Qat 5 Ã§a??r???na Ã¶tÃ¼rm?. */
   reasoningEffort?: ReasoningEffort;
   /**
    * Qat 5: explicit Gemini context cache for the system prompt.
@@ -456,8 +456,8 @@ export async function callVisionLLM(opts: {
   if (!model) {
     throw new Error("GEMINI_MODEL env d?yi??ni (v? ya opts.model) laz?md?r.");
   }
-  // ADR-022: TANINAN model üçün registrinin ba?lant? env-l?ri i?l?dilir, nam?lum model üçün
-  // (registrid? olmayan, s?rb?st-m?tn override) `GEMINI_*`-? geri dü?ür ? çoxprovayderli hal
+  // ADR-022: TANINAN model Ã¼Ã§Ã¼n registrinin ba?lant? env-l?ri i?l?dilir, nam?lum model Ã¼Ã§Ã¼n
+  // (registrid? olmayan, s?rb?st-m?tn override) `GEMINI_*`-? geri dÃ¼?Ã¼r ? Ã§oxprovayderli hal
   // BU ADR-in h?cmind?n K?NARDIR, bir provayder daxilind? model azadl??? buradad?r.
   const connection = resolveConnection(model) ?? {
     baseUrl: process.env.GEMINI_BASE_URL,
@@ -466,7 +466,7 @@ export async function callVisionLLM(opts: {
   const { baseUrl, apiKey } = connection;
   if (!apiKey || !baseUrl) {
     throw new Error(
-      `Model '${model}' üçün ba?lant? env-l?ri tap?lmad? (GEMINI_API_KEY/GEMINI_BASE_URL v? ya registrinin öz env-l?ri).`
+      `Model '${model}' Ã¼Ã§Ã¼n ba?lant? env-l?ri tap?lmad? (GEMINI_API_KEY/GEMINI_BASE_URL v? ya registrinin Ã¶z env-l?ri).`
     );
   }
 
@@ -598,7 +598,7 @@ export async function callVisionLLM(opts: {
   const body = await res.json();
   const rawText: string = body.choices?.[0]?.message?.content ?? "";
   // Gemini/OpenAI `usage`-d? USD YOXDUR ? token saylar? var (ADR-028). OpenRouter
-  // `usage.cost` gönd?rir; `normalizeUsage` onu da saxlay?r.
+  // `usage.cost` gÃ¶nd?rir; `normalizeUsage` onu da saxlay?r.
   const usage = normalizeUsage(body.usage);
   if (usedCache && cachedTokensFromUsage(usage) == null) {
     logContextCache("warn", {

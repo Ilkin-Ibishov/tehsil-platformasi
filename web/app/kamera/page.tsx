@@ -368,6 +368,7 @@ export default function KameraPage() {
 
   function finishWaitMs(): number | null {
     if (finishWaitStartedRef.current === null) return null;
+    // eslint-disable-next-line react-hooks/purity -- yalnız event/telemetry yollarından
     return Date.now() - finishWaitStartedRef.current;
   }
 
@@ -480,6 +481,7 @@ export default function KameraPage() {
       form.append("subject", "math");
       if (selectedLabel) form.append("selected_label", selectedLabel);
 
+      // eslint-disable-next-line react-hooks/purity -- submitSolve async handler, render deyil
       const transcribeWaitStarted = Date.now();
       const res = await fetch("/api/solve/transcribe", { method: "POST", body: form });
 
@@ -566,6 +568,7 @@ export default function KameraPage() {
       setCascadeTranscript(transcript);
       trackEvent("transcript.shown", {
         ocr_confidence: transcript.ocrConfidence,
+        // eslint-disable-next-line react-hooks/purity -- submitSolve async handler, render deyil
         transcribe_wait_ms: Date.now() - transcribeWaitStarted,
         llm_ms: transcript.meta.latencyMs,
         storage_ms: transcript.meta.storageMs,
@@ -596,6 +599,7 @@ export default function KameraPage() {
     if (!cascadeTranscript) return;
     const corrected = finalText !== cascadeTranscript.canonical;
     trackEvent("transcript.confirmed", { corrected });
+    // eslint-disable-next-line react-hooks/purity -- handleConfirm event handler, render deyil
     finishWaitStartedRef.current = Date.now();
 
     if (!corrected) {

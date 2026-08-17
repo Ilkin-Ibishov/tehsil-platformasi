@@ -238,13 +238,20 @@ export function SolveView({
   const [transferInput, setTransferInput] = useState("");
   const [transferCorrect, setTransferCorrect] = useState<boolean | null>(null);
   const [problemExpanded, setProblemExpanded] = useState(false);
+  // eslint-disable-next-line react-hooks/purity -- mount-only wall clock for telemetry duration
   const solveStartedAt = useRef(Date.now());
   const shownSteps = useRef<Set<number>>(new Set());
   const transferShownAt = useRef<number>(0);
   const transferFetchStarted = useRef(false);
 
   const currentStep = steps[stepIndex];
-  const currentAnswer = answers[stepIndex] ?? { input: "", status: "idle" as StepStatus, attemptNo: 0, startedAt: Date.now() };
+  const currentAnswer = answers[stepIndex] ?? {
+    input: "",
+    status: "idle" as StepStatus,
+    attemptNo: 0,
+    // Placeholder; real startedAt setAnswer ilə yazılır — render-də Date.now() yox.
+    startedAt: 0,
+  };
   const formattedCanonical = useMemo(() => formatMath(solution.canonical ?? ""), [solution.canonical]);
   // ClickUp 86eyn28kn: ipucu + ≥1 səhv, orta addım. Son addım «Cavabı göstər»dir.
   const stuckPassable = canPassStuckStep({
@@ -255,10 +262,6 @@ export function SolveView({
   const alreadyUnlocked = stepIndex < farthestIndex;
   const midStepLocked =
     stepIndex < total - 1 && currentAnswer.status !== "correct" && !stuckPassable && !alreadyUnlocked;
-
-  useEffect(() => {
-    setProblemExpanded(false);
-  }, [stepIndex]);
 
   function toggleProblem() {
     if (!problemExpanded) {
@@ -360,14 +363,19 @@ export function SolveView({
   function setInput(value: string) {
     setAnswers((prev) => ({
       ...prev,
-      [stepIndex]: { ...currentAnswer, input: value },
+      [stepIndex]: {
+        ...currentAnswer,
+        input: value,
+        startedAt: currentAnswer.startedAt || Date.now(),
+      },
     }));
   }
 
   async function submitAnswer() {
     if (!currentStep || currentAnswer.status === "checking") return;
     const attemptNo = currentAnswer.attemptNo + 1;
-    const timeOnStepMs = Date.now() - currentAnswer.startedAt;
+    const startedAt = currentAnswer.startedAt || Date.now();
+    const timeOnStepMs = Date.now() - startedAt;
     const submittedInput = currentAnswer.input;
 
     setAnswers((prev) => ({ ...prev, [stepIndex]: { ...currentAnswer, status: "checking" } }));
@@ -486,6 +494,7 @@ export function SolveView({
     if (i < 0 || i > farthestIndex || i === stepIndex) return;
     if (revealing || passing || currentAnswer.status === "checking") return;
     setPassError(false);
+    setProblemExpanded(false);
     setStepIndex(i);
   }
 
@@ -496,6 +505,7 @@ export function SolveView({
     }
     const next = stepIndex + 1;
     setPassError(false);
+    setProblemExpanded(false);
     setStepIndex(next);
     setFarthestIndex((f) => Math.max(f, next));
   }
