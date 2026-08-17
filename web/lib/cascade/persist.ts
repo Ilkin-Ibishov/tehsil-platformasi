@@ -19,7 +19,7 @@ import { verifyFinalAnswer } from "../verify/answer";
 import { detectLeak } from "../verify/leak";
 import { canonicalHash, numericFingerprint } from "./bank";
 import type { LayerSolution, PublicStep, Transcript } from "./types";
-import { visualFromPayload, visualPayloadJson, drawableVisual, type VisualSpec } from "../visual";
+import { visualPayloadJson, drawableVisual, visualForReuse, type VisualSpec } from "../visual";
 
 export type PersistResult =
   // `steps` — ŞAGİRDƏ GÖSTƏRİLƏCƏK addımlar. Qatın qaytardığından FƏRQLİ ola bilər: mövcud
@@ -185,10 +185,20 @@ export async function persistSolution(opts: {
       const storedSteps = stored.rows[0]?.steps;
       if (Array.isArray(storedSteps) && storedSteps.length > 0) {
         servedSteps = storedSteps;
-        servedVisual = drawableVisual(visualFromPayload(existing.rows[0].payload));
       }
       // Saxlanılan addım YOXDURSA (`0034` lazy-generation sətri) yeni addımlar göstərilir —
       // o halda `step_answers` da boşdur, uyğunsuzluq yaranmır.
+      // Visual INSERT-only idi: köhnə `payload={}` reuse-da LLM qrafikini silirdi.
+      // Addımlar saxlanılan qalır; drawable visual yoxdursa bu cavabın LLM vizualı verilir
+      // və yalnız boş payload backfill olunur (mövcud qrafik üzərinə yazılmır).
+      const reuse = visualForReuse(existing.rows[0].payload, servedVisual);
+      servedVisual = reuse.served;
+      if (reuse.backfill) {
+        await client.query(`update questions set payload = $2::jsonb where id = $1`, [
+          questionId,
+          visualPayloadJson(reuse.backfill),
+        ]);
+      }
     } else {
       questionId = randomUUID();
       // ADR-003 Ləğv (2026-08-14) / S8 (86eymwgmv): Ilkin-in qəti qərarı ilə `canonical`

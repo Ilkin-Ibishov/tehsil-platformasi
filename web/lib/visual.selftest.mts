@@ -1,4 +1,5 @@
 // ADR-031 visual parse/strip + SVG həndəsəsi. LLM SVG yazmır.
+import { VISUAL_POINT_R } from "./design-tokens.ts";
 import {
   parseVisual,
   stripUnknownVisual,
@@ -6,6 +7,7 @@ import {
   visualScene,
   visualPayloadJson,
   visualFromPayload,
+  visualForReuse,
   VISUAL_VIEW,
 } from "./visual.ts";
 
@@ -43,6 +45,18 @@ const kept = stripUnknownVisual({
   visual: { kind: "linear", k: 1, b: 0 },
 }) as { visual: { kind: string } };
 check("strip keeps valid", kept.visual.kind, "linear");
+
+check("point r is numeric", Number.isFinite(VISUAL_POINT_R) && VISUAL_POINT_R > 0, true);
+
+const reuseEmpty = visualForReuse({}, { kind: "linear", k: 1, b: 0 });
+check("reuse empty payload serves llm", reuseEmpty.served, { kind: "linear", k: 1, b: 0 });
+check("reuse empty payload backfills", reuseEmpty.backfill, { kind: "linear", k: 1, b: 0 });
+const reuseKept = visualForReuse(
+  { visual: { kind: "quadratic", a: 1, b: 0, c: 0 } },
+  { kind: "linear", k: 1, b: 0 }
+);
+check("reuse keeps stored visual", reuseKept.served, { kind: "quadratic", a: 1, b: 0, c: 0 });
+check("reuse does not overwrite stored", reuseKept.backfill, null);
 
 check("payload json none is empty", visualPayloadJson({ kind: "none" }), "{}");
 check(

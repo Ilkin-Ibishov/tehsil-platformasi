@@ -124,7 +124,7 @@ def evaluate_item(item, result, cfg):
         )
         return entry
 
-    raw = result["raw_output"]
+    raw = schema_check.strip_unknown_visual(result["raw_output"])
     schema_valid, schema_errors = schema_check.validate(raw)
     entry["schema_valid"] = schema_valid
     if not schema_valid:

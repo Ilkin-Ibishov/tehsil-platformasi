@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-17: HANDOFF 176 — E2.3 Should-fix: WebView `r`, reuse visual backfill UPDATE, eval=prod strip, revealed graph; 36/36.
 - 2026-08-17: HANDOFF 175 — E2.3 SVG renderer + payload persist + strip unknown kind; eval 35/35.
 - 2026-08-17: HANDOFF 174 — E2.2: `visual` təsviri rədd davranışı ilə uyğunlaşdı (strip E2.3).
 - 2026-08-17: HANDOFF 173 — E2.2 STEP-SCHEMA v2 + `visual` JSON (renderer yox); eval 35/35; transcribe 1.

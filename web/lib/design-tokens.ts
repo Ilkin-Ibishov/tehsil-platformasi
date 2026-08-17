@@ -63,3 +63,5 @@ export function getThemeVars(theme: Theme, tone: Tone): Record<string, string> {
 
 export const FONT_LOAD_URL = tokens.font._load;
 export const designTokens = tokens;
+/** SVG `circle` `r` must be numeric — WebView often paints CSS-var `r` as 0. */
+export const VISUAL_POINT_R = Number.parseFloat(tokens.visual.pointR);

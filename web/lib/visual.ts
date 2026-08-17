@@ -311,3 +311,14 @@ export function visualFromPayload(payload: unknown): VisualSpec | null {
   if (payload == null || typeof payload !== "object" || Array.isArray(payload)) return null;
   return parseVisual((payload as { visual?: unknown }).visual);
 }
+
+/** Reuse: keep a stored drawable visual; else serve this response's LLM visual (payload backfill). */
+export function visualForReuse(
+  storedPayload: unknown,
+  llmVisual: VisualSpec | null | undefined,
+): { served: DrawableVisual | null; backfill: DrawableVisual | null } {
+  const stored = drawableVisual(visualFromPayload(storedPayload));
+  if (stored) return { served: stored, backfill: null };
+  const llm = drawableVisual(llmVisual);
+  return { served: llm, backfill: llm };
+}

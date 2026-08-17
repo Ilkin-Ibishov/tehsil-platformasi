@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (176) · Cursor → Cowork
+Etdim:    E2.3 Should-fix: `VisualFigure` `r={VISUAL_POINT_R}` (WebView CSS-var 0); reuse boş `payload` LLM vizualını verir + yalnız boş payload UPDATE (mövcud qrafik/addımlar toxunulmur); eval `strip_unknown_visual` sonra schema_check (36/36); SolveView revealed-answer qrafiki.
+Tapşırıq: `86eyncq98` (E2 parent; complete YOX — E2.4 prompt, E2.5 telemetriya qalıb).
+Diqqət:   Vizual izahdır, yoxlama deyil. `prompts/solve/**` toxunulmayıb. `verification.verified` dəyişməyib.
+
 ## 2026-08-17 (175) · Cursor → Cowork
 Etdim:    E2.3: öz SVG renderer (`web/lib/visual.ts`, `VisualFigure.tsx`) — tokenlər `--visual-*`; naməlum kind `stripUnknownVisual` (həll saxlanır). `visual` `questions.payload`-a. SolveView «QRAFİK». npm/KaTeX yox. `visual.selftest` + eval 35/35.
 Tapşırıq: `86eyncq98` (E2 parent; E2.3 uşaq ID yoxdur). Parent complete DEYİL — E2.4 prompt, E2.5 telemetriya qalıb.

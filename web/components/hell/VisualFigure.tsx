@@ -1,5 +1,6 @@
 "use client";
 
+import { VISUAL_POINT_R } from "@/lib/design-tokens";
 import { drawableVisual, visualScene, VISUAL_VIEW, type VisualSpec } from "@/lib/visual";
 
 type Props = {
@@ -39,7 +40,7 @@ export function VisualFigure({ spec, label }: Props) {
               x2={scene.x1}
               y2={scene.axisY}
               stroke="var(--bor)"
-              strokeWidth="var(--visual-stroke-axis)"
+              style={{ strokeWidth: "var(--visual-stroke-axis)" }}
             />
             {scene.ticks.map((t) => (
               <g key={`t-${t.x}`}>
@@ -49,7 +50,7 @@ export function VisualFigure({ spec, label }: Props) {
                   x2={t.x}
                   y2={scene.axisY + 5}
                   stroke="var(--bor)"
-                  strokeWidth="var(--visual-stroke-axis)"
+                  style={{ strokeWidth: "var(--visual-stroke-axis)" }}
                 />
                 <text
                   x={t.x}
@@ -68,10 +69,10 @@ export function VisualFigure({ spec, label }: Props) {
                 <circle
                   cx={d.cx}
                   cy={d.cy}
-                  r="var(--visual-point-r)"
+                  r={VISUAL_POINT_R}
                   fill={d.open ? "var(--sur)" : "var(--acc)"}
                   stroke="var(--acc)"
-                  strokeWidth="var(--visual-stroke-plot)"
+                  style={{ strokeWidth: "var(--visual-stroke-plot)" }}
                 />
                 {d.label ? (
                   <text
@@ -97,7 +98,7 @@ export function VisualFigure({ spec, label }: Props) {
                 x2={scene.axisH.x2}
                 y2={scene.axisH.y2}
                 stroke="var(--bor)"
-                strokeWidth="var(--visual-stroke-axis)"
+                style={{ strokeWidth: "var(--visual-stroke-axis)" }}
               />
             ) : null}
             {scene.axisV ? (
@@ -107,7 +108,7 @@ export function VisualFigure({ spec, label }: Props) {
                 x2={scene.axisV.x2}
                 y2={scene.axisV.y2}
                 stroke="var(--bor)"
-                strokeWidth="var(--visual-stroke-axis)"
+                style={{ strokeWidth: "var(--visual-stroke-axis)" }}
               />
             ) : null}
             {scene.ticks.map((t, i) => (
@@ -128,8 +129,8 @@ export function VisualFigure({ spec, label }: Props) {
                 d={scene.path}
                 fill="none"
                 stroke="var(--acc)"
-                strokeWidth="var(--visual-stroke-plot)"
                 strokeLinejoin="round"
+                style={{ strokeWidth: "var(--visual-stroke-plot)" }}
                 strokeLinecap="round"
               />
             ) : null}

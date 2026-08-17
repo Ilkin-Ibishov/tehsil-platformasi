@@ -7,7 +7,7 @@ import { computeCostUsd, sumCostUsd, billableOutputTokens, sumTokens } from "@/l
 import { getActiveModel } from "@/lib/models";
 import { getBoolConfig } from "@/lib/app-config";
 import { validateStep, STEP_SCHEMA_VERSION } from "@/lib/verify/schema";
-import { parseVisual, stripUnknownVisual, visualFromPayload, visualPayloadJson, drawableVisual } from "@/lib/visual";
+import { parseVisual, stripUnknownVisual, visualPayloadJson, drawableVisual, visualForReuse } from "@/lib/visual";
 import { verifyFinalAnswer } from "@/lib/verify/answer";
 import { detectLeak } from "@/lib/verify/leak";
 import { transcribe, imageSha256 } from "@/lib/cascade/transcribe";
@@ -757,7 +757,14 @@ export async function POST(req: NextRequest) {
       const storedSteps = stored.rows[0]?.steps;
       if (Array.isArray(storedSteps) && storedSteps.length > 0) {
         servedSteps = storedSteps;
-        servedVisual = drawableVisual(visualFromPayload(existing.rows[0].payload));
+      }
+      const reuse = visualForReuse(existing.rows[0].payload, servedVisual);
+      servedVisual = reuse.served;
+      if (reuse.backfill) {
+        await client.query(`update questions set payload = $2::jsonb where id = $1`, [
+          questionId,
+          visualPayloadJson(reuse.backfill),
+        ]);
       }
     } else {
       questionId = randomUUID();

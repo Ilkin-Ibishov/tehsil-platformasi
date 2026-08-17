@@ -585,6 +585,7 @@ export function SolveView({
         >
           {finalDisplayText}
         </div>
+        <VisualFigure spec={solution.visual} label={t("visual.label")} />
         <div style={{ padding: "0 var(--page-pad-x)", display: "flex", gap: 20 }}>
           {!reportedWrong && (
             <button

@@ -116,7 +116,7 @@ def _selftest_cases():
     for case in cases:
         name = case["case"]
         expect = case["expect"]
-        raw = case["model_output"]
+        raw = schema_check.strip_unknown_visual(case["model_output"])
 
         schema_valid, _ = schema_check.validate(raw)
         actual = {"schema_valid": schema_valid}
