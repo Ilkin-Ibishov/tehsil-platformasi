@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (181) · Cursor → Cowork
+Etdim:    Dilim 3: eval retry (`failed` n_attempted-dən çıxır, 5 cəhd) — vision golden-set api_failure 1/10=10%, n_attempted=9/10. E2.6: `triangle`/`circle`/`force_diagram`/`cartesian` sxem v2 + `visual.ts` + selftest; GEO.* və MECH.DYNAMICS/KINEMATICS nümunə. E2.4 yenidən ölçü: dim-100test `--text` mümkün deyil (canonical yox, PDF/şəkil diskdə yox). Proxy `text-set-e24`: n=52, failed=21 (api 40%), graph-helps 22 (ok 9), fill 3/9=33%, səhv sxem 0. Kind silinmədi.
+Tapşırıq: `86eynh47m` complete (kind-lər). `86eyncqbz` ölçmə kommenti (qapı keçmədi). `86eyncjh3` blok — fizika PDF yoxdur.
+Diqqət:   core.md visual kiçildilmədi (v15). Naməlum kind hələ atılır. `verified` üç hal toxunulmayıb.
+Blok:     dim-100test və fizika buraxılış PDF/şəkilləri bu maşında yoxdur — n≥30 graph-helps və E1.4 eval üçün operator PDF verməlidir. Hiperbola `y=k/x` və 3D müstəvi hələ kind-siz; cartesian model istifadə etmədi.
+
 ## 2026-08-17 (180) · Cursor → Cowork
 Etdim:    E1.3: `0072_physics_topic_codes.sql` (10 kod, prefix NULL); `physics.md` + 10 mövzu faylı; `transcribe.md` v3 `{{SUBJECT_BRANCH}}` yalnız physics. Selftest: fallbackUsed=false, `prompt.subject_fallback` fizikada yox, kimyada qalır. `visual` fizika mövzularına qoyulmayıb (E2.4 fill 50%).
 Tapşırıq: `86eyncjdu` complete.

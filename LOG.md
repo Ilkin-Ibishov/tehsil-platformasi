@@ -1,5 +1,9 @@
 # LOG
 
+- 2026-08-17: HANDOFF 181 — E1.4 blok: fizika buraxılış PDF və kəsik yoxdur.
+  Golden cavab uydurulmadı. `86eyncjh3` complete deyil.
+- 2026-08-17: HANDOFF 181 — E2.4 yenidən ölçü (e24 `--text`): api 21/52=40%, graph-helps 22 (ok 9),
+  fill 3/9=33% (<60%), səhv sxem 0. dim-100test canonical/PDF yox. Kind silinmədi.
 - 2026-08-17: HANDOFF 182 — E2.6 visual kind: triangle, circle, force_diagram, cartesian
   (sxem v2, bump yox). Renderer + selftest. GEO.* və MECH.DYNAMICS/KINEMATICS nümunə.
   Naməlum kind hələ atılır. eval 48/48. core.md visual kiçildilmədi (v15 əlavə).
