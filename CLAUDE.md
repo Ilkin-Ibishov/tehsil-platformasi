@@ -4,6 +4,18 @@
 > Claude Code və Cursor (executor) hər sessiyadan əvvəl oxuyur. **Dəyişiklik etməzdən əvvəl `docs/HANDOFF.md`-i oxu.**
 > Cursor əməliyyat xəritəsi: `AGENTS.md` + `.cursor/` — yaşayan vəziyyəti bura köçürmə.
 
+## İstifadəçi vəziyyəti
+
+> **Production-da real istifadəçi YOXDUR.** Şagird dəvəti hələ göndərilməyib (2026-08-17).
+> Bu sətri **yalnız Ilkin** dəyişir. Heç bir agent onu öz-özünə "artıq istifadəçi var"a çevirmir.
+
+Bu, gündəlik qərarları dəyişir:
+
+- Ölçülməmiş funksiyanın production-a çıxması **zərər vermir** — heç kim görmür. Kill-switch / feature flag qurmaq bu mərhələdə ceremony-dir, qapı ölçməsini əvəz etmir.
+- Yeganə "istifadəçi" **korpus soak-dur** (`attempts.kind='corpus_soak'`). Telemetriya və qapı ölçmələri şagirddən yox, soak-dan və eval harness-dən gəlir.
+- Şagird tərəfli metrikalar (retensiya, `visual.reported`, distraktor sağlamlığı, gündəlik limit davranışı) **indi ölçülə bilməz** — planlaşdır, amma blocker sayma. Onlar Faza 4-ün (Şagird dalğası) işidir.
+- Schema/DB dəyişikliyi hələ **ucuzdur**. Real istifadəçi gələndə bahalaşır — o nöqtədə BLITZ rejimi yenidən baxılır.
+
 ## Layihə bir abzasda
 
 Azərbaycan şagirdləri (5–11 sinif) üçün mobil-first web app. Şagird riyaziyyat məsələsinin şəklini çəkir
