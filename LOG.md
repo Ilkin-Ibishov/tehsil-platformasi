@@ -83,3 +83,6 @@
 - 2026-08-17: Faza 3 BA strukturu - E1 (fenn, 6 alt-task), E2 (vizual, 5 alt-task), E3 (derslik, 5 alt-task). Kohne duz siyahi silindi.
 - 2026-08-17: Kod auditi - prompt.ts subject fallback SESSIZ (physics.md yoxdur -> math numunesi); verify/answer.ts mathjs-dir, method='sympy' etiketi yalandir; verified===false hell GIZLEDIR (fizikada yanlis musbet riski). ADR-031 gozlenir.
 - 2026-08-17: E2.1 qerari - oz SVG generatoru (saf funksiya, klientde render). JSXGraph/Mafs alinmir (interaktivlik sahedan kenardir), serverde SVG gonderilmir (NDJSON yuku). Eyni modul serverde snapshot testi + E2.4 toplu baxis ucun. ADR-031 yazilacaq.
+- 2026-08-17: Cowork auditi (dilim 1) - E1.2 qapisi KECDI: verify replay 52 prod setirinde verified 1 -> 22 (42.3%, hedef >=40%), verified=false regressiya 0. Schema v2-de hem visual, hem mathjs_equation/mathjs_unit enum var - bump duzgun birlesdirilib.
+- 2026-08-17: BOSLUQ - visual production-da acidqir, amma E2.4 qapisi (n=30 sehv sxem <=10%) OLCULMEYIB ve app_config-de visual_enabled bayragi YOXDUR. ClickUp 86eynftm0 (E2.0) acildi, dilim 2-nin birinci addimidir.
+- 2026-08-17: summary-golden-set-2026-08-17.json 'evals/images yoxdur' yazir, amma qovluqda 11 fayl var - vision eval sehv diaqnozla atlanib, dilim 2-de arasdirilir.
