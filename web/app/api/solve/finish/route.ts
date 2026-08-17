@@ -395,6 +395,7 @@ async function runFinishCore(opts: {
     status: "ok",
     canonical: transcript.canonical,
     steps: persisted.steps,
+    ...(persisted.visual ? { visual: persisted.visual } : {}),
     attempt_id: persisted.sessionId,
     match_path: solution.matchPath,
     verification: { ...persisted.verification, verified_at: new Date().toISOString() },

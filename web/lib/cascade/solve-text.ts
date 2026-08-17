@@ -25,6 +25,7 @@ import { streamVisionLLM } from "../llm-stream";
 import { computeCostUsd } from "../cost";
 import { getActiveModel } from "../models";
 import { validateStep } from "../verify/schema";
+import { parseVisual, stripUnknownVisual } from "../visual";
 import { callSoakChat, SoakTransportError } from "../soak/adapter";
 import { extractNewDisplayableSteps, toPublicPreviewStep } from "./stream-steps";
 import type { CascadeContext, FinalAnswer, LayerSolution, PublicStep, RawStep, SolveLayer, StepAnswerRow } from "./types";
@@ -131,9 +132,10 @@ export function makeTextSolveLayer(pool: Pool): SolveLayer {
         latencyMs = result.latencyMs;
         usedModel = result.model; // ADR-022: HƏQİQƏTƏN çağırılan model, təxmin yox
 
-        const check = validateStep(result.parsed);
+        const stripped = stripUnknownVisual(result.parsed);
+        const check = validateStep(stripped);
         if (check.valid) {
-          parsed = result.parsed as StepSchemaOutput;
+          parsed = stripped as StepSchemaOutput;
           break;
         }
         console.error(`[cascade/solve-text] sxem etibarsız (cəhd ${call}):`, check.errors, "xam çıxış:", result.rawText);
@@ -158,6 +160,7 @@ export function makeTextSolveLayer(pool: Pool): SolveLayer {
         layer: "llm_text",
         matchPath: "llm",
         steps: stripAccept(rawSteps),
+        visual: parseVisual(parsed.visual),
         newQuestion: {
           finalAnswer,
           stepAnswerRows: buildStepAnswerRows(rawSteps),

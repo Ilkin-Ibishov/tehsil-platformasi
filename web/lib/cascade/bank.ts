@@ -43,6 +43,7 @@
 import { createHash } from "node:crypto";
 import type { Pool } from "pg";
 import type { CascadeContext, LayerSolution, PublicStep, SolveLayer } from "./types";
+import { visualFromPayload } from "../visual";
 
 export function normalizeCanonical(canonical: string): string {
   return canonical.trim().toLowerCase().replace(/\s+/g, " ");
@@ -65,6 +66,7 @@ type BankRow = {
   steps: PublicStep[] | null;
   verified: boolean | null;
   verification_method: string | null;
+  payload: unknown;
 };
 
 // Namizəd sayının yuxarı həddi. Real bankda maksimum 2-dir (ölçüldü), 4 həddi "gözlənilməz
@@ -79,6 +81,7 @@ async function queryCandidates(pool: Pool, where: string, params: unknown[]): Pr
   const { rows } = await pool.query<BankRow>(
     `select q.id as question_id,
             q.topic_code as topic_code,
+            q.payload as payload,
             qt.steps as steps,
             qt.verified as verified,
             qt.verification_method as verification_method
@@ -169,6 +172,7 @@ export function makeBankLayers(pool: Pool): SolveLayer[] {
         matchPath: "hash",
         questionId: row.question_id,
         steps: row.steps,
+        visual: visualFromPayload(row.payload),
         verification: bankVerification(row),
         costUsd: 0,
         latencyMs: 0,
@@ -201,6 +205,7 @@ export function makeBankLayers(pool: Pool): SolveLayer[] {
         matchPath: "fingerprint",
         questionId: row.question_id,
         steps: row.steps,
+        visual: visualFromPayload(row.payload),
         verification: bankVerification(row),
         costUsd: 0,
         latencyMs: 0,

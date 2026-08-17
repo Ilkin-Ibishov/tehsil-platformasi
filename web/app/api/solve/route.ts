@@ -7,6 +7,7 @@ import { computeCostUsd, sumCostUsd, billableOutputTokens, sumTokens } from "@/l
 import { getActiveModel } from "@/lib/models";
 import { getBoolConfig } from "@/lib/app-config";
 import { validateStep, STEP_SCHEMA_VERSION } from "@/lib/verify/schema";
+import { parseVisual, stripUnknownVisual, visualFromPayload, visualPayloadJson, drawableVisual } from "@/lib/visual";
 import { verifyFinalAnswer } from "@/lib/verify/answer";
 import { detectLeak } from "@/lib/verify/leak";
 import { transcribe, imageSha256 } from "@/lib/cascade/transcribe";
@@ -494,6 +495,7 @@ export async function POST(req: NextRequest) {
           // `final_answer` və `check.accept` ŞƏBƏKƏYƏ DÜŞMÜR (SYSTEM-REVIEW §2) — addım
           // yoxlaması `/api/steps/check`, son cavab `/api/attempts/reveal`-dədir.
           steps: persisted.steps,
+          ...(persisted.visual ? { visual: persisted.visual } : {}),
           attempt_id: persisted.sessionId,
           match_path: solution.matchPath,
           verification: { ...persisted.verification, verified_at: new Date().toISOString() },
@@ -573,7 +575,7 @@ export async function POST(req: NextRequest) {
     [imageHash, cacheKey, imagePhash]
   );
   if (cacheRows[0]?.reveal_cached_solve) {
-    parsed = cacheRows[0].reveal_cached_solve;
+    parsed = stripUnknownVisual(cacheRows[0].reveal_cached_solve) as StepSchemaOutput;
     cacheHit = true;
   } else {
     const timeoutController = new AbortController();
@@ -594,9 +596,10 @@ export async function POST(req: NextRequest) {
         attempts = result.attempts;
         usedModel = result.model;
 
-        const check = validateStep(result.parsed);
+        const stripped = stripUnknownVisual(result.parsed);
+        const check = validateStep(stripped);
         if (check.valid) {
-          parsed = result.parsed as StepSchemaOutput;
+          parsed = stripped as StepSchemaOutput;
           break;
         }
         console.error(`[/api/solve] sxem etibarsız (cəhd ${call}):`, check.errors, "xam çıxış:", result.rawText);
@@ -702,6 +705,7 @@ export async function POST(req: NextRequest) {
   const effectiveSubject = parsed.subject ?? subject;
   const stepsForStorage = parsed.steps ?? [];
   let servedSteps = stripAccept(stepsForStorage);
+  let servedVisual = drawableVisual(parseVisual(parsed.visual));
 
   const client = await pool.connect();
   let questionId: string;
@@ -723,15 +727,15 @@ export async function POST(req: NextRequest) {
     // §5. Sadə `canonical_hash` axtarışı ARTIQ KİFAYƏT DEYİL, eyni hash fərqli sinif üçün
     // ayrı sətir ola bilər (HANDOFF 70-in daimi qaydası). Fingerprint unikallığı da eyni
     // üçlükdədir — hash miss + fingerprint hit olanda INSERT 500 verməsin deyə reuse.
-    let existing = await client.query<{ id: string }>(
-      `select id from questions
+    let existing = await client.query<{ id: string; payload: unknown }>(
+      `select id, payload from questions
         where canonical_hash = $1 and subject_id = $2 and grade = $3
           and superseded_by is null and deleted_at is null`,
       [hash, subjectId, effectiveGrade]
     );
     if (existing.rows.length === 0 && fingerprint) {
-      existing = await client.query<{ id: string }>(
-        `select id from questions
+      existing = await client.query<{ id: string; payload: unknown }>(
+        `select id, payload from questions
           where numeric_fingerprint = $1 and subject_id = $2 and grade = $3
             and superseded_by is null and deleted_at is null`,
         [fingerprint, subjectId, effectiveGrade]
@@ -753,6 +757,7 @@ export async function POST(req: NextRequest) {
       const storedSteps = stored.rows[0]?.steps;
       if (Array.isArray(storedSteps) && storedSteps.length > 0) {
         servedSteps = storedSteps;
+        servedVisual = drawableVisual(visualFromPayload(existing.rows[0].payload));
       }
     } else {
       questionId = randomUUID();
@@ -764,7 +769,7 @@ export async function POST(req: NextRequest) {
            (id, canonical, canonical_hash, numeric_fingerprint, problem_type, subject_id,
             grade, topic_code, type, payload, difficulty_static, source, review_status,
             attempt_count, root_id)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,'open','{}'::jsonb,3,'user_capture',$9,1,$1)`,
+         values ($1,$2,$3,$4,$5,$6,$7,$8,'open',$10::jsonb,3,'user_capture',$9,1,$1)`,
         [
           questionId,
           parsed.canonical,
@@ -775,6 +780,7 @@ export async function POST(req: NextRequest) {
           effectiveGrade,
           parsed.topic_code ?? null,
           reviewStatus,
+          visualPayloadJson(servedVisual),
         ]
       );
 
@@ -852,6 +858,8 @@ export async function POST(req: NextRequest) {
   const parsedWithoutAnswers: Record<string, unknown> = { ...parsed };
   delete parsedWithoutAnswers.final_answer;
   delete parsedWithoutAnswers.steps;
+  if (servedVisual) parsedWithoutAnswers.visual = servedVisual;
+  else delete parsedWithoutAnswers.visual;
 
   return NextResponse.json(
     {

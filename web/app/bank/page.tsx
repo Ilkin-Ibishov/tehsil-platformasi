@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { trackEvent, getDeviceId } from "@/lib/telemetry";
 import { InviteGate, getStoredInviteCode, clearStoredInviteCode } from "@/components/kamera/InviteGate";
 import { SolveView, type SolveResult } from "@/components/hell/SolveView";
+import { parseVisual } from "@/lib/visual";
 
 // ClickUp 86eykhve0 — bank UI. Bankda 217 `auto_verified` sual var, addımları hazırdır, amma
 // bu ekrandan ƏVVƏL onları göstərən HEÇ BİR yer yox idi (yeganə giriş kamera idi). LLM
@@ -105,7 +106,7 @@ export default function BankPage() {
         return;
       }
       const body = await res.json();
-      setSolution({ canonical: body.canonical, steps: body.steps });
+      setSolution({ canonical: body.canonical, steps: body.steps, visual: parseVisual(body.visual) });
       setSolutionAttemptId(body.attempt_id);
       setStage("solved");
     } catch {

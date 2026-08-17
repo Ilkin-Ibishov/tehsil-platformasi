@@ -54,6 +54,9 @@ export function getThemeVars(theme: Theme, tone: Tone): Record<string, string> {
   vars["--font-mono"] = tokens.font.mono;
   vars["--max-width"] = tokens.layout.maxWidth;
   vars["--page-pad-x"] = tokens.layout.pagePadX;
+  vars["--visual-stroke-plot"] = tokens.visual.strokePlot;
+  vars["--visual-stroke-axis"] = tokens.visual.strokeAxis;
+  vars["--visual-point-r"] = tokens.visual.pointR;
 
   return vars;
 }

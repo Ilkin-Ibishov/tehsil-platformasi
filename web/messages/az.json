@@ -85,6 +85,9 @@
       "expand": "məsələni aç",
       "collapse": "məsələni yığ"
     },
+    "visual": {
+      "label": "QRAFİK"
+    },
     "step": {
       "counter": "ADDIM {index} / {total}",
       "inputPlaceholder": "cavabın",

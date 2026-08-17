@@ -15,6 +15,7 @@
 // qoymaq. Nə `/api/solve`, nə klient, nə telemetriya dəyişir.
 
 import type { LLMUsage } from "../llm";
+import type { VisualSpec } from "../visual";
 
 // docs/TELEMETRY.md-dəki `match_path` taksonomiyası — YENİ dəyər əlavə etmək telemetriya
 // müqaviləsini dəyişməkdir (CLAUDE.md: TELEMETRY.md Cowork-un sahibliyindədir).
@@ -100,6 +101,7 @@ export type LayerSolution =
       // (`mathjs_equation|mathjs_unit|human|none`) sadiqdir — "bank" adlı üçüncü dəyər
       // UYDURULMUR, sxem onu qəbul etməzdi.
       verification: { verified: boolean | null; method: string };
+      visual?: VisualSpec | null;
       newQuestion?: never;
       costUsd: number | null;
       latencyMs: number;
@@ -124,6 +126,7 @@ export type LayerSolution =
       costUsd: number | null;
       latencyMs: number;
       usage: LLMUsage | null;
+      visual?: VisualSpec | null;
     };
 
 export type CascadeContext = {

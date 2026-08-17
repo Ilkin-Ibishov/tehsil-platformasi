@@ -6,6 +6,8 @@ import { trackEvent, getDeviceId } from "@/lib/telemetry";
 import { reportAttemptProgress } from "@/lib/attempts";
 import { formatMath, formatMathProse, findUnformattedLatex } from "@/lib/math-format";
 import { canPassStuckStep } from "@/lib/verify/step-pass";
+import { VisualFigure } from "@/components/hell/VisualFigure";
+import type { VisualSpec } from "@/lib/visual";
 
 export type SolveStep = {
   index: number;
@@ -20,6 +22,7 @@ export type SolveStep = {
 export type SolveResult = {
   canonical: string;
   steps: SolveStep[];
+  visual?: VisualSpec | null;
   // S5 (86eymwgkv) — sympy `equationCrossCheck` təsdiqləyə bilmədi (söz məsələsi, çoxdəyişənli
   // tənlik və s.). Bilinmirsə (köhnə klient axını, sahə göndərilmirsə) `undefined` — şagirdə
   // heç nə göstərilmir (defolt "sükut" halı, YALANDAN xəbərdarlıq etmə).
@@ -721,6 +724,7 @@ export function SolveView({
       />
 
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "24px 0", display: "flex", flexDirection: "column", gap: 16 }}>
+        <VisualFigure spec={solution.visual} label={t("visual.label")} />
         <div style={{ padding: "0 var(--page-pad-x)", display: "grid", rowGap: 6 }}>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.1em", color: "var(--acc)" }}>
             {t("step.counter", { index: stepIndex + 1, total })}

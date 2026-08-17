@@ -164,7 +164,7 @@ visual — opsional. Qrafik yoxdursa sahəni YAZMA (və ya {"kind": "none"}).
   number_line  → min, max, points: [{"x": 2, "label": "A", "open": false}]
   linear       → k, b   (y = kx + b; DIM kəsişmə qrafiki)
   quadratic    → a, b, c (y = ax^2 + bx + c)
-Naməlum kind, SVG, path YAZMA — cavab rədd edilir.
+Naməlum kind, SVG, path YAZMA — server `visual`-ı atır (həll saxlanılır).
 
 ═══ error_code — YALNIZ BU 11 DƏYƏRDƏN BİRİ ═══
 

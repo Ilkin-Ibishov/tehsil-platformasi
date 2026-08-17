@@ -13,6 +13,7 @@ import { LoadingView } from "@/components/hell/LoadingView";
 import { SolveView, type SolveResult } from "@/components/hell/SolveView";
 import { TranscriptConfirmView } from "@/components/hell/TranscriptConfirmView";
 import { readFinishNdjson, type FinishPreviewStep } from "@/lib/kamera/finish-stream";
+import { parseVisual } from "@/lib/visual";
 
 // ADR-020 / ClickUp 86eykj7x2 — transkripsiya təsdiq ekranı YALNIZ server kaskadı açıq
 // olanda mənalıdır (o, `/api/solve/transcribe`+`/api/solve/finish` iki-endpoint axınına
@@ -295,7 +296,7 @@ export default function KameraPage() {
         return;
       }
 
-      setSolution({ canonical: body.canonical, steps: body.steps, verified: body.verification?.verified });
+      setSolution({ canonical: body.canonical, steps: body.steps, verified: body.verification?.verified, visual: parseVisual(body.visual) });
       setSolutionAttemptId(typeof body.attempt_id === "string" ? body.attempt_id : currentAttemptIdRef.current ?? null);
       setStage("solved");
     } catch {
@@ -453,6 +454,7 @@ export default function KameraPage() {
       canonical: body.canonical as string,
       steps: body.steps as SolveResult["steps"],
       verified: (body.verification as { verified?: boolean } | undefined)?.verified,
+      visual: parseVisual(body.visual),
     });
     setSolutionAttemptId(typeof body.attempt_id === "string" ? body.attempt_id : currentAttemptIdRef.current ?? null);
     setStage("solved");

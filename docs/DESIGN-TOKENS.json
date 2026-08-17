@@ -57,6 +57,13 @@
     "_load": "https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
   },
 
+  "visual": {
+    "_comment": "ADR-031 SVG qalınlıq/radius. Rənglər theme.* CSS var-larıdır (acc, bor, t1, t2, sur).",
+    "strokePlot": "2px",
+    "strokeAxis": "1.5px",
+    "pointR": "4px"
+  },
+
   "layout": {
     "maxWidth": "480px",
     "pagePadX": "20px",

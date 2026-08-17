@@ -19,6 +19,7 @@ import { verifyFinalAnswer } from "../verify/answer";
 import { detectLeak } from "../verify/leak";
 import { canonicalHash, numericFingerprint } from "./bank";
 import type { LayerSolution, PublicStep, Transcript } from "./types";
+import { visualFromPayload, visualPayloadJson, drawableVisual, type VisualSpec } from "../visual";
 
 export type PersistResult =
   // `steps` — ŞAGİRDƏ GÖSTƏRİLƏCƏK addımlar. Qatın qaytardığından FƏRQLİ ola bilər: mövcud
@@ -33,6 +34,7 @@ export type PersistResult =
       // ona görə DB-yə yazandan SONRA buradan qaytarılır.
       itemId: string;
       steps: PublicStep[];
+      visual: VisualSpec | null;
       verification: { verified: boolean | null; method: string; reason?: string | null };
       leaked: boolean;
     }
@@ -87,6 +89,7 @@ export async function persistSolution(opts: {
         sessionId,
         itemId,
         steps: solution.steps,
+        visual: drawableVisual(solution.visual),
         verification: solution.verification,
         // Bankdaki addımlar insan/şablon nəzarətindən keçib — sızma yoxlaması onlara
         // TƏTBİQ EDİLMİR, çünki `final_answer` burada əlimizdə yoxdur (o, `private`-dədir
@@ -136,15 +139,15 @@ export async function persistSolution(opts: {
     // icazə vermir — hash fərqli, rəqəmlər eyni olanda (`5+5=?` vs `5 + 5 = ?`) INSERT 500
     // verirdi. Bank Qat 2 mövzunu bərabərlik-pozucu kimi işlədir; bu indeksdə mövzu YOXDUR,
     // ona görə toqquşmada yeni sətir yox, mövcud sətir REUSE olunur (hash-hit yolu).
-    let existing = await client.query<{ id: string }>(
-      `select id from questions
+    let existing = await client.query<{ id: string; payload: unknown }>(
+      `select id, payload from questions
         where canonical_hash = $1 and subject_id = $2 and grade = $3
           and superseded_by is null and deleted_at is null`,
       [hash, subjectId, transcript.grade]
     );
     if (existing.rows.length === 0 && fingerprint) {
-      existing = await client.query<{ id: string }>(
-        `select id from questions
+      existing = await client.query<{ id: string; payload: unknown }>(
+        `select id, payload from questions
           where numeric_fingerprint = $1 and subject_id = $2 and grade = $3
             and superseded_by is null and deleted_at is null`,
         [fingerprint, subjectId, transcript.grade]
@@ -154,6 +157,7 @@ export async function persistSolution(opts: {
     let questionId: string;
     // Şagirdə göstərilən addımlar — defolt olaraq qatın yeni istehsal etdikləri.
     let servedSteps = solution.steps;
+    let servedVisual: VisualSpec | null = drawableVisual(solution.visual);
 
     if (existing.rows.length > 0) {
       // Qat 2a (hash) bunu tapmalı idi — bura düşmək o deməkdir ki, sətir bankda GÖRÜNMÜR
@@ -181,6 +185,7 @@ export async function persistSolution(opts: {
       const storedSteps = stored.rows[0]?.steps;
       if (Array.isArray(storedSteps) && storedSteps.length > 0) {
         servedSteps = storedSteps;
+        servedVisual = drawableVisual(visualFromPayload(existing.rows[0].payload));
       }
       // Saxlanılan addım YOXDURSA (`0034` lazy-generation sətri) yeni addımlar göstərilir —
       // o halda `step_answers` da boşdur, uyğunsuzluq yaranmır.
@@ -195,7 +200,7 @@ export async function persistSolution(opts: {
            (id, canonical, canonical_hash, numeric_fingerprint, problem_type, subject_id,
             grade, topic_code, type, payload, difficulty_static, source, review_status,
             attempt_count, root_id)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,'open','{}'::jsonb,3,'user_capture',$9,1,$1)`,
+         values ($1,$2,$3,$4,$5,$6,$7,$8,'open',$10::jsonb,3,'user_capture',$9,1,$1)`,
         [
           questionId,
           transcript.canonical,
@@ -206,6 +211,7 @@ export async function persistSolution(opts: {
           transcript.grade,
           transcript.topicCode,
           reviewStatus,
+          visualPayloadJson(servedVisual),
         ]
       );
 
@@ -259,6 +265,7 @@ export async function persistSolution(opts: {
       sessionId,
       itemId,
       steps: servedSteps,
+      visual: servedVisual,
       // S5 (86eymwgkv) — `verified` üç haldır: true / false / null. `method='none'` olanda
       // `true` göndərmək INV-11 pozuntusudur; `null`-u `false`-a yıxmaq nişanı oğurlayırdı.
       verification: { verified, method: verificationMethod, reason: verificationReason },

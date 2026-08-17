@@ -63,7 +63,7 @@ Birincisi paylaşılan aktivdir, ikincisi şəxsi datadır. RLS siyasətləri bu
 | `id` | uuid pk | |
 | `problem_id` | uuid fk → problems | |
 | `schema_version` | int | `STEP-SCHEMA.json` versiyası (v2 = opsional `visual`, ADR-031; 1 keş/köhnə çıxış üçün keçərlidir) |
-| `payload` | jsonb | sxemə uyğun tam obyekt (steps, final_answer, ...). `visual` E2.2-də yalnız LLM müqaviləsindədir — ayrı sütun yox, persist E2.3 |
+| `payload` | jsonb | sxemə uyğun tam obyekt (steps, final_answer, ...). E2.3: `{"visual": ...}` `questions.payload`-da (ayrı sütun yox) |
 | `verified` | bool | **`false` isə istifadəçiyə göstərilmir** |
 | `verification_method` | text | `sympy` / `human` / `none`. **Real ölçmə (S5): son 10 canlı həllin 9-u `none`** — əksər DİM məsələsi tək dəyişənli tənlik deyil |
 | `verification_reason` | text null | `0060` — niyə yoxlanmadı: `no_equation_extracted` / `no_single_variable_equation`. Klientə `verification.reason` kimi gedir |

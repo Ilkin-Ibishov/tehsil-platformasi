@@ -276,7 +276,7 @@
     },
     "visual": {
       "$ref": "#/$defs/visual",
-      "description": "Opsional. LLM SVG/path/img YAZMIR (ADR-031). Naməlum kind və ya əlavə sahə — bütün çıxış rədd olunur (validateStep / core.md); sahəni atmaq E2.3-ə qalıb. Boş şəkil uydurma. Server E2.3-də SVG çəkir."
+      "description": "Opsional. LLM SVG/path/img YAZMIR (ADR-031). Naməlum kind və ya əlavə sahə — server `visual`-ı atır, qalan JSON keçə bilər; boş şəkil uydurulmur. Server SVG çəkir (E2.3)."
     }
   },
   "$defs": {

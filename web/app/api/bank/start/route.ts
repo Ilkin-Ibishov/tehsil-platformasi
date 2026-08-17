@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { pool } from "@/lib/db";
 import { checkInviteCode } from "@/lib/cascade/guards";
+import { visualFromPayload, drawableVisual } from "@/lib/visual";
 
 // POST /api/bank/start — ClickUp 86eykhve0. Şagird bank siyahısından sual seçəndə çağırılır.
 // LLM ÇAĞIRILMIR — addımlar `question_translations.steps`-dən OLDUĞU KİMİ oxunur (artıq
@@ -24,6 +25,7 @@ type Body = {
 type QuestionRow = {
   canonical: string | null;
   steps: unknown;
+  payload: unknown;
 };
 
 export async function POST(req: NextRequest) {
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { rows } = await pool.query<QuestionRow>(
-    `select qt.stem->'blocks'->0->>'v' as canonical, qt.steps as steps
+    `select qt.stem->'blocks'->0->>'v' as canonical, qt.steps as steps, q.payload as payload
        from questions q
        join question_translations qt on qt.question_id = q.id and qt.lang = 'az'
       where q.id = $1
@@ -91,7 +93,7 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json(
-    { attempt_id: sessionId, canonical: row.canonical ?? "", steps: row.steps },
+    { attempt_id: sessionId, canonical: row.canonical ?? "", steps: row.steps, visual: drawableVisual(visualFromPayload(row.payload)) },
     { status: 200 }
   );
 }

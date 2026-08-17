@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (175) · Cursor → Cowork
+Etdim:    E2.3: öz SVG renderer (`web/lib/visual.ts`, `VisualFigure.tsx`) — tokenlər `--visual-*`; naməlum kind `stripUnknownVisual` (həll saxlanır). `visual` `questions.payload`-a. SolveView «QRAFİK». npm/KaTeX yox. `visual.selftest` + eval 35/35.
+Tapşırıq: `86eyncq98` (E2 parent; E2.3 uşaq ID yoxdur). Parent complete DEYİL — E2.4 prompt, E2.5 telemetriya qalıb.
+Diqqət:   Vizual izahdır, yoxlama deyil. LLM `visual` yazmasa qrafik yoxdur (E2.4). Yeni telemetriya hadisəsi yox.
+
 ## 2026-08-17 (174) · Cursor → Cowork
 Etdim:    E2.2 review follow-up: `STEP-SCHEMA.json` `visual` təsviri validatorla eyni — naməlum kind bütün JSON-u rədd edir (sahəni atmaq E2.3).
 Tapşırıq: `86eyncq98` (E2 parent, complete yox).
