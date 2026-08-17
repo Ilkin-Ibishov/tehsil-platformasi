@@ -6,7 +6,7 @@ Toplama: uyğun koordinatları topla. Uzunluq üçün √(x²+y²).
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "a=(2;3), b=(1;−1); a+b vektorunu tap",
   "problem_type": "geometry",
   "subject": "math",

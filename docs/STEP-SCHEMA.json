@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://tehsil-platformasi/schemas/step-schema-v1.json",
-  "title": "Solution — LLM cavab müqaviləsi v1",
-  "description": "Vision LLM bu sxemə uyğun JSON qaytarmalıdır. Sərbəst mətn QƏBUL EDİLMİR. Sxem dəyişdikdə version artırılır və ADR yazılır.",
+  "$id": "https://tehsil-platformasi/schemas/step-schema-v2.json",
+  "title": "Solution — LLM cavab müqaviləsi v2",
+  "description": "Vision LLM bu sxemə uyğun JSON qaytarmalıdır. Sərbəst mətn QƏBUL EDİLMİR. Sxem dəyişdikdə version artırılır və ADR yazılır. v2: `visual` (ADR-031).",
   "type": "object",
   "required": [
     "schema_version"
@@ -10,7 +10,9 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": 1
+      "type": "integer",
+      "enum": [1, 2],
+      "description": "v2 `visual` əlavə edir (ADR-031). LLM 2 yazır; 1 keş/köhnə çıxış üçün hələ keçərlidir."
     },
     "canonical": {
       "type": "string",
@@ -271,9 +273,71 @@
         "other"
       ],
       "description": "Məsələnin ŞƏKİLDƏ yazıldığı dil. İzahların dili bundan asılı deyil — onu giriş `locale` təyin edir (ADR-008)."
+    },
+    "visual": {
+      "$ref": "#/$defs/visual",
+      "description": "Opsional. LLM SVG/path/img YAZMIR (ADR-031). Naməlum kind — sahəni at, boş şəkil uydurma. Server E2.3-də SVG çəkir."
     }
   },
   "$defs": {
+    "visual": {
+      "description": "Qapalı qrafik spesifikasiyası. oneOf — kind-ə görə sahələr. additionalProperties false: SVG/d3/path rədd.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {
+            "kind": { "const": "none" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "min", "max", "points"],
+          "properties": {
+            "kind": { "const": "number_line" },
+            "min": { "type": "number" },
+            "max": { "type": "number" },
+            "points": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["x"],
+                "properties": {
+                  "x": { "type": "number" },
+                  "label": { "type": "string", "maxLength": 16 },
+                  "open": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "k", "b"],
+          "properties": {
+            "kind": { "const": "linear" },
+            "k": { "type": "number", "description": "y = kx + b əmsalı" },
+            "b": { "type": "number", "description": "y-kəsişməsi" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "a", "b", "c"],
+          "properties": {
+            "kind": { "const": "quadratic" },
+            "a": { "type": "number", "description": "y = ax^2 + bx + c" },
+            "b": { "type": "number" },
+            "c": { "type": "number" }
+          }
+        }
+      ]
+    },
     "error_code_labels_az": {
       "description": "UI etiketləri. Kod dəyişməz, etiket tərcümə oluna bilər. i18n faylına köçürülür.",
       "SIGN_LOST": {

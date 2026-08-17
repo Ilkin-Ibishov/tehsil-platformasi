@@ -6,7 +6,7 @@
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "3x=12",
   "problem_type": "formula",
   "subject": "math",

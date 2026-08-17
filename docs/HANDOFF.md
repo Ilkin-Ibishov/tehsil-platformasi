@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (173) · Cursor → Cowork
+Etdim:    E2.2: `STEP-SCHEMA.json` v2 — opsional `visual` oneOf (`none|number_line|linear|quadratic`), `schema_version` enum `[1,2]`; `STEP_SCHEMA_VERSION=2` solve/finish; `core.md`+math nümunələri 2. Transcribe/telemetriya 1. `schema.selftest` + `eval.py --selftest` 35/35. SVG renderer YOX.
+Tapşırıq: `86eyncq98` (E2 parent; E2.2 uşaq ID ClickUp-da yoxdur). Parent complete DEYİL — E2.3 qalıb.
+Diqqət:   Visual persist/API-yə hələ düşmür (Qat 5 yalnız steps+final_answer). Gemini keş hələ `1` yaza bilər — enum ona görə `[1,2]`. E1.3–E1.6 açıq.
+
 ## 2026-08-17 (172) · Cursor → Cowork
 Etdim:    `81e9767` origin-ə push. E2.1: `docs/decisions/ADR-031-visual-svg-renderer.md` — v1 öz SVG, npm/KaTeX yox; LLM yalnız JSON `kind`.
 Tapşırıq: `86eyncq98` (E2 parent; E2.1 uşaq ID ClickUp axtarışında çıxmadı).

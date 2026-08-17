@@ -6,7 +6,7 @@
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "sin 30° + cos 60°",
   "problem_type": "formula",
   "subject": "math",

@@ -6,7 +6,7 @@ cos²+sin²=1. Düsturu yanlış yerdə tətbiq etməmək üçün nümunə konkr
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "x=π/6 olduqda cos²x + sin²x",
   "problem_type": "formula",
   "subject": "math",

@@ -6,7 +6,7 @@ Daxili bucaqların cəmi 180°. Naməlum bucağı digər ikisindən tap.
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "Üçbucaqda A=40°, B=65°; C-ni tap",
   "problem_type": "geometry",
   "subject": "math",

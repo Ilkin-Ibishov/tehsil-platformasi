@@ -6,7 +6,7 @@ Eyni ədədlər `ALG.QUADRATIC_EQUATION`-dan FƏRQLİ sualdır (ADR-008). Diskri
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "x^2-5x+6=0-ın köklərinin cəmi",
   "problem_type": "formula",
   "subject": "math",

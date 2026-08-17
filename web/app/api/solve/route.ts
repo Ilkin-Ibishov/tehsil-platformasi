@@ -6,7 +6,7 @@ import { callVisionLLM } from "@/lib/llm";
 import { computeCostUsd, sumCostUsd, billableOutputTokens, sumTokens } from "@/lib/cost";
 import { getActiveModel } from "@/lib/models";
 import { getBoolConfig } from "@/lib/app-config";
-import { validateStep } from "@/lib/verify/schema";
+import { validateStep, STEP_SCHEMA_VERSION } from "@/lib/verify/schema";
 import { verifyFinalAnswer } from "@/lib/verify/answer";
 import { detectLeak } from "@/lib/verify/leak";
 import { transcribe, imageSha256 } from "@/lib/cascade/transcribe";
@@ -354,7 +354,7 @@ export async function POST(req: NextRequest) {
           await logEvent(deviceId, sessionId, "solve.timeout", { timeout_ms: LLM_TIMEOUT_MS, stage: "transcribe" });
         }
         return NextResponse.json(
-          { schema_version: 1, status: "unreadable", reason: "Server cavab vermədi, yenidən cəhd et." },
+          { schema_version: STEP_SCHEMA_VERSION, status: "unreadable", reason: "Server cavab vermədi, yenidən cəhd et." },
           { status: 200 }
         );
       }
@@ -373,7 +373,7 @@ export async function POST(req: NextRequest) {
         });
         return NextResponse.json(
           {
-            schema_version: 1,
+            schema_version: STEP_SCHEMA_VERSION,
             status: t1.refusal.status,
             reason: t1.refusal.reason,
             ...(t1.refusal.candidates ? { candidates: t1.refusal.candidates } : {}),
@@ -415,7 +415,7 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         if (err instanceof UnsupportedSubjectError) {
           return NextResponse.json(
-            { schema_version: 1, status: "unsupported", reason: "Bu fənn hələ dəstəklənmir." },
+            { schema_version: STEP_SCHEMA_VERSION, status: "unsupported", reason: "Bu fənn hələ dəstəklənmir." },
             { status: 200 }
           );
         }
@@ -430,7 +430,7 @@ export async function POST(req: NextRequest) {
           transcribe_cost_usd: t1.costUsd,
         });
         return NextResponse.json(
-          { schema_version: 1, status: "unreadable", reason: "Həll qurula bilmədi, yenidən cəhd et." },
+          { schema_version: STEP_SCHEMA_VERSION, status: "unreadable", reason: "Həll qurula bilmədi, yenidən cəhd et." },
           { status: 200 }
         );
       }
@@ -451,7 +451,7 @@ export async function POST(req: NextRequest) {
       if (!persisted.ok) {
         return NextResponse.json(
           {
-            schema_version: 1,
+            schema_version: STEP_SCHEMA_VERSION,
             status: "unreadable",
             reason:
               persisted.kind === "rejected"
@@ -480,7 +480,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json(
         {
-          schema_version: 1,
+          schema_version: STEP_SCHEMA_VERSION,
           status: "ok",
           // `canonical` klientə QAYTARILIR — transkripsiya təsdiq ekranının (ClickUp
           // 86eykj7x2) girişi budur. O task UI-ı əlavə edəndə server tərəfi HAZIRDIR.
@@ -523,7 +523,7 @@ export async function POST(req: NextRequest) {
     });
     if (await getBoolConfig(pool, "prompt_strict_subject", "PROMPT_STRICT_SUBJECT")) {
       return NextResponse.json(
-        { schema_version: 1, status: "unsupported", reason: "Bu fənn hələ dəstəklənmir." },
+        { schema_version: STEP_SCHEMA_VERSION, status: "unsupported", reason: "Bu fənn hələ dəstəklənmir." },
         { status: 200 }
       );
     }
@@ -623,12 +623,12 @@ export async function POST(req: NextRequest) {
         )
         .catch((err) => console.error("[/api/solve] solve.timeout telemetriya xətası:", err));
       return NextResponse.json(
-        { schema_version: 1, status: "unreadable", reason: "Server cavab vermədi, yenidən cəhd et." },
+        { schema_version: STEP_SCHEMA_VERSION, status: "unreadable", reason: "Server cavab vermədi, yenidən cəhd et." },
         { status: 200 }
       );
     }
     return NextResponse.json(
-      { schema_version: 1, status: "unreadable", reason: "Server xətası, yenidən cəhd et." },
+      { schema_version: STEP_SCHEMA_VERSION, status: "unreadable", reason: "Server xətası, yenidən cəhd et." },
       { status: 200 }
     );
   }
@@ -641,7 +641,7 @@ export async function POST(req: NextRequest) {
   const finalAnswer = parsed.final_answer;
   if (!parsed.canonical || !finalAnswer) {
     return NextResponse.json(
-      { schema_version: 1, status: "unreadable", reason: "Həll natamamdır." },
+      { schema_version: STEP_SCHEMA_VERSION, status: "unreadable", reason: "Həll natamamdır." },
       { status: 200 }
     );
   }
@@ -680,7 +680,7 @@ export async function POST(req: NextRequest) {
   // eynidir (yoxlandı) — TS portunun yaratdığı bug deyil. Yalnız QƏTİ ZİDDİYYƏT (`false`) gizlədilir.
   if (verified === false) {
     return NextResponse.json(
-      { schema_version: 1, status: "unreadable", reason: "Həll yoxlanışdan keçmədi." },
+      { schema_version: STEP_SCHEMA_VERSION, status: "unreadable", reason: "Həll yoxlanışdan keçmədi." },
       { status: 200 }
     );
   }
@@ -835,7 +835,7 @@ export async function POST(req: NextRequest) {
     await client.query("rollback");
     console.error("[/api/solve] DB yazı xətası:", err);
     return NextResponse.json(
-      { schema_version: 1, status: "unreadable", reason: "Server xətası, yenidən cəhd et." },
+      { schema_version: STEP_SCHEMA_VERSION, status: "unreadable", reason: "Server xətası, yenidən cəhd et." },
       { status: 200 }
     );
   } finally {

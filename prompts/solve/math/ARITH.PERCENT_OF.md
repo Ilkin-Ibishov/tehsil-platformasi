@@ -6,7 +6,7 @@
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "200-ün 15%-i neçədir?",
   "problem_type": "word_problem",
   "subject": "math",

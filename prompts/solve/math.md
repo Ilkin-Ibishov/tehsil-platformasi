@@ -23,7 +23,7 @@ ona görə 1-ci nümunə (1 addım) sxemə görə TAM VALİD olmalıdır, qalanl
 // Nümunə 1 — TƏK KEÇİD (1 addım, mənalı yoxlama YOXDUR)
 
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "5+5=?, cəm tapılmalıdır",
   "problem_type": "formula",
   "subject": "math",
@@ -55,7 +55,7 @@ ona görə 1-ci nümunə (1 addım) sxemə görə TAM VALİD olmalıdır, qalanl
 // Nümunə 2 — SADƏ (2 addım: 1 riyazi keçid + yoxlama)
 
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "3x=12",
   "problem_type": "formula",
   "subject": "math",
@@ -102,7 +102,7 @@ ona görə 1-ci nümunə (1 addım) sxemə görə TAM VALİD olmalıdır, qalanl
 // Nümunə 3 — MÜRƏKKƏB (6 addım: 5 riyazi keçid + yoxlama)
 
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "Sahəsi 40 m² olan düzbucaqlının uzunluğu enindən 3 m artıqdır. Düzbucaqlının uzunluğunu tap.",
   "problem_type": "word_problem",
   "subject": "math",

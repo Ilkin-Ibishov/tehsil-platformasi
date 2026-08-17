@@ -6,7 +6,7 @@
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "√50-ni sadələşdir",
   "problem_type": "formula",
   "subject": "math",

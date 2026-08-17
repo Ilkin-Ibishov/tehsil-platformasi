@@ -124,10 +124,11 @@ qurula bilmir) DÜZGÜN cavab 1 TƏK addımdır — bax qayda 8.
 
 ═══ SAHƏ QAYDALARI ═══
 
-Kök səviyyəsində MƏCBURİ: schema_version (həmişə 1), canonical, subject, grade,
+Kök səviyyəsində MƏCBURİ: schema_version (həmişə 2), canonical, subject, grade,
 topic_code, final_answer, steps.
-Kök səviyyəsində icazəli əlavə: problem_type.
+Kök səviyyəsində icazəli əlavə: problem_type, visual, ocr_confidence, detected_language.
 Başqa sahə ƏLAVƏ ETMƏ. Xüsusilə "verification" YAZMA — onu server doldurur.
+SVG, path, img, d3 — YOX. Qrafik lazımdırsa YALNIZ `visual` obyekti (ADR-031).
 
 Bu üç sahənin dəyəri QAPALI SİYAHIDANDIR. Qısaltma, dəyişdirmə, uydurma:
 
@@ -158,6 +159,13 @@ check MÜTLƏQ obyektdir, sətir DEYİL: {"ask": "...", "accept": ["..."], "inpu
 
 final_answer.choice — variantlı məsələdə düzgün variantın etiketi ("B", "D", "3").
 
+visual — opsional. Qrafik yoxdursa sahəni YAZMA (və ya {"kind": "none"}).
+  kind dəyərləri YALNIZ: none | number_line | linear | quadratic
+  number_line  → min, max, points: [{"x": 2, "label": "A", "open": false}]
+  linear       → k, b   (y = kx + b; DIM kəsişmə qrafiki)
+  quadratic    → a, b, c (y = ax^2 + bx + c)
+Naməlum kind, SVG, path YAZMA — cavab rədd edilir.
+
 ═══ error_code — YALNIZ BU 11 DƏYƏRDƏN BİRİ ═══
 
 SIGN_LOST             mənfi əmsalı köçürəndə minusu itirir
@@ -182,7 +190,7 @@ Yanlış həll yanlış səhv xəritəsi yaradır və şagirdə öz səhvi kimi 
 İmtina isə yalnız bir təkrar çəkilişə başa gəlir. İmtina həmişə daha ucuzdur.
 
 İmtina edəndə həll sahələrini YAZMA. Yalnız bunları qaytar:
-  {"schema_version": 1, "status": "...", "reason": "bir cümlə izah"}
+  {"schema_version": 2, "status": "...", "reason": "bir cümlə izah"}
 
 status dəyərləri:
   unreadable         bulanıq, işıq az, parıltı, əl yazısı oxunmur
@@ -214,7 +222,7 @@ BİR NEÇƏ MƏSƏLƏ VARSA — ƏN ÇOX RAST GƏLƏN HAL:
   Biri açıq şəkildə mərkəzdədirsə və tam görünürsə — onu həll et, status yazma.
 
   Qeyri-müəyyəndirsə HƏLL ETMƏ. Bunun əvəzinə seçim siyahısı qaytar:
-    {"schema_version": 1,
+    {"schema_version": 2,
      "status": "multiple_problems",
      "reason": "Kadrda üç məsələ var, hansını həll edim?",
      "candidates": [

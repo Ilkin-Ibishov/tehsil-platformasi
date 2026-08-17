@@ -12,6 +12,7 @@ import { attemptKindFor, llmAbortMs, usesSoakAdapter, type SoakMode } from "@/li
 import { SoakTransportError } from "@/lib/soak/adapter";
 import { getBoolConfig } from "@/lib/app-config";
 import { UnsupportedSubjectError } from "@/lib/prompt";
+import { STEP_SCHEMA_VERSION } from "@/lib/verify/schema";
 
 export const maxDuration = 180;
 export const dynamic = "force-dynamic";
@@ -110,7 +111,7 @@ export async function POST(req: NextRequest) {
 
   if (body.rejected === true) {
     await rejectOcrCapture(pool, captureId);
-    return NextResponse.json({ schema_version: 1, status: "rejected" }, { status: 200 });
+    return NextResponse.json({ schema_version: STEP_SCHEMA_VERSION, status: "rejected" }, { status: 200 });
   }
 
   const soak = await soakGate(pool, invite.studentRef);
@@ -204,12 +205,12 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         if (err instanceof SoakTransportError) {
           const error = err.reason === "auth" ? "soak_auth_expired" : "soak_unavailable";
-          writeLine({ type: "final", schema_version: 1, status: "unreadable", error, reason: "Soak əlçatan deyil." });
+          writeLine({ type: "final", schema_version: STEP_SCHEMA_VERSION, status: "unreadable", error, reason: "Soak əlçatan deyil." });
         } else {
           console.error("[finish] stream error:", err);
           writeLine({
             type: "final",
-            schema_version: 1,
+            schema_version: STEP_SCHEMA_VERSION,
             status: "unreadable",
             reason: "Server xətası, yenidən cəhd et.",
           });
@@ -263,7 +264,7 @@ async function runFinishCore(opts: {
   } catch (err) {
     if (err instanceof UnsupportedSubjectError) {
       return {
-        schema_version: 1,
+        schema_version: STEP_SCHEMA_VERSION,
         status: "unsupported",
         reason: "Bu fənn hələ dəstəklənmir.",
       };
@@ -299,7 +300,7 @@ async function runFinishCore(opts: {
       persist_ok: false,
     });
     return {
-      schema_version: 1,
+      schema_version: STEP_SCHEMA_VERSION,
       status: "unreadable",
       reason: "Həll qurula bilmədi, yenidən cəhd et.",
       declined: declinedLayers,
@@ -347,7 +348,7 @@ async function runFinishCore(opts: {
       persist_kind: persisted.kind,
     });
     return {
-      schema_version: 1,
+      schema_version: STEP_SCHEMA_VERSION,
       status: "unreadable",
       reason: persisted.kind === "rejected" ? "Həll yoxlanışdan keçmədi." : "Server xətası, yenidən cəhd et.",
       meta: {
@@ -390,7 +391,7 @@ async function runFinishCore(opts: {
   });
 
   return {
-    schema_version: 1,
+    schema_version: STEP_SCHEMA_VERSION,
     status: "ok",
     canonical: transcript.canonical,
     steps: persisted.steps,

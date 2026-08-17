@@ -6,7 +6,7 @@
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "qiymət 200-dür, 15% artırılıb, yenisi?",
   "problem_type": "word_problem",
   "subject": "math",

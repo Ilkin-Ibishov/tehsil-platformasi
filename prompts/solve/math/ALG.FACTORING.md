@@ -6,7 +6,7 @@ Cüt axtarışı; diskriminant düsturu bu mövzunun nümunəsi DEYİL.
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "x^2-5x+6 vuruqlara ayır",
   "problem_type": "formula",
   "subject": "math",

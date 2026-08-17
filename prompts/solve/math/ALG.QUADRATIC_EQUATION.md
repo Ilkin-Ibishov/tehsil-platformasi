@@ -6,7 +6,7 @@ Fənn fallback-indəki 6 addımlıq mətn məsələsinin qısa forması. Köklə
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "x^2-5x+6=0",
   "problem_type": "formula",
   "subject": "math",

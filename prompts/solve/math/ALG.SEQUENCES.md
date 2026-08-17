@@ -6,7 +6,7 @@ n-ci hədd düsturunu ədədlə yoxla. Proqressiya düsturunu kor-koranə yazma.
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "a_n=2n+1; a_5-i tap",
   "problem_type": "formula",
   "subject": "math",

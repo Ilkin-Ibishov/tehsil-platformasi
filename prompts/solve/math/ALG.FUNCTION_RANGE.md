@@ -6,7 +6,7 @@ Tərif oblastı ilə qiymət oblastını qarışdırmamaq. Sadə kvadrat funksiy
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "f(x)=x^2+1 funksiyasının qiymət çoxluğu (x∈R)",
   "problem_type": "formula",
   "subject": "math",

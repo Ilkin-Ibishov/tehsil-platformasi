@@ -6,7 +6,7 @@ Tək keçid: düzbucaqlı sahəsi. Mənalı yoxlama yoxdursa 1 addım (qayda 8).
 
 ```
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "canonical": "en 4 m, uzunluq 6 m olan düzbucaqlının sahəsi",
   "problem_type": "geometry",
   "subject": "math",

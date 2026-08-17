@@ -3,6 +3,9 @@
 import Ajv from "ajv";
 import schema from "../../../docs/STEP-SCHEMA.json";
 
+/** LLM və server JSON-unun `schema_version` sahəsi. v2 = `visual` (ADR-031). */
+export const STEP_SCHEMA_VERSION = 2 as const;
+
 // Sxem "draft-07" elan edir — standart ajv (Draft-07 dəstəkli) kifayətdir, 2019 lazım deyil.
 const ajv = new Ajv({ allErrors: true, strict: false });
 const validateFn = ajv.compile(schema);
