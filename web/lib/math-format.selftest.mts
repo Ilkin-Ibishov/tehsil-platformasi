@@ -4,7 +4,7 @@
 // genişləndirmə olmadan idxal edir, `tsx`-ə fərqli olaraq Node-un öz ESM loader-i
 // genişləndirməsiz yerli import-ları həll edə bilmir.)
 
-import { formatMath, findUnformattedLatex } from "./math-format.ts";
+import { formatMath, formatMathProse, findUnformattedLatex } from "./math-format.ts";
 
 const CASES: [string, string][] = [
   ["x^2", "x²"],
@@ -49,6 +49,15 @@ const CASES: [string, string][] = [
   // HANDOFF (103): production-da `k = \tan\alpha` xam göstərilirdi (`render.unformatted_latex`
   // `\tan`-ı ölçdü) — `\alpha` EYNİ sətirdə idi, ikisi birlikdə düzəldildi.
   ["k = \\tan\\alpha", "k = tanα"],
+  // Telefon smoke 2026-08-17: DİM həndəsə xam LaTeX (təsdiq + addım izahı).
+  ["\\angle ACB = 90^\\circ", "∠ACB = 90°"],
+  ["KO \\perp \\alpha", "KO ⊥ α"],
+  ["\\sqrt{D}", "√D"],
+  ["\\sqrt{8^2 + 6^2}", "√(8² + 6²)"],
+  ["\\sqrt{KO^2 + R^2}", "√(KO² + R²)"],
+  ["\\triangle ABC", "△ABC"],
+  ["a \\parallel b", "a ∥ b"],
+  ["\\pm 3", "± 3"],
 ];
 
 let fails = 0;
@@ -61,12 +70,12 @@ for (const [input, expected] of CASES) {
 
 const UNFORMATTED_CASES: [string, string | null][] = [
   ["x^2 - 5x", null],
-  // HANDOFF (103): `\alpha` indi tanınır (ölçülüb) — qalan ilk tanınmayan `\beta`-dır.
-  // `\beta`-nın ÖZÜ hələ cədvəldə YOXDUR (ölçülməyib, HANDOFF 55 qaydası).
-  ["\\alpha + \\beta", "\\beta"],
+  ["\\alpha + \\beta", null],
   ["x_1 \\in \\mathbb{N}", null],
   ["k = \\tan\\alpha", null],
   ["\\vec{a} + \\vec{b}", null],
+  ["\\angle ACB = 90^\\circ", null],
+  ["\\sqrt{KO^2 + R^2}", null],
 ];
 
 for (const [input, expectedToken] of UNFORMATTED_CASES) {
@@ -76,7 +85,15 @@ for (const [input, expectedToken] of UNFORMATTED_CASES) {
   console.log(`${ok ? "PASS" : "FAIL"}  findUnformattedLatex(formatMath(${JSON.stringify(input)})) -> ${JSON.stringify(got)} (gözlənilən ${JSON.stringify(expectedToken)})`);
 }
 
-const total = CASES.length + UNFORMATTED_CASES.length;
+const PROSE = formatMathProse("R = 6 olduqda KC = \\sqrt{KO^2 + R^2} — yoxla.");
+if (PROSE !== "R = 6 olduqda KC = √(KO² + R²) — yoxla.") {
+  fails++;
+  console.log(`FAIL  formatMathProse -> ${JSON.stringify(PROSE)}`);
+} else {
+  console.log("PASS  formatMathProse keeps AZ dash");
+}
+
+const total = CASES.length + UNFORMATTED_CASES.length + 1;
 if (fails > 0) {
   console.error(`\n${fails}/${total} uğursuz.`);
   process.exit(1);

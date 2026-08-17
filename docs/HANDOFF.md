@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (170) · Cursor → Cowork
+Etdim:    Telefon smoke: xam LaTeX UI. `formatMath` — ∠ ° ⊥ √(…) yunan/trig; `formatMathProse` izah/təsdiq/banner. Təsdiqdə «Düzdür» dəyişməyibsə orijinal canonical (fon `/finish`). Selftest 50/50.
+Tapşırıq: `86eykm8ja` (smoke tapıntısı; tam E2E açıq qalır).
+Diqqət:   KaTeX YOX — test toplusu unicode. `\sqrt{8^2+6^2}` → `√(8² + 6²)` (mötərizə).
+
 ## 2026-08-17 (169) · Cursor → Cowork
 Etdim:    ClickUp sinxron: S8 `86eymwgmv` + valideyn `86eymwggu` complete; `86eyhp5mx` (oxunmadı UI) və `86eymfgd9` (ARITHMETIC=enum) complete; safe-pack qeydi `86eyna6ru` complete. `86eykm8ja` açıq qaldı (tam telefon E2E). Vercel+CI `1cae3ad` yaşıl.
 Tapşırıq: `86eyna6ru` + köhnə S1–S8 bağlanması.

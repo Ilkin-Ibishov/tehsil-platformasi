@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { trackEvent, getDeviceId } from "@/lib/telemetry";
 import { reportAttemptProgress } from "@/lib/attempts";
-import { formatMath, findUnformattedLatex } from "@/lib/math-format";
+import { formatMath, formatMathProse, findUnformattedLatex } from "@/lib/math-format";
 import { canPassStuckStep } from "@/lib/verify/step-pass";
 
 export type SolveStep = {
@@ -252,7 +252,7 @@ export function SolveView({
     // Placeholder; real startedAt setAnswer ilə yazılır — render-də Date.now() yox.
     startedAt: 0,
   };
-  const formattedCanonical = useMemo(() => formatMath(solution.canonical ?? ""), [solution.canonical]);
+  const formattedCanonical = useMemo(() => formatMathProse(solution.canonical ?? ""), [solution.canonical]);
   // ClickUp 86eyn28kn: ipucu + ≥1 səhv, orta addım. Son addım «Cavabı göstər»dir.
   const stuckPassable = canPassStuckStep({
     isLastStep: stepIndex >= total - 1,
@@ -623,7 +623,7 @@ export function SolveView({
               {t("transfer.label")}
             </span>
             <div style={{ fontFamily: "var(--font-mono)", fontSize: 18, color: "var(--t1)", whiteSpace: "normal", overflowWrap: "anywhere" }}>
-              {formatMath(transferProblem.canonical)}
+              {formatMathProse(transferProblem.canonical)}
             </div>
             {transferState !== "answered" && (
               <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
@@ -730,11 +730,11 @@ export function SolveView({
             {t("step.counter", { index: stepIndex + 1, total })}
           </span>
           <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: "var(--hsize)", lineHeight: 1.15, letterSpacing: "-0.02em", maxWidth: "24ch" }}>
-            {currentStep.title}
+            {formatMathProse(currentStep.title)}
           </span>
         </div>
         <p style={{ margin: 0, padding: "0 var(--page-pad-x)", fontSize: 16, lineHeight: 1.6, color: "var(--t2)", maxWidth: "34ch" }}>
-          {currentStep.explanation}
+          {formatMathProse(currentStep.explanation)}
         </p>
         {currentStep.latex && (
           // Ilkin-in tapdığı bug (2026-08-15, screenshot): `whiteSpace: "nowrap"` +
@@ -765,7 +765,7 @@ export function SolveView({
       <div style={{ padding: "0 var(--page-pad-x) 12px", display: "flex", flexDirection: "column", gap: 12, flexShrink: 0 }}>
           {currentAnswer.status !== "correct" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <span style={{ fontSize: 14, lineHeight: 1.6 }}>{currentStep.check.ask}</span>
+              <span style={{ fontSize: 14, lineHeight: 1.6 }}>{formatMathProse(currentStep.check.ask)}</span>
               <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
                 <input
                   type="text"
@@ -821,7 +821,7 @@ export function SolveView({
               {hintOpen[stepIndex] && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "12px 16px", borderRadius: "var(--rad)", background: "var(--sur)", border: "1px solid var(--bor)" }}>
                   <span style={{ fontSize: 12, color: "var(--t3)" }}>{t("step.hintLabel")}</span>
-                  <span style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>{currentStep.hint}</span>
+                  <span style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>{formatMathProse(currentStep.hint)}</span>
                 </div>
               )}
             </div>
@@ -861,7 +861,7 @@ export function SolveView({
                   ARTIQ göstərilir — əvvəllər checkStepAnswer-in tipi onu atırdı, HƏMİŞƏ
                   ümumi addım hint-i göstərilirdi, uyğun gələn distraktor olsa belə. */}
               <span style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>
-                {currentAnswer.distractorMessage ?? currentStep.hint}
+                {formatMathProse(currentAnswer.distractorMessage ?? currentStep.hint)}
               </span>
               <button
                 type="button"

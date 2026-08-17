@@ -5,9 +5,8 @@
 // TƏMİZLƏYİR, bura GÖSTƏRMƏK üçün ÇEVİRİR — frac/sqrt tanınma patternləri oradan idxal olunur ki,
 // eyni LaTeX konstruksiyasının iki ayrı siyahısı olmasın.
 //
-// Yalnız RİYAZİ mətnə (final_answer.latex, step.latex) tətbiq et — `explanation`/`hint`/`why`
-// AZ dilində sərbəst mətndir, minus-işarəsi çevrilməsi orada defis/tire kimi işlədilən simvolları
-// korlayar.
+// Yalnız RİYAZİ mətnə (`formatMath`) tam çevirmə: ASCII `-` → minus. İzah/hint/təsdiq üçün
+// `formatMathProse` — eyni simvollar, AZ defisinə toxunmur.
 
 import { LATEX_FRAC_RE, LATEX_SQRT_RE } from "./verify/answer";
 
@@ -35,7 +34,37 @@ function toSub(digits: string): string {
 // görə böyüyür, təxminlə doldurulmur.
 const BLACKBOARD: Record<string, string> = { N: "ℕ", R: "ℝ", Z: "ℤ", Q: "ℚ" };
 
+const GREEK: Record<string, string> = {
+  alpha: "α",
+  beta: "β",
+  gamma: "γ",
+  delta: "δ",
+  theta: "θ",
+  phi: "φ",
+  omega: "ω",
+  lambda: "λ",
+  mu: "μ",
+  pi: "π",
+};
+
+/** √D vs √(8² + 6²) — tək identifikator/ədəd mötərizəsiz (test toplusu). */
+function formatSqrtBody(inner: string): string {
+  const compact = inner.trim();
+  if (!compact) return "√";
+  if (/^[A-Za-z0-9]+$/.test(compact)) return `√${compact}`;
+  return `√(${compact})`;
+}
+
 export function formatMath(src: string, locale: string = "az"): string {
+  return formatMathInternal(src, locale, false);
+}
+
+/** İzah/hint/təsdiq mətni — LaTeX simvolları eyni, ASCII `-`/`*` AZ defisinə toxunulmur. */
+export function formatMathProse(src: string, locale: string = "az"): string {
+  return formatMathInternal(src, locale, true);
+}
+
+function formatMathInternal(src: string, locale: string, prose: boolean): string {
   if (!src) return src;
   let text = src;
 
@@ -65,21 +94,37 @@ export function formatMath(src: string, locale: string = "az"): string {
   // \frac{a}{b} → (a)/(b) — ADR-015 məhdudiyyəti: kəsrlər unicode-da yaxşı çıxmır, KaTeX YOX
   text = text.replace(LATEX_FRAC_RE, "($1)/($2)");
 
-  // \sqrt{D} / sqrt(D) → √D
-  text = text.replace(LATEX_SQRT_RE, "√$1");
-  text = text.replace(/\bsqrt\(([^()]*)\)/g, "√$1");
+  // \sqrt{D} → √D; \sqrt{8^2 + 6^2} → √(8^2 + 6^2) — mötərizə olmadan `√8² + 6²` kökü yalnız
+  // birinci həddə bağlayır (telefon smoke, 2026-08-17). Super/sub sonra içəridə işləyir.
+  text = text.replace(LATEX_SQRT_RE, (_m, inner: string) => formatSqrtBody(inner));
+  text = text.replace(/\bsqrt\(([^()]*)\)/g, (_m, inner: string) => formatSqrtBody(inner));
 
   // \log_3 / log_3 → log₃ (verify/answer.ts-in LOG_BASE_RE-i YOX — o, funksiya çağırışı
   // (`log_2(`) tanıyır, bura göstərmə üçün mötərizəsiz forma da (`\log_3`) tanımalıdır)
   text = text.replace(/\\?log_\{?(\d+)\}?/g, (_m, d: string) => `log${toSub(d)}`);
 
-  // ÖLÇÜLƏN siyahıya əlavə (HANDOFF 103, 2026-08-14): production-da `render.unformatted_latex`
-  // `\tan` üçün atıldı — `k = \tan\alpha` xam göstərilirdi (`\alpha` EYNİ sətirdə, ölçülməmiş
-  // görünsə də ARDINCA gələn eyni-sinif atım olardı, ona görə birlikdə düzəldilir). Digər
-  // triqonometrik funksiyalar (`\sin`, `\cos`, `\cot`) ƏLAVƏ EDİLMƏDİ — HEÇ BİR ölçmədə
-  // görünməyib, HANDOFF (55)-in "təxminlə doldurma, yalnız ölçülənə görə böyü" qaydası.
+  // Telefon smoke 2026-08-17 (DİM həndəsə): `\angle`, `^\circ`, `\perp`, `\sqrt` xam qalırdı.
+  // Eyni sinif (test toplusu simvolları) bir yerdə — HANDOFF 55 "yalnız ölçülən" qaydası
+  // bu sətirdən sonra ölçülmüş hesab olunur.
+  text = text.replace(/\\sin\b/g, "sin");
+  text = text.replace(/\\cos\b/g, "cos");
   text = text.replace(/\\tan\b/g, "tan");
-  text = text.replace(/\\alpha\b/g, "α");
+  text = text.replace(/\\cot\b/g, "cot");
+  text = text.replace(/\\(alpha|beta|gamma|delta|theta|phi|omega|lambda|mu|pi)\b/g, (_m, n: string) => GREEK[n] ?? n);
+  text = text.replace(/\\angle\s*/g, "∠");
+  text = text.replace(/\\triangle\s*/g, "△");
+  text = text.replace(/\\perp\b/g, "⊥");
+  text = text.replace(/\\parallel\b/g, "∥");
+  text = text.replace(/\^\s*\\circ\b/g, "°");
+  text = text.replace(/\^\{\\circ\}/g, "°");
+  text = text.replace(/\\circ\b/g, "°");
+  text = text.replace(/\\pm\b/g, "±");
+  text = text.replace(/\\neq\b/g, "≠");
+  text = text.replace(/\\leq\b|\\le\b/g, "≤");
+  text = text.replace(/\\geq\b|\\ge\b/g, "≥");
+  text = text.replace(/\\approx\b/g, "≈");
+  text = text.replace(/\\infty\b/g, "∞");
+  text = text.replace(/\\degree\b/g, "°");
 
   // x^{10} / x^2 → x¹⁰ / x² — mötərizəli (çox rəqəmli) forma ƏVVƏL, sonra tək rəqəm
   text = text.replace(/\^\{(-?\d+)\}/g, (_m, d: string) => toSuper(d));
@@ -90,10 +135,11 @@ export function formatMath(src: string, locale: string = "az"): string {
   text = text.replace(/_\{(\d+)\}/g, (_m, d: string) => toSub(d));
   text = text.replace(/_(\d)/g, (_m, d: string) => toSub(d));
 
-  // \cdot, \times, * → · / × (vurma işarələri)
+  // \cdot, \times, * → · / × (vurma işarələri). Prose-də `*` AZ mətnində nadir, amma
+  // defis kimi `-` korlanır — vurmanı da prose-də yalnız LaTeX əmrlərindən götür.
   text = text.replace(/\\cdot/g, "·");
   text = text.replace(/\\times/g, "×");
-  text = text.replace(/\*/g, "·");
+  if (!prose) text = text.replace(/\*/g, "·");
 
   // \in, \implies, \dots → ∈, ⇒, …
   text = text.replace(/\\in\b/g, "∈");
@@ -101,8 +147,8 @@ export function formatMath(src: string, locale: string = "az"): string {
   text = text.replace(/\\dots/g, "…");
 
   // ASCII minus → riyazi minus (ƏN SONDA — yuxarıdakı `-?\d` exponent tutuşları öz orijinal
-  // defisinə görə işləməlidir, bu çevrilmədən ƏVVƏL)
-  text = text.replace(/-/g, "−");
+  // defisinə görə işləməlidir, bu çevrilmədən ƏVVƏL). Prose-də AZ defis/tire saxlanılır.
+  if (!prose) text = text.replace(/-/g, "−");
 
   // HANDOFF (55): vergül HƏM onluq ayırıcı, HƏM siyahı ayırıcısıdır — "x₁ = 3.5, x₂ = 2.5"
   // → "3,5, 2,5" oxunmur. Onluq nöqtə VARSA və mövcud siyahı vergülü DƏ varsa (məs. sxemin

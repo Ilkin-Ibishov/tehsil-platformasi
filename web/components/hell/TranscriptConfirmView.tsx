@@ -2,11 +2,15 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { formatMathProse } from "@/lib/math-format";
 
 // ClickUp 86eykj7x2 / ADR-020 — kaskadın Qat 1-i qayıtdıqdan (~1s) SONRA göstərilir.
 // «Bu məsələni oxudum: … Düzdür?» — taskın üç faydası: (1) boş gözləməni məzmunla doldurur,
 // (2) OCR səhvini dərhal düzəltmə imkanı verir (şəklə qayıtmadan), (3) şagirdi məsələni öz
 // sözləri ilə oxumağa vadar edir (pedaqoji addım).
+//
+// Ekranda unicode (formatMathProse); «Düzdür» dəyişməyibsə ORİJİNAL canonical gedir —
+// əks halda fon `/finish` «düzəliş» sayılıb kəsilər.
 export function TranscriptConfirmView({
   canonical,
   onConfirm,
@@ -17,7 +21,13 @@ export function TranscriptConfirmView({
   onReject: () => void;
 }) {
   const t = useTranslations("solve");
-  const [text, setText] = useState(canonical);
+  const displayed = formatMathProse(canonical);
+  const [text, setText] = useState(displayed);
+
+  function confirm() {
+    const trimmed = text.trim();
+    onConfirm(trimmed === displayed.trim() ? canonical : trimmed);
+  }
 
   return (
     <main
@@ -62,7 +72,7 @@ export function TranscriptConfirmView({
         <button
           type="button"
           disabled={text.trim().length === 0}
-          onClick={() => onConfirm(text.trim())}
+          onClick={confirm}
           style={{
             minHeight: "var(--tap)",
             padding: "0 22px",

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { formatMathProse } from "@/lib/math-format";
 
 // ADR-001: ölçülmüş orta latensiya 16.8 saniyədir, "HƏLL QURULUR" boş spinner OLA BİLMƏZ
 // (docs/PHASE-1.md S4). Mərhələli mətn elapsed vaxta görə dəyişir — real irəliləyiş göstərmir
@@ -50,7 +51,7 @@ export function LoadingView({
   return (
     <main style={{ flex: 1, padding: "0 var(--page-pad-x)", display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
       {questionText && (
-        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>{questionText}</p>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>{formatMathProse(questionText)}</p>
       )}
       {previewStep?.title && previewStep?.explanation ? (
         <section
@@ -75,8 +76,8 @@ export function LoadingView({
             {t("previewStep")}
             {typeof previewStep.index === "number" ? ` ${previewStep.index}` : ""}
           </span>
-          <h2 style={{ margin: 0, fontFamily: "var(--hfont)", fontSize: 18, fontWeight: 700 }}>{previewStep.title}</h2>
-          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, color: "var(--t1)" }}>{previewStep.explanation}</p>
+          <h2 style={{ margin: 0, fontFamily: "var(--hfont)", fontSize: 18, fontWeight: 700 }}>{formatMathProse(previewStep.title)}</h2>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, color: "var(--t1)" }}>{formatMathProse(previewStep.explanation)}</p>
         </section>
       ) : (
         <>
