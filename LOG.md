@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-17: HANDOFF 169 — ClickUp: S8+valideyn, oxunmadı UI, ARITHMETIC bağlandı; safe-pack `86eyna6ru`.
 - 2026-08-17: HANDOFF 168 — Vercel: `llm.ts` UTF-8; CI eslint purity/InviteGate/SolveView.
 - 2026-08-17: HANDOFF 167 — Qat 5 cache: `contents[]` create + native generate/stream for real `cached_tokens`; skip logs; no fake hits.
 - 2026-08-17: HANDOFF 166 — NDJSON flush pad (~2KB) + headers so phone sees step 1 before final.

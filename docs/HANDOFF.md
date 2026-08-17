@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (169) · Cursor → Cowork
+Etdim:    ClickUp sinxron: S8 `86eymwgmv` + valideyn `86eymwggu` complete; `86eyhp5mx` (oxunmadı UI) və `86eymfgd9` (ARITHMETIC=enum) complete; safe-pack qeydi `86eyna6ru` complete. `86eykm8ja` açıq qaldı (tam telefon E2E). Vercel+CI `1cae3ad` yaşıl.
+Tapşırıq: `86eyna6ru` + köhnə S1–S8 bağlanması.
+Diqqət:   Açıq qalan: `86eykm8ja` (uçdan-uca telefon), `86eymwxdx` (ADR-025 qrafik), `86eymfg9z` (OpenCV), Capacitor, backlog dizayn/korpus.
+
 ## 2026-08-17 (168) · Cursor → Cowork
 Etdim:    Vercel fail: `llm.ts` CP1252 → UTF-8 (Turbopack `invalid utf-8`); CI eslint: kamera `Date.now` purity disable, SolveView `startedAt`/expand reset, InviteGate `gateError` (setState-in-effect yox).
 Tapşırıq: meta / no ClickUp.
