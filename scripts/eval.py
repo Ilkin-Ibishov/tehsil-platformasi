@@ -43,12 +43,21 @@ def load_items(set_path):
 
 
 def resolve_set_path(set_path):
-    """`--set` cwd-yə nisbidir; tapılmasa repo kökündən yoxla (scripts/ cwd fərqi)."""
+    """`--set` cwd-yə nisbidir; tapılmasa repo kökündən yoxla (scripts/ cwd fərqi).
+    Qısa ad (`physics-30`) `evals/golden-set-<ad>.jsonl` kimi açılır."""
     if set_path.exists():
         return set_path.resolve()
     alt = REPO_ROOT / set_path
     if alt.exists():
         return alt.resolve()
+    name = set_path.name
+    if not name.endswith(".jsonl"):
+        for cand in (
+            REPO_ROOT / "evals" / f"golden-set-{name}.jsonl",
+            REPO_ROOT / "evals" / f"{name}.jsonl",
+        ):
+            if cand.exists():
+                return cand.resolve()
     return set_path
 
 

@@ -108,6 +108,11 @@ koordinatları mətn axınından kənara düşüb, kəsmə natamam çıxdı, `sc
 öz başlığındakı məhdudiyyət qeydinə bax) commit edilib. Şəkillər (`evals/images/`) HƏMİŞƏ
 gitignored — orijinal PDF-in ÖZÜ də repo-ya qoyulmur (ADR-003).
 
+`evals/golden-set-physics-30.jsonl` (E1.4, 2026-08-17): eyni kəsici, fizika buraxılış PDF
+(`col-x-ranges 30-45,310-325` — etiketlər x≈36/315, variant rəqəmləri sütun kimi sayılmasın).
+Kitabçada cavab açarı YOXDUR — `expected_choice` / `final_answer_values` insan həllidir, LLM
+yox. `--answer-key-pages` boş buraxıla bilər. `--set physics-30` qısa adı dəstəklənir.
+
 **Xərc:** ~99 sual × 1 vision çağırışı (tək-çağırış memarlığı, ADR-001) — əvvəlki ölçmələrə
 görə (`~$0.013/sual`) tam dəst ~$1.3. Böyük dəyişiklikdən sonra hamısını YOX, əvvəlcə kiçik
 partiya (`--set` faylını əl ilə bölərək və ya gələcək bir `--limit` bayrağı ilə) işlətmək

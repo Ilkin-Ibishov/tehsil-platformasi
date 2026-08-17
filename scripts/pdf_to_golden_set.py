@@ -17,6 +17,8 @@ NECƏ İŞLƏYİR
 4. Hər səhifəni yüksək ayırdetmə ilə (ZOOM=3) render edir, kəsmə qutusunu tətbiq edir, PNG
    kimi saxlayır.
 5. Cavab açarı səhifələrini (aralığı CLI-dən verilir) `\d{1,3}-[A-E]` naxışı ilə parse edir.
+   Açar yoxdursa `--answer-key-pages` buraxılır; `expected_choice` jsonl-ə yazılmır
+   (insan sonra kitabçadan/həllindən doldurur — LLM yox).
 6. `evals/golden-set-<ad>.jsonl` yazır — mövcud `evals/README.md` sxeminə uyğun
    (`id`, `image`, `expected_choice`, `expected_status: "ok"`), YALNIZ bu üç sahə + mənbə
    qeydi. `canonical`/`final_answer_values` YAZILMIR (mətn ground truth yoxdur — məqsəd YALNIZ
@@ -91,7 +93,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--pdf", required=True)
     ap.add_argument("--question-pages", required=True, help="məs. 0-7 (0-based, daxil olmaqla)")
-    ap.add_argument("--answer-key-pages", required=True, help="məs. 8-9")
+    ap.add_argument(
+        "--answer-key-pages",
+        default="",
+        help="məs. 8-9. Boşdursa expected_choice yazılmır — açar yoxdursa insan doldurur.",
+    )
     ap.add_argument("--n-questions", type=int, default=100)
     ap.add_argument("--out-name", required=True, help="evals/golden-set-<ad>.jsonl və evals/images/<ad>/")
     ap.add_argument("--grade", type=int, default=11)
@@ -108,7 +114,7 @@ def main():
 
     doc = fitz.open(args.pdf)
     q_pages = parse_range(args.question_pages)
-    a_pages = parse_range(args.answer_key_pages)
+    a_pages = parse_range(args.answer_key_pages) if args.answer_key_pages else None
 
     labels, _missing = find_question_labels(doc, q_pages, col_x_ranges, args.n_questions)
     boxes = compute_crop_boxes(doc, labels)
@@ -117,7 +123,7 @@ def main():
     img_dir = repo_root / "evals" / "images" / args.out_name
     render_crops(doc, boxes, img_dir, zoom=args.zoom)
 
-    answers = parse_answer_key(doc, a_pages, args.n_questions)
+    answers = parse_answer_key(doc, a_pages, args.n_questions) if a_pages is not None else {}
 
     golden_path = repo_root / "evals" / f"golden-set-{args.out_name}.jsonl"
     with open(golden_path, "w", encoding="utf-8") as f:
@@ -129,8 +135,9 @@ def main():
                 "grade": args.grade,
                 "subject": args.subject,
                 "expected_status": "ok",
-                "expected_choice": answers[n],
             }
+            if n in answers:
+                entry["expected_choice"] = answers[n]
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
     # Windows konsolu (cp1252) Azərbaycan simvollarını yaza bilməyəndə çökməsin deyə ASCII-ə

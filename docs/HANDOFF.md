@@ -15,6 +15,12 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-18 (182) · Cursor → Cowork
+Etdim:    E1.4: `scripts/pdf_to_golden_set.py` fizika PDF-ə (`col-x-ranges 30-45,310-325`), 30 kəsik `evals/images/physics-30/` (gitignore). `evals/golden-set-physics-30.jsonl` — golden cavab kitabça açarı YOXDUR, insan həlli (LLM yox). Vision eval n=30 (503 retry birləşdirildi): choice 29/29=100% (≥ math 94.8%×0.9), `verified===false` 0, hallüsinasiya n=0, final_answer 21/30=70%, topic_code 11/30=37%, leak 5/29. has_figure n=16: choice 16/16, fa 12/16. Xülasə `evals/results/summary-golden-set-physics-30-2026-08-18.json`.
+Tapşırıq: `86eyncjh3` complete (korpus+set+eval ölçüldü). Qapı qarışıq — E1.5 başlamasın.
+Diqqət:   Golden LLM-dən deyil. Fizika `verified` null qaldı (E1.2). topic_code uğursuzluğu taksonomiya: model `MECH.WAVES`/`ELEC.AC_CIRCUITS` yazır, E1.3-də 10 kod var.
+Blok:     topic_code ≥85% üçün ya 10 kod genişlənməli, ya prefix/yaxınlıq skoru. Leak 5 item — məhsul, eval miss deyil. `final_answer` 70% əsasən values formatı (choice 100%).
+
 ## 2026-08-17 (181) · Cursor → Cowork
 Etdim:    Dilim 3: eval retry (`failed` n_attempted-dən çıxır, 5 cəhd) — vision golden-set api_failure 1/10=10%, n_attempted=9/10. E2.6: `triangle`/`circle`/`force_diagram`/`cartesian` sxem v2 + `visual.ts` + selftest; GEO.* və MECH.DYNAMICS/KINEMATICS nümunə. E2.4 yenidən ölçü: dim-100test `--text` mümkün deyil (canonical yox, PDF/şəkil diskdə yox). Proxy `text-set-e24`: n=52, failed=21 (api 40%), graph-helps 22 (ok 9), fill 3/9=33%, səhv sxem 0. Kind silinmədi.
 Tapşırıq: `86eynh47m` complete (kind-lər). `86eyncqbz` ölçmə kommenti (qapı keçmədi). `86eyncjh3` blok — fizika PDF yoxdur.

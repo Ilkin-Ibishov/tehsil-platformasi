@@ -39,6 +39,28 @@ GATE_HALLUCINATION = 0.0
 HUMAN_REVIEW_NOTE = "insan rəyi yoxdur — qapı natamam"
 
 
+def _annotate_topic_and_verified(entry, item, raw_output):
+    """E1.4: topic_code uyğunluğu + E1.2 product `verified` (fizikada həmişə null)."""
+    golden_topic = item.get("topic_code")
+    model_topic = entry.get("model_topic_code")
+    if golden_topic and model_topic:
+        entry["topic_code_correct"] = model_topic == golden_topic
+    else:
+        entry["topic_code_correct"] = None
+
+    emitted = None
+    if isinstance(raw_output, dict):
+        emitted = (raw_output.get("verification") or {}).get("verified")
+    model_subject = entry.get("model_subject")
+    effective_subject = model_subject or item.get("subject")
+    if emitted is not None:
+        entry["product_verified"] = emitted
+    elif effective_subject and effective_subject != "math":
+        entry["product_verified"] = None
+    else:
+        entry["product_verified"] = emitted
+
+
 def actual_status(raw_output):
     """Modelin qaytardığı `status` — yoxdursa (və ya boşdursa) sxemə görə 'ok' sayılır.
     raw_output dict deyilsə (məs. JSON parse alınmadı) None — bilinmir."""
@@ -99,7 +121,14 @@ def evaluate_item(item, result, cfg):
         "hallucination": is_hallucination(expected_status, raw_output),
         "false_refusal": is_false_refusal(expected_status, raw_output),
         "status_match": status_match(expected_status, raw_output),
+        "has_figure": bool(item.get("has_figure")),
+        "expected_topic_code": item.get("topic_code"),
+        "model_subject": raw_output.get("subject") if isinstance(raw_output, dict) else None,
+        "model_topic_code": raw_output.get("topic_code") if isinstance(raw_output, dict) else None,
+        "model_canonical": raw_output.get("canonical") if isinstance(raw_output, dict) else None,
+        "golden_canonical": item.get("canonical"),
     }
+    _annotate_topic_and_verified(entry, item, raw_output)
 
     if result["status"] in ("not_implemented", "failed"):
         return entry
@@ -164,6 +193,10 @@ def evaluate_item(item, result, cfg):
     entry["choice_match"] = _choice_match(item.get("expected_choice"), raw)
     entry["step_structural"] = steps_compare.check_structure(raw.get("steps", []))
     entry["leaked"] = leak.detect_leak(raw.get("steps", []), values)
+    entry["model_subject"] = raw.get("subject")
+    entry["model_topic_code"] = raw.get("topic_code")
+    entry["model_canonical"] = raw.get("canonical")
+    _annotate_topic_and_verified(entry, item, raw)
     return entry
 
 
@@ -274,6 +307,28 @@ def aggregate(entries, human_review=None):
         e["id"] for e in attempted if e.get("verify_conflict") is True
     ]
     metrics["choice_match_rate"] = _rate(attempted, "choice_match", lambda v: v is True, lambda v: v is not None)
+
+    metrics["topic_code_accuracy"] = _rate(
+        attempted, "topic_code_correct", lambda v: v is True, lambda v: v is not None
+    )
+    verified_false = [e for e in attempted if e.get("product_verified") is False]
+    metrics["product_verified_false"] = {
+        "rate": (len(verified_false) / n) if n else None,
+        "matched": len(verified_false),
+        "n": n,
+        "ids": [e["id"] for e in verified_false],
+    }
+    figure_entries = [e for e in attempted if e.get("has_figure")]
+    metrics["has_figure_n"] = len(figure_entries)
+    metrics["has_figure_final_answer"] = _rate(
+        figure_entries, "final_answer_correct", lambda v: v is True, lambda v: v is not None
+    )
+    metrics["has_figure_choice_match"] = _rate(
+        figure_entries, "choice_match", lambda v: v is True, lambda v: v is not None
+    )
+    metrics["has_figure_topic_code"] = _rate(
+        figure_entries, "topic_code_correct", lambda v: v is True, lambda v: v is not None
+    )
 
     metrics["hallucination_rate"] = _rate(attempted, "hallucination", lambda v: v is True, lambda v: v is not None)
     metrics["false_refusal_rate"] = _rate(attempted, "false_refusal", lambda v: v is True, lambda v: v is not None)
@@ -420,6 +475,19 @@ def print_report(pipeline_name, metrics):
             f"{', '.join(metrics['verify_conflict_ids'])} — golden set-i əl ilə yoxla (86eyhqggz mexanizmi)."
         )
     _print_metric_line("Variant uyğunluğu (informativ)", metrics["choice_match_rate"], gate_eligible)
+    if metrics.get("topic_code_accuracy"):
+        _print_metric_line("topic_code düzgünlüyü", metrics["topic_code_accuracy"], gate_eligible, 0.85)
+    pv = metrics.get("product_verified_false")
+    if pv:
+        print(
+            f"  verified===false (E1.2): {pv['matched']}/{pv['n']}"
+            + (f" — {', '.join(pv['ids'])}" if pv["ids"] else " (qapı: 0)")
+        )
+    if metrics.get("has_figure_n"):
+        print(f"  has_figure alt-nümunə n={metrics['has_figure_n']}:")
+        _print_metric_line("    son cavab", metrics["has_figure_final_answer"], gate_eligible)
+        _print_metric_line("    variant", metrics["has_figure_choice_match"], gate_eligible)
+        _print_metric_line("    topic_code", metrics["has_figure_topic_code"], gate_eligible)
 
     print("  Addım bölgüsü — struktur:")
     structural = metrics["step_split_structural"]
