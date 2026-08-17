@@ -93,3 +93,6 @@
 - 2026-08-17: Cowork auditi (dilim 1) - E1.2 qapisi KECDI: verify replay 52 prod setirinde verified 1 -> 22 (42.3%, hedef >=40%), verified=false regressiya 0. Schema v2-de hem visual, hem mathjs_equation/mathjs_unit enum var - bump duzgun birlesdirilib.
 - 2026-08-17: BOSLUQ - visual production-da acidqir, amma E2.4 qapisi (n=30 sehv sxem <=10%) OLCULMEYIB ve app_config-de visual_enabled bayragi YOXDUR. ClickUp 86eynftm0 (E2.0) acildi, dilim 2-nin birinci addimidir.
 - 2026-08-17: summary-golden-set-2026-08-17.json 'evals/images yoxdur' yazir, amma qovluqda 11 fayl var - vision eval sehv diaqnozla atlanib, dilim 2-de arasdirilir.
+- 2026-08-17: Cowork auditi (dilim 2) - ffd858b push edildi. 0072 production-da (10 fizika topic_code, bank_matchable=false).
+- 2026-08-17: E2.4 olçmesi ETIBARSIZ - n=6 anekdotdur, qapi n=30 teleb edir. Vision eval-da 8/10 item Gemini 503 ile dusdu, yeni riyaziyyat reqressiya yoxlamasi faktiki n=2.
+- 2026-08-17: KOK SEBEB tapildi - doldurulma az deyil ki prompt zeifdir, SXEMDE kind yoxdur. Movcud: none/number_line/linear/quadratic (yalniz cebr). triangle/circle/force_diagram/cartesian YOXDUR - ADR-031 hedefleri. Fizika 10 movzu faylinin heç birinde visual numunesi yoxdur. ClickUp 86eynh47m (E2.6) acildi. core.md kiçildilmir.
