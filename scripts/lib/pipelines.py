@@ -1,7 +1,10 @@
 """İki boru xətti. Hər ikisi eyni imzaya malikdir:
     run(item, cfg) -> dict(id, status, raw_output, usage, latency_ms, error)
 
-status: "ok" | "not_implemented" | "error"
+status: "ok" | "not_implemented" | "error" | "failed"
+
+`failed` = API 503/429/timeout retry-dan sonra. n_attempted-ə daxil DEYİL.
+`error` = parse / şəkil / konfiq — cəhd sayılır.
 """
 
 from pathlib import Path
@@ -36,10 +39,10 @@ def resolve_eval_media(item, repo_root=REPO_ROOT, force_text=False):
     return None, canonical, None
 
 
-def _error_result(item, error, **extra):
+def _error_result(item, error, status="error", **extra):
     out = {
         "id": item.get("id"),
-        "status": "error",
+        "status": status,
         "raw_output": None,
         "raw_text": None,
         "usage": None,
@@ -95,7 +98,9 @@ def run_pipeline_b(item, cfg):
             user_prompt,
             image_path=str(image_path) if has_image else None,
         )
-    except Exception as exc:  # noqa: BLE001 — hər provayder xətası fərqlidir, hamısı "error" kimi qeyd olunur
+    except llm_client.APIFailure as exc:
+        return _error_result(item, str(exc), status="failed", attempts=exc.attempts)
+    except Exception as exc:  # noqa: BLE001 — parse/konfiq xətası "error"; API tükənməsi yuxarıda `failed`
         return _error_result(item, str(exc))
 
     if parsed is None:

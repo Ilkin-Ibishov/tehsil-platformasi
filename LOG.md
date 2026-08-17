@@ -1,5 +1,9 @@
 # LOG
 
+- 2026-08-17: HANDOFF 181 — eval retry: 503/429/timeout 5 cəhd, `failed` n_attempted-dən çıxır.
+  Vision golden-set: api_failure_rate 1/10=10%, n_attempted=9/10 (qapı keçdi). 48/48 selftest.
+  `failed` səhv cavab sayılmır. core.md visual kiçildilmədi.
+
 - 2026-08-17: HANDOFF 180 — E1.3 physics.md + 0072 (10 topic) + transcribe v3 şaxə.
   Selftest: physics fallback yox; visual mövzu faylına qoyulmayıb (E2.4 fill 50%).
   `86eyncjdu` complete. eval 41/41.

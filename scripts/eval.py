@@ -125,7 +125,9 @@ def run(pipeline_name, set_path, today, image_max_px=None, force_text=False, lim
         result = pipeline_fn(item, cfg)
         entry = report.evaluate_item(item, result, cfg)
         entries.append(entry)
-        status_marker = {"ok": ".", "error": "E", "not_implemented": "-"}[result["status"]]
+        status_marker = {"ok": ".", "error": "E", "failed": "F", "not_implemented": "-"}.get(
+            result["status"], "?"
+        )
         print(status_marker, end="", flush=True)
     print()
 
@@ -232,6 +234,163 @@ def _selftest_image_resolve():
     return failures
 
 
+def _dummy_cfg():
+    return llm_client.LLMConfig(
+        model="mock",
+        api_key="x",
+        base_url="https://example.invalid",
+        price_input_per_1m=None,
+        price_output_per_1m=None,
+    )
+
+
+def _selftest_api_failure_exclusion():
+    """503/timeout `failed` — n_attempted-dən çıxır, səhv cavab sayılmır."""
+    failures = []
+    cfg = _dummy_cfg()
+    failed_result = {
+        "id": "drop",
+        "status": "failed",
+        "raw_output": None,
+        "error": "LLM HTTP 503 after 5 attempts",
+        "attempts": 5,
+        "latency_ms": 1200,
+    }
+    ev = report.evaluate_item({"id": "drop", "expected_status": "ok"}, failed_result, cfg)
+    ok_ev = ev.get("schema_valid") is None and ev.get("final_answer_correct") is None
+    print(
+        f"[{'PASS' if ok_ev else 'FAIL'}] failed_not_scored_as_wrong  "
+        f"schema={ev.get('schema_valid')} fa={ev.get('final_answer_correct')}"
+    )
+    if not ok_ev:
+        failures.append("failed_not_scored_as_wrong")
+
+    ok_entry = {
+        "id": "ok1",
+        "status": "ok",
+        "schema_valid": True,
+        "final_answer_correct": True,
+        "verify_conflict": False,
+        "choice_match": None,
+        "step_structural": None,
+        "leaked": False,
+        "hallucination": None,
+        "false_refusal": None,
+        "status_match": None,
+    }
+    metrics = report.aggregate([ok_entry, ev])
+    ok_n = metrics["n_attempted"] == 1 and metrics["n_failed"] == 1
+    rate = metrics["api_failure_rate"]
+    ok_rate = rate["matched"] == 1 and rate["n"] == 2 and abs((rate["rate"] or -1) - 0.5) < 1e-9
+    schema_n = metrics["schema_validity"]["n"]
+    ok_schema = schema_n == 1
+    print(
+        f"[{'PASS' if ok_n else 'FAIL'}] failed_excluded_from_n_attempted  "
+        f"n_attempted={metrics['n_attempted']} n_failed={metrics['n_failed']}"
+    )
+    print(f"[{'PASS' if ok_rate else 'FAIL'}] api_failure_rate  {rate}")
+    print(f"[{'PASS' if ok_schema else 'FAIL'}] failed_excluded_from_schema  schema_n={schema_n}")
+    if not ok_n:
+        failures.append("failed_excluded_from_n_attempted")
+    if not ok_rate:
+        failures.append("api_failure_rate")
+    if not ok_schema:
+        failures.append("failed_excluded_from_schema")
+    return failures
+
+
+def _selftest_llm_retry():
+    """503 sonra 200 — retry; 5×503/timeout — APIFailure. sleep mock (gözləmə yox)."""
+    from unittest.mock import patch
+
+    import httpx
+
+    failures = []
+    cfg = _dummy_cfg()
+    ok_body = {
+        "choices": [{"message": {"content": "{\"ok\": true}"}}],
+        "usage": {"prompt_tokens": 1, "completion_tokens": 1},
+    }
+
+    class _Seq:
+        def __init__(self, codes):
+            self.codes = list(codes)
+            self.n = 0
+
+        def post(self, *args, **kwargs):
+            code = self.codes[min(self.n, len(self.codes) - 1)]
+            self.n += 1
+            if code == "timeout":
+                raise httpx.TimeoutException("mock timeout")
+            req = httpx.Request("POST", "https://example.invalid/chat/completions")
+            return httpx.Response(
+                code,
+                json=ok_body if code == 200 else {"error": "unavailable"},
+                request=req,
+            )
+
+    class _Client:
+        def __init__(self, seq):
+            self._seq = seq
+
+        def __enter__(self):
+            return self._seq
+
+        def __exit__(self, *args):
+            return False
+
+    seq = _Seq([503, 503, 200])
+    with patch("lib.llm_client.time.sleep"), patch(
+        "lib.llm_client.httpx.Client", lambda **kw: _Client(seq)
+    ):
+        parsed, _u, _lat, _raw, attempts, _meta = llm_client.call_vision_llm(cfg, "sys", "user")
+    ok_retry = parsed == {"ok": True} and attempts == 3 and seq.n == 3
+    print(
+        f"[{'PASS' if ok_retry else 'FAIL'}] retry_503_then_ok  "
+        f"attempts={attempts} posts={seq.n} parsed={parsed}"
+    )
+    if not ok_retry:
+        failures.append("retry_503_then_ok")
+
+    seq5 = _Seq([503, 503, 503, 503, 503])
+    raised = None
+    with patch("lib.llm_client.time.sleep"), patch(
+        "lib.llm_client.httpx.Client", lambda **kw: _Client(seq5)
+    ):
+        try:
+            llm_client.call_vision_llm(cfg, "sys", "user")
+        except llm_client.APIFailure as exc:
+            raised = exc
+    ok_fail = (
+        raised is not None
+        and raised.attempts == llm_client.MAX_ATTEMPTS
+        and seq5.n == llm_client.MAX_ATTEMPTS
+        and "503" in str(raised)
+    )
+    print(
+        f"[{'PASS' if ok_fail else 'FAIL'}] retry_exhausted_is_api_failure  "
+        f"attempts={getattr(raised, 'attempts', None)} posts={seq5.n} err={raised}"
+    )
+    if not ok_fail:
+        failures.append("retry_exhausted_is_api_failure")
+
+    seq_t = _Seq(["timeout"] * llm_client.MAX_ATTEMPTS)
+    raised_t = None
+    with patch("lib.llm_client.time.sleep"), patch(
+        "lib.llm_client.httpx.Client", lambda **kw: _Client(seq_t)
+    ):
+        try:
+            llm_client.call_vision_llm(cfg, "sys", "user")
+        except llm_client.APIFailure as exc:
+            raised_t = exc
+    ok_t = raised_t is not None and "timeout" in str(raised_t).lower()
+    print(f"[{'PASS' if ok_t else 'FAIL'}] timeout_exhausted_is_api_failure  err={raised_t}")
+    if not ok_t:
+        failures.append("timeout_exhausted_is_api_failure")
+
+    return failures
+
+
 def _selftest_physics_prompt():
     """E1.3: physics.md + MECH.KINEMATICS nümunəsi math fallback deyil, sxem validdir."""
     failures = []
@@ -319,8 +478,17 @@ def selftest():
     invariant_failures = _selftest_prompt_schema_invariants()
     image_failures = _selftest_image_resolve()
     physics_failures = _selftest_physics_prompt()
-    failures = case_failures + invariant_failures + image_failures + physics_failures
-    extra = 2 + 3 + 2  # prompt invariants + image-resolve + physics
+    api_failures = _selftest_api_failure_exclusion()
+    retry_failures = _selftest_llm_retry()
+    failures = (
+        case_failures
+        + invariant_failures
+        + image_failures
+        + physics_failures
+        + api_failures
+        + retry_failures
+    )
+    extra = 2 + 3 + 2 + 4 + 3  # prompt + image + physics + failed-exclusion + retry
     total = n_cases + extra
 
     if failures:

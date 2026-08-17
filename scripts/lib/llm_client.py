@@ -28,14 +28,24 @@ from dotenv import load_dotenv
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(_REPO_ROOT / ".env")
 
+# Match web/lib/llm.ts RETRYABLE_STATUS / exponential backoff. Eval is a batch
+# job: 5 attempts (llm.ts uses 3) because 2026-08-17 vision 8/10 died on 503/timeout.
 RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
-MAX_ATTEMPTS = 3
+MAX_ATTEMPTS = 5
 RETRY_BASE_DELAY_S = 4.0
 HTTP_TIMEOUT_S = 120.0
 
 
 class ConfigError(RuntimeError):
     pass
+
+
+class APIFailure(RuntimeError):
+    """503/429/5xx/timeout after retries. Eval records `failed` — not a wrong answer."""
+
+    def __init__(self, message, attempts=None):
+        super().__init__(message)
+        self.attempts = attempts
 
 
 @dataclass
@@ -135,13 +145,27 @@ def _image_content(image_path, max_px=1600, jpeg_quality=85):
     return content, meta
 
 
+def _retry_delay_s(attempt, retry_after=None):
+    """attempt is 1-based. Honors Retry-After seconds when the header is numeric."""
+    delay = RETRY_BASE_DELAY_S * (2 ** (attempt - 1))
+    if retry_after:
+        try:
+            delay = max(delay, float(retry_after))
+        except (TypeError, ValueError):
+            pass
+    return delay
+
+
 def call_vision_llm(cfg, system_prompt, user_prompt, image_path=None):
-    """Bir çağırış edir (429/5xx-də 3 cəhdə qədər eksponensial gözləməli retry),
+    """Bir çağırış edir (429/5xx/timeout-da MAX_ATTEMPTS-ə qədər eksponensial retry),
     (parsed_json, usage, latency_ms, raw_text, attempts, image_meta) qaytarır.
 
     latency_ms YALNIZ son (uğurlu, ya da son uğursuz) cəhdin müddətidir — retry-lar
     arasındakı gözləmə DAXİL DEYİL, əks halda bir rate-limit bütün orta latensiya
     ölçüsünü korlayardı. Cəhd sayı `attempts`-də ayrıca görünür.
+
+    Retry tükənəndə `APIFailure` atır — HTTPStatusError yox. Eval bunu `failed`
+    kimi yazır və n_attempted-dən çıxarır (səhv cavab sayılmır).
     """
     image_meta = None
     content = [{"type": "text", "text": user_prompt}]
@@ -177,18 +201,39 @@ def call_vision_llm(cfg, system_prompt, user_prompt, image_path=None):
                 latency_ms = (time.perf_counter() - started) * 1000
                 last_exc = exc
                 if attempt < MAX_ATTEMPTS:
-                    time.sleep(RETRY_BASE_DELAY_S * (2 ** (attempt - 1)))
+                    time.sleep(_retry_delay_s(attempt))
                     continue
-                raise
+                raise APIFailure(
+                    f"LLM timeout after {attempts} attempts ({HTTP_TIMEOUT_S:.0f}s)",
+                    attempts=attempts,
+                ) from exc
+            except httpx.RequestError as exc:
+                latency_ms = (time.perf_counter() - started) * 1000
+                last_exc = exc
+                if attempt < MAX_ATTEMPTS:
+                    time.sleep(_retry_delay_s(attempt))
+                    continue
+                raise APIFailure(
+                    f"LLM network error after {attempts} attempts: {exc}",
+                    attempts=attempts,
+                ) from exc
             latency_ms = (time.perf_counter() - started) * 1000
 
             if resp.status_code in RETRYABLE_STATUS_CODES and attempt < MAX_ATTEMPTS:
-                time.sleep(RETRY_BASE_DELAY_S * (2 ** (attempt - 1)))
+                time.sleep(_retry_delay_s(attempt, resp.headers.get("Retry-After")))
                 continue
             break
 
     if resp is None:
-        raise last_exc or RuntimeError("LLM çağırışı cavabsız qaldı")
+        raise APIFailure(
+            str(last_exc) if last_exc else "LLM çağırışı cavabsız qaldı",
+            attempts=attempts,
+        )
+    if resp.status_code in RETRYABLE_STATUS_CODES:
+        raise APIFailure(
+            f"LLM HTTP {resp.status_code} after {attempts} attempts",
+            attempts=attempts,
+        )
     resp.raise_for_status()
     body = resp.json()
     raw_text = body["choices"][0]["message"]["content"]

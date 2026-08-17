@@ -101,7 +101,7 @@ def evaluate_item(item, result, cfg):
         "status_match": status_match(expected_status, raw_output),
     }
 
-    if result["status"] == "not_implemented":
+    if result["status"] in ("not_implemented", "failed"):
         return entry
 
     if cfg.price_input_per_1m is not None and cfg.price_output_per_1m is not None:
@@ -241,17 +241,26 @@ def pedagogical_summary(entries, human_review):
 
 
 def aggregate(entries, human_review=None):
-    attempted = [e for e in entries if e["status"] != "not_implemented"]
+    failed = [e for e in entries if e["status"] == "failed"]
+    attempted = [e for e in entries if e["status"] not in ("not_implemented", "failed")]
     n = len(attempted)
+    n_failed = len(failed)
+    n_api = n + n_failed
 
     metrics = {
         "n_total": len(entries),
         "n_attempted": n,
-        "n_not_implemented": len(entries) - n,
+        "n_failed": n_failed,
+        "n_not_implemented": sum(1 for e in entries if e["status"] == "not_implemented"),
+        "api_failure_rate": {
+            "rate": (n_failed / n_api) if n_api else None,
+            "matched": n_failed,
+            "n": n_api,
+        },
     }
 
     if n == 0:
-        metrics["note"] = "Heç bir nümunə işlənmədi (bütün nəticələr not_implemented)."
+        metrics["note"] = "Heç bir nümunə işlənmədi (not_implemented və ya API failed)."
         return metrics
 
     metrics["schema_validity"] = _rate(attempted, "schema_valid", lambda v: v is True, lambda v: v is not None)
@@ -354,8 +363,10 @@ def write_summary(pipeline_name, set_path, entries, metrics, prompt_version, out
             model_values = (raw.get("final_answer") or {}).get("values")
         items.append({
             "id": e.get("id"),
+            "status": e.get("status"),
             "final_answer_correct": e.get("final_answer_correct"),
             "model_values": model_values,
+            **({"error": e.get("error")} if e.get("status") == "failed" else {}),
         })
 
     payload = {
@@ -384,7 +395,14 @@ def _print_metric_line(label, metric_dict, gate_eligible, gate_value=None):
 
 def print_report(pipeline_name, metrics):
     print(f"\n=== Pipeline {pipeline_name} ===")
-    print(f"n_total={metrics['n_total']}  n_attempted={metrics.get('n_attempted', 0)}  not_implemented={metrics.get('n_not_implemented', 0)}")
+    print(
+        f"n_total={metrics['n_total']}  n_attempted={metrics.get('n_attempted', 0)}  "
+        f"failed={metrics.get('n_failed', 0)}  not_implemented={metrics.get('n_not_implemented', 0)}"
+    )
+
+    api_fail = metrics.get("api_failure_rate")
+    if api_fail:
+        _print_metric_line("API uğursuzluğu", api_fail, True)
 
     if metrics.get("n_attempted", 0) == 0:
         print(metrics.get("note", ""))
