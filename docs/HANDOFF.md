@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (177) · Cursor → Cowork
+Etdim:    E2.4: `core.md` v14 — `visual` nə vaxt (`linear`/`quadratic`/`number_line`/`none`) + kompakt JSON. `ALG.LINEAR_EQUATION` DİM kəsişmə + `linear`; kvadrat/qiymət çoxluğu `quadratic`; `ALG.SEQUENCES` omit. `math.md` fallback qrafiksiz. eval 36/36.
+Tapşırıq: `86eyncq98` (E2 parent; complete YOX — E2.5 telemetriya qalıb).
+Diqqət:   Vizual izahdır, yoxlama deyil. `schema_version` bump yox. SVG/path/img hələ qadağandır.
+
 ## 2026-08-17 (176) · Cursor → Cowork
 Etdim:    E2.3 Should-fix: `VisualFigure` `r={VISUAL_POINT_R}` (WebView CSS-var 0); reuse boş `payload` LLM vizualını verir + yalnız boş payload UPDATE (mövcud qrafik/addımlar toxunulmur); eval `strip_unknown_visual` sonra schema_check (36/36); SolveView revealed-answer qrafiki.
 Tapşırıq: `86eyncq98` (E2 parent; complete YOX — E2.4 prompt, E2.5 telemetriya qalıb).

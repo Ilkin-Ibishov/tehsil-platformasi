@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v13)
+# Prompt — addım sxemi generasiyası (v14)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -101,6 +101,11 @@
 > (`prompts/solve/{subject}/{TOPIC}.md`) varsa bir nümunə göndərilir; yoxdursa əvvəlki
 > üç fənn nümunəsi. `{{TOPIC_ADDENDUM}}` boş ola bilər. Şəkil-girişi bloku Qat 5-də
 > kəsilir (Qat 1-dədir).
+>
+> **v13 → v14 (2026-08-17).** E2.4: renderer (E2.3) artıq var, amma model `visual`
+> yazmasa şagird qrafik görmür. `visual` bölməsi NƏ VAXT hansı `kind` (linear /
+> quadratic / number_line / none) + hər kind üçün sxemə uyğun kompakt JSON.
+> SVG/path/img qadağanı və naməlum kind qadağanı eyni qalır. `schema_version` 2.
 
 ## System
 
@@ -159,12 +164,31 @@ check MÜTLƏQ obyektdir, sətir DEYİL: {"ask": "...", "accept": ["..."], "inpu
 
 final_answer.choice — variantlı məsələdə düzgün variantın etiketi ("B", "D", "3").
 
-visual — opsional. Qrafik yoxdursa sahəni YAZMA (və ya {"kind": "none"}).
-  kind dəyərləri YALNIZ: none | number_line | linear | quadratic
-  number_line  → min, max, points: [{"x": 2, "label": "A", "open": false}]
-  linear       → k, b   (y = kx + b; DIM kəsişmə qrafiki)
-  quadratic    → a, b, c (y = ax^2 + bx + c)
-Naməlum kind, SVG, path YAZMA — server `visual`-ı atır (həll saxlanılır).
+visual — opsional KÖK sahəsi. Qrafik addımı GÖRMƏYƏ kömək edəndə YAZ; əks halda
+sahəni BURAX (və ya {"kind": "none"}). Vizual IZAHDIR — check/error_code əvəzi DEYİL.
+kind YALNIZ: none | number_line | linear | quadratic. Başqa kind UYDURMA
+(hiperbola, dairə, vektor, 3D yoxdur). k, b, a, c, min, max, x — ƏDƏD, sətir YOX.
+SVG, path, d, img, viewBox, polyline, d3 — QADAĞAN. Əlavə sahə → server visual-ı
+atır, həll qalır.
+
+NƏ VAXT hansı kind (obyekt TAMDIR — rəng/path əlavə etmə):
+
+  none         qrafik yoxdur. Daha yaxşısı: sahəni ümumiyyətlə yazma.
+               {"kind": "none"}
+
+  linear       DİM düz xətt, ox kəsişməsi, y=kx+b qrafiki. Məcburi: kind, k, b.
+               {"kind": "linear", "k": 1, "b": -5}
+               3x=12 kimi qrafiksiz tənlikdə YAZMA.
+
+  quadratic    parabola, y=ax²+bx+c, köklər ox kəsişməsi, qiymət çoxluğu.
+               Məcburi: kind, a, b, c.
+               {"kind": "quadratic", "a": 1, "b": -5, "c": 6}
+               Sahə mətn məsələsində (en×uzunluq) YAZMA.
+
+  number_line  interval, bərabərsizlik, açıq/qapalı nöqtə. Məcburi: kind, min,
+               max, points (≤8). points[].x məcburi; label ≤16; open=true açıq dairə.
+               {"kind": "number_line", "min": -2, "max": 6, "points": [{"x": 2, "label": "A", "open": false}, {"x": 5, "label": "B", "open": true}]}
+               Tək hesab və ya tək a_n ədədi üçün YAZMA.
 
 ═══ error_code — YALNIZ BU 11 DƏYƏRDƏN BİRİ ═══
 

@@ -17,6 +17,9 @@ uyğun süni ikinci addım doldurur. Sonra 2 addım + 6 addım. `core.md` qayda 
 `extract_example_json` (schema/struktur invariant testi) HƏMİŞƏ İLK JSON obyektini oxuyur —
 ona görə 1-ci nümunə (1 addım) sxemə görə TAM VALİD olmalıdır, qalanları ayrıca əl ilə yoxlanılıb.
 
+E2.4: bu üç nümunədə `visual` YOXDUR — qrafik kömək etmir (cəm, 3x=12, sahə mətni).
+DİM kəsişmə / parabola / ədəd oxu üçün `core.md` kompakt kind nümunələri + mövzu faylları.
+
 ## Nümunə
 
 ```

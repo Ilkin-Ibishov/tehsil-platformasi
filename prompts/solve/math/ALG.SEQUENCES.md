@@ -1,6 +1,15 @@
 # ALG.SEQUENCES — ardıcıllıq (ümumi hədd)
 
 n-ci hədd düsturunu ədədlə yoxla. Proqressiya düsturunu kor-koranə yazma.
+Tək `a_n` ədədi qrafik tələb etmir — bu nümunədə `visual` YOXDUR.
+
+## Əlavə qaydalar
+
+```
+Interval / bərabərsizlik / açıq-qapalı nöqtə oxda kömək edirsə visual YAZ:
+{"kind":"number_line","min":…,"max":…,"points":[{"x":…,"label":"A","open":false}]}.
+Tək a_n tapmaq üçün visual YAZMA. SVG/path YOX. Naməlum kind UYDURMA.
+```
 
 ## Nümunə
 

@@ -1,6 +1,14 @@
 # ALG.QUADRATIC_EQUATION — kvadrat tənlik (diskriminant)
 
 Fənn fallback-indəki 6 addımlıq mətn məsələsinin qısa forması. Köklər düsturu + yoxlama.
+Parabola kökləri ox kəsişməsidir — `visual.kind=quadratic`. Sahə mətni (en×uzunluq) qrafiksiz qalır (`math.md` nümunə 3).
+
+## Əlavə qaydalar
+
+```
+y=ax²+bx+c qrafiki / köklər ox kəsişməsi / təpə varsa visual YAZ: {"kind":"quadratic","a":…,"b":…,"c":…}.
+Sahə mətn məsələsində visual YAZMA. SVG/path YOX. Naməlum kind (hiperbola) UYDURMA.
+```
 
 ## Nümunə
 
@@ -13,6 +21,7 @@ Fənn fallback-indəki 6 addımlıq mətn məsələsinin qısa forması. Köklə
   "grade": 9,
   "topic_code": "ALG.QUADRATIC_EQUATION",
   "detected_language": "az",
+  "visual": {"kind": "quadratic", "a": 1, "b": -5, "c": 6},
   "final_answer": {
     "latex": "x=3,\\ x=2",
     "values": ["3", "2"]

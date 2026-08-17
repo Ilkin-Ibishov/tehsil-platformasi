@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-17: HANDOFF 177 — E2.4 prompt: `visual` nə vaxt; linear/quadratic nümunə; sequences omit; eval 36/36.
 - 2026-08-17: HANDOFF 176 — E2.3 Should-fix: WebView `r`, reuse visual backfill UPDATE, eval=prod strip, revealed graph; 36/36.
 - 2026-08-17: HANDOFF 175 — E2.3 SVG renderer + payload persist + strip unknown kind; eval 35/35.
 - 2026-08-17: HANDOFF 174 — E2.2: `visual` təsviri rədd davranışı ilə uyğunlaşdı (strip E2.3).

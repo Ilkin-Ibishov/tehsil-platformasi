@@ -1,6 +1,14 @@
 # ALG.FUNCTION_RANGE — funksiyanın qiymət çoxluğu
 
 Tərif oblastı ilə qiymət oblastını qarışdırmamaq. Sadə kvadrat funksiya nümunəsi.
+Qiymət çoxluğu parabolanın şəklinə bağlıdır — `visual.kind=quadratic`.
+
+## Əlavə qaydalar
+
+```
+Parabola / kvadrat funksiyanın qiymət çoxluğunda visual YAZ: {"kind":"quadratic","a":…,"b":…,"c":…}.
+y=k/x hiperbola — kind YOXDUR, visual YAZMA (boş şəkil uydurma). SVG/path YOX.
+```
 
 ## Nümunə
 
@@ -13,6 +21,7 @@ Tərif oblastı ilə qiymət oblastını qarışdırmamaq. Sadə kvadrat funksiy
   "grade": 10,
   "topic_code": "ALG.FUNCTION_RANGE",
   "detected_language": "az",
+  "visual": {"kind": "quadratic", "a": 1, "b": 0, "c": 1},
   "final_answer": {
     "latex": "[1;+\\infty)",
     "values": ["[1;+∞)"]
