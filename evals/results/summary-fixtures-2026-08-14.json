@@ -1,0 +1,119 @@
+{
+  "pipeline": "B",
+  "set": "evals\\fixtures.jsonl",
+  "date": "2026-08-14",
+  "prompt_version": "v8",
+  "metrics": {
+    "n_total": 3,
+    "n_attempted": 3,
+    "n_not_implemented": 0,
+    "schema_validity": {
+      "rate": 1.0,
+      "matched": 3,
+      "n": 3
+    },
+    "final_answer_accuracy": {
+      "rate": 1.0,
+      "matched": 3,
+      "n": 3
+    },
+    "leak_rate": {
+      "rate": 0.3333333333333333,
+      "matched": 1,
+      "n": 3
+    },
+    "verify_conflict": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 3
+    },
+    "verify_conflict_ids": [],
+    "choice_match_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "hallucination_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "false_refusal_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 3
+    },
+    "status_match_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "step_split_structural": {
+      "count_ok": {
+        "rate": 1.0,
+        "matched": 3,
+        "n": 3
+      },
+      "checks_present": {
+        "rate": 1.0,
+        "matched": 3,
+        "n": 3
+      },
+      "index_sequential": {
+        "rate": 1.0,
+        "matched": 3,
+        "n": 3
+      },
+      "ends_with_verification": {
+        "rate": 1.0,
+        "matched": 3,
+        "n": 3
+      },
+      "error_codes_distinct": {
+        "rate": 1.0,
+        "matched": 3,
+        "n": 3
+      },
+      "all_pass": {
+        "rate": 1.0,
+        "matched": 3,
+        "n": 3
+      }
+    },
+    "step_split_pedagogical": {
+      "rate": null,
+      "matched": 0,
+      "n": 0,
+      "note": "insan rəyi yoxdur — qapı natamam"
+    },
+    "avg_cost_usd": 0.013546666666666665,
+    "avg_latency_ms": 13836.560866666672,
+    "gate_eligible": false,
+    "gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=3, minimum 30)"
+  },
+  "items": [
+    {
+      "id": "fx-001",
+      "final_answer_correct": true,
+      "model_values": [
+        "2",
+        "3"
+      ]
+    },
+    {
+      "id": "fx-002",
+      "final_answer_correct": true,
+      "model_values": [
+        "2",
+        "-4"
+      ]
+    },
+    {
+      "id": "fx-003",
+      "final_answer_correct": true,
+      "model_values": [
+        "230"
+      ]
+    }
+  ]
+}

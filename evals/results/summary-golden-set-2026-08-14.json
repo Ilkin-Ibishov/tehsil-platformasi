@@ -1,0 +1,148 @@
+{
+  "pipeline": "B",
+  "set": "evals\\golden-set.jsonl",
+  "date": "2026-08-14",
+  "prompt_version": "v8",
+  "metrics": {
+    "n_total": 10,
+    "n_attempted": 10,
+    "n_not_implemented": 0,
+    "schema_validity": {
+      "rate": 1.0,
+      "matched": 10,
+      "n": 10
+    },
+    "final_answer_accuracy": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "leak_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 1
+    },
+    "verify_conflict": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 1
+    },
+    "verify_conflict_ids": [],
+    "choice_match_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "hallucination_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 9
+    },
+    "false_refusal_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 1
+    },
+    "status_match_rate": {
+      "rate": 1.0,
+      "matched": 9,
+      "n": 9
+    },
+    "step_split_structural": {
+      "count_ok": {
+        "rate": 1.0,
+        "matched": 1,
+        "n": 1
+      },
+      "checks_present": {
+        "rate": 1.0,
+        "matched": 1,
+        "n": 1
+      },
+      "index_sequential": {
+        "rate": 1.0,
+        "matched": 1,
+        "n": 1
+      },
+      "ends_with_verification": {
+        "rate": 1.0,
+        "matched": 1,
+        "n": 1
+      },
+      "error_codes_distinct": {
+        "rate": 1.0,
+        "matched": 1,
+        "n": 1
+      },
+      "all_pass": {
+        "rate": 1.0,
+        "matched": 1,
+        "n": 1
+      }
+    },
+    "step_split_pedagogical": {
+      "rate": null,
+      "matched": 0,
+      "n": 0,
+      "note": "insan rəyi yoxdur — qapı natamam"
+    },
+    "avg_cost_usd": 0.0132049,
+    "avg_latency_ms": 9954.512999999997,
+    "gate_eligible": false,
+    "gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=10, minimum 30)"
+  },
+  "items": [
+    {
+      "id": "r01",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "r02",
+      "final_answer_correct": null,
+      "model_values": [
+        "7"
+      ]
+    },
+    {
+      "id": "r03",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "r04",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "r05",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "r06",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "r07",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "r08",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "r09",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "r10",
+      "final_answer_correct": null,
+      "model_values": null
+    }
+  ]
+}
