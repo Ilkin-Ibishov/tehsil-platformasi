@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-17: HANDOFF 172 — `81e9767` push; E2.1 ADR-031 (SVG, KaTeX/npm yox). E1.3–E1.6 açıq.
 - 2026-08-17: Faza3 dilim0 — eval baseline 08-14 commit + summary-golden-set-2026-08-17 (52 prod verify replay; vision evals/images yox).
 - 2026-08-17: Faza3 E1.2 `86eyncj7k` — verify genişləndi (42.3% true, 0 false); mathjs method; 0070; 24 selftest.
 - 2026-08-17: Faza3 E1.1 `86eyncj10` — prompt.subject_fallback + prompt_strict_subject (0071); cascade/route UI.

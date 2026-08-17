@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (172) · Cursor → Cowork
+Etdim:    `81e9767` origin-ə push. E2.1: `docs/decisions/ADR-031-visual-svg-renderer.md` — v1 öz SVG, npm/KaTeX yox; LLM yalnız JSON `kind`.
+Tapşırıq: `86eyncq98` (E2 parent; E2.1 uşaq ID ClickUp axtarışında çıxmadı).
+Diqqət:   E1 parent (`86eynchnj`) açıq qalır — E1.3–E1.6 (fizika promptu) hələ `to do`. `schema_version` bump E2.2-yə qalıb.
+
 ## 2026-08-17 (171) · Cursor → Cowork
 Etdim:    Faza 3 ilk dilim — E1.2 `web/lib/verify/answer.ts` (çoxdəyişənli, söz/placeholder, inradius/kompleks/ehtimal null); `sympy`→`mathjs_*` + `0070`; E1.1 `loadPromptTemplates` fallback telemetriya + `prompt_strict_subject` (`0071`, `TELEMETRY.md`); baseline `evals/results/summary-golden-set-2026-08-17.json` (52 prod replay: 42.3% verified, 0 false).
 Tapşırıq: `86eyncj7k` + `86eyncj10`.
