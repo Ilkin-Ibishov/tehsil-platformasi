@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-17 (174) · Cursor → Cowork
+Etdim:    E2.2 review follow-up: `STEP-SCHEMA.json` `visual` təsviri validatorla eyni — naməlum kind bütün JSON-u rədd edir (sahəni atmaq E2.3).
+Tapşırıq: `86eyncq98` (E2 parent, complete yox).
+Diqqət:   ADR-031 «sahəni at» yumşaq yolunu E2.3-də `strip-before-validate` ilə etmək olar; indi rədd `core.md` + selftest ilə kilidlidir.
+
 ## 2026-08-17 (173) · Cursor → Cowork
 Etdim:    E2.2: `STEP-SCHEMA.json` v2 — opsional `visual` oneOf (`none|number_line|linear|quadratic`), `schema_version` enum `[1,2]`; `STEP_SCHEMA_VERSION=2` solve/finish; `core.md`+math nümunələri 2. Transcribe/telemetriya 1. `schema.selftest` + `eval.py --selftest` 35/35. SVG renderer YOX.
 Tapşırıq: `86eyncq98` (E2 parent; E2.2 uşaq ID ClickUp-da yoxdur). Parent complete DEYİL — E2.3 qalıb.

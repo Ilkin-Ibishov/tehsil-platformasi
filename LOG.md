@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-08-17: HANDOFF 174 — E2.2: `visual` təsviri rədd davranışı ilə uyğunlaşdı (strip E2.3).
 - 2026-08-17: HANDOFF 173 — E2.2 STEP-SCHEMA v2 + `visual` JSON (renderer yox); eval 35/35; transcribe 1.
 - 2026-08-17: HANDOFF 172 — `81e9767` push; E2.1 ADR-031 (SVG, KaTeX/npm yox). E1.3–E1.6 açıq.
 - 2026-08-17: Faza3 dilim0 — eval baseline 08-14 commit + summary-golden-set-2026-08-17 (52 prod verify replay; vision evals/images yox).
