@@ -117,3 +117,6 @@
 - 2026-08-18: leak 5/29 = 17% ESAS BLOKERDIR (riyaziyyatda qapi 0%). Ortulmus/ortulmemis movzu bolgusu 2 vs 3 - routing deyil, physics.md-de leak intizami yoxdur. ClickUp 86eynm9qy (E1.7), urgent.
 - 2026-08-18: YAXSI XEBER - choice 29/29=100%, has_figure 16/16=100%. DIM coxsecimlidir, sagird ucun netice choice-dur; final_answer 70% values formatidir. ADR-025 qrafik hallusinasiya qorxusu n=16-da tesdiqlenmedi.
 - 2026-08-18: TEKRARLANAN NUMUNE - uc gunde ucuncu defe pis reqem modelin yox, bizim enum-un darligini olcdu (visual kind -> E2.6, topic_code -> E1.8). Qayda: metrika model cixisini bizim enum-la tutusdururusa, evvelce enum-a bax.
+- 2026-08-18: Riyaziyyat DIM PDF alindi (ir_vB.pdf, Ilkin) -> tmp/ir_vB.pdf (gitignore). 33 seh, A4, TEK sutun; suallar p2-28 (0-based), etiket 'N)' x=66-84; 255 sual, 252 etiket tapildi.
+- 2026-08-18: KITABCADA CAVAB ACARI VAR (p32) - fizikada yox idi. 254/255 parse olundu (bosluq: 251). Yeni golden choice EL ILE HELL EDILMIR. evals/keys/ir_vB-answer-key.json commit edildi.
+- 2026-08-18: TELE TUTULDU - acar CYRILLIC homoqlif isledir (A U+0410, E U+0415). 254 yazidan 28-i (11%) cyrillic idi. Xam sekilde isledilseydi choice_match hemin itemlerde 0% verer ve MODEL UGURSUZLUGU kimi gorunerdi. JSON-da latin normallasdirilib, xam variant saxlanilib.
