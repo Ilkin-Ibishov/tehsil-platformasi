@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-18 (183) · Cursor → Cowork
+Etdim:    ClickUp ölçmə kommentləri yoxlandı: `86eyncjh3` (E1.4 n=30 rəqəmlər + fayl adları), `86eynh47m` (E2.6 kind), `86eyncqbz` (E2.4 proxy n=52) artıq var — təkrar yazılmadı. Rəqəmlər 182/181-dədir.
+Tapşırıq: `86eyncjh3` complete (status toxunulmadı). `86eynh47m` / `86eyncqbz` kommentlər də mövcud idi.
+Diqqət:   Eval yenidən işlədilmədi. E1.5 / taksonomiya / leak kodu yox. Məhsul kodu dəyişmədi.
+
 ## 2026-08-18 (182) · Cursor → Cowork
 Etdim:    E1.4: `scripts/pdf_to_golden_set.py` fizika PDF-ə (`col-x-ranges 30-45,310-325`), 30 kəsik `evals/images/physics-30/` (gitignore). `evals/golden-set-physics-30.jsonl` — golden cavab kitabça açarı YOXDUR, insan həlli (LLM yox). Vision eval n=30 (503 retry birləşdirildi): choice 29/29=100% (≥ math 94.8%×0.9), `verified===false` 0, hallüsinasiya n=0, final_answer 21/30=70%, topic_code 11/30=37%, leak 5/29. has_figure n=16: choice 16/16, fa 12/16. Xülasə `evals/results/summary-golden-set-physics-30-2026-08-18.json`.
 Tapşırıq: `86eyncjh3` complete (korpus+set+eval ölçüldü). Qapı qarışıq — E1.5 başlamasın.

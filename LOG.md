@@ -1,5 +1,8 @@
 # LOG
 
+- 2026-08-18: HANDOFF 183 — ClickUp ölçmə qeydləri yoxlandı (təkrar yox).
+  `86eyncjh3` E1.4 n=30; `86eynh47m` E2.6 kind; `86eyncqbz` E2.4 proxy.
+  Rəqəmlər 182/181-dədir. Eval yenidən işlədilmədi.
 - 2026-08-18: HANDOFF 182 — E1.4 fizika-30: kəsik + insan golden + vision n=30.
   Choice 100%, verified false 0; topic_code 37%, leak 17%, fa 70%. `86eyncjh3` complete.
 - 2026-08-17: HANDOFF 181 — E1.4 blok: fizika buraxılış PDF və kəsik yoxdur.
