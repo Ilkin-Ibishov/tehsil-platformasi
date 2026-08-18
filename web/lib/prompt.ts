@@ -90,7 +90,7 @@ export function loadPromptTemplates(opts: LoadPromptOpts = {}): PromptLoadResult
   const exampleSource = subjectText === null ? MATH_PATH : subjectPath;
   const exampleText = subjectText ?? fs.readFileSync(MATH_PATH, "utf-8");
   let example = extractBlock(exampleText, "Nümunə", exampleSource);
-  let addendum = "";
+  let addendum = extractBlockOptional(exampleText, "Əlavə qaydalar") ?? "";
 
   const topicCode = opts.topicCode?.trim() ?? "";
   if (TOPIC_CODE_RE.test(topicCode)) {
@@ -100,7 +100,7 @@ export function loadPromptTemplates(opts: LoadPromptOpts = {}): PromptLoadResult
       const topicExample = extractBlockOptional(topicText, "Nümunə");
       if (topicExample) example = topicExample;
       const extra = extractBlockOptional(topicText, "Əlavə qaydalar");
-      if (extra) addendum = extra;
+      if (extra) addendum = addendum ? `${addendum}\n${extra}` : extra;
     }
   }
 

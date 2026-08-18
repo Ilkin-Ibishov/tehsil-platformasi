@@ -56,7 +56,7 @@ def load_prompt_templates(subject=None, topic_code=None, include_image_rules=Tru
         example_text = MATH_PATH.read_text(encoding="utf-8")
         example_source = MATH_PATH
     example = _extract_block(example_text, "Nümunə", example_source)
-    addendum = ""
+    addendum = _extract_block_optional(example_text, "Əlavə qaydalar") or ""
 
     code = (topic_code or "").strip()
     if _TOPIC_CODE_RE.match(code):
@@ -68,7 +68,7 @@ def load_prompt_templates(subject=None, topic_code=None, include_image_rules=Tru
                 example = topic_example
             extra = _extract_block_optional(topic_text, "Əlavə qaydalar")
             if extra:
-                addendum = extra
+                addendum = f"{addendum}\n{extra}".strip() if addendum else extra
 
     system = _extract_block(core_text, "System", CORE_PATH)
     system = system.replace("{{MATH_EXAMPLE}}", example)

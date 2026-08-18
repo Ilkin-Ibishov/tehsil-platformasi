@@ -1,5 +1,14 @@
 # LOG
 
+- 2026-08-19: HANDOFF 186 — E1.8 fizika taksonomiya: `0073` 15 kod, golden relabel.
+  topic_code 27/30=90%, leak 0/30, choice 30/30. `86eynm9r9` complete.
+  3 qalan alias: MOMENTUM_CONSERVATION / SELF_INDUCTION / MAGNETIC_ENERGY.
+- 2026-08-19: HANDOFF 185 — E2.4 ir_vB recrop n=48: api 2.1%, visual fill 0/46,
+  graph-helps n=4 <<30, choice 88.9% (homoqlif deyil). `core.md` kiçildilmədi.
+  `86eyncqbz` qapı keçmədi. İfadə edilməz: IQ fiqur, kompozit geo, üçbucaq sayma.
+- 2026-08-19: HANDOFF 184 — E1.7 fizika leak 0/30=0% (əvvəl 5/29=17%). Choice 30/30=100%.
+  `physics.md` sızma qaydası + 10 mövzu nümunəsi; `leak.py`/`leak.ts` `20 m/s`≡`20`.
+  `86eynm9qy` complete. Xülasə `summary-golden-set-physics-30-2026-08-19.json`.
 - 2026-08-18: HANDOFF 183 — ClickUp ölçmə qeydləri yoxlandı (təkrar yox).
   `86eyncjh3` E1.4 n=30; `86eynh47m` E2.6 kind; `86eyncqbz` E2.4 proxy.
   Rəqəmlər 182/181-dədir. Eval yenidən işlədilmədi.

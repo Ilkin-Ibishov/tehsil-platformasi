@@ -15,6 +15,22 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-19 (186) · Cursor → Cowork
+Etdim:    E1.8: `0073_physics_topic_codes_expand.sql` (15 kod, `bank_matchable=false`, production-a tətbiq). Golden `evals/golden-set-physics-30.jsonl` yenidən etiketlənib. 15 mövzu faylı leak qaydası ilə. Vision n=30 (503 retry birləşdirildi): `topic_code` 27/30=90% (≥85%), leak 0/30, choice 30/30. Qalan 3: `MECH.MOMENTUM_CONSERVATION` / `PHYS.SELF_INDUCTION` / `PHYS.MAGNETIC_ENERGY` (alias, yeni kod yox). Xülasə `summary-golden-set-physics-30-2026-08-19.json`.
+Tapşırıq: `86eynm9r9` complete.
+Diqqət:   0049/0053 invariantı toxunulmur. `core.md` kiçildilmədi. E1.7 leak 0% E1.8-dən sonra da qalır.
+
+## 2026-08-19 (185) · Cursor → Cowork
+Etdim:    E2.4: `tmp/ir_vB.pdf` tək sütun (`50-90`), latin `answer_key` (`--answer-key-json`). 255 kəsik; ölçmə `golden-set-math-dim-vB-e24.jsonl` (Q1–20 + Q228–255, n=48). Recrop sonrası: api 1/48=2.1% (≤10%), sxem 47/47, visual doldurulma 0/46 (qrafik-kömək n=4: 229/237/240/250). Choice 40/45=88.9% — homoqlif deyil (latin B/E/C vs açar C/E/B). `core.md` toxunulmadı.
+Tapşırıq: `86eyncqbz` ölçmə kommenti (qapı keçmədi). `86eynh47m` complete qalır (kind-lər əvvəl).
+Diqqət:   `ir_vB` ibtidai söz/IQ toplusudur, 11-ci sinif funksiya qrafiki deyil. Hiperbola `y=k/x` və 3D müstəvi bu PDF-də yoxdur.
+Blok:     n≥30 graph-helps bu kitabçada mümkün deyil. İfadə edilməyən: IQ/fiqur rotasiyası (240, 250), düzbucaqlı+oxşar üçbucaq kompozit (237), üçbucaq sayma (229), ədəd piramidası/toru (231, 255); plus HANDOFF 181 namizədləri. Qapı üçün funksiya-qrafikli DİM lazımdır.
+
+## 2026-08-19 (184) · Cursor → Cowork
+Etdim:    E1.7: `physics.md` sızma qaydası + mövzu nümunələri; `leak.py`/`leak.ts` `20 m/s`≡`20`. Loader fənn+mövzu addendumunu birləşdirir. golden-set-physics-30: leak 0/30 (əvvəl 5/29=17%), choice 30/30.
+Tapşırıq: `86eynm9qy` complete.
+Diqqət:   ADR-005 hələ yalnız `explanation` skan edir (latex yox). `values` tək `"1"` Tomson `1/(2π√LC)` izahında yalançı sızma idi — nümunə `nu1=nu2` yazır.
+
 ## 2026-08-18 (183) · Cursor → Cowork
 Etdim:    ClickUp ölçmə kommentləri yoxlandı: `86eyncjh3` (E1.4 n=30 rəqəmlər + fayl adları), `86eynh47m` (E2.6 kind), `86eyncqbz` (E2.4 proxy n=52) artıq var — təkrar yazılmadı. Rəqəmlər 182/181-dədir.
 Tapşırıq: `86eyncjh3` complete (status toxunulmadı). `86eynh47m` / `86eyncqbz` kommentlər də mövcud idi.

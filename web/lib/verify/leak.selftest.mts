@@ -53,6 +53,28 @@ const CASES: [string, Step[], string[], boolean][] = [
   // Reqressiya qıfılı: yuxarıdakı ordinal istisnası HƏQİQİ sızmanı ("3-ə bərabər" — bərabərlik
   // şəkilçisi, sıra şəkilçisi YOX) udmamalıdır — ilk versiyada məhz bunu qırmışdı.
   ["reqressiya: '-ə' bərabərlik şəkilçisi ordinal DEYİL", [{ explanation: "x 3-ə bərabər olur." }], ["3"], true],
+  // E1.7 — fizika: vahid daşıyan dəyər ilə çılpaq ədəd eyni sızmadır.
+  [
+    "fizika vahid: values '20 m/s', izahda '20'",
+    [{ explanation: "Sürət 20-yə bərabərdir.", check: { accept: ["20"] } }],
+    ["20 m/s"],
+    true,
+  ],
+  [
+    "fizika vahid: values '20', izahda '20 m/s'",
+    [{ explanation: "Sürət 20 m/s-dir.", check: { accept: ["20"] } }],
+    ["20"],
+    true,
+  ],
+  [
+    "fizika vahid: əvvəlki addım 20 qəbul edib — sızma deyil",
+    [
+      { explanation: "m və v-ni yerinə qoy.", check: { accept: ["20"] } },
+      { explanation: "20 m/s-i sonrakı düstura qoy.", check: { accept: ["40"] } },
+    ],
+    ["20 m/s"],
+    false,
+  ],
 ];
 
 let fails = 0;

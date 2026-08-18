@@ -133,7 +133,7 @@ def main(argv: list[str] | None = None) -> int:
     doc = fitz.open(pdf_path)
     pages = parse_range(args.question_pages)
     labels, missing = find_question_labels(doc, pages, col_x_ranges, args.n_questions, strict=False)
-    boxes = compute_crop_boxes(doc, labels)
+    boxes = compute_crop_boxes(doc, labels, single_column=len(col_x_ranges) == 1)
 
     manifest = {
         "pdf_ref": pdf_ref,

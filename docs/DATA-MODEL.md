@@ -230,6 +230,8 @@ needs_review=true` ilə avtomatik qeydə alır, `v_taxonomy_review`-da görünü
   (tarixi `step_events` sətirləri qırılmasın).
 - **RLS hər ikisində AKTİVDİR** (`0061`): `app_runtime` üçün full policy (trigger-lər hər
   şagird sorğusunda bu cədvəllərə insert edir), `anon`/`authenticated` üçün heç bir policy.
-- Fizika ağacı (`0072`): `MECH.KINEMATICS/DYNAMICS/WORK_ENERGY/MOMENTUM`,
-  `THERMO.HEAT/GAS_LAWS`, `ELEC.OHM/CIRCUIT/FIELD`, `OPT.REFRACTION` —
+- Fizika ağacı (`0072` + `0073`): `MECH.*` (kinematika, dinamika, iş/enerji, impuls,
+  fırlanma, statika, rəqslər, dalğa, hidrostatika, elastiklik), `THERMO.*` (istilik,
+  qaz, I qanun, rütubət), `ELEC.*` / `MAG.*` / `EM.*` (Om, dövrə, sahə, potensial,
+  tutum, induksiya, AC, yarımkeçirici, Lorens, EM dalğa), `OPT.REFRACTION` —
   `fingerprint_prefix` NULL, `bank_matchable=false` (0053 invariantı toxunulmur).

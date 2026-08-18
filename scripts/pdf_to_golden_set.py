@@ -89,6 +89,31 @@ def parse_answer_key(doc, answer_key_pages: range, n_questions: int) -> dict:
     return {n: next(iter(v)) for n, v in answers.items()}
 
 
+_LATIN_CHOICE_RE = re.compile(r"^[A-E]$")
+
+
+def load_answer_key_json(path: Path) -> dict:
+    """Kitabça açarı JSON — YALNIZ latin `answer_key`. Cyrillic homoqlif (А U+0410, Е U+0415)
+    `choice_match`-i 0% göstərər və model uğursuzluğu kimi görünər. Boş nömrə (məs. #251)
+    icazəlidir — expected_choice yazılmır."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    raw = data.get("answer_key")
+    if not isinstance(raw, dict):
+        raise RuntimeError(f"{path}: 'answer_key' (latin) yoxdur — raw_cyrillic işlətmə")
+    answers = {}
+    for key, val in raw.items():
+        n = int(key)
+        letter = str(val).strip()
+        if any(ord(ch) >= 0x0400 for ch in letter):
+            raise RuntimeError(
+                f"{path}: answer_key[{n}]={letter!r} kiril homoqlifdir — latin A–E lazımdır"
+            )
+        if not _LATIN_CHOICE_RE.match(letter):
+            raise RuntimeError(f"{path}: answer_key[{n}]={letter!r} latin A–E deyil")
+        answers[n] = letter
+    return answers
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--pdf", required=True)
@@ -108,6 +133,11 @@ def main():
         default="40-75,300-340",
         help="sütun başlanğıcı x-aralıqları, vergüllə ayrılmış 'lo-hi,lo-hi' (PDF-ə görə dəyişə bilər)",
     )
+    ap.add_argument(
+        "--answer-key-json",
+        default="",
+        help="latin answer_key JSON (evals/keys/ir_vB-answer-key.json). PDF açarından üstündür — homoqlif tələsi.",
+    )
     args = ap.parse_args()
 
     col_x_ranges = parse_col_x_ranges(args.col_x_ranges)
@@ -117,13 +147,18 @@ def main():
     a_pages = parse_range(args.answer_key_pages) if args.answer_key_pages else None
 
     labels, _missing = find_question_labels(doc, q_pages, col_x_ranges, args.n_questions)
-    boxes = compute_crop_boxes(doc, labels)
+    single_column = len(col_x_ranges) == 1
+    boxes = compute_crop_boxes(doc, labels, single_column=single_column)
 
     repo_root = Path(__file__).resolve().parent.parent
     img_dir = repo_root / "evals" / "images" / args.out_name
     render_crops(doc, boxes, img_dir, zoom=args.zoom)
 
-    answers = parse_answer_key(doc, a_pages, args.n_questions) if a_pages is not None else {}
+    answers = {}
+    if args.answer_key_json:
+        answers = load_answer_key_json(Path(args.answer_key_json))
+    elif a_pages is not None:
+        answers = parse_answer_key(doc, a_pages, args.n_questions)
 
     golden_path = repo_root / "evals" / f"golden-set-{args.out_name}.jsonl"
     with open(golden_path, "w", encoding="utf-8") as f:
@@ -142,11 +177,14 @@ def main():
 
     # Windows konsolu (cp1252) Azərbaycan simvollarını yaza bilməyəndə çökməsin deyə ASCII-ə
     # düşür (məzmun fayllara UTF-8 ilə ARTIQ yazılıb, bu YALNIZ konsol xülasəsidir).
+    n_keyed = sum(1 for n in range(1, args.n_questions + 1) if n in answers)
     try:
         print(f"{args.n_questions} sual: {img_dir} (şəkillər) + {golden_path} (golden-set)")
+        print(f"expected_choice (latin): {n_keyed}/{args.n_questions}")
         print("DİQQƏT: fiqur-ağır suallarda kəsmə natamam ola bilər — çıxan PNG-ləri BİR DƏFƏ göz gəzdir.")
     except UnicodeEncodeError:
         print(f"{args.n_questions} questions written: {img_dir} + {golden_path}")
+        print(f"latin expected_choice: {n_keyed}/{args.n_questions}")
         print("NOTE: figure-heavy questions may crop incompletely - spot-check the PNGs once.")
 
 

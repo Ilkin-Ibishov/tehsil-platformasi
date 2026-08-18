@@ -432,6 +432,12 @@ def _selftest_physics_prompt():
         if not schema_valid:
             print(f"  schema_errors={schema_errors}")
         failures.append("physics_example_valid")
+        return failures
+    leaked = leak.detect_leak(example.get("steps", []), values)
+    ok_c = leaked is False and "Sızma qadağası" in system
+    print(f"[{'PASS' if ok_c else 'FAIL'}] physics_example_no_leak  leaked={leaked}")
+    if not ok_c:
+        failures.append("physics_example_no_leak")
     return failures
 
 
@@ -497,7 +503,7 @@ def selftest():
         + api_failures
         + retry_failures
     )
-    extra = 2 + 3 + 2 + 4 + 3  # prompt + image + physics + failed-exclusion + retry
+    extra = 2 + 3 + 3 + 4 + 3  # prompt + image + physics + failed-exclusion + retry
     total = n_cases + extra
 
     if failures:

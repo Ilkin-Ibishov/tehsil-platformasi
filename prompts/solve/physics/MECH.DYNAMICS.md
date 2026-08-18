@@ -2,12 +2,14 @@
 
 Nyutonun II qanunu. Qüvvə oxları görünəndə `visual.kind=force_diagram`.
 `values` vahidsiz; vahid `latex`-də (E1.2).
+Son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (E1.7).
 
 ## Əlavə qaydalar
 
 ```
 F=ma / sərbəst cisim üçün visual YAZ: {"kind":"force_diagram","body":"m","forces":[{"label":"F","dir_deg":0,"rel":1}]}.
 dir_deg: 0=sağ, 90=yuxarı. SVG/path YOX. verified yazma (server null).
+explanation/latex "6 N" yazmır; check.ask "2·3 neçədir?"
 ```
 
 ## Nümunə
@@ -34,15 +36,15 @@ dir_deg: 0=sağ, 90=yuxarı. SVG/path YOX. verified yazma (server null).
     {
       "index": 1,
       "title": "F = m a",
-      "explanation": "Nəticəvi qüvvə kütlə ilə təcilin hasilidir: 2·3 = 6 N.",
-      "latex": "F=ma",
+      "explanation": "Nəticəvi qüvvə kütlə ilə təcilin hasilidir. m və a-nı yerinə qoy.",
+      "latex": "F=ma=2\\cdot 3",
       "check": {
         "ask": "2·3 neçədir?",
         "accept": ["6"],
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "Nyuton: F=ma, vahid nyuton."
+      "hint": "Nyuton: F=ma, vahid nyuton. Hasili izahda yazma."
     }
   ]
 }

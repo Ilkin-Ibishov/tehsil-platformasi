@@ -67,7 +67,7 @@ def find_question_labels(doc, question_pages: range, col_x_ranges, n_questions: 
     return labels, sorted(missing)
 
 
-def compute_crop_boxes(doc, labels, top_margin=6, footer_margin=20):
+def compute_crop_boxes(doc, labels, top_margin=6, footer_margin=20, single_column=False):
     by_pc = defaultdict(list)
     for lab in labels:
         by_pc[(lab["page"], lab["col"])].append(lab)
@@ -83,8 +83,11 @@ def compute_crop_boxes(doc, labels, top_margin=6, footer_margin=20):
         idx = siblings.index(lab)
         y_top = max(0, lab["y0"] - top_margin)
         y_bottom = siblings[idx + 1]["y0"] - top_margin if idx + 1 < len(siblings) else page_h - footer_margin
-        x_left = 20 if lab["col"] == 1 else page_mid - 5
-        x_right = page_mid + 5 if lab["col"] == 1 else page_w - 15
+        if single_column:
+            x_left, x_right = 15, page_w - 15
+        else:
+            x_left = 20 if lab["col"] == 1 else page_mid - 5
+            x_right = page_mid + 5 if lab["col"] == 1 else page_w - 15
         x0, y0, x1, y1 = x_left, y_top, x_right, y_bottom
         boxes.append(
             {

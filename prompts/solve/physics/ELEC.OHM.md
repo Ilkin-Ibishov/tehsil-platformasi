@@ -1,6 +1,7 @@
 # ELEC.OHM — Om qanunu
 
 I=U/R. values vahidsiz.
+Son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (E1.7).
 
 ## Nümunə
 
@@ -21,15 +22,15 @@ I=U/R. values vahidsiz.
     {
       "index": 1,
       "title": "I = U / R",
-      "explanation": "Om: cərəyan gərginliyin müqavimətə nisbətidir. 12/4=3 A.",
-      "latex": "I=U/R",
+      "explanation": "Om: cərəyan gərginliyin müqavimətə nisbətidir. U və R-i yerinə qoy.",
+      "latex": "I=U/R=12/4",
       "check": {
         "ask": "12-ni 4-ə böləndə neçədir?",
         "accept": ["3"],
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "I=U/R, vahid amper."
+      "hint": "I=U/R, vahid amper. Nəticəni izahda yazma."
     }
   ]
 }

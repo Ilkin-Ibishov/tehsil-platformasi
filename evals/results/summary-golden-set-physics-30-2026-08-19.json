@@ -1,0 +1,379 @@
+{
+  "pipeline": "B",
+  "set": "C:\\Programming\\Tehsil-Platformasi\\evals\\golden-set-physics-30.jsonl",
+  "date": "2026-08-19",
+  "prompt_version": "v15",
+  "metrics": {
+    "n_total": 30,
+    "n_attempted": 30,
+    "n_failed": 0,
+    "n_not_implemented": 0,
+    "api_failure_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 30
+    },
+    "schema_validity": {
+      "rate": 1.0,
+      "matched": 30,
+      "n": 30
+    },
+    "final_answer_accuracy": {
+      "rate": 0.6666666666666666,
+      "matched": 20,
+      "n": 30
+    },
+    "leak_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 30
+    },
+    "verify_conflict": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 30
+    },
+    "verify_conflict_ids": [],
+    "choice_match_rate": {
+      "rate": 1.0,
+      "matched": 30,
+      "n": 30
+    },
+    "topic_code_accuracy": {
+      "rate": 0.9,
+      "matched": 27,
+      "n": 30
+    },
+    "product_verified_false": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 30,
+      "ids": []
+    },
+    "has_figure_n": 16,
+    "has_figure_final_answer": {
+      "rate": 0.6875,
+      "matched": 11,
+      "n": 16
+    },
+    "has_figure_choice_match": {
+      "rate": 1.0,
+      "matched": 16,
+      "n": 16
+    },
+    "has_figure_topic_code": {
+      "rate": 0.9375,
+      "matched": 15,
+      "n": 16
+    },
+    "hallucination_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "false_refusal_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 30
+    },
+    "status_match_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "step_split_structural": {
+      "count_ok": {
+        "rate": 1.0,
+        "matched": 30,
+        "n": 30
+      },
+      "checks_present": {
+        "rate": 1.0,
+        "matched": 30,
+        "n": 30
+      },
+      "index_sequential": {
+        "rate": 1.0,
+        "matched": 30,
+        "n": 30
+      },
+      "ends_with_verification": {
+        "rate": 0.16666666666666666,
+        "matched": 5,
+        "n": 30
+      },
+      "error_codes_distinct": {
+        "rate": 0.9333333333333333,
+        "matched": 28,
+        "n": 30
+      },
+      "all_pass": {
+        "rate": 0.16666666666666666,
+        "matched": 5,
+        "n": 30
+      }
+    },
+    "step_split_pedagogical": {
+      "rate": null,
+      "matched": 0,
+      "n": 0,
+      "note": "insan rəyi yoxdur — qapı natamam"
+    },
+    "avg_cost_usd": 0.021243916666666664,
+    "avg_latency_ms": 7844.257456665703,
+    "gate_eligible": true,
+    "gate_pass": null,
+    "gate_status": "NATAMAM — insan rəyi yoxdur — qapı natamam (addım bölgüsünün pedaqoji hissəsi)"
+  },
+  "items": [
+    {
+      "id": "physics-30-001",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "30"
+      ]
+    },
+    {
+      "id": "physics-30-002",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "10000"
+      ]
+    },
+    {
+      "id": "physics-30-003",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "5.5",
+        "5,5"
+      ]
+    },
+    {
+      "id": "physics-30-004",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "60"
+      ]
+    },
+    {
+      "id": "physics-30-005",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "40"
+      ]
+    },
+    {
+      "id": "physics-30-006",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "\\mu(mg-F\\sin\\alpha)"
+      ]
+    },
+    {
+      "id": "physics-30-007",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "8"
+      ]
+    },
+    {
+      "id": "physics-30-008",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "250"
+      ]
+    },
+    {
+      "id": "physics-30-009",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "38"
+      ]
+    },
+    {
+      "id": "physics-30-010",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "30"
+      ]
+    },
+    {
+      "id": "physics-30-011",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "150",
+        "75"
+      ]
+    },
+    {
+      "id": "physics-30-012",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "3"
+      ]
+    },
+    {
+      "id": "physics-30-013",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "3"
+      ]
+    },
+    {
+      "id": "physics-30-014",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "22"
+      ]
+    },
+    {
+      "id": "physics-30-015",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "200",
+        "200",
+        "400"
+      ]
+    },
+    {
+      "id": "physics-30-016",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "AB və BC"
+      ]
+    },
+    {
+      "id": "physics-30-017",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "60"
+      ]
+    },
+    {
+      "id": "physics-30-018",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "45"
+      ]
+    },
+    {
+      "id": "physics-30-019",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "10"
+      ]
+    },
+    {
+      "id": "physics-30-020",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "2\\sqrt{2}E",
+        "2\\sqrt{2}"
+      ]
+    },
+    {
+      "id": "physics-30-021",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "4/3"
+      ]
+    },
+    {
+      "id": "physics-30-022",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "R-azalar, T-dəyişməz"
+      ]
+    },
+    {
+      "id": "physics-30-023",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "1-b, e; 2-d; 3-a, c"
+      ]
+    },
+    {
+      "id": "physics-30-024",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "1.92",
+        "1,92"
+      ]
+    },
+    {
+      "id": "physics-30-025",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "3, 4",
+        "3,4"
+      ]
+    },
+    {
+      "id": "physics-30-026",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "1, 3, 5",
+        "1,3,5"
+      ]
+    },
+    {
+      "id": "physics-30-027",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "900 dəfə azalar"
+      ]
+    },
+    {
+      "id": "physics-30-028",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "nu1=nu2"
+      ]
+    },
+    {
+      "id": "physics-30-029",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "III",
+        "3"
+      ]
+    },
+    {
+      "id": "physics-30-030",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "1-b; 2-d; 3-c"
+      ]
+    }
+  ]
+}

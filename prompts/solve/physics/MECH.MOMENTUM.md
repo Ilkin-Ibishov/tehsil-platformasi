@@ -1,6 +1,8 @@
 # MECH.MOMENTUM — impuls
 
 p=mv. values vahidsiz.
+Son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (E1.7).
+`topic_code` dəqiq `MECH.MOMENTUM` — `MECH.MOMENTUM_CONSERVATION` yazma.
 
 ## Nümunə
 
@@ -21,15 +23,15 @@ p=mv. values vahidsiz.
     {
       "index": 1,
       "title": "p = m v",
-      "explanation": "Impuls kütlə ilə sürətin hasilidir: 4·5 = 20.",
-      "latex": "p=mv",
+      "explanation": "Impuls kütlə ilə sürətin hasilidir. m və v-ni yerinə qoy.",
+      "latex": "p=mv=4\\cdot 5",
       "check": {
         "ask": "4·5 neçədir?",
         "accept": ["20"],
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "p=mv, vahidi latex-də saxla."
+      "hint": "p=mv, vahidi latex-də saxla. Hasili izahda yazma."
     }
   ]
 }

@@ -1,6 +1,7 @@
 # THERMO.HEAT — istilik
 
 Q=cmΔT. values vahidsiz.
+Son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (E1.7).
 
 ## Nümunə
 
@@ -21,15 +22,15 @@ Q=cmΔT. values vahidsiz.
     {
       "index": 1,
       "title": "Q = c m ΔT",
-      "explanation": "Q=4200·2·10=84000 J.",
-      "latex": "Q=cm\\Delta T",
+      "explanation": "İstilik miqdarı c, m və ΔT hasilidir. Üç kəmiyyəti yerinə qoy.",
+      "latex": "Q=cm\\Delta T=4200\\cdot 2\\cdot 10",
       "check": {
         "ask": "4200·2·10 neçədir?",
         "accept": ["84000"],
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "Əvvəl 4200·2=8400, sonra ·10."
+      "hint": "Əvvəl 4200·2, sonra ·10. Hasili izahda yazma."
     }
   ]
 }

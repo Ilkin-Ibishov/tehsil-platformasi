@@ -1,6 +1,7 @@
 # ELEC.FIELD — elektrik sahəsi
 
 E=F/q. values vahidsiz.
+Son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (E1.7).
 
 ## Nümunə
 
@@ -21,15 +22,15 @@ E=F/q. values vahidsiz.
     {
       "index": 1,
       "title": "E = F / q",
-      "explanation": "Sahə intensivliyi qüvvənin yüka nisbətidir: 8/2=4 N/C.",
-      "latex": "E=F/q",
+      "explanation": "Sahə intensivliyi qüvvənin yüka nisbətidir. F və q-nı yerinə qoy.",
+      "latex": "E=F/q=8/2",
       "check": {
         "ask": "8/2 neçədir?",
         "accept": ["4"],
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "E=F/q, vahid N/C."
+      "hint": "E=F/q, vahid N/C. Nəticəni izahda yazma."
     }
   ]
 }

@@ -1,6 +1,7 @@
 # MECH.WORK_ENERGY — iş və enerji
 
 A=Fs (qüvvə yerdəyişməyə paralel). values vahidsiz.
+Son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (E1.7).
 
 ## Nümunə
 
@@ -21,15 +22,15 @@ A=Fs (qüvvə yerdəyişməyə paralel). values vahidsiz.
     {
       "index": 1,
       "title": "A = F s",
-      "explanation": "Paralel qüvvənin işi A=Fs = 10·3 = 30 J.",
-      "latex": "A=Fs",
+      "explanation": "Paralel qüvvənin işi A=Fs. F və s-i yerinə qoy.",
+      "latex": "A=Fs=10\\cdot 3",
       "check": {
         "ask": "10·3 neçədir?",
         "accept": ["30"],
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "İş = qüvvə × yol, vahid coul."
+      "hint": "İş = qüvvə × yol, vahid coul. Hasili izahda yazma."
     }
   ]
 }

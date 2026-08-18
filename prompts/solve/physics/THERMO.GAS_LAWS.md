@@ -1,6 +1,7 @@
 # THERMO.GAS_LAWS — qaz qanunları
 
 İdeal qaz, T sabit: pV=const (Boyl-Mariott).
+Son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (E1.7).
 
 ## Nümunə
 
@@ -21,15 +22,15 @@
     {
       "index": 1,
       "title": "p1 V1 = p2 V2",
-      "explanation": "T sabit: 2·3 = 6·V2 → V2=1 l.",
-      "latex": "p_1V_1=p_2V_2",
+      "explanation": "T sabit: p1 V1 = p2 V2. V2 = p1 V1 / p2. Ədədləri yerinə qoy.",
+      "latex": "V_2=\\frac{p_1 V_1}{p_2}=\\frac{2\\cdot 3}{6}",
       "check": {
-        "ask": "6 / 6 neçədir?",
+        "ask": "6-nı 6-ya böləndə V2 neçədir?",
         "accept": ["1"],
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "2·3=6, 6-nı p2-yə böl."
+      "hint": "Əvvəl p1·V1, sonra p2-yə böl. Nəticəni izahda yazma."
     }
   ]
 }

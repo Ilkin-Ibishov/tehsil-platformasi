@@ -43,6 +43,22 @@ function normalize(v: string): string {
   return v.replace(/−/g, "-").trim();
 }
 
+const UNIT_TAIL_RE = /^([+-]?\d+(?:[.,]\d+)?)\s+([a-zA-ZμµΩω°][a-zA-ZμµΩω°/·.^²³\d-]*)\s*$/u;
+
+function bareNumberIfUnitBearing(value: string): string | null {
+  let compact = normalize(value).replace(/\\mathrm\{([^}]+)\}/g, "$1").replace(/\\/g, " ");
+  compact = compact.replace(/\s+/g, " ").trim();
+  const m = UNIT_TAIL_RE.exec(compact);
+  return m ? m[1] : null;
+}
+
+function leakNeedles(value: string): string[] {
+  const needles = [normalize(value)];
+  const bare = bareNumberIfUnitBearing(value);
+  if (bare && !needles.includes(bare)) needles.push(bare);
+  return needles.filter(Boolean);
+}
+
 export function detectLeak(steps: Step[], finalAnswerValues: string[]): boolean {
   const values = (finalAnswerValues ?? []).filter(Boolean);
   if (values.length === 0) return false;
@@ -51,12 +67,15 @@ export function detectLeak(steps: Step[], finalAnswerValues: string[]): boolean 
   for (const step of steps) {
     const explanation = step.explanation ?? "";
     for (const value of values) {
-      if (leakedInText(value, explanation) && !priorAccept.has(normalize(value))) {
-        return true;
-      }
+      const needles = leakNeedles(value);
+      const leaked = needles.some((n) => leakedInText(n, explanation));
+      const alreadyAsked = needles.some((n) => priorAccept.has(normalize(n)));
+      if (leaked && !alreadyAsked) return true;
     }
     const accept = step.check?.accept ?? [];
-    for (const a of accept) priorAccept.add(normalize(a));
+    for (const a of accept) {
+      for (const n of leakNeedles(a)) priorAccept.add(n);
+    }
   }
 
   return false;

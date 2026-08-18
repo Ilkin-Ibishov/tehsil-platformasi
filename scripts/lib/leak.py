@@ -70,6 +70,31 @@ def _normalize(v):
     return v.replace("−", "-").strip()
 
 
+# Fizika: "20 m/s" / "16\\ \\mathrm{m}" ilə "20" eyni sızmadır. Yalnız ədəd+vahid
+# quyruğu soyulur — "2\\sqrt{2}E" kimi ifadələr ədəd+SI sayılmır.
+_LATEX_MATHRM_RE = re.compile(r"\\mathrm\{([^}]+)\}")
+_UNIT_TAIL_RE = re.compile(
+    r"^([+-]?\d+(?:[.,]\d+)?)\s+"
+    r"([a-zA-ZμµΩω°][a-zA-ZμµΩω°/·.^²³\d-]*)\s*$"
+)
+
+
+def _bare_number_if_unit_bearing(value):
+    compact = _LATEX_MATHRM_RE.sub(r"\1", _normalize(value))
+    compact = compact.replace("\\", " ")
+    compact = re.sub(r"\s+", " ", compact).strip()
+    match = _UNIT_TAIL_RE.match(compact)
+    return match.group(1) if match else None
+
+
+def _leak_needles(value):
+    needles = [_normalize(value)]
+    bare = _bare_number_if_unit_bearing(value)
+    if bare and bare not in needles:
+        needles.append(bare)
+    return [n for n in needles if n]
+
+
 def detect_leak(steps, final_answer_values):
     values = [v for v in final_answer_values if v]
     if not values:
@@ -79,9 +104,13 @@ def detect_leak(steps, final_answer_values):
     for step in steps:
         explanation = step.get("explanation", "")
         for value in values:
-            if _leaked_in_text(value, explanation) and _normalize(value) not in prior_accept:
+            needles = _leak_needles(value)
+            leaked = any(_leaked_in_text(n, explanation) for n in needles)
+            already_asked = any(_normalize(n) in prior_accept for n in needles)
+            if leaked and not already_asked:
                 return True
         accept = (step.get("check") or {}).get("accept") or []
-        prior_accept.update(_normalize(a) for a in accept)
+        for a in accept:
+            prior_accept.update(_leak_needles(a))
 
     return False
