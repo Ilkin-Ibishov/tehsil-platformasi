@@ -199,7 +199,7 @@ E1.9: son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (`cor
         "input_kind": "number"
       },
       "error_code": "SUBSTITUTION_SKIPPED",
-      "hint": "5 × 8 hesabla."
+      "hint": "x-i x+3-ə vur."
     }
   ]
 }

@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-19 (189) · Cursor → Cowork
+Etdim:    E1.9/E1.10 yenidən ölçmə: `core.md` v16 leak qaydası + recrop + `question_kind` ilə. e24 (n=25, API 503 48%): leak 1/25=4% (əvvəl 7/46=15.2%), choice curriculum 21/21=100%. e110 first-50 (n=24, API 503 52%): false_refusal 1/24=4.2% (əvvəl 73.7%), choice curriculum 21/21=100%. Fizika regres 2/2 leak 0. Tək sızan `001` hər run-da eyni.
+Tapşırıq: `86eyp3au4` (E1.9), `86eyp3aub` (E1.10).
+Diqqət:   API 503 ~50% — n<30, nəticələr faiz kimi göstərilmir. Tək-rəqəm (`3`) leak false-positive: əmsal/vuruq kimi istifadə olunur. n≥30 üçün sabit API lazımdır.
+
 ## 2026-08-19 (188) · Cursor → Cowork
 Etdim:    E1.11: model fallback telemetriyası (ClickUp `86eyp5gt2`). `0074_attempt_items_model_used.sql`: `model_used jsonb` sütunu `attempt_items`-ə, `v_model_health` görünüşü (model üzrə n, avg cost, avg latency, fallback nisbəti). `solve.response` və `solve.cascade` props-una `model`, `fallback_used`, `fallback_from` əlavə edildi. `TELEMETRY.md` yeniləndi. `llm.ts` `LLMResult`-a `fallbackUsed`/`fallbackFrom` əlavə edildi. Monolit və kaskad yolları hər ikisi `model_used` yazır. Klient (`kamera/page.tsx`) `solve.response`-a model/fallback sahələrini ötürür.
 Tapşırıq: `86eyp5gt2` complete.

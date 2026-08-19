@@ -425,13 +425,17 @@ def write_summary(pipeline_name, set_path, entries, metrics, prompt_version, out
         model_values = None
         if isinstance(raw, dict):
             model_values = (raw.get("final_answer") or {}).get("values")
-        items.append({
+        item_summary = {
             "id": e.get("id"),
             "status": e.get("status"),
             "final_answer_correct": e.get("final_answer_correct"),
             "model_values": model_values,
-            **({"error": e.get("error")} if e.get("status") == "failed" else {}),
-        })
+        }
+        if e.get("question_kind") == "iq_logic":
+            item_summary["question_kind"] = "iq_logic"
+        if e.get("status") == "failed":
+            item_summary["error"] = e.get("error")
+        items.append(item_summary)
 
     payload = {
         "pipeline": pipeline_name,

@@ -1,37 +1,37 @@
 {
   "pipeline": "B",
-  "set": "C:\\Programming\\Tehsil-Platformasi\\evals\\golden-set-math-dim-vB-e24.jsonl",
+  "set": "C:\\Programming\\Tehsil-Platformasi\\evals\\golden-set-math-dim-vB-e110.jsonl",
   "date": "2026-08-19",
   "prompt_version": "v16",
   "metrics": {
-    "n_total": 48,
-    "n_attempted": 25,
-    "n_failed": 23,
+    "n_total": 50,
+    "n_attempted": 24,
+    "n_failed": 26,
     "n_not_implemented": 0,
     "api_failure_rate": {
-      "rate": 0.4791666666666667,
-      "matched": 23,
-      "n": 48
+      "rate": 0.52,
+      "matched": 26,
+      "n": 50
     },
     "schema_validity": {
       "rate": 1.0,
-      "matched": 25,
-      "n": 25
+      "matched": 24,
+      "n": 24
     },
     "final_answer_accuracy": {
-      "rate": 0.0,
+      "rate": null,
       "matched": 0,
-      "n": 1
+      "n": 0
     },
     "leak_rate": {
-      "rate": 0.04,
-      "matched": 1,
-      "n": 25
+      "rate": 0.21739130434782608,
+      "matched": 5,
+      "n": 23
     },
     "verify_conflict": {
       "rate": 0.0,
       "matched": 0,
-      "n": 25
+      "n": 23
     },
     "verify_conflict_ids": [],
     "choice_match_rate": {
@@ -40,11 +40,11 @@
       "n": 21
     },
     "choice_match_rate_iq_logic": {
-      "rate": 0.3333333333333333,
+      "rate": 0.5,
       "matched": 1,
-      "n": 3
+      "n": 2
     },
-    "n_iq_logic": 4,
+    "n_iq_logic": 2,
     "topic_code_accuracy": {
       "rate": null,
       "matched": 0,
@@ -53,7 +53,7 @@
     "product_verified_false": {
       "rate": 0.0,
       "matched": 0,
-      "n": 25,
+      "n": 24,
       "ids": []
     },
     "has_figure_n": 0,
@@ -78,9 +78,9 @@
       "n": 0
     },
     "false_refusal_rate": {
-      "rate": 0.0,
-      "matched": 0,
-      "n": 25
+      "rate": 0.041666666666666664,
+      "matched": 1,
+      "n": 24
     },
     "status_match_rate": {
       "rate": null,
@@ -90,33 +90,33 @@
     "step_split_structural": {
       "count_ok": {
         "rate": 1.0,
-        "matched": 25,
-        "n": 25
+        "matched": 23,
+        "n": 23
       },
       "checks_present": {
         "rate": 1.0,
-        "matched": 25,
-        "n": 25
+        "matched": 23,
+        "n": 23
       },
       "index_sequential": {
         "rate": 1.0,
-        "matched": 25,
-        "n": 25
+        "matched": 23,
+        "n": 23
       },
       "ends_with_verification": {
-        "rate": 0.84,
+        "rate": 0.9130434782608695,
         "matched": 21,
-        "n": 25
+        "n": 23
       },
       "error_codes_distinct": {
         "rate": 1.0,
-        "matched": 25,
-        "n": 25
+        "matched": 23,
+        "n": 23
       },
       "all_pass": {
-        "rate": 0.84,
+        "rate": 0.9130434782608695,
         "matched": 21,
-        "n": 25
+        "n": 23
       }
     },
     "step_split_pedagogical": {
@@ -125,34 +125,33 @@
       "n": 0,
       "note": "insan rəyi yoxdur — qapı natamam"
     },
-    "avg_cost_usd": 0.02525752,
-    "avg_latency_ms": 18605.353452002164,
+    "avg_cost_usd": 0.024241791666666665,
+    "avg_latency_ms": 14634.87051249831,
     "gate_eligible": false,
-    "gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=25, minimum 30)"
+    "gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=24, minimum 30)"
   },
   "items": [
     {
       "id": "math-dim-vB-001",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-002",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-003",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
         "3"
       ]
-    },
-    {
-      "id": "math-dim-vB-002",
-      "status": "ok",
-      "final_answer_correct": null,
-      "model_values": [
-        "11"
-      ]
-    },
-    {
-      "id": "math-dim-vB-003",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
     },
     {
       "id": "math-dim-vB-004",
@@ -163,18 +162,18 @@
     },
     {
       "id": "math-dim-vB-005",
-      "status": "ok",
-      "final_answer_correct": false,
-      "model_values": [
-        "8"
-      ]
-    },
-    {
-      "id": "math-dim-vB-006",
       "status": "failed",
       "final_answer_correct": null,
       "model_values": null,
       "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-006",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "2"
+      ]
     },
     {
       "id": "math-dim-vB-007",
@@ -201,17 +200,19 @@
     },
     {
       "id": "math-dim-vB-010",
-      "status": "failed",
+      "status": "ok",
       "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+      "model_values": [
+        "2"
+      ]
     },
     {
       "id": "math-dim-vB-011",
-      "status": "failed",
+      "status": "ok",
       "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+      "model_values": [
+        "58"
+      ]
     },
     {
       "id": "math-dim-vB-012",
@@ -222,17 +223,21 @@
     },
     {
       "id": "math-dim-vB-013",
-      "status": "failed",
+      "status": "ok",
       "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+      "model_values": [
+        "14; 10",
+        "14;10",
+        "14, 10"
+      ]
     },
     {
       "id": "math-dim-vB-014",
-      "status": "failed",
+      "status": "ok",
       "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+      "model_values": [
+        "1001"
+      ]
     },
     {
       "id": "math-dim-vB-015",
@@ -252,12 +257,10 @@
     },
     {
       "id": "math-dim-vB-017",
-      "status": "ok",
+      "status": "failed",
       "final_answer_correct": null,
-      "model_values": [
-        "5050005",
-        "5 050 005"
-      ]
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
     },
     {
       "id": "math-dim-vB-018",
@@ -284,221 +287,224 @@
       ]
     },
     {
-      "id": "math-dim-vB-228",
+      "id": "math-dim-vB-021",
       "status": "failed",
       "final_answer_correct": null,
       "model_values": null,
       "error": "LLM HTTP 503 after 5 attempts"
     },
     {
-      "id": "math-dim-vB-229",
+      "id": "math-dim-vB-022",
       "status": "failed",
       "final_answer_correct": null,
       "model_values": null,
       "error": "LLM HTTP 503 after 5 attempts"
     },
     {
-      "id": "math-dim-vB-230",
-      "status": "ok",
-      "final_answer_correct": null,
-      "model_values": [
-        "1/8",
-        "0.125",
-        "0,125"
-      ]
-    },
-    {
-      "id": "math-dim-vB-231",
+      "id": "math-dim-vB-023",
       "status": "failed",
       "final_answer_correct": null,
       "model_values": null,
       "error": "LLM HTTP 503 after 5 attempts"
     },
     {
-      "id": "math-dim-vB-232",
-      "status": "ok",
-      "final_answer_correct": null,
-      "model_values": [
-        "6"
-      ]
-    },
-    {
-      "id": "math-dim-vB-233",
-      "status": "ok",
-      "final_answer_correct": null,
-      "model_values": [
-        "1"
-      ]
-    },
-    {
-      "id": "math-dim-vB-234",
-      "status": "ok",
-      "final_answer_correct": null,
-      "model_values": [
-        "10x+7",
-        "10 dəfə və 7 vahid artar"
-      ]
-    },
-    {
-      "id": "math-dim-vB-235",
-      "status": "ok",
-      "final_answer_correct": null,
-      "model_values": [
-        "360"
-      ]
-    },
-    {
-      "id": "math-dim-vB-236",
-      "status": "ok",
-      "final_answer_correct": null,
-      "model_values": [
-        "27"
-      ]
-    },
-    {
-      "id": "math-dim-vB-237",
-      "status": "ok",
-      "final_answer_correct": null,
-      "model_values": [
-        "6"
-      ]
-    },
-    {
-      "id": "math-dim-vB-238",
+      "id": "math-dim-vB-024",
       "status": "failed",
       "final_answer_correct": null,
       "model_values": null,
       "error": "LLM HTTP 503 after 5 attempts"
     },
     {
-      "id": "math-dim-vB-239",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-240",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-241",
+      "id": "math-dim-vB-025",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
-        "15"
+        "3"
       ]
     },
     {
-      "id": "math-dim-vB-242",
+      "id": "math-dim-vB-026",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-027",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
-        "70"
+        "198"
       ]
     },
     {
-      "id": "math-dim-vB-243",
+      "id": "math-dim-vB-028",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-029",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-030",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-031",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
-        "8"
+        "4"
       ]
     },
     {
-      "id": "math-dim-vB-244",
+      "id": "math-dim-vB-032",
       "status": "failed",
       "final_answer_correct": null,
       "model_values": null,
       "error": "LLM HTTP 503 after 5 attempts"
     },
     {
-      "id": "math-dim-vB-245",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-246",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-247",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-248",
+      "id": "math-dim-vB-033",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
-        "31"
+        "4"
       ]
     },
     {
-      "id": "math-dim-vB-249",
+      "id": "math-dim-vB-034",
       "status": "failed",
       "final_answer_correct": null,
       "model_values": null,
       "error": "LLM HTTP 503 after 5 attempts"
     },
     {
-      "id": "math-dim-vB-250",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-251",
+      "id": "math-dim-vB-035",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
-        "2, 4",
-        "2,4",
-        "2 və 4",
-        "2; 4",
-        "2;4"
+        "170",
+        "1 man 70 qəp"
       ]
     },
     {
-      "id": "math-dim-vB-252",
+      "id": "math-dim-vB-036",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
-        "13"
+        "90"
       ]
     },
     {
-      "id": "math-dim-vB-253",
+      "id": "math-dim-vB-037",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM timeout after 5 attempts (120s)"
+    },
+    {
+      "id": "math-dim-vB-038",
       "status": "failed",
       "final_answer_correct": null,
       "model_values": null,
       "error": "LLM HTTP 503 after 5 attempts"
     },
     {
-      "id": "math-dim-vB-254",
-      "status": "ok",
-      "final_answer_correct": null,
-      "model_values": [
-        "48"
-      ]
-    },
-    {
-      "id": "math-dim-vB-255",
+      "id": "math-dim-vB-039",
       "status": "failed",
       "final_answer_correct": null,
       "model_values": null,
       "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-040",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-041",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "20"
+      ]
+    },
+    {
+      "id": "math-dim-vB-042",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-043",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "300"
+      ]
+    },
+    {
+      "id": "math-dim-vB-044",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-045",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-046",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "183"
+      ]
+    },
+    {
+      "id": "math-dim-vB-047",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-048",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-049",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-050",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "3"
+      ]
     }
   ]
 }
