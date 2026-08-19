@@ -1,5 +1,8 @@
 # LOG
 
+- 2026-08-19: HANDOFF 192 — push verify zamanı CI-də `eval.py --selftest` faili bağlandı:
+  `vision_image_exists` CI-də media yoxdursa `SKIP` edir, digər image invariant testləri qalır.
+  Vercel deploy `951c1a4` üçün Ready idi; qalan blocker selftest idi.
 - 2026-08-19: HANDOFF 191 — deploy fail kök səbəbi bağlandı: `web/package-lock.json`-da
   korlanmış `rolldown` stub-ları silindi (`npm install` yenidən keçir). Push-sonrası
   verify protokolu AGENTS + close-session skill-ə əlavə olundu (CI+Vercel məcburi yoxlama).

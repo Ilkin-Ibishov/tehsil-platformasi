@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-19 (192) · Cursor → Cowork
+Etdim:    Push sonrası verify protokolu ilə yoxlamada CI `eval.py --selftest` fail verdi: CI checkout-da `evals/images/**` olmadığı üçün `vision_image_exists` testinin sərt PASS tələbi qırılırdı. `scripts/eval.py`-də test CI-friendly edildi: media yoxdursa `[SKIP]` çıxır, digər image resolve invariantları (`missing_image_is_error`, `force_text_uses_canonical`) yenə məcburi qalır.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Vercel deploy commit `951c1a4` üçün `Ready` oldu; CI-də qalan yeganə qırılma bu selftest idi və bu blokdakı düzəliş onu bağlamaq üçündür.
+
 ## 2026-08-19 (191) · Cursor → Cowork
 Etdim:    Deploy fail araşdırıldı: kök səbəb `web/package-lock.json` içində iki korlanmış `rolldown` stub node idi (`Invalid Version`), silinib lock düzəldildi; lokal `npm install` uğurla keçir. Push-sonrası verify protokolu daimi qaydaya yazıldı (`AGENTS.md`, `.cursor/skills/close-session/SKILL.md`): `gh run list --limit 1` + `vercel ls`, fail olarsa log açmadan sessiya bağlanmır.
 Tapşırıq: meta / no ClickUp.
