@@ -128,6 +128,8 @@ def evaluate_item(item, result, cfg):
         "model_topic_code": raw_output.get("topic_code") if isinstance(raw_output, dict) else None,
         "model_canonical": raw_output.get("canonical") if isinstance(raw_output, dict) else None,
         "golden_canonical": item.get("canonical"),
+        "model_used": result.get("model_used"),
+        "fallback_from": result.get("fallback_from"),
     }
     _annotate_topic_and_verified(entry, item, raw_output)
 
@@ -353,6 +355,29 @@ def aggregate(entries, human_review=None):
     metrics["avg_cost_usd"] = sum(costs) / len(costs) if costs else None
     metrics["avg_latency_ms"] = sum(latencies) / len(latencies) if latencies else None
 
+    model_counts = {}
+    for e in attempted:
+        m = e.get("model_used") or "unknown"
+        model_counts[m] = model_counts.get(m, 0) + 1
+    metrics["model_used_distribution"] = model_counts
+
+    fallback_count = sum(1 for e in attempted if e.get("fallback_from"))
+    metrics["fallback_count"] = fallback_count
+
+    leak_by_model = {}
+    for e in attempted:
+        m = e.get("model_used") or "unknown"
+        if e.get("leaked") is None:
+            continue
+        if m not in leak_by_model:
+            leak_by_model[m] = {"leaked": 0, "n": 0}
+        leak_by_model[m]["n"] += 1
+        if e.get("leaked"):
+            leak_by_model[m]["leaked"] += 1
+    for m, v in leak_by_model.items():
+        v["rate"] = v["leaked"] / v["n"] if v["n"] else None
+    metrics["leak_rate_by_model"] = leak_by_model
+
     metrics["gate_eligible"] = n >= MIN_GOLDEN_SET_N
     if not metrics["gate_eligible"]:
         metrics["gate_status"] = f"QAPI ÖLÇÜLƏ BİLMƏZ (n={n}, minimum {MIN_GOLDEN_SET_N})"
@@ -435,6 +460,10 @@ def write_summary(pipeline_name, set_path, entries, metrics, prompt_version, out
             item_summary["question_kind"] = "iq_logic"
         if e.get("status") == "failed":
             item_summary["error"] = e.get("error")
+        if e.get("model_used"):
+            item_summary["model_used"] = e["model_used"]
+        if e.get("leaked") is not None:
+            item_summary["leaked"] = e["leaked"]
         items.append(item_summary)
 
     payload = {
@@ -522,6 +551,20 @@ def print_report(pipeline_name, metrics):
     _print_metric_line("Hallüsinasiya (imtina gözlənilirdi, həll verdi)", metrics["hallucination_rate"], gate_eligible, GATE_HALLUCINATION)
     _print_metric_line("Artıq ehtiyat (ok gözlənilirdi, imtina etdi)", metrics["false_refusal_rate"], gate_eligible)
     _print_metric_line("İmtina səbəbi uyğunluğu (informativ)", metrics["status_match_rate"], gate_eligible)
+
+    model_dist = metrics.get("model_used_distribution")
+    if model_dist:
+        parts = [f"{m}={c}" for m, c in sorted(model_dist.items())]
+        print(f"  Model paylanması: {', '.join(parts)}")
+    fb = metrics.get("fallback_count", 0)
+    if fb:
+        print(f"  Fallback istifadəsi: {fb} item")
+    leak_by_model = metrics.get("leak_rate_by_model")
+    if leak_by_model and len(leak_by_model) > 0:
+        print("  Leak (model üzrə):")
+        for m, v in sorted(leak_by_model.items()):
+            pct = f"{v['rate']*100:.1f}%" if v["rate"] is not None else "?"
+            print(f"    {m}: {v['leaked']}/{v['n']} ({pct})")
 
     if metrics.get("avg_cost_usd") is not None:
         print(f"  Orta xərc/həll: ${metrics['avg_cost_usd']:.5f}")

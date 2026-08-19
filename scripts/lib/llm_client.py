@@ -60,6 +60,10 @@ class LLMConfig:
     json_mode: bool = True
     image_max_px: int = 1600
     force_text: bool = False
+    fallback_models: Optional[list] = None
+    # Eval fallback zənciri üçün 503/429-da tez çıxmaq lazımdır.
+    # Default əvvəlki davranışı saxlayır (5 retry).
+    max_attempts: int = MAX_ATTEMPTS
 
 
 def load_config():
@@ -192,8 +196,9 @@ def call_vision_llm(cfg, system_prompt, user_prompt, image_path=None):
     latency_ms = None
     attempts = 0
     last_exc = None
+    max_attempts = getattr(cfg, "max_attempts", MAX_ATTEMPTS) or MAX_ATTEMPTS
     with httpx.Client(timeout=HTTP_TIMEOUT_S) as client:
-        for attempt in range(1, MAX_ATTEMPTS + 1):
+        for attempt in range(1, max_attempts + 1):
             attempts = attempt
             started = time.perf_counter()
             try:
@@ -201,7 +206,7 @@ def call_vision_llm(cfg, system_prompt, user_prompt, image_path=None):
             except httpx.TimeoutException as exc:
                 latency_ms = (time.perf_counter() - started) * 1000
                 last_exc = exc
-                if attempt < MAX_ATTEMPTS:
+                if attempt < max_attempts:
                     time.sleep(_retry_delay_s(attempt))
                     continue
                 raise APIFailure(
@@ -211,7 +216,7 @@ def call_vision_llm(cfg, system_prompt, user_prompt, image_path=None):
             except httpx.RequestError as exc:
                 latency_ms = (time.perf_counter() - started) * 1000
                 last_exc = exc
-                if attempt < MAX_ATTEMPTS:
+                if attempt < max_attempts:
                     time.sleep(_retry_delay_s(attempt))
                     continue
                 raise APIFailure(
@@ -220,7 +225,7 @@ def call_vision_llm(cfg, system_prompt, user_prompt, image_path=None):
                 ) from exc
             latency_ms = (time.perf_counter() - started) * 1000
 
-            if resp.status_code in RETRYABLE_STATUS_CODES and attempt < MAX_ATTEMPTS:
+            if resp.status_code in RETRYABLE_STATUS_CODES and attempt < max_attempts:
                 time.sleep(_retry_delay_s(attempt, resp.headers.get("Retry-After")))
                 continue
             break

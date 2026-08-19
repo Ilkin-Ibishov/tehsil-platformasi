@@ -78,7 +78,27 @@ def preflight_images(items, force_text):
     return listed, listed - len(missing), missing
 
 
-def run(pipeline_name, set_path, today, image_max_px=None, force_text=False, limit=None):
+def _load_canonical_map(from_canonical_path):
+    """Prior result faylından {id: model_canonical} xəritəsi çıxarır."""
+    data = json.loads(from_canonical_path.read_text(encoding="utf-8"))
+    canonical_map = {}
+    for item in data.get("items", []):
+        mc = item.get("model_canonical")
+        if mc and item.get("id"):
+            canonical_map[item["id"]] = mc
+    return canonical_map
+
+
+def _resolve_fallback_models(fallback_flag):
+    """--fallback: registrdən Gemini ailəsi modellərini sıra ilə qaytarır."""
+    if not fallback_flag:
+        return None
+    known = ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.1-flash-lite"]
+    return known
+
+
+def run(pipeline_name, set_path, today, image_max_px=None, force_text=False,
+        limit=None, from_canonical=None, fallback=False):
     set_path = resolve_set_path(set_path)
     if not set_path.exists():
         print(f"Xəta: {set_path} tapılmadı.", file=sys.stderr)
@@ -93,6 +113,23 @@ def run(pipeline_name, set_path, today, image_max_px=None, force_text=False, lim
             "--set evals/fixtures.jsonl"
         )
         return 0
+
+    canonical_map = None
+    if from_canonical is not None:
+        canonical_map = _load_canonical_map(from_canonical)
+        print(f"--from-canonical: {len(canonical_map)} item canonical-ı yükləndi ({from_canonical.name})")
+        force_text = True
+        matched = 0
+        for item in items:
+            mc = canonical_map.get(item.get("id"))
+            if mc:
+                item["canonical"] = mc
+                matched += 1
+        print(f"  {matched}/{len(items)} item canonical ilə eşləndi (qalanı skip olunacaq)")
+        items = [it for it in items if it.get("id") in canonical_map]
+        if not items:
+            print("Xəta: heç bir item eşlənmədi.", file=sys.stderr)
+            return 1
 
     if limit is not None:
         items = items[:limit]
@@ -115,7 +152,6 @@ def run(pipeline_name, set_path, today, image_max_px=None, force_text=False, lim
         cfg = llm_client.load_config()
     except llm_client.ConfigError as exc:
         if pipeline_name == "A":
-            # A hər halda not_implemented qaytarır — LLM konfiqi lazım deyil, boş cfg kifayətdir.
             cfg = llm_client.LLMConfig(
                 model="", api_key="", base_url="", price_input_per_1m=None, price_output_per_1m=None
             )
@@ -126,6 +162,7 @@ def run(pipeline_name, set_path, today, image_max_px=None, force_text=False, lim
     if image_max_px is not None:
         cfg.image_max_px = image_max_px
     cfg.force_text = force_text
+    cfg.fallback_models = _resolve_fallback_models(fallback)
 
     pipeline_fn = PIPELINES[pipeline_name]
 
@@ -567,6 +604,14 @@ def main():
         help="Şəkli ignore et, canonical mətn yolu (E2.4 visual ölçməsi). canonical məcburidir.",
     )
     parser.add_argument("--limit", type=int, default=None, help="Yalnız ilk N item (smoke).")
+    parser.add_argument(
+        "--from-canonical", dest="from_canonical", type=Path, default=None,
+        help="Prior result faylından model_canonical-ı oxu, Qat 1-i atla, yalnız Qat 5 ilə yenidən işlət.",
+    )
+    parser.add_argument(
+        "--fallback", action="store_true",
+        help="503-də registrdəki növbəti Gemini modelinə keç.",
+    )
     args = parser.parse_args()
 
     if args.selftest:
@@ -576,6 +621,15 @@ def main():
     if not args.pipeline or not args.set_path:
         parser.error("--pipeline və --set birlikdə lazımdır (və ya --compare / --selftest istifadə et)")
 
+    from_canonical = None
+    if args.from_canonical:
+        fc = Path(args.from_canonical)
+        if not fc.exists():
+            alt = REPO_ROOT / fc
+            if alt.exists():
+                fc = alt
+        from_canonical = fc
+
     today = date.today().isoformat()
     return run(
         args.pipeline,
@@ -584,6 +638,8 @@ def main():
         image_max_px=args.image_max_px,
         force_text=args.text,
         limit=args.limit,
+        from_canonical=from_canonical,
+        fallback=args.fallback,
     )
 
 

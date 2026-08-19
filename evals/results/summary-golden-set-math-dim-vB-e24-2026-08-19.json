@@ -4,19 +4,19 @@
   "date": "2026-08-19",
   "prompt_version": "v16",
   "metrics": {
-    "n_total": 48,
-    "n_attempted": 25,
-    "n_failed": 23,
+    "n_total": 25,
+    "n_attempted": 24,
+    "n_failed": 1,
     "n_not_implemented": 0,
     "api_failure_rate": {
-      "rate": 0.4791666666666667,
-      "matched": 23,
-      "n": 48
+      "rate": 0.04,
+      "matched": 1,
+      "n": 25
     },
     "schema_validity": {
       "rate": 1.0,
-      "matched": 25,
-      "n": 25
+      "matched": 24,
+      "n": 24
     },
     "final_answer_accuracy": {
       "rate": 0.0,
@@ -24,24 +24,24 @@
       "n": 1
     },
     "leak_rate": {
-      "rate": 0.04,
-      "matched": 1,
-      "n": 25
+      "rate": 0.125,
+      "matched": 3,
+      "n": 24
     },
     "verify_conflict": {
       "rate": 0.0,
       "matched": 0,
-      "n": 25
+      "n": 24
     },
     "verify_conflict_ids": [],
     "choice_match_rate": {
-      "rate": 1.0,
-      "matched": 21,
-      "n": 21
+      "rate": 0.0,
+      "matched": 0,
+      "n": 20
     },
     "choice_match_rate_iq_logic": {
-      "rate": 0.3333333333333333,
-      "matched": 1,
+      "rate": 0.0,
+      "matched": 0,
       "n": 3
     },
     "n_iq_logic": 4,
@@ -53,7 +53,7 @@
     "product_verified_false": {
       "rate": 0.0,
       "matched": 0,
-      "n": 25,
+      "n": 24,
       "ids": []
     },
     "has_figure_n": 0,
@@ -80,7 +80,7 @@
     "false_refusal_rate": {
       "rate": 0.0,
       "matched": 0,
-      "n": 25
+      "n": 24
     },
     "status_match_rate": {
       "rate": null,
@@ -90,33 +90,33 @@
     "step_split_structural": {
       "count_ok": {
         "rate": 1.0,
-        "matched": 25,
-        "n": 25
+        "matched": 24,
+        "n": 24
       },
       "checks_present": {
         "rate": 1.0,
-        "matched": 25,
-        "n": 25
+        "matched": 24,
+        "n": 24
       },
       "index_sequential": {
         "rate": 1.0,
-        "matched": 25,
-        "n": 25
+        "matched": 24,
+        "n": 24
       },
       "ends_with_verification": {
-        "rate": 0.84,
-        "matched": 21,
-        "n": 25
+        "rate": 0.9583333333333334,
+        "matched": 23,
+        "n": 24
       },
       "error_codes_distinct": {
         "rate": 1.0,
-        "matched": 25,
-        "n": 25
+        "matched": 24,
+        "n": 24
       },
       "all_pass": {
-        "rate": 0.84,
-        "matched": 21,
-        "n": 25
+        "rate": 0.9583333333333334,
+        "matched": 23,
+        "n": 24
       }
     },
     "step_split_pedagogical": {
@@ -125,10 +125,27 @@
       "n": 0,
       "note": "insan rəyi yoxdur — qapı natamam"
     },
-    "avg_cost_usd": 0.02525752,
-    "avg_latency_ms": 18605.353452002164,
+    "avg_cost_usd": 0.026282125,
+    "avg_latency_ms": 34659.70874999281,
+    "model_used_distribution": {
+      "gemini-3.6-flash": 22,
+      "gemini-3.7-flash": 2
+    },
+    "fallback_count": 22,
+    "leak_rate_by_model": {
+      "gemini-3.6-flash": {
+        "leaked": 3,
+        "n": 22,
+        "rate": 0.13636363636363635
+      },
+      "gemini-3.7-flash": {
+        "leaked": 0,
+        "n": 2,
+        "rate": 0.0
+      }
+    },
     "gate_eligible": false,
-    "gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=25, minimum 30)"
+    "gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=24, minimum 30)"
   },
   "items": [
     {
@@ -137,29 +154,21 @@
       "final_answer_correct": null,
       "model_values": [
         "3"
-      ]
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": true
     },
     {
       "id": "math-dim-vB-002",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
-        "11"
-      ]
-    },
-    {
-      "id": "math-dim-vB-003",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-004",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+        "x=0, y=6",
+        "0, 6"
+      ],
+      "question_kind": "iq_logic",
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-005",
@@ -167,21 +176,9 @@
       "final_answer_correct": false,
       "model_values": [
         "8"
-      ]
-    },
-    {
-      "id": "math-dim-vB-006",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-007",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-008",
@@ -189,50 +186,19 @@
       "final_answer_correct": null,
       "model_values": [
         "12"
-      ]
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-009",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
-        "a=b-2=3c"
-      ]
-    },
-    {
-      "id": "math-dim-vB-010",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-011",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-012",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-013",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-014",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+        "b=3c+2"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-015",
@@ -240,7 +206,9 @@
       "final_answer_correct": null,
       "model_values": [
         "40"
-      ]
+      ],
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-016",
@@ -248,16 +216,19 @@
       "final_answer_correct": null,
       "model_values": [
         "31"
-      ]
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-017",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
-        "5050005",
-        "5 050 005"
-      ]
+        "5050005"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-018",
@@ -265,7 +236,9 @@
       "final_answer_correct": null,
       "model_values": [
         "4"
-      ]
+      ],
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-019",
@@ -273,7 +246,9 @@
       "final_answer_correct": null,
       "model_values": [
         "12"
-      ]
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-020",
@@ -281,38 +256,22 @@
       "final_answer_correct": null,
       "model_values": [
         "624"
-      ]
-    },
-    {
-      "id": "math-dim-vB-228",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-229",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+      ],
+      "question_kind": "iq_logic",
+      "model_used": "gemini-3.6-flash",
+      "leaked": true
     },
     {
       "id": "math-dim-vB-230",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
-        "1/8",
         "0.125",
-        "0,125"
-      ]
-    },
-    {
-      "id": "math-dim-vB-231",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+        "0,125",
+        "1/8"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-232",
@@ -320,24 +279,30 @@
       "final_answer_correct": null,
       "model_values": [
         "6"
-      ]
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-233",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
+        "0",
         "1"
-      ]
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-234",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
-        "10x+7",
-        "10 dəfə və 7 vahid artar"
-      ]
+        "10x+7"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-235",
@@ -345,7 +310,9 @@
       "final_answer_correct": null,
       "model_values": [
         "360"
-      ]
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-236",
@@ -353,36 +320,20 @@
       "final_answer_correct": null,
       "model_values": [
         "27"
-      ]
+      ],
+      "question_kind": "iq_logic",
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-237",
       "status": "ok",
       "final_answer_correct": null,
       "model_values": [
-        "6"
-      ]
-    },
-    {
-      "id": "math-dim-vB-238",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-239",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-240",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+        "3\\sqrt{3}"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-241",
@@ -390,15 +341,16 @@
       "final_answer_correct": null,
       "model_values": [
         "15"
-      ]
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-242",
-      "status": "ok",
+      "status": "failed",
       "final_answer_correct": null,
-      "model_values": [
-        "70"
-      ]
+      "model_values": null,
+      "error": "LLM timeout after 2 attempts (120s)"
     },
     {
       "id": "math-dim-vB-243",
@@ -406,35 +358,9 @@
       "final_answer_correct": null,
       "model_values": [
         "8"
-      ]
-    },
-    {
-      "id": "math-dim-vB-244",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-245",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-246",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-247",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-248",
@@ -442,21 +368,9 @@
       "final_answer_correct": null,
       "model_values": [
         "31"
-      ]
-    },
-    {
-      "id": "math-dim-vB-249",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "math-dim-vB-250",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-251",
@@ -465,10 +379,11 @@
       "model_values": [
         "2, 4",
         "2,4",
-        "2 və 4",
-        "2; 4",
-        "2;4"
-      ]
+        "2 və 4"
+      ],
+      "question_kind": "iq_logic",
+      "model_used": "gemini-3.6-flash",
+      "leaked": true
     },
     {
       "id": "math-dim-vB-252",
@@ -476,14 +391,9 @@
       "final_answer_correct": null,
       "model_values": [
         "13"
-      ]
-    },
-    {
-      "id": "math-dim-vB-253",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     },
     {
       "id": "math-dim-vB-254",
@@ -491,14 +401,9 @@
       "final_answer_correct": null,
       "model_values": [
         "48"
-      ]
-    },
-    {
-      "id": "math-dim-vB-255",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
     }
   ]
 }

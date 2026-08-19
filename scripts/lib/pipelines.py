@@ -78,10 +78,12 @@ def run_pipeline_b(item, cfg):
         return _error_result(item, media_error)
 
     has_image = image_path is not None
+    has_figure = bool(item.get("has_figure"))
+    include_image_rules = has_figure if force_text else has_image
     system_prompt, user_template = prompt_loader.load_prompt_templates(
         subject=item.get("subject"),
         topic_code=item.get("topic_code"),
-        include_image_rules=has_image,
+        include_image_rules=include_image_rules,
     )
     user_prompt = prompt_loader.render_user_prompt(
         user_template,
@@ -91,17 +93,41 @@ def run_pipeline_b(item, cfg):
         text=text_input,
     )
 
-    try:
-        parsed, usage, latency_ms, raw_text, attempts, image_meta = llm_client.call_vision_llm(
-            cfg,
-            system_prompt,
-            user_prompt,
-            image_path=str(image_path) if has_image else None,
-        )
-    except llm_client.APIFailure as exc:
-        return _error_result(item, str(exc), status="failed", attempts=exc.attempts)
-    except Exception as exc:  # noqa: BLE001 — parse/konfiq xətası "error"; API tükənməsi yuxarıda `failed`
-        return _error_result(item, str(exc))
+    models_to_try = [cfg.model]
+    fallbacks = getattr(cfg, "fallback_models", None) or []
+    models_to_try.extend(m for m in fallbacks if m != cfg.model)
+
+    model_used = cfg.model
+    fallback_from = None
+    use_fast_fallback = bool(getattr(cfg, "fallback_models", None))
+    for i, model_id in enumerate(models_to_try):
+        try_cfg = cfg
+        if i > 0:
+            import copy
+            try_cfg = copy.copy(cfg)
+            try_cfg.model = model_id
+            fallback_from = models_to_try[i - 1]
+        if use_fast_fallback:
+            # Production policy: 2 consecutive 503 -> next model in registry.
+            try_cfg.max_attempts = 2
+
+        try:
+            parsed, usage, latency_ms, raw_text, attempts, image_meta = llm_client.call_vision_llm(
+                try_cfg,
+                system_prompt,
+                user_prompt,
+                image_path=str(image_path) if has_image else None,
+            )
+            model_used = model_id
+            break
+        except llm_client.APIFailure as exc:
+            if i < len(models_to_try) - 1 and "503" in str(exc):
+                import sys
+                print(f"\n⚠ {model_id} failed ({exc}), falling back to {models_to_try[i+1]}", file=sys.stderr)
+                continue
+            return _error_result(item, str(exc), status="failed", attempts=exc.attempts)
+        except Exception as exc:  # noqa: BLE001
+            return _error_result(item, str(exc))
 
     if parsed is None:
         return _error_result(
@@ -112,6 +138,7 @@ def run_pipeline_b(item, cfg):
             latency_ms=latency_ms,
             attempts=attempts,
             image_meta=image_meta,
+            model_used=model_used,
         )
 
     return {
@@ -124,6 +151,8 @@ def run_pipeline_b(item, cfg):
         "attempts": attempts,
         "image_meta": image_meta,
         "error": None,
+        "model_used": model_used,
+        "fallback_from": fallback_from if model_used != cfg.model else None,
     }
 
 

@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-19 (190) · Cursor → Cowork
+Etdim:    Eval harness-ə `--from-canonical` (Qat 1 skip, saxlanmış `model_canonical` ilə mətn yolu) və 503 fallback zənciri əlavə olundu (`scripts/eval.py`, `scripts/lib/pipelines.py`, `scripts/lib/llm_client.py`, `scripts/lib/report.py`). Xülasəyə `model_used` paylanması və `leak_rate_by_model` yazıldı. Ölçmə: `golden-set-math-dim-vB-e24` (n_attempted=24, failed=1) leak 3/24; `golden-set-physics-30` (n=30) leak 3/30.
+Tapşırıq: `86eyp3au4` (E1.9) yenidən ölçüldü, hədəf 0% alınmadı; `86eyp3aub` (E1.10) açıq qalır (vision metrikası gözləyir).
+Diqqət:   ChatGPT adapteri eval-a qoşulmadı (qərar `86eyp6mhp`). Müşahidə olunan 503 dalğasında fallback `gemini-3.7-flash`→`gemini-3.6-flash`→`gemini-3.1-flash-lite` işlədi, amma leak 0%-a enmədi; fizikada da 0%-də qalmadı.
+
 ## 2026-08-19 (189) · Cursor → Cowork
 Etdim:    E1.9/E1.10 yenidən ölçmə: `core.md` v16 leak qaydası + recrop + `question_kind` ilə. e24 (n=25, API 503 48%): leak 1/25=4% (əvvəl 7/46=15.2%), choice curriculum 21/21=100%. e110 first-50 (n=24, API 503 52%): false_refusal 1/24=4.2% (əvvəl 73.7%), choice curriculum 21/21=100%. Fizika regres 2/2 leak 0. Tək sızan `001` hər run-da eyni.
 Tapşırıq: `86eyp3au4` (E1.9), `86eyp3aub` (E1.10).
