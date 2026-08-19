@@ -1,5 +1,8 @@
 # LOG
 
+- 2026-08-19: HANDOFF 187 — E1.9/E1.10 qismən eval nəticələri. Sızma qaydası core.md-ə,
+  layout.py etiket düzəlişi, question_kind sahəsi. e24 leak 7/46=15.2% (keçmədi),
+  vB false_refusal 56/76=73.7% (80/160, natamam — API 503). `86eyp3au4` complete (leak≠0).
 - 2026-08-19: HANDOFF 186 — E1.8 fizika taksonomiya: `0073` 15 kod, golden relabel.
   topic_code 27/30=90%, leak 0/30, choice 30/30. `86eynm9r9` complete.
   3 qalan alias: MOMENTUM_CONSERVATION / SELF_INDUCTION / MAGNETIC_ENERGY.

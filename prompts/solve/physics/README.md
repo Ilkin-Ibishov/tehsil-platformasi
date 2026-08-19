@@ -6,5 +6,4 @@
 `visual` nümunəsi: `MECH.DYNAMICS` → `force_diagram`. `MECH.KINEMATICS` tək-ədəd
 nümunəsində visual YOX. Naməlum kind serverdə atılır, həll qalır.
 
-E1.7: `physics.md` `## Əlavə qaydalar` sızma intizamını daşıyır və mövzu faylı ilə
-BİRLEŞİR. Yeni kodlar da eyni qayda ilə yazılıb (E1.8).
+E1.9: sızma intizamı `core.md` qayda 1-dədir (bütün fənn). `physics.md` nüsxəsi silinib.

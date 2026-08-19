@@ -22,12 +22,11 @@ def parse_col_x_ranges(spec: str) -> list[tuple[float, float]]:
 
 
 def parse_label_num(text: str) -> int | None:
-    """Sual etiketindən nömrə. `28.` / `28)` / `28.Hesablayın:` işləyir; `2x` yox."""
+    """Sual etiketindən nömrə. `28.` / `28)` / `28.Hesablayın:` işləyir.
+    Çılpaq `81` YOX — variant sətri `A) 81` növbəti sualı oğurlayır (ir_vB q080)."""
     t = text.strip()
     if not t:
         return None
-    if t.isdigit():
-        return int(t)
     m = re.match(r"^(\d{1,3})[.\)]", t)
     return int(m.group(1)) if m else None
 

@@ -170,6 +170,7 @@ def main():
                 "grade": args.grade,
                 "subject": args.subject,
                 "expected_status": "ok",
+                "question_kind": "curriculum",
             }
             if n in answers:
                 entry["expected_choice"] = answers[n]

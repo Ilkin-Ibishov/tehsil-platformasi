@@ -488,6 +488,38 @@ def _selftest_prompt_schema_invariants():
     return failures
 
 
+def _selftest_choice_kind():
+    """choice_match_rate yalnız curriculum; iq_logic ayrıca sətir."""
+    failures = []
+    cur = {
+        "id": "c1",
+        "status": "ok",
+        "question_kind": "curriculum",
+        "choice_match": True,
+        "schema_valid": True,
+        "final_answer_correct": None,
+        "verify_conflict": False,
+        "leaked": False,
+        "hallucination": None,
+        "false_refusal": False,
+        "status_match": None,
+        "step_structural": None,
+    }
+    iq_wrong = {**cur, "id": "i1", "question_kind": "iq_logic", "choice_match": False}
+    metrics = report.aggregate([cur, iq_wrong])
+    cr = metrics["choice_match_rate"]
+    ir = metrics["choice_match_rate_iq_logic"]
+    ok_c = cr["matched"] == 1 and cr["n"] == 1
+    ok_i = ir["matched"] == 0 and ir["n"] == 1 and metrics["n_iq_logic"] == 1
+    print(f"[{'PASS' if ok_c else 'FAIL'}] choice_curriculum_excludes_iq  {cr}")
+    print(f"[{'PASS' if ok_i else 'FAIL'}] choice_iq_logic_separate  iq={ir} n_iq={metrics['n_iq_logic']}")
+    if not ok_c:
+        failures.append("choice_curriculum_excludes_iq")
+    if not ok_i:
+        failures.append("choice_iq_logic_separate")
+    return failures
+
+
 def selftest():
     n_cases, case_failures = _selftest_cases()
     invariant_failures = _selftest_prompt_schema_invariants()
@@ -495,6 +527,7 @@ def selftest():
     physics_failures = _selftest_physics_prompt()
     api_failures = _selftest_api_failure_exclusion()
     retry_failures = _selftest_llm_retry()
+    kind_failures = _selftest_choice_kind()
     failures = (
         case_failures
         + invariant_failures
@@ -502,8 +535,9 @@ def selftest():
         + physics_failures
         + api_failures
         + retry_failures
+        + kind_failures
     )
-    extra = 2 + 3 + 3 + 4 + 3  # prompt + image + physics + failed-exclusion + retry
+    extra = 2 + 3 + 3 + 4 + 3 + 2  # prompt + image + physics + failed-exclusion + retry + choice-kind
     total = n_cases + extra
 
     if failures:

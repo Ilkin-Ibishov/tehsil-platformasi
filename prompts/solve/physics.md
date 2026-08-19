@@ -7,20 +7,15 @@
 E1.2: `final_answer.latex` vahid daşıyır, `values` vahidsiz ədəddir (yoxlama qatı vahidi
 ayrı görür; `subject !== "math"` → `verified` həmişə `null`).
 
-E1.7: fizika həlli düstur → yerinəqoyma → ədəd gedir. `explanation` və `latex` son ədədi
-VERMİR — onu `check.ask` şagirddən istəyir. Əks halda leak 17% (riyaziyyat qapısı 0%).
+E1.9: sızma qadağası `core.md` qayda 1-dədir (fənn nüsxəsi YOX — ikiqat tətbiq olunmasın).
+Nümunələr həmin qaydaya uyğundur. values vahidsiz (E1.2).
 
 `extract_example_json` İLK JSON obyektini oxuyur — 1-ci nümunə sxemə TAM VALİD olmalıdır.
 
 ## Əlavə qaydalar
 
 ```
-Sızma qadağası (fizika): addımın explanation VƏ latex sahəsi son ədədi VERMİR.
-Son rəqəm yalnız check.ask-də şagirddən istənilir. Vahidli "20 m/s" ilə vahidsiz "20" eyni sızmadır.
-Pis:  explanation "s=16 m" / latex "s=16\\mathrm{m}"
-Yaxşı: latex "s=\\frac12 a t^2" və ya "s=\\frac12\\cdot2\\cdot4^2"; check.ask "a=2, t=4 qoyanda s neçədir?"
 values vahidsiz qalır (E1.2). verified yazma.
-Nisbət/bərabərlik cavabı values-də tək "1" OLMAZ — "nu1=nu2" yaz. Tomson 1/(2π√(LC)) izahda "1" sızmasıdır; düsturu yalnız latex-ə qoy.
 topic_code dəqiq: MECH.MOMENTUM_CONSERVATION → MECH.MOMENTUM; PHYS.SELF_INDUCTION / MAG.INDUCTANCE / PHYS.MAGNETIC_ENERGY → ELEC.INDUCTION. Uydurma kod yazma.
 ```
 

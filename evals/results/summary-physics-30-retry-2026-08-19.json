@@ -1,0 +1,206 @@
+{
+  "pipeline": "B",
+  "set": "C:\\Programming\\Tehsil-Platformasi\\tmp\\physics-30-retry.jsonl",
+  "date": "2026-08-19",
+  "prompt_version": "v15",
+  "metrics": {
+    "n_total": 9,
+    "n_attempted": 9,
+    "n_failed": 0,
+    "n_not_implemented": 0,
+    "api_failure_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 9
+    },
+    "schema_validity": {
+      "rate": 1.0,
+      "matched": 9,
+      "n": 9
+    },
+    "final_answer_accuracy": {
+      "rate": 0.6666666666666666,
+      "matched": 6,
+      "n": 9
+    },
+    "leak_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 9
+    },
+    "verify_conflict": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 9
+    },
+    "verify_conflict_ids": [],
+    "choice_match_rate": {
+      "rate": 1.0,
+      "matched": 9,
+      "n": 9
+    },
+    "topic_code_accuracy": {
+      "rate": 1.0,
+      "matched": 9,
+      "n": 9
+    },
+    "product_verified_false": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 9,
+      "ids": []
+    },
+    "has_figure_n": 6,
+    "has_figure_final_answer": {
+      "rate": 0.8333333333333334,
+      "matched": 5,
+      "n": 6
+    },
+    "has_figure_choice_match": {
+      "rate": 1.0,
+      "matched": 6,
+      "n": 6
+    },
+    "has_figure_topic_code": {
+      "rate": 1.0,
+      "matched": 6,
+      "n": 6
+    },
+    "hallucination_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "false_refusal_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 9
+    },
+    "status_match_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "step_split_structural": {
+      "count_ok": {
+        "rate": 1.0,
+        "matched": 9,
+        "n": 9
+      },
+      "checks_present": {
+        "rate": 1.0,
+        "matched": 9,
+        "n": 9
+      },
+      "index_sequential": {
+        "rate": 1.0,
+        "matched": 9,
+        "n": 9
+      },
+      "ends_with_verification": {
+        "rate": 0.0,
+        "matched": 0,
+        "n": 9
+      },
+      "error_codes_distinct": {
+        "rate": 1.0,
+        "matched": 9,
+        "n": 9
+      },
+      "all_pass": {
+        "rate": 0.0,
+        "matched": 0,
+        "n": 9
+      }
+    },
+    "step_split_pedagogical": {
+      "rate": null,
+      "matched": 0,
+      "n": 0,
+      "note": "insan rəyi yoxdur — qapı natamam"
+    },
+    "avg_cost_usd": 0.021221944444444443,
+    "avg_latency_ms": 6920.808499995877,
+    "gate_eligible": false,
+    "gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=9, minimum 30)"
+  },
+  "items": [
+    {
+      "id": "physics-30-004",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "60"
+      ]
+    },
+    {
+      "id": "physics-30-006",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "\\mu(mg-F\\sin\\alpha)"
+      ]
+    },
+    {
+      "id": "physics-30-011",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "150",
+        "75"
+      ]
+    },
+    {
+      "id": "physics-30-015",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "200",
+        "200",
+        "400"
+      ]
+    },
+    {
+      "id": "physics-30-019",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "10"
+      ]
+    },
+    {
+      "id": "physics-30-023",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "1-b, e; 2-d; 3-a, c"
+      ]
+    },
+    {
+      "id": "physics-30-024",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "1.92",
+        "1,92"
+      ]
+    },
+    {
+      "id": "physics-30-025",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "3, 4",
+        "3,4"
+      ]
+    },
+    {
+      "id": "physics-30-028",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "nu1=nu2"
+      ]
+    }
+  ]
+}

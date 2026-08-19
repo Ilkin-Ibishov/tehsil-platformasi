@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v15)
+# Prompt — addım sxemi generasiyası (v16)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -110,6 +110,10 @@
 > **v14 → v15 (2026-08-17).** E2.6: `triangle`, `circle`, `force_diagram`, `cartesian`
 > oneOf-a əlavə (v2 bump YOX). linear/quadratic/number_line qalır. Naməlum kind
 > hələ visual-ı atır, həll qalır.
+>
+> **v15 → v16 (2026-08-19).** E1.9: sızma qadağası nüvədədir (bütün fənn). E1.7 bunu
+> `physics.md`-ə yazmışdı — riyaziyyat 15% sızdırdı. Qayda 1 gücləndirildi: explanation
+> VƏ latex son ədədi vermir, `check.ask` istəyir. `visual` bölməsi silinmədi (E2 dondu).
 
 ## System
 
@@ -311,9 +315,13 @@ KƏSİLMİŞ MƏSƏLƏ:
 
 ═══ MƏZMUN QAYDALARI ═══
 
-1. Cavabı explanation-da VERMƏ. Hər addım nə edəcəyini deyir, nəticəni yox.
-   Pis:  "D = 1 olduğu üçün iki kök var."
-   Yaxşı: "Diskriminant kökün sayını verir — hesabla və işarəsinə bax."
+1. Sızma qadağası: addımın explanation VƏ latex sahəsi son ədədi VERMİR.
+   Son rəqəm yalnız check.ask-də şagirddən istənilir. Hər addım nə edəcəyini deyir, nəticəni yox.
+   Vahidli "20 m/s" ilə vahidsiz "20" eyni sızmadır. Nisbət cavabı values-də tək "1" OLMAZ
+   (Tomson 1/(2π√LC) izahda "1" sızmasıdır) — "nu1=nu2" yaz, düsturu yalnız latex-ə qoy.
+   Pis:  explanation "D = 1 olduğu üçün iki kök var." / "Top 3 manatdır" / latex "s=16\\mathrm{m}"
+   Yaxşı: "Diskriminant kökün sayını verir — hesabla."; latex "s=\\frac12 a t^2";
+          check.ask "a=2, t=4 qoyanda s neçədir?"
 2. Hər addımda check olmalıdır. check-siz addım qəbul edilmir.
 3. 1–6 addım. Say qayda 15-lə hesablanır — «ən azı 2» YOX. Çoxdursa ən vacib addımları birləşdir.
 4. Dil: title, explanation, why, hint, check.ask, reason — HAMISI girişdəki "Dil" sahəsində

@@ -1,0 +1,163 @@
+{
+  "pipeline": "B",
+  "set": "C:\\Programming\\Tehsil-Platformasi\\evals\\golden-set-physics-30-retry.jsonl",
+  "date": "2026-08-19",
+  "prompt_version": "v15",
+  "metrics": {
+    "n_total": 4,
+    "n_attempted": 4,
+    "n_failed": 0,
+    "n_not_implemented": 0,
+    "api_failure_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 4
+    },
+    "schema_validity": {
+      "rate": 1.0,
+      "matched": 4,
+      "n": 4
+    },
+    "final_answer_accuracy": {
+      "rate": 0.5,
+      "matched": 2,
+      "n": 4
+    },
+    "leak_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 4
+    },
+    "verify_conflict": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 4
+    },
+    "verify_conflict_ids": [],
+    "choice_match_rate": {
+      "rate": 1.0,
+      "matched": 4,
+      "n": 4
+    },
+    "topic_code_accuracy": {
+      "rate": 0.5,
+      "matched": 2,
+      "n": 4
+    },
+    "product_verified_false": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 4,
+      "ids": []
+    },
+    "has_figure_n": 1,
+    "has_figure_final_answer": {
+      "rate": 1.0,
+      "matched": 1,
+      "n": 1
+    },
+    "has_figure_choice_match": {
+      "rate": 1.0,
+      "matched": 1,
+      "n": 1
+    },
+    "has_figure_topic_code": {
+      "rate": 1.0,
+      "matched": 1,
+      "n": 1
+    },
+    "hallucination_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "false_refusal_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 4
+    },
+    "status_match_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "step_split_structural": {
+      "count_ok": {
+        "rate": 1.0,
+        "matched": 4,
+        "n": 4
+      },
+      "checks_present": {
+        "rate": 1.0,
+        "matched": 4,
+        "n": 4
+      },
+      "index_sequential": {
+        "rate": 1.0,
+        "matched": 4,
+        "n": 4
+      },
+      "ends_with_verification": {
+        "rate": 0.25,
+        "matched": 1,
+        "n": 4
+      },
+      "error_codes_distinct": {
+        "rate": 1.0,
+        "matched": 4,
+        "n": 4
+      },
+      "all_pass": {
+        "rate": 0.25,
+        "matched": 1,
+        "n": 4
+      }
+    },
+    "step_split_pedagogical": {
+      "rate": null,
+      "matched": 0,
+      "n": 0,
+      "note": "insan rəyi yoxdur — qapı natamam"
+    },
+    "avg_cost_usd": 0.021423875000000002,
+    "avg_latency_ms": 9153.134324995335,
+    "gate_eligible": false,
+    "gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=4, minimum 30)"
+  },
+  "items": [
+    {
+      "id": "physics-30-005",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "40",
+        "40"
+      ]
+    },
+    {
+      "id": "physics-30-020",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "2\\sqrt{2}E",
+        "2\\sqrt{2}"
+      ]
+    },
+    {
+      "id": "physics-30-021",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "4/3"
+      ]
+    },
+    {
+      "id": "physics-30-023",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "1-b, e; 2-d; 3-a, c"
+      ]
+    }
+  ]
+}

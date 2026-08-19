@@ -15,6 +15,7 @@ ADR-006: real telefon şəkilləri (HEIC, EXIF döndərilmiş, 4-8MB) üçün ö
 import base64
 import io
 import os
+import random
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -153,7 +154,7 @@ def _retry_delay_s(attempt, retry_after=None):
             delay = max(delay, float(retry_after))
         except (TypeError, ValueError):
             pass
-    return delay
+    return delay * (0.5 + random.random())
 
 
 def call_vision_llm(cfg, system_prompt, user_prompt, image_path=None):

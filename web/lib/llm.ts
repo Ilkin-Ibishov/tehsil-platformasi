@@ -11,11 +11,11 @@
 // dü?düyü hallar? da ?hat? edir; ça??ran özü hans? modelin i?l?diyini T?XM?N ETM?M?L?D?R.
 
 import { createHash } from "crypto";
-import { resolveConnection } from "./models";
+import { resolveConnection, listKnownModelIds } from "./models";
 
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
-const MAX_ATTEMPTS = 3;
-const RETRY_BASE_DELAY_MS = 1000;
+const MAX_ATTEMPTS = 5;
+const RETRY_BASE_DELAY_MS = 2000;
 /** Explicit Gemini context cache TTL (seconds). Default Google TTL is 1h. */
 const CONTEXT_CACHE_TTL_SEC = 3600;
 /** Refresh in-memory entry this many ms before Google TTL expiry. */
@@ -537,11 +537,14 @@ export async function callVisionLLM(opts: {
     payload.extra_body = { google: { cached_content: cachedContentName } };
   }
 
+  let activeModel = model;
   const url = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
   let attempts = 0;
   let latencyMs = 0;
   let res: Response | null = null;
   let usedCache = Boolean(cachedContentName);
+  let consecutive503 = 0;
+  let didFallback = false;
 
   async function postOnce(body: Record<string, unknown>): Promise<Response> {
     return fetch(url, {
@@ -558,7 +561,7 @@ export async function callVisionLLM(opts: {
     res = await postOnce(payload);
     latencyMs = performance.now() - started;
 
-    // OpenAI-compat may reject extra_body.google.cached_content ? fall back once to inline system.
+    // OpenAI-compat may reject extra_body.google.cached_content — fall back once to inline system.
     if (
       usedCache &&
       res.status >= 400 &&
@@ -568,11 +571,11 @@ export async function callVisionLLM(opts: {
     ) {
       logContextCache("skip", {
         reason: "openai_extra_body_rejected",
-        model,
+        model: activeModel,
         status: res.status,
       });
       if (cachedContentName) {
-        contextCacheEntries.delete(`${model}:${promptHash(opts.systemPrompt)}`);
+        contextCacheEntries.delete(`${activeModel}:${promptHash(opts.systemPrompt)}`);
       }
       usedCache = false;
       cachedContentName = null;
@@ -584,27 +587,44 @@ export async function callVisionLLM(opts: {
       continue;
     }
 
+    if (res.status === 503) {
+      consecutive503++;
+    } else {
+      consecutive503 = 0;
+    }
+
+    // Model fallback: after 2+ consecutive 503s, try next model in registry
+    if (consecutive503 >= 2 && !didFallback) {
+      const fallbackModel = pickFallbackModel(activeModel);
+      if (fallbackModel) {
+        console.warn(
+          `[llm] model_fallback: ${activeModel} → ${fallbackModel} after ${consecutive503} consecutive 503s`
+        );
+        activeModel = fallbackModel;
+        payload.model = fallbackModel;
+        didFallback = true;
+      }
+    }
+
     if (RETRYABLE_STATUS.has(res.status) && attempt < MAX_ATTEMPTS) {
-      await sleep(RETRY_BASE_DELAY_MS * 2 ** (attempt - 1));
+      await sleep(RETRY_BASE_DELAY_MS * 2 ** (attempt - 1) * (0.5 + Math.random()));
       continue;
     }
     break;
   }
 
   if (!res || !res.ok) {
-    throw new Error(`LLM sor?usu u?ursuz oldu: ${res?.status}`);
+    throw new Error(`LLM sorğusu uğursuz oldu: ${res?.status}`);
   }
 
   const body = await res.json();
   const rawText: string = body.choices?.[0]?.message?.content ?? "";
-  // Gemini/OpenAI `usage`-d? USD YOXDUR ? token saylar? var (ADR-028). OpenRouter
-  // `usage.cost` gönd?rir; `normalizeUsage` onu da saxlay?r.
   const usage = normalizeUsage(body.usage);
   if (usedCache && cachedTokensFromUsage(usage) == null) {
     logContextCache("warn", {
       reason: "usage_missing_cached_tokens",
       path: "openai_chat_completions",
-      model,
+      model: activeModel,
       usage,
     });
   }
@@ -615,6 +635,15 @@ export async function callVisionLLM(opts: {
     usage,
     latencyMs,
     attempts,
-    model,
+    model: activeModel,
   };
+}
+
+const FALLBACK_MODEL = "gemini-2.5-flash";
+
+function pickFallbackModel(currentModel: string): string | null {
+  const known = listKnownModelIds().filter((id) => id !== currentModel);
+  if (known.length > 0) return known[0];
+  if (currentModel !== FALLBACK_MODEL) return FALLBACK_MODEL;
+  return null;
 }

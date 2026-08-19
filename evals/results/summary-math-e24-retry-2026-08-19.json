@@ -1,59 +1,53 @@
 {
   "pipeline": "B",
-  "set": "C:\\Programming\\Tehsil-Platformasi\\evals\\golden-set-physics-30.jsonl",
+  "set": "C:\\Programming\\Tehsil-Platformasi\\tmp\\math-e24-retry.jsonl",
   "date": "2026-08-19",
-  "prompt_version": "v16",
+  "prompt_version": "v15",
   "metrics": {
-    "n_total": 5,
-    "n_attempted": 2,
-    "n_failed": 3,
+    "n_total": 4,
+    "n_attempted": 3,
+    "n_failed": 1,
     "n_not_implemented": 0,
     "api_failure_rate": {
-      "rate": 0.6,
-      "matched": 3,
-      "n": 5
+      "rate": 0.25,
+      "matched": 1,
+      "n": 4
     },
     "schema_validity": {
       "rate": 1.0,
-      "matched": 2,
-      "n": 2
+      "matched": 3,
+      "n": 3
     },
     "final_answer_accuracy": {
-      "rate": 1.0,
-      "matched": 2,
-      "n": 2
-    },
-    "leak_rate": {
-      "rate": 0.0,
-      "matched": 0,
-      "n": 2
-    },
-    "verify_conflict": {
-      "rate": 0.0,
-      "matched": 0,
-      "n": 2
-    },
-    "verify_conflict_ids": [],
-    "choice_match_rate": {
-      "rate": 1.0,
-      "matched": 2,
-      "n": 2
-    },
-    "choice_match_rate_iq_logic": {
       "rate": null,
       "matched": 0,
       "n": 0
     },
-    "n_iq_logic": 0,
-    "topic_code_accuracy": {
-      "rate": 1.0,
+    "leak_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 3
+    },
+    "verify_conflict": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 3
+    },
+    "verify_conflict_ids": [],
+    "choice_match_rate": {
+      "rate": 0.6666666666666666,
       "matched": 2,
-      "n": 2
+      "n": 3
+    },
+    "topic_code_accuracy": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
     },
     "product_verified_false": {
       "rate": 0.0,
       "matched": 0,
-      "n": 2,
+      "n": 3,
       "ids": []
     },
     "has_figure_n": 0,
@@ -80,7 +74,7 @@
     "false_refusal_rate": {
       "rate": 0.0,
       "matched": 0,
-      "n": 2
+      "n": 3
     },
     "status_match_rate": {
       "rate": null,
@@ -90,33 +84,33 @@
     "step_split_structural": {
       "count_ok": {
         "rate": 1.0,
-        "matched": 2,
-        "n": 2
+        "matched": 3,
+        "n": 3
       },
       "checks_present": {
         "rate": 1.0,
-        "matched": 2,
-        "n": 2
+        "matched": 3,
+        "n": 3
       },
       "index_sequential": {
         "rate": 1.0,
-        "matched": 2,
-        "n": 2
+        "matched": 3,
+        "n": 3
       },
       "ends_with_verification": {
-        "rate": 1.0,
+        "rate": 0.6666666666666666,
         "matched": 2,
-        "n": 2
+        "n": 3
       },
       "error_codes_distinct": {
         "rate": 1.0,
-        "matched": 2,
-        "n": 2
+        "matched": 3,
+        "n": 3
       },
       "all_pass": {
-        "rate": 1.0,
+        "rate": 0.6666666666666666,
         "matched": 2,
-        "n": 2
+        "n": 3
       }
     },
     "step_split_pedagogical": {
@@ -125,49 +119,41 @@
       "n": 0,
       "note": "insan rəyi yoxdur — qapı natamam"
     },
-    "avg_cost_usd": 0.0211415,
-    "avg_latency_ms": 30125.39260002086,
+    "avg_cost_usd": 0.02765266666666667,
+    "avg_latency_ms": 12920.598666668715,
     "gate_eligible": false,
-    "gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=2, minimum 30)"
+    "gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=3, minimum 30)"
   },
   "items": [
     {
-      "id": "physics-30-001",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "physics-30-002",
-      "status": "failed",
-      "final_answer_correct": null,
-      "model_values": null,
-      "error": "LLM HTTP 503 after 5 attempts"
-    },
-    {
-      "id": "physics-30-003",
+      "id": "math-dim-vB-002",
       "status": "ok",
-      "final_answer_correct": true,
+      "final_answer_correct": null,
       "model_values": [
-        "5.5",
-        "5,5"
+        "11"
       ]
     },
     {
-      "id": "physics-30-004",
+      "id": "math-dim-vB-017",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "5050005"
+      ]
+    },
+    {
+      "id": "math-dim-vB-229",
       "status": "failed",
       "final_answer_correct": null,
       "model_values": null,
       "error": "LLM HTTP 503 after 5 attempts"
     },
     {
-      "id": "physics-30-005",
+      "id": "math-dim-vB-244",
       "status": "ok",
-      "final_answer_correct": true,
+      "final_answer_correct": null,
       "model_values": [
-        "40",
-        "40"
+        "100 və 50"
       ]
     }
   ]

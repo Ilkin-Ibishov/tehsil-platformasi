@@ -70,7 +70,8 @@ def run() -> int:
     check("label: 28.", parse_label_num("28."), 28)
     check("label: glued", parse_label_num("28.Hesablayın:"), 28)
     check("label: 2x yox", parse_label_num("2x"), None)
-    check("label: bare", parse_label_num("12"), 12)
+    check("label: bare option yox", parse_label_num("81"), None)
+    check("label: 80)", parse_label_num("80)"), 80)
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)

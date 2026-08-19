@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-19 (187) · Cursor → Cowork
+Etdim:    E1.9: sızma qaydası `physics.md`-dən `core.md` qayda 1-ə köçürüldü (bütün fənlər). `math.md` nümunələri yeniləndi. `physics.md` dublikatı silindi. E1.10: `layout.py` çılpaq rəqəm etiket düzəlişi (variant "A) 81" Q80-ı qaçırırdı). 255 element yenidən kəsildi. `question_kind` sahəsi golden setlərə və `report.py`-a əlavə edildi (curriculum vs iq_logic bölgüsü).
+Tapşırıq: `86eyp3au4` (E1.9) — qismən nəticə: leak 7/46=15.2% (e24 seti, hədəf 0%, KEÇMƏDİ). Ayrıca vB əsas run leak 0/20=0% (fərqli alt-dəst). `86eyp3aub` (E1.10) — false_refusal 56/76=73.7% (vB n=80, əsasən Q21-80 IQ/söz tipi false refusal). e24 alt-dəstdə false_refusal 1/47=2.1%. API 503 hər iki run-da (e24: 1/48=2.1%, vB: 4/80=5%). choice_match: e24 40/45=88.9%, vB 19/20=95%. Jitter + retry dayanıqlığı ayrı agent-də (64028f7c) həyata keçirilir.
+Diqqət:   e110 eval NATAMAM (Gemini 503 dalğası, proses öldürüldü). vB əsas run yalnız 80/160 elementi əhatə edir — Q81-160 ölçülməyib. Tam false_refusal ölçməsi üçün API sabitliyini gözləmək lazımdır. e24 sızma 15.2% hələ KEÇMƏYİB — əlavə prompt intizamı lazım ola bilər.
+
 ## 2026-08-19 (186) · Cursor → Cowork
 Etdim:    E1.8: `0073_physics_topic_codes_expand.sql` (15 kod, `bank_matchable=false`, production-a tətbiq). Golden `evals/golden-set-physics-30.jsonl` yenidən etiketlənib. 15 mövzu faylı leak qaydası ilə. Vision n=30 (503 retry birləşdirildi): `topic_code` 27/30=90% (≥85%), leak 0/30, choice 30/30. Qalan 3: `MECH.MOMENTUM_CONSERVATION` / `PHYS.SELF_INDUCTION` / `PHYS.MAGNETIC_ENERGY` (alias, yeni kod yox). Xülasə `summary-golden-set-physics-30-2026-08-19.json`.
 Tapşırıq: `86eynm9r9` complete.

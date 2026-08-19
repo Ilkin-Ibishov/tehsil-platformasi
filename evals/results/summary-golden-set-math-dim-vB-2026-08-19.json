@@ -1,0 +1,656 @@
+{
+  "pipeline": "B",
+  "set": "C:\\Programming\\Tehsil-Platformasi\\evals\\golden-set-math-dim-vB.jsonl",
+  "date": "2026-08-19",
+  "prompt_version": "v15",
+  "metrics": {
+    "n_total": 80,
+    "n_attempted": 76,
+    "n_failed": 4,
+    "n_not_implemented": 0,
+    "api_failure_rate": {
+      "rate": 0.05,
+      "matched": 4,
+      "n": 80
+    },
+    "schema_validity": {
+      "rate": 1.0,
+      "matched": 76,
+      "n": 76
+    },
+    "final_answer_accuracy": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 2
+    },
+    "leak_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 20
+    },
+    "verify_conflict": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 20
+    },
+    "verify_conflict_ids": [],
+    "choice_match_rate": {
+      "rate": 0.95,
+      "matched": 19,
+      "n": 20
+    },
+    "topic_code_accuracy": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "product_verified_false": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 76,
+      "ids": []
+    },
+    "has_figure_n": 0,
+    "has_figure_final_answer": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "has_figure_choice_match": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "has_figure_topic_code": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "hallucination_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "false_refusal_rate": {
+      "rate": 0.7368421052631579,
+      "matched": 56,
+      "n": 76
+    },
+    "status_match_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "step_split_structural": {
+      "count_ok": {
+        "rate": 1.0,
+        "matched": 20,
+        "n": 20
+      },
+      "checks_present": {
+        "rate": 1.0,
+        "matched": 20,
+        "n": 20
+      },
+      "index_sequential": {
+        "rate": 1.0,
+        "matched": 20,
+        "n": 20
+      },
+      "ends_with_verification": {
+        "rate": 0.8,
+        "matched": 16,
+        "n": 20
+      },
+      "error_codes_distinct": {
+        "rate": 1.0,
+        "matched": 20,
+        "n": 20
+      },
+      "all_pass": {
+        "rate": 0.8,
+        "matched": 16,
+        "n": 20
+      }
+    },
+    "step_split_pedagogical": {
+      "rate": null,
+      "matched": 0,
+      "n": 0,
+      "note": "insan rəyi yoxdur — qapı natamam"
+    },
+    "avg_cost_usd": 0.020458375,
+    "avg_latency_ms": 8533.095572368198,
+    "gate_eligible": true,
+    "gate_pass": null,
+    "gate_status": "NATAMAM — insan rəyi yoxdur — qapı natamam (addım bölgüsünün pedaqoji hissəsi)"
+  },
+  "items": [
+    {
+      "id": "math-dim-vB-001",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-002",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-003",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-004",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-005",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-006",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-007",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-008",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-009",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-010",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-011",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-012",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-013",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "14; 10",
+        "14, 10",
+        "14 və 10"
+      ]
+    },
+    {
+      "id": "math-dim-vB-014",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "1001"
+      ]
+    },
+    {
+      "id": "math-dim-vB-015",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-016",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-017",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "5050005"
+      ]
+    },
+    {
+      "id": "math-dim-vB-018",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "4"
+      ]
+    },
+    {
+      "id": "math-dim-vB-019",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-020",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-021",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-022",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-023",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "86"
+      ]
+    },
+    {
+      "id": "math-dim-vB-024",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-025",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-026",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "3"
+      ]
+    },
+    {
+      "id": "math-dim-vB-027",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-028",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-029",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-030",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-031",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-032",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-033",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "4"
+      ]
+    },
+    {
+      "id": "math-dim-vB-034",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "9"
+      ]
+    },
+    {
+      "id": "math-dim-vB-035",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-036",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-037",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "90"
+      ]
+    },
+    {
+      "id": "math-dim-vB-038",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-039",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "1700"
+      ]
+    },
+    {
+      "id": "math-dim-vB-040",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-041",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-042",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-043",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-044",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-045",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-046",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-047",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-048",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-049",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM HTTP 503 after 5 attempts"
+    },
+    {
+      "id": "math-dim-vB-050",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "3"
+      ]
+    },
+    {
+      "id": "math-dim-vB-051",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-052",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-053",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-054",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-055",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-056",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-057",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "3"
+      ]
+    },
+    {
+      "id": "math-dim-vB-058",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "26"
+      ]
+    },
+    {
+      "id": "math-dim-vB-059",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-060",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "34"
+      ]
+    },
+    {
+      "id": "math-dim-vB-061",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "1001"
+      ]
+    },
+    {
+      "id": "math-dim-vB-062",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "8"
+      ]
+    },
+    {
+      "id": "math-dim-vB-063",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-064",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "81"
+      ]
+    },
+    {
+      "id": "math-dim-vB-065",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-066",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-067",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-068",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "19"
+      ]
+    },
+    {
+      "id": "math-dim-vB-069",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-070",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "12"
+      ]
+    },
+    {
+      "id": "math-dim-vB-071",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-072",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-073",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-074",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-075",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-076",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-077",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-078",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    },
+    {
+      "id": "math-dim-vB-079",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "39"
+      ]
+    },
+    {
+      "id": "math-dim-vB-080",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": null
+    }
+  ]
+}

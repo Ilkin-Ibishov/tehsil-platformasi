@@ -20,6 +20,8 @@ ona görə 1-ci nümunə (1 addım) sxemə görə TAM VALİD olmalıdır, qalanl
 E2.4: bu üç nümunədə `visual` YOXDUR — qrafik kömək etmir (cəm, 3x=12, sahə mətni).
 DİM kəsişmə / parabola / ədəd oxu üçün `core.md` kompakt kind nümunələri + mövzu faylları.
 
+E1.9: son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (`core.md` qayda 1).
+
 ## Nümunə
 
 ```
@@ -73,7 +75,7 @@ DİM kəsişmə / parabola / ədəd oxu üçün `core.md` kompakt kind nümunəl
     {
       "index": 1,
       "title": "Hər iki tərəfi əmsala böl",
-      "explanation": "x-i tək saxlamaq üçün bərabərliyin hər iki tərəfini x-in qarşısındakı əmsala bölürük.",
+      "explanation": "x-i tək saxlamaq üçün bərabərliyin hər iki tərəfini x-in qarşısındakı əmsala bölürük. Nəticəni izahda yazma — şagird böləcək.",
       "latex": "x=\\frac{12}{3}",
       "why": "Bərabərliyin hər iki tərəfi eyni ədədə bölünəndə bərabərlik pozulmur.",
       "tokens": {"3": "x-in əmsalı"},
@@ -88,11 +90,11 @@ DİM kəsişmə / parabola / ədəd oxu üçün `core.md` kompakt kind nümunəl
     {
       "index": 2,
       "title": "Tapılan kökü yoxla",
-      "explanation": "Tapdığın x dəyərini ilkin tənlikdə yerinə qoy. Nəticə bərabərliyin sağ tərəfini verməlidir.",
-      "latex": "3\\cdot4",
+      "explanation": "Tapdığın x dəyərini ilkin tənlikdə yerinə qoy. Nəticə bərabərliyin sağ tərəfini verməlidir. x-i izahda təkrarlama.",
+      "latex": "3\\cdot x",
       "why": "Yoxlama düsturun yadda saxlanmasını yox, tənliyin mənasını sınayır: kök — bərabərliyi doğru edən ədəddir.",
       "check": {
-        "ask": "x = 4 qoyanda 3x neçəyə bərabər olur?",
+        "ask": "x-i 3x-ə qoyanda nə alınır?",
         "accept": ["12"],
         "input_kind": "number"
       },
@@ -189,10 +191,10 @@ DİM kəsişmə / parabola / ədəd oxu üçün `core.md` kompakt kind nümunəl
     {
       "index": 6,
       "title": "Sahəni yoxla",
-      "explanation": "Tapılan eni ilkin şərtdə yerinə qoy və sahənin həqiqətən 40 çıxdığını göstər.",
+      "explanation": "Tapılan eni ilkin şərtdə yerinə qoy. Sahənin 40 olub-olmadığını şagird hesabla — eni izahda yazma.",
       "latex": "x(x+3)",
       "check": {
-        "ask": "x = 5 qoyanda x(x+3) neçə verir?",
+        "ask": "Eni yerinə qoyanda x(x+3) neçə verir?",
         "accept": ["40"],
         "input_kind": "number"
       },

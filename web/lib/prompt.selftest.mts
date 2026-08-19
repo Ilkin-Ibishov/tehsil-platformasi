@@ -46,7 +46,8 @@ check("physics + KINEMATICS nümunə", physics.system.includes("MECH.KINEMATICS"
 check("physics math fallback YOX", physics.system.includes("Sahəsi 40"), false);
 check("physics subject sahəsi", physics.system.includes('"subject": "physics"'), true);
 check("physics values vahidsiz", physics.system.includes('"18"'), true);
-check("physics leak addendum mövzu ilə qalır", physics.system.includes("Sızma qadağası"), true);
+check("physics leak qaydası core-dadır", physics.system.includes("Sızma qadağası"), true)
+check("math leak qaydası core-dadır", fallback.system.includes("Sızma qadağası"), true);
 
 const chem = loadPromptTemplates({ subject: "chemistry" });
 check("chemistry hələ fallbackUsed=true", chem.fallbackUsed, true);

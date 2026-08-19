@@ -71,4 +71,35 @@ y=kx+b qrafiki / ox kəsişməsi varsa visual YAZ: {"kind":"linear","k":…,"b":
     }
   ]
 }
+
+// Nümunə 2 — mətn, qrafiksiz (son ədəd yalnız check.ask-də)
+
+{
+  "schema_version": 2,
+  "canonical": "4x+2=14. x tap.",
+  "problem_type": "formula",
+  "subject": "math",
+  "grade": 6,
+  "topic_code": "ALG.LINEAR_EQUATION",
+  "detected_language": "az",
+  "final_answer": {
+    "latex": "x=3",
+    "values": ["3"]
+  },
+  "steps": [
+    {
+      "index": 1,
+      "title": "x-i tək saxla",
+      "explanation": "2-ni sağa keçir, sonra hər iki tərəfi 4-ə böl. Nəticəni izahda yazma.",
+      "latex": "4x=14-2",
+      "check": {
+        "ask": "12-ni 4-ə böldükdə x neçədir?",
+        "accept": ["3"],
+        "input_kind": "number"
+      },
+      "error_code": "ARITHMETIC",
+      "hint": "Əvvəl çıxma, sonra bölmə. x-i explanation-da demə."
+    }
+  ]
+}
 ```

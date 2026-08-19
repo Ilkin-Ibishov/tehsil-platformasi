@@ -122,6 +122,7 @@ def evaluate_item(item, result, cfg):
         "false_refusal": is_false_refusal(expected_status, raw_output),
         "status_match": status_match(expected_status, raw_output),
         "has_figure": bool(item.get("has_figure")),
+        "question_kind": item.get("question_kind") or "curriculum",
         "expected_topic_code": item.get("topic_code"),
         "model_subject": raw_output.get("subject") if isinstance(raw_output, dict) else None,
         "model_topic_code": raw_output.get("topic_code") if isinstance(raw_output, dict) else None,
@@ -306,7 +307,15 @@ def aggregate(entries, human_review=None):
     metrics["verify_conflict_ids"] = [
         e["id"] for e in attempted if e.get("verify_conflict") is True
     ]
-    metrics["choice_match_rate"] = _rate(attempted, "choice_match", lambda v: v is True, lambda v: v is not None)
+    curriculum = [e for e in attempted if e.get("question_kind") != "iq_logic"]
+    iq_logic = [e for e in attempted if e.get("question_kind") == "iq_logic"]
+    metrics["choice_match_rate"] = _rate(
+        curriculum, "choice_match", lambda v: v is True, lambda v: v is not None
+    )
+    metrics["choice_match_rate_iq_logic"] = _rate(
+        iq_logic, "choice_match", lambda v: v is True, lambda v: v is not None
+    )
+    metrics["n_iq_logic"] = len(iq_logic)
 
     metrics["topic_code_accuracy"] = _rate(
         attempted, "topic_code_correct", lambda v: v is True, lambda v: v is not None
@@ -474,7 +483,11 @@ def print_report(pipeline_name, metrics):
             f"  ⚠ Yoxlama ziddiyyəti (golden vs sympy): {metrics['verify_conflict']['matched']} item — "
             f"{', '.join(metrics['verify_conflict_ids'])} — golden set-i əl ilə yoxla (86eyhqggz mexanizmi)."
         )
-    _print_metric_line("Variant uyğunluğu (informativ)", metrics["choice_match_rate"], gate_eligible)
+    _print_metric_line("Variant uyğunluğu (curriculum)", metrics["choice_match_rate"], gate_eligible)
+    n_iq = metrics.get("n_iq_logic") or 0
+    print(f"  iq_logic n={n_iq}")
+    if n_iq:
+        _print_metric_line("    variant (iq_logic)", metrics["choice_match_rate_iq_logic"], gate_eligible)
     if metrics.get("topic_code_accuracy"):
         _print_metric_line("topic_code düzgünlüyü", metrics["topic_code_accuracy"], gate_eligible, 0.85)
     pv = metrics.get("product_verified_false")
