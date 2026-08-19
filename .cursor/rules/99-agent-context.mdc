@@ -1,0 +1,53 @@
+---
+description: Auto-updated agent context snapshot — key numbers and coordinates to avoid re-reading large files
+alwaysApply: true
+---
+
+# Agent context snapshot
+
+> **Auto-updated** at end of each code session (see `.cursor/rules/01-auto-update-context.mdc`).
+> Do NOT read source files to get these values — use this snapshot. Read source only when CHANGING the value.
+
+## Coordinates
+
+| Key | Value |
+|---|---|
+| Supabase project | `oxjzehxnbumgyoqjonju` (eu-central-1) |
+| Vercel team | `team_Ho5i6fEc7zPlImRmj9qmQrq9` |
+| Vercel project | `prj_gbbPOoE3m91lRDyEQAzt4Aj5d7N0` (name: web) |
+| ClickUp workspace | `90182536078` |
+| ClickUp space | `901810230629` |
+| Latest migration | `0074` |
+| Latest ADR | `031` |
+| Latest HANDOFF | `188` |
+| tsconfig target | ES2017 |
+| STEP-SCHEMA version | 2 |
+
+## File map (hot paths)
+
+| Need | File |
+|---|---|
+| Solve pipeline entry | `web/app/api/solve/route.ts` |
+| Cascade orchestrator | `web/lib/cascade/run.ts` |
+| Qat 5 (text LLM) | `web/lib/cascade/solve-text.ts` |
+| DB write (cascade) | `web/lib/cascade/persist.ts` |
+| LLM call + fallback | `web/lib/llm.ts` |
+| LLM streaming | `web/lib/llm-stream.ts` |
+| Model registry + price | `web/lib/models.ts` |
+| App config (DB flags) | `web/lib/app-config.ts` |
+| Kamera UI (client) | `web/app/kamera/page.tsx` |
+| Finish (NDJSON stream) | `web/app/api/solve/finish/route.ts` |
+| Transcribe (Qat 1) | `web/lib/cascade/transcribe.ts` |
+| Prompt loader | `web/lib/prompt.ts` |
+| Visual schema | `web/lib/visual.ts` |
+| Telemetry spec | `docs/TELEMETRY.md` |
+| Step schema | `docs/STEP-SCHEMA.json` |
+
+## Current state
+
+- Production: `f399f02` (2026-08-19), Vercel READY
+- Cascade: enabled via `app_config.cascade_enabled`
+- Model fallback: 2 consecutive 503 → next model in registry
+- `model_used` jsonb tracks which model answered (0074)
+- Eval blocked: Gemini 503 wave (E1.9 leak + E1.10 false_refusal pending)
+- No real students yet (CLAUDE.md: "production-da real istifadəçi YOXDUR")

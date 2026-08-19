@@ -1,0 +1,18 @@
+---
+description: Vercel deployment — MCP available, tsconfig ES2017, no feature branches
+globs:
+  - web/**/*.ts
+  - web/**/*.tsx
+  - next.config.ts
+alwaysApply: false
+---
+
+# Vercel
+
+MCP server: `plugin-vercel-vercel`. Team: `team_Ho5i6fEc7zPlImRmj9qmQrq9`. Project: `prj_gbbPOoE3m91lRDyEQAzt4Aj5d7N0` (name: "web").
+
+- `tsconfig.json` target is **ES2017**. Do not use regex `/s` (dotAll), `lookbehind`, or other ES2018+ features.
+- Every push to `main` auto-deploys. **Check build passes locally** (`npx next build` — TS errors fail the deploy) before pushing.
+- If deploy fails, use `get_deployment_build_logs` with `errorsOnly: true`.
+- `maxDuration: 60` on `/api/solve`, `180` on `/api/solve/finish`. Vercel Hobby limit is 60s for other routes.
+- Env vars are on Vercel; `.env.local` is dev-only. `DATABASE_URL` missing locally is expected.

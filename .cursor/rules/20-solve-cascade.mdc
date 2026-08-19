@@ -21,3 +21,12 @@ Layers (code: `web/lib/cascade/`): 0 image cache, 1 transcribe, 2 hash/fingerpri
 Student-path inserts self-heal unknown `topic_code`/`error_code` (`needs_review=true`). Do not add hard FKs that 500 a live solve.
 
 Active model is `public.app_config.active_model`, not an env hardcoded in a component. Price lives next to the model in `web/lib/models.ts`.
+
+## LLM fallback (2026-08-19)
+
+`web/lib/llm.ts` has model fallback: 2 consecutive 503 → `pickFallbackModel()` (next in registry). `LLMResult` carries `fallbackUsed` + `fallbackFrom`. `attempt_items.model_used` (jsonb) records `{qat1, qat5}`. Telemetry: `solve.cascade` + `solve.response` props include `model`, `fallback_used`, `fallback_from`.
+
+## Two entry points
+
+1. `/api/solve` — monolit (cascade disabled) OR cascade (Qat 1 transcribe + Qat 2..5 text). Single request-response.
+2. `/api/solve/finish` — NDJSON streaming (cascade always). Transcribe happens in `/api/solve/transcribe`, finish gets the transcript and runs Qat 2..5 with `onPublicStep` streaming.

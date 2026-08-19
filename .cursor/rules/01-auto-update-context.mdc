@@ -1,0 +1,19 @@
+---
+description: Rule requiring agents to update the context snapshot at session end
+alwaysApply: true
+---
+
+# Auto-update agent context
+
+**At the end of every code session** (after commit, before signing off), update `.cursor/rules/99-agent-context.mdc`:
+
+1. If a **migration** was added → bump `Latest migration` number.
+2. If an **ADR** was added → bump `Latest ADR` number.
+3. If a **HANDOFF** block was written → bump `Latest HANDOFF` number.
+4. If the **production commit** changed → update `Production` hash + date + Vercel state.
+5. If a **new hot-path file** was created that future sessions will need → add to file map.
+6. If the **current state** changed (e.g. eval passed, feature enabled) → update bullets.
+
+Do NOT add volatile numbers (cost/latency/token counts). Only add structural facts that survive 2+ days.
+
+This costs <20 tokens to maintain and saves 500+ tokens per future session by eliminating re-reads.
