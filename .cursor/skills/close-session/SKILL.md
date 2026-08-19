@@ -34,3 +34,8 @@ Follow `clickup-task` skill: comment what shipped, status `complete`. If ClickUp
 ## 4. Git
 
 Commit when the task is finished. Do not wait to be asked. Message in English, why not what. Do not push unless asked. Do not force-push `main`.
+
+If the user explicitly asks for push, treat push as NOT final:
+- run `git push`
+- then verify `gh run list --limit 1` and `vercel ls`
+- if CI/deploy is failed, report failure + root cause (`gh run view --log-failed`, `vercel inspect <url> --logs`) instead of claiming completion.

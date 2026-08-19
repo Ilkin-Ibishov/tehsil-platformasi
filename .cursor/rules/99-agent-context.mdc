@@ -19,7 +19,7 @@ alwaysApply: true
 | ClickUp space | `901810230629` |
 | Latest migration | `0074` |
 | Latest ADR | `031` |
-| Latest HANDOFF | `190` |
+| Latest HANDOFF | `191` |
 | tsconfig target | ES2017 |
 | STEP-SCHEMA version | 2 |
 

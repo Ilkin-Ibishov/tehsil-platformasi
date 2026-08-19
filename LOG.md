@@ -1,5 +1,8 @@
 # LOG
 
+- 2026-08-19: HANDOFF 191 — deploy fail kök səbəbi bağlandı: `web/package-lock.json`-da
+  korlanmış `rolldown` stub-ları silindi (`npm install` yenidən keçir). Push-sonrası
+  verify protokolu AGENTS + close-session skill-ə əlavə olundu (CI+Vercel məcburi yoxlama).
 - 2026-08-19: HANDOFF 190 — E1.9 text-path harness yenilənməsi (`--from-canonical` + 503 fallback + `model_used`/model-bölünmüş leak). e24 n=24 leak 3/24, physics-30 n=30 leak 3/30 (0% alınmadı). `86eyp5gt2` və qərar `86eyp6mhp` bu sessiyada qeyd olundu.
 - 2026-08-19: HANDOFF 187 — E1.9/E1.10 qismən eval nəticələri. Sızma qaydası core.md-ə,
   layout.py etiket düzəlişi, question_kind sahəsi. e24 leak 7/46=15.2% (keçmədi),

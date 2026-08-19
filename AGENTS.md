@@ -29,6 +29,7 @@ Yaşayan rəqəm, növbə bloku, model adı, miqrasiya nömrəsi **qaydaya/skill
 2. ClickUp tapşırığını `in progress`-ə çək (MCP: `user-clickup_extended_local`).
 3. Bitəndə: `close-session` skill — HANDOFF prepend, `LOG.md` 3 sətir, ClickUp `complete`, **commit** (gözləmə).
 4. Ayrı feature branch açma. `main`-ə merge olunmayan kod Vercel-ə çatmır.
+5. İstifadəçi push istəyəndə `git push`-dan SONRA mütləq verify et: `gh run list --limit 1` (CI) və `vercel ls` (deploy). Status `failure`/`Error` olarsa "tamamlandı" demə, logu aç (`gh run view --log-failed`, `vercel inspect <url> --logs`) və səbəbi bildir.
 
 ## Cursor xəritəsi
 

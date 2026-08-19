@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-19 (191) · Cursor → Cowork
+Etdim:    Deploy fail araşdırıldı: kök səbəb `web/package-lock.json` içində iki korlanmış `rolldown` stub node idi (`Invalid Version`), silinib lock düzəldildi; lokal `npm install` uğurla keçir. Push-sonrası verify protokolu daimi qaydaya yazıldı (`AGENTS.md`, `.cursor/skills/close-session/SKILL.md`): `gh run list --limit 1` + `vercel ls`, fail olarsa log açmadan sessiya bağlanmır.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   `scripts/clickup.mjs` faylında əvvəlki local dəyişiklik var, bu sessiyanın commit-inə daxil edilmir.
+
 ## 2026-08-19 (190) · Cursor → Cowork
 Etdim:    Eval harness-ə `--from-canonical` (Qat 1 skip, saxlanmış `model_canonical` ilə mətn yolu) və 503 fallback zənciri əlavə olundu (`scripts/eval.py`, `scripts/lib/pipelines.py`, `scripts/lib/llm_client.py`, `scripts/lib/report.py`). Xülasəyə `model_used` paylanması və `leak_rate_by_model` yazıldı. Ölçmə: `golden-set-math-dim-vB-e24` (n_attempted=24, failed=1) leak 3/24; `golden-set-physics-30` (n=30) leak 3/30.
 Tapşırıq: `86eyp3au4` (E1.9) yenidən ölçüldü, hədəf 0% alınmadı; `86eyp3aub` (E1.10) açıq qalır (vision metrikası gözləyir).
