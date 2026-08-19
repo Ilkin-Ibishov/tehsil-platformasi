@@ -262,7 +262,7 @@ function tryPlaceholderArithmetic(canonical: string, values: string[]): boolean 
 function tryNumericExpression(canonical: string, values: string[]): boolean | null {
   const stripped = canonical
     .replace(/\n[A-Ea-e][).]\s*[\s\S]*/g, "")
-    .replace(/Variantlar:.*/is, "")
+    .replace(/Variantlar:[\s\S]*/i, "")
     .trim();
 
   const computeCandidates: string[] = [];
