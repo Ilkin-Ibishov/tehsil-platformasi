@@ -25,7 +25,18 @@
 import fs from "node:fs";
 
 const API = "https://api.clickup.com/api/v2";
-const TOKEN = process.env.CLICKUP_TOKEN;
+// Env yoxdursa repo kökündəki `.env`-i özü oxuyur (dotenv asılılığı əlavə etməmək üçün).
+function tokenFromDotenv() {
+  try {
+    const f = new URL("../.env", import.meta.url);
+    const line = fs.readFileSync(f, "utf8").split(/\r?\n/).find((l) => l.startsWith("CLICKUP_TOKEN="));
+    return line ? line.slice("CLICKUP_TOKEN=".length).trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+const TOKEN = process.env.CLICKUP_TOKEN || tokenFromDotenv();
 if (!TOKEN) {
   console.error("CLICKUP_TOKEN təyin edilməyib. ClickUp → Settings → Apps → API Token.");
   process.exit(2);
