@@ -437,6 +437,10 @@ export async function POST(req: NextRequest) {
       }
 
       const totalCostUsd = sumCostUsd(t1.costUsd, solution.costUsd);
+      const modelUsed: Record<string, string | null> = {
+        qat1: t1.model || null,
+        qat5: solution.newQuestion?.model ?? null,
+      };
       const persisted = await persistSolution({
         pool,
         solution,
@@ -447,6 +451,7 @@ export async function POST(req: NextRequest) {
         requestedSubject: subject,
         locale,
         totalCostUsd,
+        modelUsed,
       });
 
       if (!persisted.ok) {
@@ -477,6 +482,9 @@ export async function POST(req: NextRequest) {
         total_cost_usd: totalCostUsd,
         has_figure: t1.transcript.hasFigure,
         ocr_confidence: t1.transcript.ocrConfidence,
+        model: solution.newQuestion?.model ?? null,
+        fallback_used: solution.fallbackUsed ?? false,
+        fallback_from: solution.fallbackFrom ?? null,
       });
 
       return NextResponse.json(
@@ -507,6 +515,9 @@ export async function POST(req: NextRequest) {
             attempts: 1,
             leaked: persisted.leaked,
             layer: solution.layer,
+            model: solution.newQuestion?.model ?? null,
+            fallback_used: solution.fallbackUsed ?? false,
+            fallback_from: solution.fallbackFrom ?? null,
           },
         },
         { status: 200 }
@@ -838,9 +849,9 @@ export async function POST(req: NextRequest) {
     );
     await client.query(
       `insert into attempt_items
-         (id, attempt_id, question_id, match_path, ocr_source, delivered, steps_total, cost_usd)
-       values ($1,$2,$3,'llm','vision_llm',true,$4,$5)`,
-      [itemId, sessionId, questionId, stepsForStorage.length, costUsd]
+         (id, attempt_id, question_id, match_path, ocr_source, delivered, steps_total, cost_usd, model_used)
+       values ($1,$2,$3,'llm','vision_llm',true,$4,$5,$6)`,
+      [itemId, sessionId, questionId, stepsForStorage.length, costUsd, JSON.stringify({ qat1: usedModel, qat5: usedModel })]
     );
 
     await client.query("commit");
@@ -884,6 +895,9 @@ export async function POST(req: NextRequest) {
         tokens_out: billableOutputTokens(usage),
         attempts,
         leaked,
+        model: usedModel || null,
+        fallback_used: usedModel !== activeModel,
+        fallback_from: usedModel !== activeModel ? activeModel : null,
       },
     },
     { status: 200 }

@@ -53,6 +53,7 @@ export async function persistSolution(opts: {
   locale: string;
   totalCostUsd: number | null;
   attemptKind?: "photo_solve" | "corpus_soak";
+  modelUsed?: Record<string, string | null> | null;
 }): Promise<PersistResult> {
   const { pool, solution, transcript, sessionId } = opts;
 
@@ -74,13 +75,11 @@ export async function persistSolution(opts: {
         studentRef: opts.studentRef,
         questionId: solution.questionId,
         matchPath: solution.matchPath,
-        // Bank yolunda şəkil OCR-i Qat 1-də olub — `ocr_source` yenə `vision_llm`-dir,
-        // çünki transkripsiya məhz oradan gəldi. Bank sətrinin ÖZÜ isə şəkildən gəlməyib;
-        // bu fərq `match_path`-də görünür, `ocr_source`-u dəyişmək onu ikiqat kodlayardı.
         ocrSource: "vision_llm",
         stepsTotal: solution.steps.length,
         costUsd: opts.totalCostUsd,
         kind: opts.attemptKind ?? "photo_solve",
+        modelUsed: opts.modelUsed ?? null,
       });
       await client.query("commit");
       return {
@@ -266,6 +265,7 @@ export async function persistSolution(opts: {
       stepsTotal: servedSteps.length,
       costUsd: opts.totalCostUsd,
       kind: opts.attemptKind ?? "photo_solve",
+      modelUsed: opts.modelUsed ?? null,
     });
 
     await client.query("commit");
@@ -307,6 +307,7 @@ async function insertAttempt(
     stepsTotal: number;
     costUsd: number | null;
     kind: "photo_solve" | "corpus_soak";
+    modelUsed: Record<string, string | null> | null;
   }
 ): Promise<string> {
   await client.query(
@@ -317,9 +318,9 @@ async function insertAttempt(
   const itemId = randomUUID();
   await client.query(
     `insert into attempt_items
-       (id, attempt_id, question_id, match_path, ocr_source, delivered, steps_total, cost_usd)
-     values ($1,$2,$3,$4,$5,true,$6,$7)`,
-    [itemId, opts.sessionId, opts.questionId, opts.matchPath, opts.ocrSource, opts.stepsTotal, opts.costUsd]
+       (id, attempt_id, question_id, match_path, ocr_source, delivered, steps_total, cost_usd, model_used)
+     values ($1,$2,$3,$4,$5,true,$6,$7,$8)`,
+    [itemId, opts.sessionId, opts.questionId, opts.matchPath, opts.ocrSource, opts.stepsTotal, opts.costUsd, opts.modelUsed ? JSON.stringify(opts.modelUsed) : null]
   );
   return itemId;
 }

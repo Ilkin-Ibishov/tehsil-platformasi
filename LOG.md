@@ -137,3 +137,4 @@
 - 2026-08-19: false_refusal 73.7% (56/76) esas run-da; e24 alt-destinde 2.1%. Kitabcanin basi/sonu duzgun kesilir, ORTASI yox - Q21-227 aralig. O run-in butun metrikalari (leak 0/20 daxil) etibarsizdir. ClickUp 86eyp3aub (E1.10).
 - 2026-08-19: choice 88.9% - 5 sehvin hamisi IQ/mentiq tipidir (fiqur ardicilligi 240, mentiqi cedvel 250, simvol tapmacasi 236, overline 002, meta-sayma 010). Korpus off-distribution, model ugursuzlugu deyil.
 - 2026-08-19: QERAR - E2 dondurulur. Uc korpus, uc olcme: graph-helps 6/52, 9/52, 4/48. Real DIM suallarinin ~8-17%-i qrafikden faydalanir; n>=30 ucun funksiya-qrafikli kitabca lazimdir. visual fill 0/46 model sehvi DEYIL - 4 item ADR-031-in sahedan kenar qoydugu tiplerdir. ClickUp 86eyp3auh (E2.7, Faza 4).
+- 2026-08-19: E1.11 model fallback telemetriyasi. 0074 miqrasiyasi (model_used jsonb), v_model_health view, solve.response/cascade-a model/fallback props. ClickUp 86eyp5gt2.

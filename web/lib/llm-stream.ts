@@ -151,6 +151,8 @@ export async function streamVisionLLM(opts: {
       latencyMs: performance.now() - started,
       attempts: 1,
       model,
+      fallbackUsed: false,
+      fallbackFrom: null,
     };
   }
 
@@ -227,7 +229,7 @@ export async function streamVisionLLM(opts: {
   } catch {
     parsed = null;
   }
-  return { parsed, rawText, usage, latencyMs, attempts: 1, model };
+  return { parsed, rawText, usage, latencyMs, attempts: 1, model, fallbackUsed: false, fallbackFrom: null };
 }
 
 async function streamNativeWithCache(opts: {
@@ -360,5 +362,7 @@ async function streamNativeWithCache(opts: {
     latencyMs: performance.now() - started,
     attempts: 1,
     model: opts.model,
+    fallbackUsed: false,
+    fallbackFrom: null,
   };
 }

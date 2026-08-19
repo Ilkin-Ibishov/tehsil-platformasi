@@ -86,6 +86,8 @@ export function makeTextSolveLayer(pool: Pool): SolveLayer {
       let usage: LLMUsage | null = null;
       let latencyMs = 0;
       let usedModel = activeModel;
+      let fallbackUsed = false;
+      let fallbackFrom: string | null = null;
 
       for (let call = 1; call <= 2; call++) {
         if (ctx.signal?.aborted) break;
@@ -130,7 +132,11 @@ export function makeTextSolveLayer(pool: Pool): SolveLayer {
         }
         usage = result.usage;
         latencyMs = result.latencyMs;
-        usedModel = result.model; // ADR-022: HƏQİQƏTƏN çağırılan model, təxmin yox
+        usedModel = result.model;
+        if ('fallbackUsed' in result && result.fallbackUsed) {
+          fallbackUsed = true;
+          fallbackFrom = (result as { fallbackFrom: string | null }).fallbackFrom;
+        }
 
         const stripped = stripUnknownVisual(result.parsed);
         const check = validateStep(stripped);
@@ -170,6 +176,8 @@ export function makeTextSolveLayer(pool: Pool): SolveLayer {
         costUsd: computeCostUsd(usage, usedModel),
         latencyMs,
         usage,
+        fallbackUsed,
+        fallbackFrom,
       };
     },
   };

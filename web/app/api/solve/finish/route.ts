@@ -324,6 +324,7 @@ async function runFinishCore(opts: {
     locale: opts.locale,
     totalCostUsd,
     attemptKind: attemptKindFor(soakMode),
+    modelUsed: { qat5: solution.newQuestion?.model ?? null },
   });
 
   if (!persisted.ok) {
@@ -388,6 +389,9 @@ async function runFinishCore(opts: {
     soak_provider: soakMode.kind === "student" ? null : soakMode.kind,
     persist_ok: true,
     cached_tokens: layerCachedTokens,
+    model: solution.newQuestion?.model ?? null,
+    fallback_used: solution.fallbackUsed ?? false,
+    fallback_from: solution.fallbackFrom ?? null,
   });
 
   return {
@@ -409,6 +413,9 @@ async function runFinishCore(opts: {
       layer_latency_ms: Math.round(solution.latencyMs),
       leaked: persisted.leaked,
       layer: solution.layer,
+      model: solution.newQuestion?.model ?? null,
+      fallback_used: solution.fallbackUsed ?? false,
+      fallback_from: solution.fallbackFrom ?? null,
     },
   };
 }

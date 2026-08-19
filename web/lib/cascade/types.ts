@@ -95,17 +95,14 @@ export type LayerSolution =
       matchPath: MatchPath;
       questionId: string;
       steps: PublicStep[];
-      // Bank sətrinin ÖZ yoxlama qeydi (`question_translations.verified`/`verification_method`).
-      // Yenidən yoxlanılMIR: sətir yaradılanda artıq yoxlanıb və `review_status` onu bankda
-      // görünən edən şərtdir. `method` STEP-SCHEMA-nın enum-una
-      // (`mathjs_equation|mathjs_unit|human|none`) sadiqdir — "bank" adlı üçüncü dəyər
-      // UYDURULMUR, sxem onu qəbul etməzdi.
       verification: { verified: boolean | null; method: string };
       visual?: VisualSpec | null;
       newQuestion?: never;
       costUsd: number | null;
       latencyMs: number;
       usage: LLMUsage | null;
+      fallbackUsed?: boolean;
+      fallbackFrom?: string | null;
     }
   | {
       layer: LayerId;
@@ -114,19 +111,16 @@ export type LayerSolution =
       steps: PublicStep[];
       newQuestion: {
         finalAnswer: FinalAnswer;
-        // `check.accept` daşıyır — DB-yə (`private.step_answers`) gedir, ŞƏBƏKƏYƏ YOX.
         stepAnswerRows: StepAnswerRow[];
         rawSteps: RawStep[];
-        // ADR-023: HƏQİQƏTƏN işlədilən model ID-si (LLM qatları üçün) — `null` = bu qat
-        // ümumiyyətlə LLM çağırmadı (məs. Qat 3 şablon tanıyıcısı, `template.ts`). Çağıran
-        // (`persist.ts`) bunu `process.env.GEMINI_MODEL`-i TƏXMİN ETMƏK əvəzinə buradan alır —
-        // əks halda LLM-siz Qat 3 sətirlərinə YANLIŞ model adı yazılardı.
         model: string | null;
       };
       costUsd: number | null;
       latencyMs: number;
       usage: LLMUsage | null;
       visual?: VisualSpec | null;
+      fallbackUsed?: boolean;
+      fallbackFrom?: string | null;
     };
 
 export type CascadeContext = {

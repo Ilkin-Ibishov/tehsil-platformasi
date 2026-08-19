@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-19 (188) · Cursor → Cowork
+Etdim:    E1.11: model fallback telemetriyası (ClickUp `86eyp5gt2`). `0074_attempt_items_model_used.sql`: `model_used jsonb` sütunu `attempt_items`-ə, `v_model_health` görünüşü (model üzrə n, avg cost, avg latency, fallback nisbəti). `solve.response` və `solve.cascade` props-una `model`, `fallback_used`, `fallback_from` əlavə edildi. `TELEMETRY.md` yeniləndi. `llm.ts` `LLMResult`-a `fallbackUsed`/`fallbackFrom` əlavə edildi. Monolit və kaskad yolları hər ikisi `model_used` yazır. Klient (`kamera/page.tsx`) `solve.response`-a model/fallback sahələrini ötürür.
+Tapşırıq: `86eyp5gt2` complete.
+Diqqət:   `v_model_health` fallback nisbətini `events.props->>'fallback_used'` ilə hesablayır — fallback təcrübə edilənə qədər 0 göstərəcək. Monolit yolda `model_used` JSON-da `qat1` və `qat5` eyni modeldir (monolit tək çağırış edir). `finish/route.ts`-də `qat1` buraxılıb (transcribe model buraya ötürülmür). E1.9/E1.10 eval-ları 503 gözləyir.
+
 ## 2026-08-19 (187) · Cursor → Cowork
 Etdim:    E1.9: sızma qaydası `physics.md`-dən `core.md` qayda 1-ə köçürüldü (bütün fənlər). `math.md` nümunələri yeniləndi. `physics.md` dublikatı silindi. E1.10: `layout.py` çılpaq rəqəm etiket düzəlişi (variant "A) 81" Q80-ı qaçırırdı). 255 element yenidən kəsildi. `question_kind` sahəsi golden setlərə və `report.py`-a əlavə edildi (curriculum vs iq_logic bölgüsü).
 Tapşırıq: `86eyp3au4` (E1.9) — qismən nəticə: leak 7/46=15.2% (e24 seti, hədəf 0%, KEÇMƏDİ). Ayrıca vB əsas run leak 0/20=0% (fərqli alt-dəst). `86eyp3aub` (E1.10) — false_refusal 56/76=73.7% (vB n=80, əsasən Q21-80 IQ/söz tipi false refusal). e24 alt-dəstdə false_refusal 1/47=2.1%. API 503 hər iki run-da (e24: 1/48=2.1%, vB: 4/80=5%). choice_match: e24 40/45=88.9%, vB 19/20=95%. Jitter + retry dayanıqlığı ayrı agent-də (64028f7c) həyata keçirilir.

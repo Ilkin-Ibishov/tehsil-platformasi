@@ -283,6 +283,9 @@ export default function KameraPage() {
         tokens_in: body.meta?.tokens_in ?? null,
         tokens_out: body.meta?.tokens_out ?? null,
         step_count: Array.isArray(body.steps) ? body.steps.length : null,
+        model: body.meta?.model ?? null,
+        fallback_used: body.meta?.fallback_used ?? false,
+        fallback_from: body.meta?.fallback_from ?? null,
       });
 
       if (!body.canonical || !Array.isArray(body.steps) || body.steps.length === 0) {
@@ -405,6 +408,9 @@ export default function KameraPage() {
           cached_tokens?: number | null;
           layer_cost_usd?: number | null;
           layer_latency_ms?: number | null;
+          model?: string | null;
+          fallback_used?: boolean;
+          fallback_from?: string | null;
         }
       | undefined;
     if (body.status && body.status !== "ok") {
@@ -441,11 +447,13 @@ export default function KameraPage() {
       storage_ms: cascadeTranscript?.meta.storageMs ?? null,
       db_ms: cascadeTranscript?.meta.dbMs ?? null,
       route_total_ms: cascadeTranscript?.meta.routeTotalMs ?? null,
-      // Qat 5 explicit cache hit (finish meta); fall back to Qat 1 only if finish omitted it.
       cached_tokens:
         typeof meta?.cached_tokens === "number"
           ? meta.cached_tokens
           : (cascadeTranscript?.meta.cachedTokens ?? null),
+      model: meta?.model ?? null,
+      fallback_used: meta?.fallback_used ?? false,
+      fallback_from: meta?.fallback_from ?? null,
     });
     finishWaitStartedRef.current = null;
     setFinishPreviewStep(null);

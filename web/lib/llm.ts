@@ -340,6 +340,8 @@ export type LLMResult = {
   // ADR-022: H?Q?Q?T?N ça??r?lan model ID-si ? `opts.model` verilm?yibs? `GEMINI_MODEL`-in
   // öz d?y?ridir, ça??ran bunu t?xmin etm?k ?v?zin? buradan oxumal?d?r.
   model: string;
+  fallbackUsed: boolean;
+  fallbackFrom: string | null;
 };
 
 function sleep(ms: number) {
@@ -511,6 +513,8 @@ export async function callVisionLLM(opts: {
         latencyMs: native.latencyMs,
         attempts: 1,
         model,
+        fallbackUsed: false,
+        fallbackFrom: null,
       };
     }
     // Fall through to OpenAI-compat + extra_body, then inline.
@@ -636,6 +640,8 @@ export async function callVisionLLM(opts: {
     latencyMs,
     attempts,
     model: activeModel,
+    fallbackUsed: didFallback,
+    fallbackFrom: didFallback ? model : null,
   };
 }
 

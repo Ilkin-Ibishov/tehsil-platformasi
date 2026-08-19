@@ -114,7 +114,7 @@ solve.waiting_abandoned        props: {waited_ms}              ← S7, KRİTİK:
 solve.response                 props: {status, ocr_confidence, latency_ms, match_path,
                                        cost_usd, tokens_in, tokens_out, step_count,
                                        finish_wait_ms, llm_ms, storage_ms, db_ms, route_total_ms,
-                                       cached_tokens}
+                                       cached_tokens, model, fallback_used, fallback_from}
                                ← finish_wait_ms: transcript.confirmed → cavab (klient)
                                ← llm/storage/db/route_total_ms: YALNIZ kaskad Qat 1 meta
                                  echo (transcribe cavabından); Qat 5-də əsasən null
@@ -228,7 +228,7 @@ solve.cascade                  props: {
                                  transcribe_storage_ms, transcribe_db_ms, transcribe_route_total_ms,
                                  layer_cost_usd, layer_latency_ms, total_cost_usd,
                                  has_figure, ocr_confidence, attempt_kind, soak_provider,
-                                 persist_ok
+                                 persist_ok, model, fallback_used, fallback_from
                                }
                                ← transcribe_*_ms: klientin ötürdüyü Qat 1 parçalanma (telemetriya)
                                ← persist_ok: false olanda layer cavabı var, DB/yoxlama fail

@@ -191,5 +191,7 @@ export async function callSoakChat(opts: {
     latencyMs,
     attempts,
     model: "chatgpt_web",
+    fallbackUsed: false,
+    fallbackFrom: null,
   };
 }
