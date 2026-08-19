@@ -88,7 +88,20 @@ property → komponent. Səbəb: mövcud 9 dizayn faylında eyni token 3 fərqli
 
 ## ClickUp koordinatları
 
-Claude Code-a eyni ClickUp MCP-sini əlavə et (`claude mcp add`). Space statusları yalnız `to do` / `complete`-dir (`in progress` yoxdur). Başlayanda komment yaz; commit-dən sonra `complete`.
+**ClickUp MCP-sini İŞLƏTMƏ — `scripts/clickup.mjs` işlət** (2026-08-15 dərsi). MCP server-in
+öz limiti var: Free planda 24 saatlıq ROLLING pəncərədə cəmi **50 çağırış**, sıfırlana bilmir
+(biz ona çırpıldıq, 246 dəqiqə gözləmə). REST API isə **dəqiqədə 100 sorğu**dur — ~1000x fərq.
+Token `CLICKUP_TOKEN` env-dədir (`.env`, gitignore-da; nümunə `.env.example`).
+
+```
+node scripts/clickup.mjs ls <list_id>
+node scripts/clickup.mjs create <list_id> "<ad>" --md tmp/task.md --priority high
+node scripts/clickup.mjs comment <task_id> --md tmp/comment.md
+node scripts/clickup.mjs status <task_id> complete
+```
+
+Space statusları yalnız `to do` / `complete`-dir (`in progress` yoxdur). Başlayanda komment
+yaz; commit-dən sonra `complete`.
 
 | Siyahı | `list_id` |
 |---|---|
