@@ -19,7 +19,7 @@ alwaysApply: true
 | ClickUp space | `901810230629` |
 | Latest migration | `0074` |
 | Latest ADR | `031` |
-| Latest HANDOFF | `192` |
+| Latest HANDOFF | `193` |
 | tsconfig target | ES2017 |
 | STEP-SCHEMA version | 2 |
 
@@ -42,12 +42,19 @@ alwaysApply: true
 | Visual schema | `web/lib/visual.ts` |
 | Telemetry spec | `docs/TELEMETRY.md` |
 | Step schema | `docs/STEP-SCHEMA.json` |
+| Eval harness | `scripts/eval.py` |
+| Eval pipelines / fallback | `scripts/lib/pipelines.py`, `scripts/lib/llm_client.py` |
+| Eval reports | `scripts/lib/report.py` |
+| Eval docs | `evals/README.md` |
+| CI workflow | `.github/workflows/ci.yml` |
+| Lockfile (npm ci) | `web/package-lock.json` |
+| Push verify skill | `.cursor/skills/push-verify/SKILL.md` |
 
 ## Current state
 
-- Production: `f399f02` (2026-08-19), Vercel READY
+- Production: `97e8ca3` (2026-08-19), Vercel READY, CI green
 - Cascade: enabled via `app_config.cascade_enabled`
-- Model fallback: 2 consecutive 503 → next model in registry
-- `model_used` jsonb tracks which model answered (0074)
-- Eval blocked: Gemini 503 wave (E1.9 leak + E1.10 false_refusal pending)
+- Model fallback: 2 consecutive 503 → next model in registry (prod + eval `--fallback`)
+- Eval harness: `--from-canonical`, `--fallback`, `leak_rate_by_model` in summaries
+- E1.9 leak 0% not met (text-path re-run); E1.10 open (needs vision)
 - No real students yet (CLAUDE.md: "production-da real istifadəçi YOXDUR")

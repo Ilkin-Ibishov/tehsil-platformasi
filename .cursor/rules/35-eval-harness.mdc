@@ -1,0 +1,33 @@
+---
+description: Eval harness flags, metrics, and CI selftest behaviour
+globs:
+  - scripts/**
+  - evals/**
+alwaysApply: false
+---
+
+# Eval harness
+
+Source: `scripts/eval.py`, `scripts/lib/{pipelines,report,llm_client}.py`, `evals/README.md`.
+
+## Modes
+
+| Flag | Purpose |
+|---|---|
+| `--from-canonical <result.json>` | Skip Qat 1; re-run text path from saved `model_canonical` |
+| `--fallback` | 503 → next Gemini in registry; track `model_used` / `fallback_from` per item |
+| `--selftest` | No API; harness invariants only (CI runs this) |
+
+Text-path `--from-canonical` uses item `has_figure` for image rules when forcing text.
+
+## Metrics (summary JSON)
+
+- `model_used_distribution`, `fallback_count`, `leak_rate_by_model` — see `scripts/lib/report.py`
+- E1.9 leak acceptance: **0%** on the measured set
+- E1.10 `false_refusal`: requires **vision** path — text-only `--from-canonical` does not close it
+
+## CI selftest
+
+`evals/images/**` is gitignored. In CI checkout, `vision_image_exists` **skips** when media absent; other image invariants (`missing_image_is_error`, `force_text_uses_canonical`) stay mandatory.
+
+Operational map: `.cursor/skills/run-eval/SKILL.md`.

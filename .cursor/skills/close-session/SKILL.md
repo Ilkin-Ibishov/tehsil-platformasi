@@ -37,5 +37,5 @@ Commit when the task is finished. Do not wait to be asked. Message in English, w
 
 If the user explicitly asks for push, treat push as NOT final:
 - run `git push`
-- then verify `gh run list --limit 1` and `vercel ls`
-- if CI/deploy is failed, report failure + root cause (`gh run view --log-failed`, `vercel inspect <url> --logs`) instead of claiming completion.
+- then follow `.cursor/skills/push-verify/SKILL.md` (CI + Vercel)
+- do not claim completion until both are green

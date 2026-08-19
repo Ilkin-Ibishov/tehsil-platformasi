@@ -20,6 +20,9 @@ Fail the change if any of these hold:
 - New telemetry name not in `docs/TELEMETRY.md`.
 - Student-path hard FK that will 500 on LLM-invented `topic_code`.
 - Feature work left on a branch that will not reach `main`.
+- `web/package-lock.json` stub nodes without `version` (CI `Invalid Version`).
+- Eval selftest changes that require `evals/images/` in CI (must skip or mock when gitignored).
+- Push claimed complete without CI + Vercel verify (see `.cursor/skills/push-verify/SKILL.md`).
 
 Output:
 

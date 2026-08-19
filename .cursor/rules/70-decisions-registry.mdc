@@ -1,0 +1,17 @@
+---
+description: Stable product/engineering decisions agents must not re-litigate without Cowork
+alwaysApply: false
+---
+
+# Decisions registry
+
+Point values live in ClickUp / HANDOFF — this file records **what was decided**, not live metrics.
+
+| Decision | ID | Rule |
+|---|---|---|
+| ChatGPT adapter **not** used in eval harness | `86eyp6mhp` | Do not add OpenAI/ChatGPT eval path unless Cowork reopens |
+| E2 (test bank slice) | frozen | No new E2 scope without explicit HANDOFF |
+| E1.10 false_refusal | `86eyp3aub` | Requires **vision** eval — text-only `--from-canonical` cannot close |
+| E1.9 leak | `86eyp3au4` | Acceptance **0%** leak on measured set |
+
+When a decision conflicts with a local shortcut, stop and note in HANDOFF `Blok:` instead of implementing.

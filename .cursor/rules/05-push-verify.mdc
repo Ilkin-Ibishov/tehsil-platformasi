@@ -1,0 +1,14 @@
+---
+description: Mandatory post-push CI and Vercel verification — do not claim completion until green
+alwaysApply: true
+---
+
+# Push verify
+
+When the user asks for push (or you push unprompted after explicit request):
+
+1. Run `.cursor/skills/push-verify/SKILL.md` **after** `git push`.
+2. Do **not** say the task is done while CI or the latest Vercel deploy is failed / Error / cancelled.
+3. On failure: open logs (`gh run view --log-failed`, `vercel inspect <url> --logs`), fix or report root cause.
+
+`close-session` references this skill; do not duplicate the verify steps elsewhere.

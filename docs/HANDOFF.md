@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-19 (193) · Cursor → Cowork
+Etdim:    Agent kontekst modulyarizasiyası: push-verify qaydası/skill (`05-push-verify.mdc`, `push-verify/SKILL.md`), eval harness qaydası/skill (`35-eval-harness.mdc`, `run-eval/SKILL.md`), lockfile CI qaydası/skill (`65-ci-lockfile.mdc`, `fix-lockfile/SKILL.md`), qərarlar reyestri (`70-decisions-registry.mdc`), `deploy-guard` subagent, `reviewer.md` genişləndirməsi; `99-agent-context.mdc` file map + cari vəziyyət; `close-session` push-verify skill-ə yönləndirildi.
+Tapşırıq: meta / no ClickUp.
+Diqqət:   Məhsul kodu dəyişmədi. Push-sonrası verify indi həm AGENTS.md, həm də ayrıca skill/qayda ilə tələb olunur.
+
 ## 2026-08-19 (192) · Cursor → Cowork
 Etdim:    Push sonrası verify protokolu ilə yoxlamada CI `eval.py --selftest` fail verdi: CI checkout-da `evals/images/**` olmadığı üçün `vision_image_exists` testinin sərt PASS tələbi qırılırdı. `scripts/eval.py`-də test CI-friendly edildi: media yoxdursa `[SKIP]` çıxır, digər image resolve invariantları (`missing_image_is_error`, `force_text_uses_canonical`) yenə məcburi qalır.
 Tapşırıq: meta / no ClickUp.

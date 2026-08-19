@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-08-19: HANDOFF 193 — `.cursor/` modulyarizasiya: push-verify, eval harness, lockfile CI
+  skill/qaydaları; `deploy-guard` subagent; `99-agent-context` file map yeniləndi.
 - 2026-08-19: HANDOFF 192 — push verify zamanı CI-də `eval.py --selftest` faili bağlandı:
   `vision_image_exists` CI-də media yoxdursa `SKIP` edir, digər image invariant testləri qalır.
   Vercel deploy `951c1a4` üçün Ready idi; qalan blocker selftest idi.

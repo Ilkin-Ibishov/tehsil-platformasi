@@ -1,0 +1,30 @@
+---
+description: npm lockfile hygiene and CI Invalid Version failures
+globs:
+  - web/package.json
+  - web/package-lock.json
+alwaysApply: false
+---
+
+# CI lockfile
+
+CI and Vercel run `npm ci` in `web/`. A corrupt `package-lock.json` fails the whole pipeline with:
+
+```
+npm error Invalid Version:
+```
+
+## Known failure mode
+
+Malformed stub nodes (e.g. `rolldown` entries **without** a `version` field) — often introduced when hand-editing lockfile or mixing package managers after vitest/rolldown tooling changes.
+
+## Fix playbook
+
+Use `.cursor/skills/fix-lockfile/SKILL.md`:
+
+1. Remove corrupt stub nodes from `web/package-lock.json` (or regenerate).
+2. `cd web && rm -rf node_modules && npm install`
+3. Commit lockfile only if `npm ci` succeeds locally.
+4. Push → run push-verify skill.
+
+Do not commit partial lockfile stubs. Prefer full regenerate over surgical edits unless you know the exact corrupt node.
