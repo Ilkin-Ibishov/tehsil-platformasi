@@ -9,6 +9,12 @@ export type FinishPreviewStep = {
   index?: number;
   title?: string;
   explanation?: string;
+  latex?: string;
+  hint?: string;
+  error_code?: string;
+  why?: string;
+  tokens?: Record<string, string>;
+  check?: { ask: string; input_kind?: "number" | "expression" | "choice" };
 };
 
 export async function readFinishNdjson(

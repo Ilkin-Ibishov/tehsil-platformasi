@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-24 (196) · Antigravity → Cowork
+Etdim:    Streaming Steps & Mobile Math Input tətbiq edildi: 1) `web/lib/verify/answer.ts`-ə Unicode kök, qüvvət, pi, onluq vergül (`√`, `²`, `³`, `π`, `±`, `0,5`) normallaşdırması və `answer.selftest.mts` (29/29) əlavə edildi. 2) `web/components/hell/MathKeyboardBar.tsx` yaradıldı (minimum 44px touch target, `e.preventDefault()` ilə virtual klaviatura bağlanmasının qarşısı alındı, kursor idarəsi). 3) `SolveView.tsx`-ə `MathKeyboardBar`, `visualViewport` listener və axın zamanı DB race condition-un qarşısını alan `streamPersistencePromise` əlavə olundu. 4) `stream-steps.ts` və `finish-stream.ts` whitelist və tam display sahələri ilə gücləndirildi.
+Tapşırıq: meta / UX & Streaming Latency Optimization.
+Diqqət:   iOS Safari 16px auto-zoom qadağası və ADR-017 sızma qoruması toxunulmaz saxlanıldı.
+
 ## 2026-08-24 (195) · Antigravity → Cowork
 Etdim:    E1.9/E1.10 bençmark ölçməsi `core.md` v17 və yeni sızma filtri ilə icra olundu (`golden-set-math-dim-vB-e24`, n=24 və `golden-set-physics-30`, n=27). Nəticələr: Hər iki fəndə sızma 0% (Math 0/24=0.0%, Physics 0/27=0.0%, hər iki modeldə 0%), sxem validliyi 100%, fizika topic_code 27/27=100%, false refusal 0%. Xülasələr `summary-golden-set-math-dim-vB-e24-2026-08-24.json` və `summary-golden-set-physics-30-2026-08-24.json` fayllarına yazıldı.
 Tapşırıq: `86eyp3au4` (E1.9) sızma 0% hədəfi tamamlandı.

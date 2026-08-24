@@ -75,8 +75,19 @@ function normalize(raw: string): string {
   text = text.replace(/\\ /g, " ");
   text = text.replace(/\s+/g, "");
   text = text.replace(/−/g, "-");
+  text = text.replace(/·/g, "*");
+  text = text.replace(/÷/g, "/");
   text = text.replace(LATEX_FRAC_RE, "($1)/($2)");
   text = text.replace(LATEX_SQRT_RE, "sqrt($1)");
+  // Unicode kök və qüvvətlərin mathjs üçün normallaşdırılması (mobil riyaziyyat çipləri):
+  text = text.replace(/√\s*(\d+|\([a-zA-Z0-9.+/*-]+\)|[a-zA-Z])/g, "sqrt($1)");
+  text = text.replace(/√\{([^}]+)\}/g, "sqrt($1)");
+  text = text.replace(/²/g, "^2");
+  text = text.replace(/³/g, "^3");
+  text = text.replace(/⁴/g, "^4");
+  text = text.replace(/⁵/g, "^5");
+  text = text.replace(/π/g, "pi");
+  text = text.replace(/±/g, "+-");
   text = text.replace(/\\cdot/g, "*");
   text = text.replace(/\\pi/g, "pi");
   text = text.replace(/°/g, "");

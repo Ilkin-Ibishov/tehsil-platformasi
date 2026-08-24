@@ -7,6 +7,7 @@ import { reportAttemptProgress } from "@/lib/attempts";
 import { formatMath, formatMathProse, findUnformattedLatex } from "@/lib/math-format";
 import { canPassStuckStep } from "@/lib/verify/step-pass";
 import { VisualFigure } from "@/components/hell/VisualFigure";
+import { MathKeyboardBar } from "@/components/hell/MathKeyboardBar";
 import type { VisualSpec } from "@/lib/visual";
 
 export type SolveStep = {
@@ -213,17 +214,23 @@ export function SolveView({
   // nəzərdə tutur) bank axınında YANLIŞ oxunur. Optional, defolt DƏYİŞMİR — kamera axını
   // TOXUNULMUR.
   resetLabel,
+  isStreaming = false,
+  streamPersistencePromise,
 }: {
   solution: SolveResult;
   attemptId: string;
   onReset: () => void;
   resetLabel?: string;
+  isStreaming?: boolean;
+  streamPersistencePromise?: Promise<unknown>;
 }) {
   const t = useTranslations("hell");
   const steps = solution.steps;
   const total = steps.length;
 
   const [stepIndex, setStepIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [viewportBottomOffset, setViewportBottomOffset] = useState(0);
   // ClickUp 86eyn1t7b — ən uzaq açılmış addım. Geri/irəli yalnız `i <= farthestIndex`.
   // `answers` silinmir: yazılmış `error_code` (server `step_events`) və UI-dakı səhv adı qalır.
   const [farthestIndex, setFarthestIndex] = useState(0);
@@ -265,6 +272,79 @@ export function SolveView({
   const alreadyUnlocked = stepIndex < farthestIndex;
   const midStepLocked =
     stepIndex < total - 1 && currentAnswer.status !== "correct" && !stuckPassable && !alreadyUnlocked;
+
+  // Mobil klaviatura və visualViewport izləyicisi (iOS Safari / Android Chrome)
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const onResizeOrScroll = () => {
+      const offset = window.innerHeight - vv.height - vv.offsetTop;
+      setViewportBottomOffset(Math.max(0, Math.round(offset)));
+    };
+    vv.addEventListener("resize", onResizeOrScroll);
+    vv.addEventListener("scroll", onResizeOrScroll);
+    return () => {
+      vv.removeEventListener("resize", onResizeOrScroll);
+      vv.removeEventListener("scroll", onResizeOrScroll);
+    };
+  }, []);
+
+  function insertSymbol(symbol: string) {
+    const el = inputRef.current;
+    if (!el) {
+      setInput(currentAnswer.input + symbol);
+      return;
+    }
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const prev = el.value;
+    const next = prev.slice(0, start) + symbol + prev.slice(end);
+    setInput(next);
+    requestAnimationFrame(() => {
+      if (inputRef.current) {
+        inputRef.current.setSelectionRange(start + symbol.length, start + symbol.length);
+        inputRef.current.focus();
+      }
+    });
+  }
+
+  function handleBackspace() {
+    const el = inputRef.current;
+    if (!el) {
+      setInput(currentAnswer.input.slice(0, -1));
+      return;
+    }
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const prev = el.value;
+    if (start === end) {
+      if (start === 0) return;
+      const next = prev.slice(0, start - 1) + prev.slice(end);
+      setInput(next);
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          inputRef.current.setSelectionRange(start - 1, start - 1);
+          inputRef.current.focus();
+        }
+      });
+    } else {
+      const next = prev.slice(0, start) + prev.slice(end);
+      setInput(next);
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          inputRef.current.setSelectionRange(start, start);
+          inputRef.current.focus();
+        }
+      });
+    }
+  }
+
+  function handleClear() {
+    setInput("");
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
+  }
 
   function toggleProblem() {
     if (!problemExpanded) {
@@ -382,6 +462,15 @@ export function SolveView({
     const submittedInput = currentAnswer.input;
 
     setAnswers((prev) => ({ ...prev, [stepIndex]: { ...currentAnswer, status: "checking" } }));
+
+    // Əgər həll hələ axınla yüklənirsə, DB qeydinin tamamlanmasını gözləyirik (404 race condition qarşısı)
+    if (streamPersistencePromise) {
+      try {
+        await streamPersistencePromise;
+      } catch {
+        // Stream xətası olsa belə aşağıda yoxlama cəhdi edilir
+      }
+    }
 
     let correct: boolean;
     let errorTitle: string | null = null;
@@ -763,12 +852,21 @@ export function SolveView({
         )}
       </div>
 
-      <div style={{ padding: "0 var(--page-pad-x) 12px", display: "flex", flexDirection: "column", gap: 12, flexShrink: 0 }}>
+      <div style={{ padding: `0 var(--page-pad-x) ${Math.max(12, viewportBottomOffset + 12)}px`, display: "flex", flexDirection: "column", gap: 12, flexShrink: 0, transition: "padding-bottom 150ms ease" }}>
           {currentAnswer.status !== "correct" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <span style={{ fontSize: 14, lineHeight: 1.6 }}>{formatMathProse(currentStep.check.ask)}</span>
+              {currentStep.check.input_kind !== "choice" && (
+                <MathKeyboardBar
+                  onInsert={insertSymbol}
+                  onBackspace={handleBackspace}
+                  onClear={handleClear}
+                  disabled={currentAnswer.status === "checking" || passing}
+                />
+              )}
               <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
                 <input
+                  ref={inputRef}
                   type="text"
                   // UX audit tapıntısı (2026-08-14): `check.input_kind` YALNIZ telemetriyada
                   // işlədilirdi, real `<input>`-a heç vaxt ötürülmürdü — mobil klaviatura
@@ -782,6 +880,9 @@ export function SolveView({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") void submitAnswer();
                   }}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   disabled={currentAnswer.status === "checking"}
                   style={{
                     flex: 1,

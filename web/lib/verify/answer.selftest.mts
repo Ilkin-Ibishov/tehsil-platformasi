@@ -36,6 +36,15 @@ const CASES: [string, string, boolean][] = [
   ["Müsbət", "müsbət", true],
   ["MÜSBƏT", "müsbət", true],
   ["mənfi", "müsbət", false], // Ilkin-in qəsdən yazdığı SƏHV cavab — YENƏ səhv qalmalıdır
+  // Mobil riyaziyyat çipləri və Unicode simvolları (Streaming Steps / Math Chips):
+  ["√4", "2", true],
+  ["√9 + 1", "4", true],
+  ["3²", "9", true],
+  ["2³", "8", true],
+  ["π", "pi", true],
+  ["2π", "2*pi", true],
+  ["10 ÷ 2", "5", true],
+  ["4 · 5", "20", true],
 ];
 
 let fails = 0;

@@ -1,5 +1,8 @@
 # LOG
 
+- 2026-08-24: HANDOFF 196 — Streaming Steps və Mobile Math Input tətbiq edildi:
+  `MathKeyboardBar.tsx` yaradıldı, `visualViewport` listener və `answer.ts` Unicode normallaşdırması (29/29) bağlandı.
+  `SolveView.tsx` axın zamanı DB race condition-un qarşısını alan `streamPersistencePromise` ilə təchiz olundu.
 - 2026-08-24: HANDOFF 195 — E1.9 sızma bençmarkı tam uğurla ölçüldü (`core.md` v17).
   Riyaziyyat (e24 n=24) leak 0/24=0.0%, Fizika (n=27) leak 0/27=0.0%, hər iki modeldə 0%.
   Sxem validliyi 100%, fizika topic_code 27/27=100%, false refusal 0%.

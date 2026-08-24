@@ -92,9 +92,22 @@ export function extractNewDisplayableSteps(
   };
 }
 
-/** Strip `check.accept` (ADR-017) before any client-facing step event. */
+/** Strip `check.accept` (ADR-017) via strict whitelist before any client-facing step event. */
 export function toPublicPreviewStep(raw: RawStep): PublicStep {
-  const checkRest = raw.check ? { ...raw.check } : undefined;
-  if (checkRest && "accept" in checkRest) delete checkRest.accept;
-  return { ...raw, check: checkRest };
+  return {
+    index: raw.index,
+    title: raw.title,
+    explanation: raw.explanation,
+    latex: raw.latex,
+    error_code: raw.error_code,
+    hint: raw.hint,
+    why: raw.why,
+    tokens: raw.tokens,
+    check: raw.check
+      ? {
+          ask: raw.check.ask,
+          input_kind: raw.check.input_kind ?? "number",
+        }
+      : undefined,
+  };
 }
