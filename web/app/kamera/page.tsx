@@ -14,6 +14,7 @@ import { SolveView, type SolveResult } from "@/components/hell/SolveView";
 import { TranscriptConfirmView } from "@/components/hell/TranscriptConfirmView";
 import { readFinishNdjson, type FinishPreviewStep } from "@/lib/kamera/finish-stream";
 import { parseVisual } from "@/lib/visual";
+import { getStoredProfile } from "@/lib/profile/storage";
 
 // ADR-020 / ClickUp 86eykj7x2 — transkripsiya təsdiq ekranı YALNIZ server kaskadı açıq
 // olanda mənalıdır (o, `/api/solve/transcribe`+`/api/solve/finish` iki-endpoint axınına
@@ -22,6 +23,13 @@ import { parseVisual } from "@/lib/visual";
 // Bayrağın özü artıq `NEXT_PUBLIC_*` env DEYİL, komponent daxilində `/api/config/public`-dən
 // oxunur (bax `cascadeUiEnabled` state-i, aşağıda) — səbəb: `NEXT_PUBLIC_*` build vaxtı
 // bundle-a yapışır, DB dəyişikliyi redeploy-suz görünmür.
+
+function appendSolveProfileFields(form: FormData): void {
+  const profile = getStoredProfile();
+  form.append("grade", String(profile.grade));
+  form.append("locale", profile.locale);
+  form.append("pedagogical_tone", profile.pedagogicalTone);
+}
 
 type Stage = "invite" | "capture" | "crop" | "submitting" | "solved" | "refused" | "candidates" | "done" | "confirm";
 
@@ -235,8 +243,7 @@ export default function KameraPage() {
       if (rawBlob) form.append("image_raw", rawBlob, "problem-raw.jpg");
       form.append("device_id", getDeviceId());
       form.append("invite_code", inviteCode ?? "");
-      form.append("grade", "11");
-      form.append("locale", "az");
+      appendSolveProfileFields(form);
       form.append("subject", "math");
       if (selectedLabel) form.append("selected_label", selectedLabel);
       if (currentAttemptIdRef.current) form.append("attempt_id", currentAttemptIdRef.current);
@@ -316,7 +323,13 @@ export default function KameraPage() {
         return;
       }
 
-      setSolution({ canonical: body.canonical, steps: body.steps, verified: body.verification?.verified, visual: parseVisual(body.visual) });
+      setSolution({
+        canonical: body.canonical,
+        steps: body.steps,
+        verified: body.verification?.verified,
+        visual: parseVisual(body.visual),
+        topicCode: typeof body.topic_code === "string" ? body.topic_code : undefined,
+      });
       setSolutionAttemptId(typeof body.attempt_id === "string" ? body.attempt_id : currentAttemptIdRef.current ?? null);
       setStage("solved");
     } catch {
@@ -370,7 +383,8 @@ export default function KameraPage() {
       body: JSON.stringify({
         device_id: getDeviceId(),
         invite_code: inviteCode ?? "",
-        locale: "az",
+        locale: getStoredProfile().locale,
+        pedagogical_tone: getStoredProfile().pedagogicalTone,
         attempt_id: currentAttemptIdRef.current ?? null,
         capture_id: t.captureId,
         transcribe_meta: {
@@ -480,6 +494,7 @@ export default function KameraPage() {
       steps: body.steps as SolveResult["steps"],
       verified: (body.verification as { verified?: boolean } | undefined)?.verified,
       visual: parseVisual(body.visual),
+      topicCode: typeof body.topic_code === "string" ? body.topic_code : undefined,
     });
     setSolutionAttemptId(typeof body.attempt_id === "string" ? body.attempt_id : currentAttemptIdRef.current ?? null);
     setStage("solved");
@@ -503,8 +518,7 @@ export default function KameraPage() {
       if (rawBlob) form.append("image_raw", rawBlob, "problem-raw.jpg");
       form.append("device_id", getDeviceId());
       form.append("invite_code", inviteCode ?? "");
-      form.append("grade", "11");
-      form.append("locale", "az");
+      appendSolveProfileFields(form);
       form.append("subject", "math");
       if (selectedLabel) form.append("selected_label", selectedLabel);
 

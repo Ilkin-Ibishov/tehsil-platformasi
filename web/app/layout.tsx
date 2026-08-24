@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import "./globals.css";
 import { getThemeVars } from "@/lib/design-tokens";
 import { TelemetryInit } from "@/components/TelemetryInit";
+import { ThemeToneSync } from "@/components/ThemeToneSync";
 
 const golosText = Golos_Text({ variable: "--font-golos", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const nunito = Nunito({ variable: "--font-nunito", subsets: ["latin"], weight: ["600", "700", "800"] });
@@ -14,17 +15,17 @@ export const metadata: Metadata = {
   description: "Riyaziyyat məsələsini addım-addım açan köməkçi",
 };
 
-// S1a: tema/ton hələ statikdir (dark/yetkin). Üslub seçimi (Üslub seçimi.dc.html) sonrakı
-// sprintin işidir — infrastruktur (token → CSS var boru xətti) indi hazırlanır.
+// Defolt dark/yetkin; klient `ThemeToneSync` profil `visualTone`-u (genc/yetkin) tətbiq edir.
 const themeVars = getThemeVars("dark", "yetkin");
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="az" data-theme="dark" style={themeVars as React.CSSProperties} className={`${golosText.variable} ${nunito.variable} ${jetbrainsMono.variable}`}>
+    <html lang="az" data-theme="dark" data-tone="yetkin" style={themeVars as React.CSSProperties} className={`${golosText.variable} ${nunito.variable} ${jetbrainsMono.variable}`}>
       <body>
         <div className="app-shell">
           <NextIntlClientProvider>
             <TelemetryInit />
+            <ThemeToneSync />
             {children}
           </NextIntlClientProvider>
         </div>

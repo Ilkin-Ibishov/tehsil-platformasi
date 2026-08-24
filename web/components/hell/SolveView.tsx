@@ -8,6 +8,7 @@ import { formatMath, formatMathProse, findUnformattedLatex } from "@/lib/math-fo
 import { canPassStuckStep } from "@/lib/verify/step-pass";
 import { VisualFigure } from "@/components/hell/VisualFigure";
 import { MathKeyboardBar } from "@/components/hell/MathKeyboardBar";
+import { saveHistoryItem, recordErrorCode, touchStreak } from "@/lib/profile/storage";
 import type { VisualSpec } from "@/lib/visual";
 
 export type SolveStep = {
@@ -24,6 +25,8 @@ export type SolveResult = {
   canonical: string;
   steps: SolveStep[];
   visual?: VisualSpec | null;
+  topicCode?: string;
+  topicTitle?: string;
   // S5 (86eymwgkv) — sympy `equationCrossCheck` təsdiqləyə bilmədi (söz məsələsi, çoxdəyişənli
   // tənlik və s.). Bilinmirsə (köhnə klient axını, sahə göndərilmirsə) `undefined` — şagirdə
   // heç nə göstərilmir (defolt "sükut" halı, YALANDAN xəbərdarlıq etmə).
@@ -359,6 +362,7 @@ export function SolveView({
   // kimi yazmamalıdır — ən uzaq açılmış addım yazılır.
   const revealedRef = useRef(revealed);
   const farthestIndexRef = useRef(farthestIndex);
+  const answersRef = useRef(answers);
   useEffect(() => {
     revealedRef.current = revealed;
   }, [revealed]);
@@ -366,12 +370,43 @@ export function SolveView({
     farthestIndexRef.current = farthestIndex;
   }, [farthestIndex]);
   useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
+  useEffect(() => {
     return () => {
       if (!revealedRef.current) {
         reportAttemptProgress({ attemptId, completed: false, abandonedAtStep: farthestIndexRef.current, durationSec: null, revealedAnswer: false });
+        const wrongCount = Object.values(answersRef.current).filter((a) => a.status === "wrong").length;
+        saveHistoryItem({
+          id: attemptId,
+          topicCode: solution.topicCode || "MATH.GENERAL",
+          topicTitle: solution.topicTitle || "",
+          canonical: solution.canonical ?? "",
+          stepsCount: total,
+          errorCodesCount: wrongCount,
+          timestamp: solveStartedAt.current,
+          completed: false,
+          currentStepIndex: farthestIndexRef.current + 1,
+        });
       }
     };
-  }, [attemptId]);
+  }, [attemptId, solution.canonical, solution.topicCode, solution.topicTitle, total]);
+
+  // Persist in-progress solve for home history + streak
+  useEffect(() => {
+    touchStreak();
+    saveHistoryItem({
+      id: attemptId,
+      topicCode: solution.topicCode || "MATH.GENERAL",
+      topicTitle: solution.topicTitle || "",
+      canonical: solution.canonical ?? "",
+      stepsCount: total,
+      errorCodesCount: 0,
+      timestamp: Date.now(),
+      completed: false,
+      currentStepIndex: 1,
+    });
+  }, [attemptId, solution.canonical, solution.topicCode, solution.topicTitle, total]);
 
   // S6: cavab açılan kimi (bir dəfə) transfer namizədi soruşulur — tapılmasa (`null`) heç nə
   // göstərilmir, `transfer.shown`/`skipped` yalnız HƏQİQƏTƏN göstərildikdə mənalıdır.
@@ -493,6 +528,7 @@ export function SolveView({
     });
     if (!correct) {
       trackEvent("step.error_recorded", { index: stepIndex, error_code: currentStep.error_code });
+      recordErrorCode(currentStep.error_code);
     }
 
     setAnswers((prev) => ({
@@ -577,6 +613,18 @@ export function SolveView({
       // gətirilib/göstərilib (yuxarıda `setRevealed(true)`). 86eymrkjn-dən sonra bura yalnız
       // son addımdan gəlinir; final cavabı görmədən "bitirmə" yolu YOXDUR.
       revealedAnswer: true,
+    });
+    const errorsTotal = Object.values(answers).filter((a) => a.status === "wrong").length;
+    saveHistoryItem({
+      id: attemptId,
+      topicCode: solution.topicCode || "MATH.GENERAL",
+      topicTitle: solution.topicTitle || "",
+      canonical: solution.canonical ?? "",
+      stepsCount: total,
+      errorCodesCount: errorsTotal,
+      timestamp: solveStartedAt.current,
+      completed: finishedAllSteps,
+      currentStepIndex: stepIndex + 1,
     });
   }
 

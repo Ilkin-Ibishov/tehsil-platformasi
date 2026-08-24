@@ -130,6 +130,8 @@ export type CascadeContext = {
   locale: string;
   requestedGrade: number;
   requestedSubject: string;
+  /** Optional pedagogical tone from client profile (`dostyana` | `yetkin` | `qisa`). */
+  pedagogicalTone?: string;
   signal?: AbortSignal;
   useSoakAdapter?: boolean;
   /**

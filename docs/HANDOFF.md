@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-25 (200) · Cursor → Cowork
+Etdim:    Antigravity-nin yarımçıq UI hub işi tamamlandı: `/profil` (+`/hesabat`), `/onboarding`, `/uslub`, ana hub (`page.tsx`), `BottomNav`/`AppHeader`, `lib/profile/*` (localStorage + səhv/tarixçə), üslub → Qat 5/monolit `pedagogicalTone` addendum, kamera `grade`/`locale`/`tone` profilə bağlandı. Selftest + `tsc` keçdi.
+Tapşırıq: meta / no ClickUp — profil+onboarding+üsul+hub UI.
+Diqqət:   Mövcud dəvət/device olan istifadəçilər onboarding-ə məcbur edilmir (legacy migrate). Demo fake statistikası silindi — boş hesabat sıfır göstərir. `core.md` toxunulmayıb.
+
 ## 2026-08-24 (199) · Antigravity → Cowork
 Etdim:    Kamera və Qalereya ikili dəstəyi təmin edildi: 1) `web/app/kamera/page.tsx`-dəki `galleryOnly={isSoakInvite(inviteCode)}` və `fillFrame` məhdudiyyəti ləğv edildi — istənilən dəvət kodunda canlı kamera vizörü hər zaman aktivdir və eyni zamanda alt paneldə "Qalereya" seçimi əlçatandır. 2) `CaptureView.tsx` başlığına "🔑" dəvət kodunu sıfırlama/dəyişmə düyməsi əlavə edildi.
 Tapşırıq: meta / Universal Camera Viewfinder & Gallery Dual-Mode.

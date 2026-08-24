@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID, createHash } from "node:crypto";
 import { pool } from "@/lib/db";
 import { loadPromptTemplates, renderUserPrompt, UnsupportedSubjectError } from "@/lib/prompt";
+import { pedagogicalToneAddendum } from "@/lib/profile/tone-prompt";
 import { callVisionLLM } from "@/lib/llm";
 import { computeCostUsd, sumCostUsd, billableOutputTokens, sumTokens } from "@/lib/cost";
 import { getActiveModel } from "@/lib/models";
@@ -183,6 +184,7 @@ export async function POST(req: NextRequest) {
   const grade = Number(form.get("grade") ?? 11);
   const locale = String(form.get("locale") ?? "az");
   const subject = String(form.get("subject") ?? "math");
+  const pedagogicalTone = String(form.get("pedagogical_tone") ?? "yetkin");
   const selectedLabel = form.get("selected_label");
 
   if (!(image instanceof Blob) || image.size === 0) {
@@ -409,6 +411,7 @@ export async function POST(req: NextRequest) {
           locale,
           requestedGrade: grade,
           requestedSubject: subject,
+          pedagogicalTone,
           signal: controller.signal,
           strictSubject: await getBoolConfig(pool, "prompt_strict_subject", "PROMPT_STRICT_SUBJECT"),
           logEvent: (name, props) => logEvent(deviceId, sessionId, name, props),
@@ -541,7 +544,8 @@ export async function POST(req: NextRequest) {
       );
     }
   }
-  const { system, userTemplate } = loaded;
+  const { system: baseSystem, userTemplate } = loaded;
+  const system = baseSystem + pedagogicalToneAddendum(pedagogicalTone);
   let userPrompt = renderUserPrompt(userTemplate, grade, subject, locale);
   if (typeof selectedLabel === "string" && selectedLabel) {
     userPrompt += `\n\nYalnız "${selectedLabel}" etiketli/nömrəli məsələni həll et, kadrdakı digərlərini görməzdən gəl.`;

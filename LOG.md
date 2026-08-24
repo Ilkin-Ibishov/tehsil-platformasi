@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-08-25: HANDOFF 200 — Profil/hesabat, onboarding, üslub və ana hub UI tamamlandı;
+  `lib/profile/*` + pedagoji ton kaskada bağlandı; selftest/`tsc` keçdi.
 - 2026-08-24: HANDOFF 199 — Kamera və Qalereya ikili rejimi təmin edildi:
   `kamera/page.tsx`-dəki `galleryOnly` məhdudiyyəti ləğv edildi, `CaptureView`-a dəvət kodunu sıfırlama düyməsi ("🔑") əlavə olundu.
 - 2026-08-24: HANDOFF 198 — DİM Toplu Parametrik Şablon Mühərriki (Kaskad Qat 3) genişləndirildi:

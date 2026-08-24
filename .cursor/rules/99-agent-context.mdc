@@ -19,7 +19,7 @@ alwaysApply: true
 | ClickUp space | `901810230629` |
 | Latest migration | `0074` |
 | Latest ADR | `031` |
-| Latest HANDOFF | `193` |
+| Latest HANDOFF | `200` |
 | tsconfig target | ES2017 |
 | STEP-SCHEMA version | 2 |
 
@@ -56,5 +56,6 @@ alwaysApply: true
 - Cascade: enabled via `app_config.cascade_enabled`
 - Model fallback: 2 consecutive 503 → next model in registry (prod + eval `--fallback`)
 - Eval harness: `--from-canonical`, `--fallback`, `leak_rate_by_model` in summaries
-- E1.9 leak 0% not met (text-path re-run); E1.10 open (needs vision)
+- E1.9 leak 0% met (text-path, HANDOFF 195); E1.10 open (needs vision)
+- Student UI hub: `/profil`, `/onboarding`, `/uslub`, home dashboard (HANDOFF 200) — localStorage profile
 - No real students yet (CLAUDE.md: "production-da real istifadəçi YOXDUR")

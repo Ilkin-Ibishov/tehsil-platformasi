@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { trackEvent, getDeviceId } from "@/lib/telemetry";
 import { InviteGate, getStoredInviteCode, clearStoredInviteCode } from "@/components/kamera/InviteGate";
 import { SolveView, type SolveResult } from "@/components/hell/SolveView";
+import { BottomNav } from "@/components/nav/BottomNav";
 import { parseVisual } from "@/lib/visual";
 
 // ClickUp 86eykhve0 — bank UI. Bankda 217 `auto_verified` sual var, addımları hazırdır, amma
@@ -106,7 +107,13 @@ export default function BankPage() {
         return;
       }
       const body = await res.json();
-      setSolution({ canonical: body.canonical, steps: body.steps, visual: parseVisual(body.visual) });
+      setSolution({
+        canonical: body.canonical,
+        steps: body.steps,
+        visual: parseVisual(body.visual),
+        topicCode: question.topic_code,
+        topicTitle: question.topic_title ?? undefined,
+      });
       setSolutionAttemptId(body.attempt_id);
       setStage("solved");
     } catch {
@@ -234,7 +241,8 @@ export default function BankPage() {
 
   // stage === "topics"
   return (
-    <main style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16, padding: "24px var(--page-pad-x)" }}>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
+      <main style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16, padding: "24px var(--page-pad-x)" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
         <button
           type="button"
@@ -286,5 +294,7 @@ export default function BankPage() {
         </div>
       )}
     </main>
+    <BottomNav />
+  </div>
   );
 }

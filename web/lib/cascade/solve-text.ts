@@ -27,6 +27,7 @@ import { getActiveModel } from "../models";
 import { validateStep } from "../verify/schema";
 import { parseVisual, stripUnknownVisual } from "../visual";
 import { callSoakChat, SoakTransportError } from "../soak/adapter";
+import { pedagogicalToneAddendum } from "../profile/tone-prompt";
 import { extractNewDisplayableSteps, toPublicPreviewStep } from "./stream-steps";
 import type { CascadeContext, FinalAnswer, LayerSolution, PublicStep, RawStep, SolveLayer, StepAnswerRow } from "./types";
 
@@ -66,11 +67,13 @@ export function makeTextSolveLayer(pool: Pool): SolveLayer {
   return {
     id: "llm_text",
     async run(ctx: CascadeContext): Promise<LayerSolution | null> {
-      const { system, userTemplate } = loadPromptTemplates({
+      const loaded = loadPromptTemplates({
         subject: ctx.transcript.subject,
         topicCode: ctx.transcript.topicCode,
         includeImageRules: false,
       });
+      const system = loaded.system + pedagogicalToneAddendum(ctx.pedagogicalTone);
+      const userTemplate = loaded.userTemplate;
       // `renderUserPrompt`-un 5-ci arqumenti `{{#if text}}` budağını açır — şəkil budağı
       // (`{{#if image}}`) HƏMİŞƏ silinir (python tərəfin öz davranışı, bax prompt.ts).
       const userPrompt = renderUserPrompt(

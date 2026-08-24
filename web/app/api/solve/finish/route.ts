@@ -22,6 +22,7 @@ type Body = {
   device_id?: unknown;
   invite_code?: unknown;
   locale?: unknown;
+  pedagogical_tone?: unknown;
   attempt_id?: unknown;
   capture_id?: unknown;
   rejected?: unknown;
@@ -141,6 +142,8 @@ export async function POST(req: NextRequest) {
   };
 
   const locale = typeof body.locale === "string" && body.locale ? body.locale : "az";
+  const pedagogicalTone =
+    typeof body.pedagogical_tone === "string" && body.pedagogical_tone ? body.pedagogical_tone : "yetkin";
   const sessionId = typeof body.attempt_id === "string" && UUID_RE.test(body.attempt_id) ? body.attempt_id : randomUUID();
 
   const transcribeCacheHit = body.transcribe_meta?.cache_hit === true;
@@ -157,6 +160,7 @@ export async function POST(req: NextRequest) {
     soakMode: soak.mode,
     transcript,
     locale,
+    pedagogicalTone,
     sessionId,
     captureId,
     transcribeCacheHit,
@@ -234,6 +238,7 @@ async function runFinishCore(opts: {
   soakMode: SoakMode;
   transcript: Transcript;
   locale: string;
+  pedagogicalTone: string;
   sessionId: string;
   captureId: string | null;
   transcribeCacheHit: boolean;
@@ -255,6 +260,7 @@ async function runFinishCore(opts: {
       locale: opts.locale,
       requestedGrade: opts.transcript.grade,
       requestedSubject: opts.transcript.subject,
+      pedagogicalTone: opts.pedagogicalTone,
       signal: controller.signal,
       useSoakAdapter: usesSoakAdapter(opts.soakMode),
       onPublicStep: opts.onPublicStep,
