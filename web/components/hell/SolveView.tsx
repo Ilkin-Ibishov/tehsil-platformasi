@@ -373,6 +373,7 @@ export function SolveView({
     answersRef.current = answers;
   }, [answers]);
   useEffect(() => {
+    const startedAt = solveStartedAt.current;
     return () => {
       if (!revealedRef.current) {
         reportAttemptProgress({ attemptId, completed: false, abandonedAtStep: farthestIndexRef.current, durationSec: null, revealedAnswer: false });
@@ -384,7 +385,7 @@ export function SolveView({
           canonical: solution.canonical ?? "",
           stepsCount: total,
           errorCodesCount: wrongCount,
-          timestamp: solveStartedAt.current,
+          timestamp: startedAt,
           completed: false,
           currentStepIndex: farthestIndexRef.current + 1,
         });

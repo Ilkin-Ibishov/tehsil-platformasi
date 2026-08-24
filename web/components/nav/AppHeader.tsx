@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { getStoredProfile } from "@/lib/profile/storage";
 import type { ProfileData } from "@/lib/profile/types";
@@ -18,16 +18,12 @@ export function AppHeader({
   const tNav = useTranslations("nav");
   const tDay = useTranslations("weekdays");
   const tProfil = useTranslations("profil");
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-
-  useEffect(() => {
-    setProfile(getStoredProfile());
-  }, []);
+  const [profile] = useState<ProfileData>(() => getStoredProfile());
 
   const dayName = tDay(String(new Date().getDay()) as "0");
-  const gradeText = profile ? tProfil("gradeBadge", { grade: profile.grade }) : "…";
+  const gradeText = tProfil("gradeBadge", { grade: profile.grade });
   const title = customTitle || `${dayName} · ${gradeText}`;
-  const badge = customBadge || (profile?.inviteCode ? profile.inviteCode.toUpperCase() : tNav("profileBadge"));
+  const badge = customBadge || (profile.inviteCode ? profile.inviteCode.toUpperCase() : tNav("profileBadge"));
 
   return (
     <header

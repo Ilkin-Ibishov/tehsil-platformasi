@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { getStoredProfile, saveProfile, getProgressReport } from "@/lib/profile/storage";
@@ -13,16 +13,11 @@ import { BottomNav } from "@/components/nav/BottomNav";
 
 export default function ProfilePage() {
   const t = useTranslations("profil");
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [report, setReport] = useState<ProgressReportData | null>(null);
+  const [profile, setProfile] = useState<ProfileData>(() => getStoredProfile());
+  const [report] = useState<ProgressReportData>(() => getProgressReport());
   const [period, setPeriod] = useState<"week" | "month" | "all">("week");
   const [copied, setCopied] = useState(false);
   const [shareToast, setShareToast] = useState(false);
-
-  useEffect(() => {
-    setProfile(getStoredProfile());
-    setReport(getProgressReport());
-  }, []);
 
   const periodLabel = period === "week" ? t("periodWeek") : period === "month" ? t("periodMonth") : t("periodAll");
 
@@ -62,7 +57,6 @@ export default function ProfilePage() {
   }
 
   function handleShare() {
-    if (!profile || !report) return;
     if (typeof navigator !== "undefined" && navigator.share) {
       navigator.share({
         title: t("shareTitle"),
@@ -79,10 +73,6 @@ export default function ProfilePage() {
         setTimeout(() => setShareToast(false), 2500);
       });
     }
-  }
-
-  if (!profile || !report) {
-    return <div style={{ minHeight: "100dvh", background: "var(--bg)" }} aria-busy="true" />;
   }
 
   const toneLabel =

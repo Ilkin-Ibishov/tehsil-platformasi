@@ -20,10 +20,12 @@ export default function HomePage() {
   const router = useRouter();
   const fired = useRef(false);
 
-  const [ready, setReady] = useState(false);
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [history, setHistory] = useState<SolvedAttemptItem[]>([]);
-  const [report, setReport] = useState<ProgressReportData | null>(null);
+  const [profile] = useState<ProfileData>(() => {
+    touchStreak();
+    return getStoredProfile();
+  });
+  const [history] = useState<SolvedAttemptItem[]>(() => getHistoryItems());
+  const [report] = useState<ProgressReportData>(() => getProgressReport());
 
   useEffect(() => {
     if (fired.current) return;
@@ -45,13 +47,6 @@ export default function HomePage() {
       return;
     }
 
-    touchStreak();
-    const refreshed = getStoredProfile();
-    setProfile(refreshed);
-    setHistory(getHistoryItems());
-    setReport(getProgressReport());
-    setReady(true);
-
     let coldStart = true;
     try {
       coldStart = localStorage.getItem(DEVICE_ID_KEY) === null;
@@ -61,17 +56,11 @@ export default function HomePage() {
 
     trackEvent("app.opened", {
       cold_start: coldStart,
-      locale: refreshed.locale,
-      grade: refreshed.grade,
-      tone: refreshed.pedagogicalTone,
+      locale: currentProfile.locale,
+      grade: currentProfile.grade,
+      tone: currentProfile.pedagogicalTone,
     });
   }, [router]);
-
-  if (!ready || !profile || !report) {
-    return (
-      <div style={{ minHeight: "100dvh", background: "var(--bg)" }} aria-busy="true" />
-    );
-  }
 
   const streakDays = profile.streakDays || 1;
   const weeklyData = report.weeklyActivity.length === 7 ? report.weeklyActivity : [0, 0, 0, 0, 0, 0, 0];

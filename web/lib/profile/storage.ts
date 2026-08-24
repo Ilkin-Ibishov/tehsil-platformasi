@@ -6,7 +6,6 @@ import type {
   Role,
   Goal,
   VisualTone,
-  PedagogicalTone,
   ErrorStats,
   TopicStats,
 } from "./types";
