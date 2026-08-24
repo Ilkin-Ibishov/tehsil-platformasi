@@ -44,10 +44,11 @@ const CASES: [string, Step[], string[], boolean][] = [
     false,
   ],
   ["müqayisə operatoru: '8 > 1'", [{ explanation: "Əsas 8 > 1 olduğu üçün işarə dəyişmir." }], ["1"], false],
+  ["düstur əmsalı: '1/(2√x)'", [{ explanation: "(√x)' = 1/(2√x) düsturunu xatırla." }], ["2"], false],
   [
-    "düstur əmsalı: '1/(2√x)'",
-    [{ explanation: "(√x)' = 1/(2√x) düsturunu xatırla." }],
-    ["2"],
+    "cəbri dəyişən parametri: 'T-3'",
+    [{ explanation: "Böyük qardaşın T-1, ortancılın T-2, kiçik qardaşın T-3 manatı var." }],
+    ["3"],
     false,
   ],
   // Reqressiya qıfılı: yuxarıdakı ordinal istisnası HƏQİQİ sızmanı ("3-ə bərabər" — bərabərlik

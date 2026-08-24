@@ -1,0 +1,401 @@
+{
+  "pipeline": "B",
+  "set": "C:\\Programming\\Tehsil-Platformasi\\evals\\golden-set-math-dim-vB-e24.jsonl",
+  "date": "2026-08-24",
+  "prompt_version": "v17",
+  "metrics": {
+    "n_total": 24,
+    "n_attempted": 24,
+    "n_failed": 0,
+    "n_not_implemented": 0,
+    "api_failure_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 24
+    },
+    "schema_validity": {
+      "rate": 1.0,
+      "matched": 24,
+      "n": 24
+    },
+    "final_answer_accuracy": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 1
+    },
+    "leak_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 24
+    },
+    "verify_conflict": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 24
+    },
+    "verify_conflict_ids": [],
+    "choice_match_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 20
+    },
+    "choice_match_rate_iq_logic": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 3
+    },
+    "n_iq_logic": 4,
+    "topic_code_accuracy": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "product_verified_false": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 24,
+      "ids": []
+    },
+    "has_figure_n": 0,
+    "has_figure_final_answer": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "has_figure_choice_match": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "has_figure_topic_code": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "hallucination_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "false_refusal_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 24
+    },
+    "status_match_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "step_split_structural": {
+      "count_ok": {
+        "rate": 1.0,
+        "matched": 24,
+        "n": 24
+      },
+      "checks_present": {
+        "rate": 1.0,
+        "matched": 24,
+        "n": 24
+      },
+      "index_sequential": {
+        "rate": 1.0,
+        "matched": 24,
+        "n": 24
+      },
+      "ends_with_verification": {
+        "rate": 0.9583333333333334,
+        "matched": 23,
+        "n": 24
+      },
+      "error_codes_distinct": {
+        "rate": 1.0,
+        "matched": 24,
+        "n": 24
+      },
+      "all_pass": {
+        "rate": 0.9583333333333334,
+        "matched": 23,
+        "n": 24
+      }
+    },
+    "step_split_pedagogical": {
+      "rate": null,
+      "matched": 0,
+      "n": 0,
+      "note": "insan rəyi yoxdur — qapı natamam"
+    },
+    "avg_cost_usd": 0.027239083333333334,
+    "avg_latency_ms": 40827.512479144694,
+    "model_used_distribution": {
+      "gemini-3.7-flash": 6,
+      "gemini-3.6-flash": 18
+    },
+    "fallback_count": 18,
+    "leak_rate_by_model": {
+      "gemini-3.7-flash": {
+        "leaked": 0,
+        "n": 6,
+        "rate": 0.0
+      },
+      "gemini-3.6-flash": {
+        "leaked": 0,
+        "n": 18,
+        "rate": 0.0
+      }
+    },
+    "gate_eligible": false,
+    "gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=24, minimum 30)"
+  },
+  "items": [
+    {
+      "id": "math-dim-vB-001",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "3"
+      ],
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-002",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "0",
+        "6"
+      ],
+      "question_kind": "iq_logic",
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-005",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "8"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-008",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "12"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-009",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "b-2=3c",
+        "b=3c+2"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-015",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "40"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-016",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "31"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-017",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "5050005"
+      ],
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-018",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "4"
+      ],
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-019",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "12"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-020",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "624"
+      ],
+      "question_kind": "iq_logic",
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-230",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "1/8",
+        "0.125",
+        "0,125"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-232",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "6"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-233",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "2"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-234",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "10x+7"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-235",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "360"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-236",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "27"
+      ],
+      "question_kind": "iq_logic",
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-237",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "6"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-241",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "15"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-243",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "8"
+      ],
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-248",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "31"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-251",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "2, 4",
+        "2 və 4"
+      ],
+      "question_kind": "iq_logic",
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-252",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "13"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "math-dim-vB-254",
+      "status": "ok",
+      "final_answer_correct": null,
+      "model_values": [
+        "48"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    }
+  ]
+}

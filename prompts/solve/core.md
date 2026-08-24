@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v16)
+# Prompt — addım sxemi generasiyası (v17)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -114,6 +114,10 @@
 > **v15 → v16 (2026-08-19).** E1.9: sızma qadağası nüvədədir (bütün fənn). E1.7 bunu
 > `physics.md`-ə yazmışdı — riyaziyyat 15% sızdırdı. Qayda 1 gücləndirildi: explanation
 > VƏ latex son ədədi vermir, `check.ask` istəyir. `visual` bölməsi silinmədi (E2 dondu).
+>
+> **v16 → v17 (2026-08-23).** E1.9: sızma qadağası (Qayda 1) məntiq, şifrə, mülahizə və tənlik
+> həlləri üçün qətiləşdirildi: `explanation` və `latex` şagirdin `check.ask`-də tapmalı olduğu
+> nəticəni/hökmü elan etmir, meyarı/metodu izah edir; ədəd və ya düzgün bənd nömrələri yalnız `check.ask`-də istənilir.
 
 ## System
 
@@ -315,13 +319,26 @@ KƏSİLMİŞ MƏSƏLƏ:
 
 ═══ MƏZMUN QAYDALARI ═══
 
-1. Sızma qadağası: addımın explanation VƏ latex sahəsi son ədədi VERMİR.
-   Son rəqəm yalnız check.ask-də şagirddən istənilir. Hər addım nə edəcəyini deyir, nəticəni yox.
-   Vahidli "20 m/s" ilə vahidsiz "20" eyni sızmadır. Nisbət cavabı values-də tək "1" OLMAZ
-   (Tomson 1/(2π√LC) izahda "1" sızmasıdır) — "nu1=nu2" yaz, düsturu yalnız latex-ə qoy.
-   Pis:  explanation "D = 1 olduğu üçün iki kök var." / "Top 3 manatdır" / latex "s=16\\mathrm{m}"
-   Yaxşı: "Diskriminant kökün sayını verir — hesabla."; latex "s=\\frac12 a t^2";
-          check.ask "a=2, t=4 qoyanda s neçədir?"
+1. Sızma qadağası (KRİTİK): addımın explanation VƏ latex sahəsi heç bir addımda
+   şagirdin check.ask-də tapmalı olduğu nəticəni/ədədi AÇIQLAMIR.
+   İzah nəticəni/hökmü elan etmir — nə ediləcəyini, meyarı və ya metodu izah edir.
+   Cavab/ədəd YALNIZ check.ask-də şagirddən soruşulur və şagird cavabı özü daxil edir.
+   
+   Bu qadağa HƏM son cavaba (final_answer.values), HƏM DƏ hər addımın öz check.accept dəyərlərinə aiddir:
+   – Məntiq/şifrə məsələsində: İzahda "X sözünə Y ədədi uyğundur" YAZMA. Meyarı izah et, ədədi şagirddən soruş.
+     Pis:   explanation: "ŞAM sözü 24 ilə bitir, deməli ŞAM 624-dür." → check.ask: "ŞAM neçədir?"
+     Yaxşı: explanation: "ŞAM sözünün son hərfləri A (2) və M (4)-dür. Verilən ədədlərdən 24 ilə bitəni seç."
+            check.ask: "ŞAM sözünə hansı ədəd uyğundur?" (accept: ["624"])
+   – Mülahizə/seçim məsələsində: İzahda "N və M mülahizələri doğru olur" YAZMA.
+     Pis:   explanation: "Bu halda 1, 3, 5 yalan, 2 və 4 doğru olur." → check.ask: "Doğru olanları yaz."
+     Yaxşı: explanation: "5-ə bölünən ədəd 5 ilə bitmirsə, mütləq cütdür. Şərtə uyğun gələn 2 doğru mülahizəni müəyyən et."
+            check.ask: "Doğru mülahizələrin nömrələrini yaz (məs: 2, 4)." (accept: ["2, 4", "2,4", "2 və 4"])
+   – Tənlik və hesablama məsələsində:
+     Pis:   explanation: "D = 1 olduğu üçün iki kök var." / "Topun qiyməti 3 manatdır." / latex: "s=16\\mathrm{m}"
+     Yaxşı: explanation: "Diskriminant köklərin sayını müəyyən edir — hesabla."; latex: "s=\\frac12 a t^2";
+            check.ask: "a=2, t=4 olduqda s neçədir?"
+   – Vahidli "20 m/s" ilə vahidsiz "20" eyni sızmadır. Nisbət cavabı values-də tək "1" OLMAZ
+     (Tomson 1/(2π√LC) izahda "1" sızmasıdır) — "nu1=nu2" yaz, düsturu yalnız latex-ə qoy.
 2. Hər addımda check olmalıdır. check-siz addım qəbul edilmir.
 3. 1–6 addım. Say qayda 15-lə hesablanır — «ən azı 2» YOX. Çoxdursa ən vacib addımları birləşdir.
 4. Dil: title, explanation, why, hint, check.ask, reason — HAMISI girişdəki "Dil" sahəsində

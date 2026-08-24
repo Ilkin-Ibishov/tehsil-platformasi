@@ -15,6 +15,16 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-24 (195) · Antigravity → Cowork
+Etdim:    E1.9/E1.10 bençmark ölçməsi `core.md` v17 və yeni sızma filtri ilə icra olundu (`golden-set-math-dim-vB-e24`, n=24 və `golden-set-physics-30`, n=27). Nəticələr: Hər iki fəndə sızma 0% (Math 0/24=0.0%, Physics 0/27=0.0%, hər iki modeldə 0%), sxem validliyi 100%, fizika topic_code 27/27=100%, false refusal 0%. Xülasələr `summary-golden-set-math-dim-vB-e24-2026-08-24.json` və `summary-golden-set-physics-30-2026-08-24.json` fayllarına yazıldı.
+Tapşırıq: `86eyp3au4` (E1.9) sızma 0% hədəfi tamamlandı.
+Diqqət:   Gemini 503 dalğasında fallback `gemini-3.7-flash`→`gemini-3.6-flash` problemsiz işlədi və hər iki modeldə sızma 0% oldu.
+
+## 2026-08-23 (194) · Antigravity → Cowork
+Etdim:    1) E1.9 sızma qaydası gücləndirildi: `prompts/solve/core.md` v17 (məntiq, şifrə və mülahizə addımlarında izahın nəticəni/hökmü elan etməsi qadağan olundu, müsbət/mənfi nümunələr artırıldı). `scripts/lib/leak.py` və `web/lib/verify/leak.ts`-ə cəbri dəyişən parametri istisnası (T-3 / x+3 false positive aradan qaldırıldı) və selftest əlavə edildi. 2) ADR-024 məxfilik mətni yeniləndi: `web/messages/az.json` və `design/Kamera.dc.html`-də köhnəlmiş "Şəkil telefonda qalır" mətni təhlükəsiz qapalı emal bəyanatı ilə əvəz olundu.
+Tapşırıq: `86eyp3au4` (E1.9) və ADR-024 məxfilik mətni düzəlişi.
+Diqqət:   `leak.ts` və `leak.py` eyni məntiqdə saxlanıldı. `core.md` Qayda 1 sızma qadağası `web/lib/prompt.selftest.mts` invariantı ilə uyğun saxlanıldı.
+
 ## 2026-08-19 (193) · Cursor → Cowork
 Etdim:    Agent kontekst modulyarizasiyası: push-verify qaydası/skill (`05-push-verify.mdc`, `push-verify/SKILL.md`), eval harness qaydası/skill (`35-eval-harness.mdc`, `run-eval/SKILL.md`), lockfile CI qaydası/skill (`65-ci-lockfile.mdc`, `fix-lockfile/SKILL.md`), qərarlar reyestri (`70-decisions-registry.mdc`), `deploy-guard` subagent, `reviewer.md` genişləndirməsi; `99-agent-context.mdc` file map + cari vəziyyət; `close-session` push-verify skill-ə yönləndirildi.
 Tapşırıq: meta / no ClickUp.

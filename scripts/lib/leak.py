@@ -32,6 +32,9 @@ _ORDINAL_SUFFIX_RE = re.compile(
 _BRACKET_SPAN_RE = re.compile(r"\[[^\[\]]*\]")
 # 3) Müqayisə operatorundan DƏRHAL sonra: "8 > 1" — şərt/qayda, cavab yox (q052).
 _COMPARISON_BEFORE_RE = re.compile(r"[<>≤≥]\s*$")
+# 4) Cəbri dəyişən fərqi/cəmi: "T-3", "x+3" — ifadənin parametri/həddi, cavab yox (math-dim-vB-001).
+_VAR_ARITHMETIC_BEFORE_RE = re.compile(r"[a-zA-Z]\s*[-+*/^]\s*$")
+_VAR_ARITHMETIC_AFTER_RE = re.compile(r"^(?:\s*[-+*/^]\s+|[+*/^]\s*)[a-zA-Z]")
 
 
 def _in_bracket_span(text, start, end):
@@ -58,7 +61,12 @@ def _leaked_in_text(value, text):
             continue
         if _COMPARISON_BEFORE_RE.search(text[max(0, start - 5) : start]):
             continue
-        # 4) Düstura bilavasitə bitişik ("1/(2√x)" kəsr məxrəci) — ümumi düstur xatırlatması,
+        if value.isdigit() and len(value) <= 2:
+            if _VAR_ARITHMETIC_BEFORE_RE.search(text[max(0, start - 5) : start]):
+                continue
+            if _VAR_ARITHMETIC_AFTER_RE.match(text[end : end + 5]):
+                continue
+        # 5) Düstura bilavasitə bitişik ("1/(2√x)" kəsr məxrəci) — ümumi düstur xatırlatması,
         #    konkret cavab yox (q055).
         if end < len(text) and text[end] == "√":
             continue

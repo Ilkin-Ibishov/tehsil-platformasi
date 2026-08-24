@@ -1,5 +1,11 @@
 # LOG
 
+- 2026-08-24: HANDOFF 195 — E1.9 sızma bençmarkı tam uğurla ölçüldü (`core.md` v17).
+  Riyaziyyat (e24 n=24) leak 0/24=0.0%, Fizika (n=27) leak 0/27=0.0%, hər iki modeldə 0%.
+  Sxem validliyi 100%, fizika topic_code 27/27=100%, false refusal 0%.
+- 2026-08-23: HANDOFF 194 — E1.9 sızma qaydası `core.md` v17-yə gücləndirildi (məntiq/hökm sızması qadağası).
+  `scripts/lib/leak.py` və `web/lib/verify/leak.ts`-ə cəbri dəyişən parametri (T-3 / x+3) istisnası əlavə edildi.
+  ADR-024 məxfilik mətni yeniləndi: `web/messages/az.json` və `Kamera.dc.html` təhlükəsiz qapalı emal bəyanatına keçdi.
 - 2026-08-19: HANDOFF 193 — `.cursor/` modulyarizasiya: push-verify, eval harness, lockfile CI
   skill/qaydaları; `deploy-guard` subagent; `99-agent-context` file map yeniləndi.
 - 2026-08-19: HANDOFF 192 — push verify zamanı CI-də `eval.py --selftest` faili bağlandı:

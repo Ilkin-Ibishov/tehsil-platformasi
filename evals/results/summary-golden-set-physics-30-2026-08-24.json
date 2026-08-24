@@ -1,0 +1,460 @@
+{
+  "pipeline": "B",
+  "set": "C:\\Programming\\Tehsil-Platformasi\\evals\\golden-set-physics-30.jsonl",
+  "date": "2026-08-24",
+  "prompt_version": "v17",
+  "metrics": {
+    "n_total": 30,
+    "n_attempted": 27,
+    "n_failed": 3,
+    "n_not_implemented": 0,
+    "api_failure_rate": {
+      "rate": 0.1,
+      "matched": 3,
+      "n": 30
+    },
+    "schema_validity": {
+      "rate": 1.0,
+      "matched": 27,
+      "n": 27
+    },
+    "final_answer_accuracy": {
+      "rate": 0.6296296296296297,
+      "matched": 17,
+      "n": 27
+    },
+    "leak_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 27
+    },
+    "verify_conflict": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 27
+    },
+    "verify_conflict_ids": [],
+    "choice_match_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 27
+    },
+    "choice_match_rate_iq_logic": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "n_iq_logic": 0,
+    "topic_code_accuracy": {
+      "rate": 1.0,
+      "matched": 27,
+      "n": 27
+    },
+    "product_verified_false": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 27,
+      "ids": []
+    },
+    "has_figure_n": 14,
+    "has_figure_final_answer": {
+      "rate": 0.5714285714285714,
+      "matched": 8,
+      "n": 14
+    },
+    "has_figure_choice_match": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 14
+    },
+    "has_figure_topic_code": {
+      "rate": 1.0,
+      "matched": 14,
+      "n": 14
+    },
+    "hallucination_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "false_refusal_rate": {
+      "rate": 0.0,
+      "matched": 0,
+      "n": 27
+    },
+    "status_match_rate": {
+      "rate": null,
+      "matched": 0,
+      "n": 0
+    },
+    "step_split_structural": {
+      "count_ok": {
+        "rate": 1.0,
+        "matched": 27,
+        "n": 27
+      },
+      "checks_present": {
+        "rate": 1.0,
+        "matched": 27,
+        "n": 27
+      },
+      "index_sequential": {
+        "rate": 1.0,
+        "matched": 27,
+        "n": 27
+      },
+      "ends_with_verification": {
+        "rate": 0.6666666666666666,
+        "matched": 18,
+        "n": 27
+      },
+      "error_codes_distinct": {
+        "rate": 1.0,
+        "matched": 27,
+        "n": 27
+      },
+      "all_pass": {
+        "rate": 0.6666666666666666,
+        "matched": 18,
+        "n": 27
+      }
+    },
+    "step_split_pedagogical": {
+      "rate": null,
+      "matched": 0,
+      "n": 0,
+      "note": "insan rəyi yoxdur — qapı natamam"
+    },
+    "avg_cost_usd": 0.024155629629629628,
+    "avg_latency_ms": 27610.654059254255,
+    "model_used_distribution": {
+      "gemini-3.7-flash": 6,
+      "gemini-3.6-flash": 21
+    },
+    "fallback_count": 21,
+    "leak_rate_by_model": {
+      "gemini-3.7-flash": {
+        "leaked": 0,
+        "n": 6,
+        "rate": 0.0
+      },
+      "gemini-3.6-flash": {
+        "leaked": 0,
+        "n": 21,
+        "rate": 0.0
+      }
+    },
+    "gate_eligible": false,
+    "gate_status": "QAPI ÖLÇÜLƏ BİLMƏZ (n=27, minimum 30)"
+  },
+  "items": [
+    {
+      "id": "physics-30-001",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "30"
+      ],
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-002",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "10000"
+      ],
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-003",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "5.5",
+        "5,5"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-004",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "60"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-005",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "40",
+        "40"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-006",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "\\mu(mg-F\\sin\\alpha)",
+        "mu(mg-Fsin(alpha))"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-007",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "0.016",
+        "0,016"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-008",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "250"
+      ],
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-009",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM timeout after 2 attempts (120s)"
+    },
+    {
+      "id": "physics-30-010",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "30"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-011",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "150",
+        "75"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-012",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "9"
+      ],
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-013",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "3"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-014",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM timeout after 2 attempts (120s)"
+    },
+    {
+      "id": "physics-30-015",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "200",
+        "200",
+        "400"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-016",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "AB və BC",
+        "AB, BC"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-017",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "60"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-018",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "45"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-019",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "10"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-020",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "2\\sqrt{2}E",
+        "2\\sqrt{2}"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-021",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "4/3kq^2/r",
+        "4/3 kq^2/r",
+        "\\frac{4kq^2}{3r}",
+        "4kq^2/(3r)"
+      ],
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-022",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "R azalar, T dəyişməz"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-023",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "q: sabit",
+        "C: azalar",
+        "U: artar",
+        "E: sabit",
+        "W: artar"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-024",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "1.92",
+        "1,92"
+      ],
+      "model_used": "gemini-3.7-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-025",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "3, 4"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-026",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "əks"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-027",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "900"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-028",
+      "status": "ok",
+      "final_answer_correct": true,
+      "model_values": [
+        "nu1=nu2"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    },
+    {
+      "id": "physics-30-029",
+      "status": "failed",
+      "final_answer_correct": null,
+      "model_values": null,
+      "error": "LLM timeout after 2 attempts (120s)"
+    },
+    {
+      "id": "physics-30-030",
+      "status": "ok",
+      "final_answer_correct": false,
+      "model_values": [
+        "1.5"
+      ],
+      "model_used": "gemini-3.6-flash",
+      "leaked": false
+    }
+  ]
+}

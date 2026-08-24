@@ -17,7 +17,7 @@
     "torchOn": "fənər açıq",
     "torchOff": "fənər",
     "permissionTitle": "Kameraya icazə lazımdır",
-    "permissionBody": "Şəkil telefonda qalır, yalnız tənliyin mətni serverə gedir.",
+    "permissionBody": "Şəkillər yalnız tapşırığın həlli üçün təhlükəsiz qapalı mühitdə emal olunur.",
     "permissionGrant": "İcazə ver",
     "permissionDeniedTitle": "Kameraya icazə verilmədi",
     "permissionDeniedBody": "Şəkil çəkmək üçün brauzer ayarlarından kameraya icazə verməlisən.",

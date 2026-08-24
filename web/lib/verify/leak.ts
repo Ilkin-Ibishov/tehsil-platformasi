@@ -10,6 +10,9 @@ type Step = { explanation?: string; check?: { accept?: string[] } };
 // forması "3-ə bərabər" (HƏQİQİ sızma) ilə toqquşurdu).
 const ORDINAL_SUFFIX_RE = /^-(ci|cı|cü|cu|nci|ncı|ncü|ncu|inci|ıncı|uncu|üncü)\b/iu;
 const COMPARISON_BEFORE_RE = /[<>≤≥]\s*$/u;
+// 4) Cəbri dəyişən fərqi/cəmi: "T-3", "x+3" — ifadənin parametri/həddi, cavab yox (math-dim-vB-001).
+const VAR_ARITHMETIC_BEFORE_RE = /[a-zA-Z]\s*[-+*/^]\s*$/u;
+const VAR_ARITHMETIC_AFTER_RE = /^(?:\s*[-+*/^]\s+|[+*/^]\s*)[a-zA-Z]/u;
 
 function inBracketSpan(text: string, start: number, end: number): boolean {
   const bracketRe = /\[[^[\]]*\]/gu;
@@ -33,6 +36,10 @@ function leakedInText(value: string, text: string): boolean {
     if (ORDINAL_SUFFIX_RE.test(t.slice(end, end + 3))) continue;
     if (inBracketSpan(t, start, end)) continue;
     if (COMPARISON_BEFORE_RE.test(t.slice(Math.max(0, start - 5), start))) continue;
+    if (/^\d{1,2}$/u.test(v)) {
+      if (VAR_ARITHMETIC_BEFORE_RE.test(t.slice(Math.max(0, start - 5), start))) continue;
+      if (VAR_ARITHMETIC_AFTER_RE.test(t.slice(end, end + 5))) continue;
+    }
     if (end < t.length && t[end] === "√") continue;
     return true;
   }
