@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-24 (198) · Antigravity → Cowork
+Etdim:    DİM Toplu Parametrik Şablon Mühərriki (Kaskad Qat 3 — `template.ts`) genişləndirildi: Top 5 DİM arxetipi (`ARITH.PERCENT_OF`, `ARITH.NUMBER_FROM_PERCENT`, `GEO.PYTHAGORAS_HYPOTENUSE`, `GEO.RECTANGLE_AREA_PERIMETER`, `ALG.ARITHMETIC_PROGRESSION_NTH`) üçün regex parser və deterministik addım-addım həll generatorları əlavə edildi. `template.selftest.mts` (bütün hallar və imtina fallback-ləri) uğurla keçdi.
+Tapşırıq: meta / DIM Parametric Template Engine Expansion.
+Diqqət:   ADR-007/ADR-021 təxmin-yox qızıl qaydası qorundu (qeyri-tam nəticələrdə dərhal `null` fallback).
+
 ## 2026-08-24 (197) · Antigravity → Cowork
 Etdim:    1-Toxunuşlu Dəvət Axını (1-Click Onboarding) tətbiq edildi: `web/lib/invite/url.ts` yaradıldı (`?invite=`, `?code=`, trailing punctuation təmizliyi, `url.selftest.mts` 13/13). `web/app/page.tsx` və `web/app/kamera/page.tsx`-də avtomatik dəvət təsdiqlənməsi və URL təmizlənməsi inteqrasiya olundu. Bütün selftestlər (52/52, 29/29, 13/13) keçdi.
 Tapşırıq: meta / Onboarding Friction Elimination.

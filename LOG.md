@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-08-24: HANDOFF 198 — DİM Toplu Parametrik Şablon Mühərriki (Kaskad Qat 3) genişləndirildi:
+  Top 5 DİM arxetipi (`template.ts`, `template.selftest.mts` tam pass) 2ms deterministik həllə keçdi.
 - 2026-08-24: HANDOFF 197 — 1-Toxunuşlu Dəvət Axını (`?invite=`, `?code=`) tətbiq edildi:
   `web/lib/invite/url.ts` (13/13 selftest) ilə HomePage və KameraPage avtomatik dəvət təsdiqinə keçdi.
 - 2026-08-24: HANDOFF 196 — Streaming Steps və Mobile Math Input tətbiq edildi:
