@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-08-24: HANDOFF 197 — 1-Toxunuşlu Dəvət Axını (`?invite=`, `?code=`) tətbiq edildi:
+  `web/lib/invite/url.ts` (13/13 selftest) ilə HomePage və KameraPage avtomatik dəvət təsdiqinə keçdi.
 - 2026-08-24: HANDOFF 196 — Streaming Steps və Mobile Math Input tətbiq edildi:
   `MathKeyboardBar.tsx` yaradıldı, `visualViewport` listener və `answer.ts` Unicode normallaşdırması (29/29) bağlandı.
   `SolveView.tsx` axın zamanı DB race condition-un qarşısını alan `streamPersistencePromise` ilə təchiz olundu.

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry";
+import { extractInviteCodeFromSearch, cleanInviteFromUrl, validateAndStoreInviteCode } from "@/lib/invite/url";
 
 const DEVICE_ID_KEY = "th_device_id";
 
@@ -15,6 +16,16 @@ export default function HomePage() {
   useEffect(() => {
     if (fired.current) return; // React StrictMode-da effect iki dəfə işə düşür — bir hadisə
     fired.current = true;
+
+    // 1-Toxunuşlu Dəvət: ?invite= və ya ?code= parametrini oxuyub yadda saxla
+    if (typeof window !== "undefined" && window.location.search) {
+      const code = extractInviteCodeFromSearch(window.location.search);
+      if (code) {
+        void validateAndStoreInviteCode(code).then((ok) => {
+          if (ok) cleanInviteFromUrl();
+        });
+      }
+    }
 
     let coldStart = true;
     try {

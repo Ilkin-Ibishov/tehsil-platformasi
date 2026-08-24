@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-24 (197) · Antigravity → Cowork
+Etdim:    1-Toxunuşlu Dəvət Axını (1-Click Onboarding) tətbiq edildi: `web/lib/invite/url.ts` yaradıldı (`?invite=`, `?code=`, trailing punctuation təmizliyi, `url.selftest.mts` 13/13). `web/app/page.tsx` və `web/app/kamera/page.tsx`-də avtomatik dəvət təsdiqlənməsi və URL təmizlənməsi inteqrasiya olundu. Bütün selftestlər (52/52, 29/29, 13/13) keçdi.
+Tapşırıq: meta / Onboarding Friction Elimination.
+Diqqət:   Next.js App Router SSR deopt-un qarşısı alındı (`useEffect` + `window.location.search`).
+
 ## 2026-08-24 (196) · Antigravity → Cowork
 Etdim:    Streaming Steps & Mobile Math Input tətbiq edildi: 1) `web/lib/verify/answer.ts`-ə Unicode kök, qüvvət, pi, onluq vergül (`√`, `²`, `³`, `π`, `±`, `0,5`) normallaşdırması və `answer.selftest.mts` (29/29) əlavə edildi. 2) `web/components/hell/MathKeyboardBar.tsx` yaradıldı (minimum 44px touch target, `e.preventDefault()` ilə virtual klaviatura bağlanmasının qarşısı alındı, kursor idarəsi). 3) `SolveView.tsx`-ə `MathKeyboardBar`, `visualViewport` listener və axın zamanı DB race condition-un qarşısını alan `streamPersistencePromise` əlavə olundu. 4) `stream-steps.ts` və `finish-stream.ts` whitelist və tam display sahələri ilə gücləndirildi.
 Tapşırıq: meta / UX & Streaming Latency Optimization.

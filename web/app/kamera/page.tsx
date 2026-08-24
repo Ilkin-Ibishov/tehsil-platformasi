@@ -8,6 +8,7 @@ import { uuidv4 } from "@/lib/telemetry/uuid";
 import { CaptureView, type Captured } from "@/components/kamera/CaptureView";
 import { CropView } from "@/components/kamera/CropView";
 import { InviteGate, getStoredInviteCode, clearStoredInviteCode } from "@/components/kamera/InviteGate";
+import { extractInviteCodeFromSearch, cleanInviteFromUrl, validateAndStoreInviteCode } from "@/lib/invite/url";
 import { isSoakInvite } from "@/lib/soak/invite";
 import { LoadingView } from "@/components/hell/LoadingView";
 import { SolveView, type SolveResult } from "@/components/hell/SolveView";
@@ -123,6 +124,23 @@ export default function KameraPage() {
     setAttemptId(id);
     trackEvent("capture.screen_opened", {});
   }, [stage]);
+
+  // 1-Toxunuşlu Dəvət: ?invite= və ya ?code= parametrini oxuyub avtomatik təsdiqlə
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.location.search) return;
+    const code = extractInviteCodeFromSearch(window.location.search);
+    if (!code) return;
+    validateAndStoreInviteCode(code).then((valid) => {
+      if (valid) {
+        setInviteCode(code);
+        setStage("capture");
+        cleanInviteFromUrl();
+      } else {
+        setInviteError(true);
+        setStage("invite");
+      }
+    });
+  }, []);
 
   // DB-dən (redeploy-suz) oxunan kaskad UI bayrağı — bax yuxarıdakı şərh. Uğursuz olsa
   // (şəbəkə, DB əlçatmazdır) sükutla `false`-da qalır — monolit yol, ən təhlükəsiz defolt.
