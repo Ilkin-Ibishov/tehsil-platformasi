@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-24 (199) · Antigravity → Cowork
+Etdim:    Kamera və Qalereya ikili dəstəyi təmin edildi: 1) `web/app/kamera/page.tsx`-dəki `galleryOnly={isSoakInvite(inviteCode)}` və `fillFrame` məhdudiyyəti ləğv edildi — istənilən dəvət kodunda canlı kamera vizörü hər zaman aktivdir və eyni zamanda alt paneldə "Qalereya" seçimi əlçatandır. 2) `CaptureView.tsx` başlığına "🔑" dəvət kodunu sıfırlama/dəyişmə düyməsi əlavə edildi.
+Tapşırıq: meta / Universal Camera Viewfinder & Gallery Dual-Mode.
+Diqqət:   Kamera icazəsi olmayan və ya dəstəklənməyən mühitlərdə qalereya fallback-i qorunur.
+
 ## 2026-08-24 (198) · Antigravity → Cowork
 Etdim:    DİM Toplu Parametrik Şablon Mühərriki (Kaskad Qat 3 — `template.ts`) genişləndirildi: Top 5 DİM arxetipi (`ARITH.PERCENT_OF`, `ARITH.NUMBER_FROM_PERCENT`, `GEO.PYTHAGORAS_HYPOTENUSE`, `GEO.RECTANGLE_AREA_PERIMETER`, `ALG.ARITHMETIC_PROGRESSION_NTH`) üçün regex parser və deterministik addım-addım həll generatorları əlavə edildi. `template.selftest.mts` (bütün hallar və imtina fallback-ləri) uğurla keçdi.
 Tapşırıq: meta / DIM Parametric Template Engine Expansion.

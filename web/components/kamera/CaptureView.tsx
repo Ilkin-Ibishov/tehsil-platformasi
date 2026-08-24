@@ -18,10 +18,12 @@ export function CaptureView({
   onCaptured,
   onCancel,
   galleryOnly = false,
+  onResetInvite,
 }: {
   onCaptured: (c: Captured) => void;
   onCancel: (stage: string) => void;
   galleryOnly?: boolean;
+  onResetInvite?: () => void;
 }) {
   const t = useTranslations("kamera");
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -203,7 +205,18 @@ export function CaptureView({
         <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.1em", color: "var(--t3)", textAlign: "center" }}>
           {t("label")}
         </span>
-        <span />
+        {onResetInvite ? (
+          <button
+            type="button"
+            onClick={onResetInvite}
+            title="Dəvət kodunu dəyiş"
+            style={{ width: 44, height: 44, marginRight: -12, border: "none", background: "transparent", color: "var(--t2)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+          >
+            🔑
+          </button>
+        ) : (
+          <span />
+        )}
       </div>
 
       <div style={{ flex: 1, padding: "18px 20px 0", display: "flex", flexDirection: "column", gap: 16 }}>

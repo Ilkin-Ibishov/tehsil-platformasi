@@ -9,7 +9,6 @@ import { CaptureView, type Captured } from "@/components/kamera/CaptureView";
 import { CropView } from "@/components/kamera/CropView";
 import { InviteGate, getStoredInviteCode, clearStoredInviteCode } from "@/components/kamera/InviteGate";
 import { extractInviteCodeFromSearch, cleanInviteFromUrl, validateAndStoreInviteCode } from "@/lib/invite/url";
-import { isSoakInvite } from "@/lib/soak/invite";
 import { LoadingView } from "@/components/hell/LoadingView";
 import { SolveView, type SolveResult } from "@/components/hell/SolveView";
 import { TranscriptConfirmView } from "@/components/hell/TranscriptConfirmView";
@@ -705,12 +704,16 @@ export default function KameraPage() {
   if (stage === "capture") {
     return (
       <CaptureView
-        galleryOnly={isSoakInvite(inviteCode)}
         onCaptured={(c) => {
           setCaptured(c);
           setStage("crop");
         }}
         onCancel={goHome}
+        onResetInvite={() => {
+          clearStoredInviteCode();
+          setInviteCode(null);
+          setStage("invite");
+        }}
       />
     );
   }
@@ -719,7 +722,6 @@ export default function KameraPage() {
     return (
       <CropView
         canvas={captured.canvas}
-        fillFrame={isSoakInvite(inviteCode)}
         onConfirmed={runSolve}
         onCancel={() => setStage("capture")}
       />
