@@ -31,7 +31,7 @@ export function extractInviteCodeFromSearch(search: string): string | null {
   }
 
   // Clean trailing punctuation (WhatsApp/Telegram sentence ends like "link.az/?invite=CODE.")
-  let code = decoded.trim().replace(/[.,!?;:]+$/, "").trim();
+  const code = decoded.trim().replace(/[.,!?;:]+$/, "").trim();
   if (!code || code.length > MAX_INVITE_LEN) return null;
 
   return code;

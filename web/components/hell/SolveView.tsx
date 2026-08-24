@@ -214,14 +214,12 @@ export function SolveView({
   // nəzərdə tutur) bank axınında YANLIŞ oxunur. Optional, defolt DƏYİŞMİR — kamera axını
   // TOXUNULMUR.
   resetLabel,
-  isStreaming = false,
   streamPersistencePromise,
 }: {
   solution: SolveResult;
   attemptId: string;
   onReset: () => void;
   resetLabel?: string;
-  isStreaming?: boolean;
   streamPersistencePromise?: Promise<unknown>;
 }) {
   const t = useTranslations("hell");
