@@ -755,7 +755,7 @@ export default function KameraPage() {
   }
 
   if (stage === "solved" && solution && solutionAttemptId) {
-    return <SolveView solution={solution} attemptId={solutionAttemptId} onReset={resetToCapture} />;
+    return <SolveView solution={solution} attemptId={solutionAttemptId} onReset={resetToCapture} onGoHome={() => router.push("/")} />;
   }
 
   if (stage === "refused") {

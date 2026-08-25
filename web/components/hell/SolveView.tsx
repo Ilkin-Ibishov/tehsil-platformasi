@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { trackEvent, getDeviceId } from "@/lib/telemetry";
 import { reportAttemptProgress } from "@/lib/attempts";
@@ -213,6 +214,7 @@ export function SolveView({
   solution,
   attemptId,
   onReset,
+  onGoHome,
   // ClickUp 86eykhve0: bank UI eyni komponenti kamerasız işlədir — "Yeni sual çək" (kameranı
   // nəzərdə tutur) bank axınında YANLIŞ oxunur. Optional, defolt DƏYİŞMİR — kamera axını
   // TOXUNULMUR.
@@ -222,9 +224,11 @@ export function SolveView({
   solution: SolveResult;
   attemptId: string;
   onReset: () => void;
+  onGoHome?: () => void;
   resetLabel?: string;
   streamPersistencePromise?: Promise<unknown>;
 }) {
+  const router = useRouter();
   const t = useTranslations("hell");
   const steps = solution.steps;
   const total = steps.length;
@@ -691,11 +695,34 @@ export function SolveView({
   if (revealed) {
     return (
       <main style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16, padding: "24px 0" }}>
-        <div style={{ padding: "0 var(--page-pad-x)", display: "flex", alignItems: "baseline", gap: 10 }}>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.1em", color: "var(--acc)" }}>
-            {t("answer.label")}
-          </span>
-          <span style={{ color: "var(--acc)", fontSize: 14 }}>✓</span>
+        <div style={{ padding: "0 var(--page-pad-x)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.1em", color: "var(--acc)" }}>
+              {t("answer.label")}
+            </span>
+            <span style={{ color: "var(--acc)", fontSize: 14 }}>✓</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => (onGoHome ? onGoHome() : router.push("/"))}
+            style={{
+              minHeight: 44,
+              padding: "0 12px",
+              border: "1px solid var(--bor)",
+              borderRadius: "var(--radsm)",
+              background: "var(--sur)",
+              color: "var(--t2)",
+              fontFamily: "var(--font-mono)",
+              fontSize: 13,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <span>🏠</span>
+            <span>{t("answer.backHome")}</span>
+          </button>
         </div>
         {solution.verified !== true && solution.verified !== undefined && (
           // S5 (86eymwgkv) — `null` = yoxlanılmadı nişanı; `false` semantik olaraq gizlətmədir
@@ -802,7 +829,31 @@ export function SolveView({
           </div>
         )}
 
-        <div style={{ padding: "0 var(--page-pad-x)", marginTop: 8 }}>
+        <div style={{ padding: "0 var(--page-pad-x)", display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+          <button
+            type="button"
+            onClick={() => (onGoHome ? onGoHome() : router.push("/"))}
+            style={{
+              width: "100%",
+              minHeight: "var(--tap)",
+              border: "none",
+              borderRadius: "var(--rad)",
+              background: "var(--acc)",
+              color: "var(--accink)",
+              fontFamily: "inherit",
+              fontSize: 16,
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0 20px",
+            }}
+          >
+            <span>{t("answer.goHome")}</span>
+            <span style={{ fontFamily: "var(--font-mono)" }}>🏠 →</span>
+          </button>
+
           <button
             type="button"
             onClick={onReset}
@@ -814,7 +865,7 @@ export function SolveView({
               background: "transparent",
               color: "var(--t2)",
               fontFamily: "inherit",
-              fontSize: 16,
+              fontSize: 15,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
@@ -836,6 +887,31 @@ export function SolveView({
 
   return (
     <main style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px var(--page-pad-x) 8px", flexShrink: 0 }}>
+        <button
+          type="button"
+          onClick={() => (onGoHome ? onGoHome() : router.push("/"))}
+          style={{
+            minHeight: 44,
+            padding: 0,
+            border: "none",
+            background: "transparent",
+            color: "var(--t2)",
+            fontFamily: "inherit",
+            fontSize: 14,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          <span>{t("step.backHome")}</span>
+        </button>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--t3)" }}>
+          {t("step.counter", { index: stepIndex + 1, total })}
+        </span>
+      </div>
+
       <div style={{ display: "flex", gap: 4, padding: "0 var(--page-pad-x) 0", flexShrink: 0 }}>
         {steps.map((s, i) => (
           <span

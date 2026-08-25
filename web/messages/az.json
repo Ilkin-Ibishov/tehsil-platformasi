@@ -129,7 +129,7 @@
     "goalBuraxilis": "Buraxılış İmtahanı",
     "goalMekteb": "Məktəb dərsləri və KSQ/BSQ",
     "goalOlimpiada": "Olimpiada və Məntiq",
-    "finishCta": "İlk tapşırığı çək",
+    "finishCta": "Başla",
     "continueCta": "Davam et",
     "backAria": "Geri"
   },
@@ -292,7 +292,8 @@
       "passError": "Keçilə bilmədi — yenidən cəhd et.",
       "showAnswer": "Cavabı göstər",
       "rail": "LENT",
-      "goTo": "Addım {index}"
+      "goTo": "Addım {index}",
+      "backHome": "← Ana səhifə"
     },
     "answer": {
       "label": "CAVAB",
@@ -300,7 +301,9 @@
       "revealError": "Şəbəkə xətası — cavab gətirilə bilmədi. Yenidən cəhd et.",
       "reportWrong": "həll səhvdir",
       "reportWrongDone": "Qeyd olundu, təşəkkür edirik.",
-      "newProblem": "Yeni sual çək"
+      "newProblem": "Yeni sual çək",
+      "goHome": "Ana ekrana qayıt",
+      "backHome": "← Ana səhifə"
     },
     "transfer": {
       "label": "EYNİSİNİ SƏN HƏLL ET",

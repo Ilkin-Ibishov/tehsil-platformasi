@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-25 (202) · Antigravity → Cowork
+Etdim:    1) Onboarding sonrası birbaşa kameraya deyil, Ana ekrana (`/`) yönləndirmə təmin edildi (`handleFinish` -> `persistAndGo("/")`), CTA düyməsi "Başla" olaraq yeniləndi. 2) Həll ekranında (`SolveView.tsx`) və həll bitdikdə (`revealed` / cavab kartı) Ana ekrana qayıtmaq üçün yuxarı ("← Ana səhifə") və aşağı ("Ana ekrana qayıt 🏠 →") naviqasiya düymələri əlavə edildi. 3) Bank və Kamera səhifələrindən `onGoHome` prop ötürüldü. Selftest və `tsc` keçdi.
+Tapşırıq: meta / Onboarding Home Route & SolveView Home Navigation Buttons.
+Diqqət:   Həm aktiv həll zamanı, həm də həll bitdikdən sonra ana səhifəyə birbaşa keçid təmin edildi.
+
 ## 2026-08-25 (201) · Antigravity → Cowork
 Etdim:    1) Onboarding axını təkmilləşdirildi: `resolveOnboarded` `th_device_id` mövcudluğuna görə avtomatik `true` etmir (istifadəçi ilk dəfə onboardinqi mütləq görür), `/profil`-ə "Quraşdırmanı yenidən keç" düyməsi əlavə edildi. 2) İstifadəçi adı və soyadı: `ProfileData`-ya `fullName` əlavə edildi, 5-addımlı onboarding (01/05: Ad və Soyad), profil səhifəsində redaktə və ana ekranda/başlıqda fərdi xitab ("Salam, [Ad]!"). 3) Dəvət kodları: `invite01`..`invite50`, `ilkin-01`..`ilkin-50`, `soak-dim-01`..`soak-dim-20` standart aktivləşdirildi (hərflərin böyük/kiçikliyinə həssaslıq aradan qaldırıldı). 4) Single-user / 1 cihaz qaydası: `checkInviteAvailableForDevice` və `/api/invite/check` vasitəsilə eyni kodun başqa cihaz tərəfindən istifadəsinə 409 `already_used` məhdudiyyəti qoyuldu. Selftestlər və `tsc` keçdi.
 Tapşırıq: meta / Onboarding Full Name, Built-in Pilot Invites & Single-User Device Lock.

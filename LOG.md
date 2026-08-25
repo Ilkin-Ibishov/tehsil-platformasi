@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-08-25: HANDOFF 202 — Onboarding sonrası ana ekrana yönləndirmə, SolveView həll və
+  cavab ekranlarında ana səhifəyə qayıtmaq üçün naviqasiya düymələri əlavə edildi.
 - 2026-08-25: HANDOFF 201 — Onboarding Ad/Soyad addımı, pilot dəvət kodları aktivləşdirildi,
   tək-istifadəçi (1 cihaz) qapısı təmin edildi, tsc/selftest keçdi.
 - 2026-08-25: HANDOFF 200 — Profil/hesabat, onboarding, üslub və ana hub UI tamamlandı;

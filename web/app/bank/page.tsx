@@ -170,7 +170,7 @@ export default function BankPage() {
   }
 
   if (stage === "solved" && solution && solutionAttemptId) {
-    return <SolveView solution={solution} attemptId={solutionAttemptId} onReset={backToTopics} resetLabel={t("backToTopics")} />;
+    return <SolveView solution={solution} attemptId={solutionAttemptId} onReset={backToTopics} resetLabel={t("backToTopics")} onGoHome={() => router.push("/")} />;
   }
 
   if (stage === "questions" && selectedTopic) {

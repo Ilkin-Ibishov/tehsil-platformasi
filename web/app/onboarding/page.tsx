@@ -36,7 +36,7 @@ export default function OnboardingPage() {
   }
 
   function handleFinish() {
-    persistAndGo("/kamera", { fullName, locale, role, grade, goal });
+    persistAndGo("/", { fullName, locale, role, grade, goal });
   }
 
   function goBack() {
