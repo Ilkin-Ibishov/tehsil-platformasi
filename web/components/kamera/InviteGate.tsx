@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { getDeviceId } from "@/lib/telemetry";
+import { clearInviteCode } from "@/lib/profile/storage";
 
 // Dəvət kodu ictimai URL-in arxasındakı ödənişli açarı qoruyur (docs/PHASE-1.md S3, ADR-012).
 // Qapıda `/api/invite/check` yoxlayır (ClickUp 86eymrm6g) — səhv kod localStorage-a
@@ -20,11 +21,7 @@ export function getStoredInviteCode(): string | null {
 }
 
 export function clearStoredInviteCode(): void {
-  try {
-    localStorage.removeItem(INVITE_CODE_KEY);
-  } catch {
-    // localStorage yoxdursa görməzdən gəl
-  }
+  clearInviteCode();
 }
 
 type GateError = { kind: "invalid" } | { kind: "already_used" } | { kind: "network" };

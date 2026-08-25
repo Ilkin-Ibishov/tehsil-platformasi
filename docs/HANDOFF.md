@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-26 (204) · Cursor → Cowork
+Etdim:    Reviewer follow-up: ana səhifədən «hamısı» linki silindi (`page.tsx` — profil tarixçə siyahısı vəd etmirdi); `clearInviteCode` `storage.ts` + `InviteGate` eyni `th_invite_code` açarını təmizləyir. Selftest keçdi.
+Tapşırıq: meta / no ClickUp — hub honesty leftover.
+Diqqət:   Fake `avgTime*` / `immediateAnswerCount` tiplərdə qalır (blitz). SolveView toxunulmayıb.
+
 ## 2026-08-26 (203) · Cursor → Cowork
 Etdim:    Hub dürüstlüyü (blitz): onboarding ad+sinif (`onboarding/page.tsx`); lent/period/dil/fake 2:14 UI silindi (`page.tsx`, `StatCard`, `profil/page.tsx`); InviteGate «Ana səhifə» + `aria-label`; `topics.*` nöqtəli i18n silindi; `touchStreak` artıq `lastActiveDate` persist edir. `Role`/`Goal`/`Locale` tiplərdə qaldı. Selftest + `tsc` keçdi.
 Tapşırıq: meta / no ClickUp — hub honesty P0.

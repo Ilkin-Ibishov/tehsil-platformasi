@@ -132,6 +132,16 @@ export function saveProfile(partial: Partial<ProfileData>): ProfileData {
   return getStoredProfile();
 }
 
+export function clearInviteCode(): void {
+  delete memoryStore[KEYS.INVITE_CODE];
+  if (!isBrowser()) return;
+  try {
+    localStorage.removeItem(KEYS.INVITE_CODE);
+  } catch {
+    // localStorage yoxdursa görməzdən gəl
+  }
+}
+
 /** Update streak when the student is active today. */
 export function touchStreak(): ProfileData {
   const profile = getStoredProfile();

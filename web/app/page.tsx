@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry";
 import { extractInviteCodeFromSearch, cleanInviteFromUrl, validateAndStoreInviteCode } from "@/lib/invite/url";
@@ -206,14 +205,9 @@ export default function HomePage() {
         {/* History or Empty Guide */}
         {history.length > 0 ? (
           <section style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "12px" }}>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", color: "var(--t3)" }}>
-                {t("historyTitle")}
-              </span>
-              <Link href="/profil" style={{ fontSize: "13px", color: "var(--t2)", textDecoration: "none" }}>
-                {t("historyAll")}
-              </Link>
-            </div>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", color: "var(--t3)" }}>
+              {t("historyTitle")}
+            </span>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {history.slice(0, 3).map((item, idx) => {

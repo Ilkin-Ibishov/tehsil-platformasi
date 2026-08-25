@@ -6,6 +6,7 @@ import {
   getProgressReport,
   recordErrorCode,
   touchStreak,
+  clearInviteCode,
 } from "./storage.ts";
 
 let fails = 0;
@@ -72,6 +73,11 @@ const yesterday = new Date();
 yesterday.setDate(yesterday.getDate() - 1);
 saveProfile({ lastActiveDate: yesterday.toISOString().slice(0, 10), streakDays: 3 });
 check("touchStreak consecutive day increments", touchStreak().streakDays, 4);
+
+saveProfile({ inviteCode: "invite01" });
+check("invite saved on profile", getStoredProfile().inviteCode, "invite01");
+clearInviteCode();
+check("clearInviteCode drops profile invite", getStoredProfile().inviteCode, null);
 
 console.log(fails === 0 ? "\nProfile storage selftest keçdi." : `\n${fails} test uğursuz.`);
 process.exit(fails === 0 ? 0 : 1);
