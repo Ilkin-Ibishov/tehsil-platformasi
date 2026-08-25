@@ -6,27 +6,20 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { getStoredProfile, saveProfile, getProgressReport } from "@/lib/profile/storage";
 import { applyVisualToneFromProfile } from "@/components/ThemeToneSync";
-import type { ProfileData, ProgressReportData, Locale } from "@/lib/profile/types";
+import type { ProfileData, ProgressReportData } from "@/lib/profile/types";
 import { StatCard } from "@/components/profil/StatCard";
 import { WeaknessDiagnosis } from "@/components/profil/WeaknessDiagnosis";
 import { TopicMastery } from "@/components/profil/TopicMastery";
 import { BottomNav } from "@/components/nav/BottomNav";
+import { getStoredInviteCode, clearStoredInviteCode } from "@/components/kamera/InviteGate";
 
 export default function ProfilePage() {
   const t = useTranslations("profil");
   const [profile, setProfile] = useState<ProfileData>(() => getStoredProfile());
   const [report] = useState<ProgressReportData>(() => getProgressReport());
-  const [period, setPeriod] = useState<"week" | "month" | "all">("week");
   const [copied, setCopied] = useState(false);
   const [shareToast, setShareToast] = useState(false);
-
-  const periodLabel = period === "week" ? t("periodWeek") : period === "month" ? t("periodMonth") : t("periodAll");
-
-  function cyclePeriod() {
-    if (period === "week") setPeriod("month");
-    else if (period === "month") setPeriod("all");
-    else setPeriod("week");
-  }
+  const [inviteCode] = useState<string | null>(() => getStoredInviteCode());
 
   const router = useRouter();
 
@@ -44,8 +37,8 @@ export default function ProfilePage() {
   }
 
   function handleCopyInvite() {
-    if (!profile?.inviteCode) return;
-    navigator.clipboard.writeText(profile.inviteCode).then(() => {
+    if (!inviteCode) return;
+    navigator.clipboard.writeText(inviteCode).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }).catch(() => {
@@ -54,11 +47,8 @@ export default function ProfilePage() {
   }
 
   function handleResetCode() {
-    const nextCode = window.prompt(t("resetPrompt"), "");
-    if (nextCode !== null && nextCode.trim().length > 0) {
-      const updated = saveProfile({ inviteCode: nextCode.trim() });
-      setProfile(updated);
-    }
+    clearStoredInviteCode();
+    router.push("/kamera");
   }
 
   function handleGradeChange(newGrade: number) {
@@ -67,19 +57,13 @@ export default function ProfilePage() {
     applyVisualToneFromProfile();
   }
 
-  function handleLocaleChange(newLocale: Locale) {
-    const updated = saveProfile({ locale: newLocale });
-    setProfile(updated);
-  }
-
   function handleShare() {
     if (typeof navigator !== "undefined" && navigator.share) {
       navigator.share({
         title: t("shareTitle"),
         text: t("shareBody", {
           grade: profile.grade,
-          solves: report.totalSolves,
-          percent: report.selfStepPercent,
+          solves: report.completedCount,
         }),
         url: window.location.href,
       }).catch(() => {});
@@ -120,28 +104,8 @@ export default function ProfilePage() {
           }}
         >
           {profile.fullName ? `${profile.fullName.toUpperCase()} · ` : ""}
-          {profile.role === "valideyn" ? t("roleBadgeParent") : t("roleBadgeStudent")} · {t("gradeBadge", { grade: profile.grade })}
+          {t("gradeBadge", { grade: profile.grade })}
         </span>
-
-        <button
-          type="button"
-          onClick={cyclePeriod}
-          style={{
-            minHeight: "36px",
-            padding: "0 12px",
-            border: "1px solid var(--bor)",
-            borderRadius: "99px",
-            background: "var(--sur)",
-            color: "var(--t2)",
-            fontFamily: "var(--font-mono)",
-            fontSize: "12px",
-            letterSpacing: "0.06em",
-            cursor: "pointer",
-            transition: "border-color 180ms ease, color 180ms ease",
-          }}
-        >
-          {periodLabel}
-        </button>
       </div>
 
       <main
@@ -157,7 +121,7 @@ export default function ProfilePage() {
         <StatCard report={report} />
 
         {/* Weakness Diagnosis */}
-        <WeaknessDiagnosis errors={report.repeatedErrors} />
+        <WeaknessDiagnosis errors={report.repeatedErrors} attemptCount={report.completedCount} />
 
         {/* Topic Mastery */}
         <TopicMastery topics={report.topicMasteries} />
@@ -191,14 +155,14 @@ export default function ProfilePage() {
               <div style={{ display: "grid", rowGap: "2px" }}>
                 <span style={{ fontSize: "14px", color: "var(--t2)" }}>{t("fullNameLabel")}</span>
                 <span style={{ fontSize: "16px", fontWeight: 600, color: "var(--t1)" }}>
-                  {profile.fullName || "Təyin edilməyib"}
+                  {profile.fullName || t("notSet")}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={handleEditName}
                 style={{
-                  minHeight: "36px",
+                  minHeight: "44px",
                   padding: "0 12px",
                   border: "1px solid var(--bor)",
                   borderRadius: "var(--radsm)",
@@ -220,16 +184,16 @@ export default function ProfilePage() {
               <div style={{ display: "grid", rowGap: "2px" }}>
                 <span style={{ fontSize: "14px", color: "var(--t2)" }}>{t("inviteCodeLabel")}</span>
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: "16px", fontWeight: 600, color: "var(--t1)" }}>
-                  {profile.inviteCode || t("inviteDefault")}
+                  {inviteCode || t("inviteDefault")}
                 </span>
               </div>
               <div style={{ display: "flex", gap: "8px" }}>
-                {profile.inviteCode && (
+                {inviteCode && (
                   <button
                     type="button"
                     onClick={handleCopyInvite}
                     style={{
-                      minHeight: "36px",
+                      minHeight: "44px",
                       padding: "0 12px",
                       border: "1px solid var(--bor)",
                       borderRadius: "var(--radsm)",
@@ -247,7 +211,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={handleResetCode}
                   style={{
-                    minHeight: "36px",
+                    minHeight: "44px",
                     padding: "0 12px",
                     border: "1px solid var(--bor)",
                     borderRadius: "var(--radsm)",
@@ -277,7 +241,7 @@ export default function ProfilePage() {
                       type="button"
                       onClick={() => handleGradeChange(g)}
                       style={{
-                        minHeight: "40px",
+                        minHeight: "44px",
                         border: isSelected ? "2px solid var(--acc)" : "1px solid var(--bor)",
                         borderRadius: "var(--radsm)",
                         background: isSelected ? "var(--accsoft)" : "transparent",
@@ -319,46 +283,14 @@ export default function ProfilePage() {
 
             <div style={{ height: "1px", background: "var(--bor)" }} />
 
-            {/* Language Switcher */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: "14px", color: "var(--t2)" }}>{t("languageLabel")}</span>
-              <div style={{ display: "flex", gap: "6px" }}>
-                {(["az", "ru", "en", "tr"] as Locale[]).map((loc) => {
-                  const isCur = profile.locale === loc;
-                  return (
-                    <button
-                      key={loc}
-                      type="button"
-                      onClick={() => handleLocaleChange(loc)}
-                      style={{
-                        padding: "4px 8px",
-                        border: isCur ? "1px solid var(--acc)" : "1px solid var(--bor)",
-                        borderRadius: "var(--radsm)",
-                        background: isCur ? "var(--accsoft)" : "transparent",
-                        color: isCur ? "var(--acc)" : "var(--t2)",
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "12px",
-                        fontWeight: isCur ? 700 : 500,
-                        textTransform: "uppercase",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {loc}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div style={{ height: "1px", background: "var(--bor)" }} />
-
             {/* Re-run Onboarding */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: "14px", color: "var(--t2)" }}>İlkin quraşdırma</span>
+              <span style={{ fontSize: "14px", color: "var(--t2)" }}>{t("onboardingLabel")}</span>
               <button
                 type="button"
                 onClick={handleReRunOnboarding}
                 style={{
+                  minHeight: "44px",
                   padding: "6px 12px",
                   border: "1px solid var(--bor)",
                   borderRadius: "var(--radsm)",

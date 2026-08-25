@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import type { ErrorStats } from "@/lib/profile/types";
 
-export function WeaknessDiagnosis({ errors }: { errors: ErrorStats[] }) {
+export function WeaknessDiagnosis({ errors, attemptCount }: { errors: ErrorStats[]; attemptCount: number }) {
   const t = useTranslations("profil");
   const tErr = useTranslations("errors");
   const tLabel = useTranslations("errorLabels");
@@ -32,7 +32,7 @@ export function WeaknessDiagnosis({ errors }: { errors: ErrorStats[] }) {
             color: "var(--t2)",
           }}
         >
-          {t("emptyErrors")}
+          {attemptCount === 0 ? t("emptyErrorsNone") : t("emptyErrors")}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>

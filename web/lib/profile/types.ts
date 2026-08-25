@@ -47,6 +47,7 @@ export type TopicStats = {
 
 export type ProgressReportData = {
   totalSolves: number;
+  completedCount: number;
   selfStepPercent: number;
   immediateAnswerCount: number;
   avgTimeMinutes: number;

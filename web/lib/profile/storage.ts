@@ -91,7 +91,8 @@ export function getStoredProfile(): ProfileData {
   const deviceId = safeGet(KEYS.DEVICE_ID, "");
   const fullName = safeGet(KEYS.FULL_NAME, "");
   const streakDays = parseInt(safeGet(KEYS.STREAK_DAYS, "1"), 10) || 1;
-  const lastActiveDate = safeGet(KEYS.LAST_ACTIVE_DATE, todayIso());
+  // Empty until touchStreak persists — do not default to today or the streak freezes at 1.
+  const lastActiveDate = safeGet(KEYS.LAST_ACTIVE_DATE, "");
 
   return {
     deviceId: deviceId || "pending",
@@ -135,6 +136,9 @@ export function saveProfile(partial: Partial<ProfileData>): ProfileData {
 export function touchStreak(): ProfileData {
   const profile = getStoredProfile();
   const today = todayIso();
+  if (!profile.lastActiveDate) {
+    return saveProfile({ streakDays: Math.max(1, profile.streakDays), lastActiveDate: today });
+  }
   if (profile.lastActiveDate === today) return profile;
 
   const yesterday = new Date();
@@ -247,12 +251,12 @@ export function getProgressReport(): ProgressReportData {
 
   return {
     totalSolves,
+    completedCount: completedSolves,
     selfStepPercent,
-    // Incomplete solves (abandoned / answer revealed early) — not "looked at answer" yet;
-    // client has no reveal count locally, so we expose incompletes as a proxy signal.
+    // Kept on the type for a later real reveal-count; UI must not show these as facts.
     immediateAnswerCount: Math.max(0, totalSolves - completedSolves),
-    avgTimeMinutes: totalSolves > 0 ? 2 : 0,
-    avgTimeSeconds: totalSolves > 0 ? 14 : 0,
+    avgTimeMinutes: 0,
+    avgTimeSeconds: 0,
     // UI builds localized summary from totalSolves + top topic title.
     summaryText: top?.title ?? "",
     repeatedErrors: getErrorStats(),

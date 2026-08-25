@@ -160,7 +160,7 @@ export default function UslubPage() {
                     marginTop: "4px",
                     padding: "12px 14px",
                     borderRadius: "var(--radsm)",
-                    background: "rgba(0,0,0,0.2)",
+                    background: "var(--accsoft)",
                     border: "1px solid var(--bor)",
                     display: "flex",
                     flexDirection: "column",

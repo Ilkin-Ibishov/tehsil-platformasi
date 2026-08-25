@@ -43,7 +43,7 @@ export function BottomNav() {
             key={item.href}
             href={item.href}
             style={{
-              minHeight: "56px",
+              minHeight: "60px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

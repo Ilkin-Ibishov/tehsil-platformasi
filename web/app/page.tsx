@@ -67,7 +67,7 @@ export default function HomePage() {
   const maxWeekly = Math.max(1, ...weeklyData);
   const topWeakness = report.repeatedErrors[0];
   const firstName = profile.fullName ? profile.fullName.trim().split(" ")[0] : "";
-  const greetingText = firstName ? `Salam, ${firstName}! Bugün hansı məsələ ilə ilişdin?` : t("greeting");
+  const greetingText = firstName ? t("greetingPersonal", { name: firstName }) : t("greeting");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
@@ -95,6 +95,9 @@ export default function HomePage() {
             }}
           >
             {streakDays}
+          </span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.06em", color: "var(--t3)" }}>
+            {t("streakDays", { count: streakDays })}
           </span>
           <h1
             style={{
@@ -213,27 +216,9 @@ export default function HomePage() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {history.slice(0, 3).map((item, idx) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => router.push(item.completed ? "/profil" : "/kamera")}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "28px 1fr auto",
-                    alignItems: "center",
-                    gap: "14px",
-                    minHeight: "72px",
-                    padding: "0 16px",
-                    border: "1px solid var(--bor)",
-                    borderRadius: "var(--rad)",
-                    background: "var(--sur)",
-                    color: "var(--t1)",
-                    fontFamily: "inherit",
-                    textAlign: "left",
-                    cursor: "pointer",
-                  }}
-                >
+              {history.slice(0, 3).map((item, idx) => {
+                const rowInner = (
+                  <>
                   <span style={{ fontFamily: "var(--font-mono)", fontSize: "14px", color: "var(--t3)" }}>
                     0{idx + 1}
                   </span>
@@ -245,11 +230,47 @@ export default function HomePage() {
                       {item.completed ? t("historyDone") : t("historyPaused", { step: item.currentStepIndex || 1 })}
                     </span>
                   </div>
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: item.completed ? "var(--t3)" : "var(--acc)" }}>
-                    {item.completed ? t("historyView") : t("historyResume")}
-                  </span>
-                </button>
-              ))}
+                  {!item.completed ? (
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--acc)" }}>
+                      {t("historyRetry")}
+                    </span>
+                  ) : (
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--t3)" }} />
+                  )}
+                  </>
+                );
+                const rowStyle = {
+                  display: "grid",
+                  gridTemplateColumns: "28px 1fr auto",
+                  alignItems: "center",
+                  gap: "14px",
+                  minHeight: "72px",
+                  padding: "0 16px",
+                  border: "1px solid var(--bor)",
+                  borderRadius: "var(--rad)",
+                  background: "var(--sur)",
+                  color: "var(--t1)",
+                  fontFamily: "inherit",
+                  textAlign: "left" as const,
+                };
+                if (item.completed) {
+                  return (
+                    <div key={item.id} style={rowStyle}>
+                      {rowInner}
+                    </div>
+                  );
+                }
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => router.push("/kamera")}
+                    style={{ ...rowStyle, cursor: "pointer" }}
+                  >
+                    {rowInner}
+                  </button>
+                );
+              })}
             </div>
           </section>
         ) : (
@@ -278,40 +299,6 @@ export default function HomePage() {
             </div>
           </section>
         )}
-
-        {/* Micro-learning Card */}
-        <section style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", color: "var(--t3)" }}>
-            {t("feedTitle")}
-          </span>
-          <button
-            type="button"
-            onClick={() => router.push("/bank")}
-            style={{
-              width: "100%",
-              border: "1px solid var(--bor)",
-              borderRadius: "var(--rad)",
-              background: "var(--sur)",
-              color: "var(--t1)",
-              fontFamily: "inherit",
-              cursor: "pointer",
-              textAlign: "left",
-              padding: "18px",
-              display: "grid",
-              rowGap: "12px",
-            }}
-          >
-            <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: "20px", lineHeight: 1.3 }}>
-              {t("feedSampleTitle")}
-            </span>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
-              <span style={{ fontSize: "14px", color: "var(--t2)" }}>{t("feedSampleMeta")}</span>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "14px", color: "var(--acc)" }}>
-                {t("feedSampleAction")}
-              </span>
-            </div>
-          </button>
-        </section>
 
         {/* 7-Day Activity Chart */}
         <section style={{ display: "flex", flexDirection: "column", gap: "12px" }}>

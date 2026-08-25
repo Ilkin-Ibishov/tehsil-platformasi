@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-08-26: HANDOFF 203 — Hub dürüstlüyü: onboarding ad+sinif, fake lent/period/2:14/dil
+  UI silindi, InviteGate ana səhifəyə qayıdır, `touchStreak` persist olunur; tiplər blitz üçün saxlanılıb.
 - 2026-08-25: HANDOFF 202 — Onboarding sonrası ana ekrana yönləndirmə, SolveView həll və
   cavab ekranlarında ana səhifəyə qayıtmaq üçün naviqasiya düymələri əlavə edildi.
 - 2026-08-25: HANDOFF 201 — Onboarding Ad/Soyad addımı, pilot dəvət kodları aktivləşdirildi,

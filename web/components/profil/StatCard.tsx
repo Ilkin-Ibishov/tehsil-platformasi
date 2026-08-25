@@ -7,11 +7,11 @@ export function StatCard({ report }: { report: ProgressReportData }) {
   const t = useTranslations("profil");
 
   const summary =
-    report.totalSolves === 0
+    report.completedCount === 0
       ? t("summaryEmpty")
       : report.summaryText
-        ? t("summaryWithTopic", { topic: report.summaryText, count: report.totalSolves })
-        : t("summaryGeneric", { count: report.totalSolves });
+        ? t("summaryWithTopic", { topic: report.summaryText, count: report.completedCount })
+        : t("summaryGeneric", { count: report.completedCount });
 
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -26,8 +26,13 @@ export function StatCard({ report }: { report: ProgressReportData }) {
             color: "var(--acc)",
           }}
         >
-          {t("solvesCount", { count: report.totalSolves })}
+          {t("solvesCount", { count: report.completedCount })}
         </span>
+        {report.totalSolves > report.completedCount ? (
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--t3)" }}>
+            {t("attemptsCount", { count: report.totalSolves })}
+          </span>
+        ) : null}
         <span
           style={{
             fontFamily: "var(--hfont)",
@@ -41,86 +46,6 @@ export function StatCard({ report }: { report: ProgressReportData }) {
         >
           {summary}
         </span>
-      </div>
-
-      <div
-        style={{
-          border: "1px solid var(--bor)",
-          borderRadius: "var(--rad)",
-          background: "var(--sur)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "12px",
-            minHeight: "58px",
-            padding: "0 18px",
-            borderBottom: "1px solid var(--bor)",
-          }}
-        >
-          <span style={{ fontSize: "14px", color: "var(--t2)" }}>{t("selfStepLabel")}</span>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "17px",
-              fontWeight: 500,
-              color: "var(--acc)",
-            }}
-          >
-            {report.selfStepPercent}%
-          </span>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "12px",
-            minHeight: "58px",
-            padding: "0 18px",
-            borderBottom: "1px solid var(--bor)",
-          }}
-        >
-          <span style={{ fontSize: "14px", color: "var(--t2)" }}>{t("immediateAnswerLabel")}</span>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "17px",
-              fontWeight: 500,
-              color: report.immediateAnswerCount > 0 ? "var(--warn)" : "var(--t2)",
-            }}
-          >
-            {t("times", { count: report.immediateAnswerCount })}
-          </span>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "12px",
-            minHeight: "58px",
-            padding: "0 18px",
-          }}
-        >
-          <span style={{ fontSize: "14px", color: "var(--t2)" }}>{t("avgTimeLabel")}</span>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "17px",
-              fontWeight: 500,
-              color: "var(--t1)",
-            }}
-          >
-            {t("avgTimeValue", { min: report.avgTimeMinutes, sec: report.avgTimeSeconds })}
-          </span>
-        </div>
       </div>
     </section>
   );

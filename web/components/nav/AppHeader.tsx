@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { getStoredProfile } from "@/lib/profile/storage";
+import { getStoredInviteCode } from "@/components/kamera/InviteGate";
 import type { ProfileData } from "@/lib/profile/types";
 
 export function AppHeader({
@@ -19,12 +20,13 @@ export function AppHeader({
   const tDay = useTranslations("weekdays");
   const tProfil = useTranslations("profil");
   const [profile] = useState<ProfileData>(() => getStoredProfile());
+  const [inviteCode] = useState<string | null>(() => getStoredInviteCode());
 
   const dayName = tDay(String(new Date().getDay()) as "0");
   const gradeText = tProfil("gradeBadge", { grade: profile.grade });
   const studentPrefix = profile.fullName ? `${profile.fullName.split(" ")[0].toUpperCase()} · ` : `${dayName} · `;
   const title = customTitle || `${studentPrefix}${gradeText}`;
-  const badge = customBadge || (profile.inviteCode ? profile.inviteCode.toUpperCase() : tNav("profileBadge"));
+  const badge = customBadge || (inviteCode ? inviteCode.toUpperCase() : tNav("profileBadge"));
 
   return (
     <header
@@ -62,6 +64,7 @@ export function AppHeader({
             textDecoration: "none",
             display: "inline-flex",
             alignItems: "center",
+            minHeight: "44px",
             gap: "4px",
           }}
         >

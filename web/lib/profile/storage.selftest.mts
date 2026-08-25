@@ -5,6 +5,7 @@ import {
   saveHistoryItem,
   getProgressReport,
   recordErrorCode,
+  touchStreak,
 } from "./storage.ts";
 
 let fails = 0;
@@ -55,9 +56,22 @@ recordErrorCode("ARITHMETIC");
 
 const report = getProgressReport();
 check("report totalSolves positive", report.totalSolves >= 1, true);
+check("report completedCount present", report.completedCount >= 1, true);
 check("report has SIGN_LOST", report.repeatedErrors.some((e) => e.code === "SIGN_LOST" && e.count >= 2), true);
 check("report topicMasteries length", report.topicMasteries.length >= 1, true);
 check("report weeklyActivity has 7 days", report.weeklyActivity.length, 7);
+check("report avgTime is not the old 2:14 fake", report.avgTimeMinutes, 0);
+check("report avgTime seconds zero", report.avgTimeSeconds, 0);
+
+const firstTouch = touchStreak();
+const today = new Date().toISOString().slice(0, 10);
+check("touchStreak writes today", firstTouch.lastActiveDate, today);
+check("touchStreak same-day is idempotent", touchStreak().streakDays, firstTouch.streakDays);
+
+const yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
+saveProfile({ lastActiveDate: yesterday.toISOString().slice(0, 10), streakDays: 3 });
+check("touchStreak consecutive day increments", touchStreak().streakDays, 4);
 
 console.log(fails === 0 ? "\nProfile storage selftest keçdi." : `\n${fails} test uğursuz.`);
 process.exit(fails === 0 ? 0 : 1);

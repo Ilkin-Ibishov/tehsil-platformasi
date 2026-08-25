@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-26 (203) · Cursor → Cowork
+Etdim:    Hub dürüstlüyü (blitz): onboarding ad+sinif (`onboarding/page.tsx`); lent/period/dil/fake 2:14 UI silindi (`page.tsx`, `StatCard`, `profil/page.tsx`); InviteGate «Ana səhifə» + `aria-label`; `topics.*` nöqtəli i18n silindi; `touchStreak` artıq `lastActiveDate` persist edir. `Role`/`Goal`/`Locale` tiplərdə qaldı. Selftest + `tsc` keçdi.
+Tapşırıq: meta / no ClickUp — hub honesty P0.
+Diqqət:   SolveView `error_code` qapısı toxunulmayıb. Parent/i18n/resume/reels qurulmayıb. `avgTime*` tipdə qalır, UI göstərmir.
+
 ## 2026-08-25 (202) · Antigravity → Cowork
 Etdim:    1) Onboarding sonrası birbaşa kameraya deyil, Ana ekrana (`/`) yönləndirmə təmin edildi (`handleFinish` -> `persistAndGo("/")`), CTA düyməsi "Başla" olaraq yeniləndi. 2) Həll ekranında (`SolveView.tsx`) və həll bitdikdə (`revealed` / cavab kartı) Ana ekrana qayıtmaq üçün yuxarı ("← Ana səhifə") və aşağı ("Ana ekrana qayıt 🏠 →") naviqasiya düymələri əlavə edildi. 3) Bank və Kamera səhifələrindən `onGoHome` prop ötürüldü. Selftest və `tsc` keçdi.
 Tapşırıq: meta / Onboarding Home Route & SolveView Home Navigation Buttons.

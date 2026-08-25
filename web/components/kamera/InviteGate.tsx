@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { getDeviceId } from "@/lib/telemetry";
 
@@ -36,6 +37,7 @@ export function InviteGate({
   invalid?: boolean;
 }) {
   const t = useTranslations("invite");
+  const router = useRouter();
   const [value, setValue] = useState("");
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<GateError | null>(null);
@@ -89,6 +91,23 @@ export function InviteGate({
 
   return (
     <main style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 16, padding: "24px var(--page-pad-x)" }}>
+      <button
+        type="button"
+        onClick={() => router.push("/")}
+        style={{
+          alignSelf: "flex-start",
+          minHeight: "44px",
+          padding: "0 4px",
+          border: "none",
+          background: "transparent",
+          color: "var(--t2)",
+          fontFamily: "inherit",
+          fontSize: 14,
+          cursor: "pointer",
+        }}
+      >
+        {t("backHome")}
+      </button>
       <h1 style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: "var(--hsize)", margin: 0 }}>
         {t("title")}
       </h1>
@@ -107,6 +126,7 @@ export function InviteGate({
         }}
         onKeyDown={(e) => e.key === "Enter" && submit()}
         placeholder={t("placeholder")}
+        aria-label={t("inputLabel")}
         autoComplete="off"
         data-testid="invite-code-input"
         autoCapitalize="off"

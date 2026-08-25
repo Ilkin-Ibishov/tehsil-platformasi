@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactElement } from "react";
+import { useTranslations } from "next-intl";
 
 type MathKeyboardBarProps = {
   onInsert: (symbol: string) => void;
@@ -9,27 +10,29 @@ type MathKeyboardBarProps = {
   disabled?: boolean;
 };
 
-const MATH_CHIPS = [
-  { label: "√", symbol: "√", title: "Kök" },
-  { label: "/", symbol: "/", title: "Kəsr / Bölmə" },
-  { label: "x²", symbol: "²", title: "Kvadrat" },
-  { label: "x³", symbol: "³", title: "Kub" },
-  { label: "π", symbol: "π", title: "Pi" },
-  { label: "±", symbol: "±", title: "Müsbət / Mənfi" },
-  { label: "−", symbol: "-", title: "Mənfi" },
-  { label: ".", symbol: ".", title: "Nöqtə" },
-] as const;
-
 export function MathKeyboardBar({
   onInsert,
   onBackspace,
   onClear,
   disabled = false,
 }: MathKeyboardBarProps): ReactElement {
+  const t = useTranslations("mathKeyboard");
+
+  const MATH_CHIPS = [
+    { label: "√", symbol: "√", titleKey: "root" as const },
+    { label: "/", symbol: "/", titleKey: "fraction" as const },
+    { label: "x²", symbol: "²", titleKey: "square" as const },
+    { label: "x³", symbol: "³", titleKey: "cube" as const },
+    { label: "π", symbol: "π", titleKey: "pi" as const },
+    { label: "±", symbol: "±", titleKey: "plusMinus" as const },
+    { label: "−", symbol: "-", titleKey: "minus" as const },
+    { label: ".", symbol: ".", titleKey: "dot" as const },
+  ];
+
   return (
     <div
       role="toolbar"
-      aria-label="Riyazi simvollar"
+      aria-label={t("toolbar")}
       style={{
         display: "flex",
         alignItems: "center",
@@ -46,7 +49,7 @@ export function MathKeyboardBar({
           key={chip.label}
           type="button"
           disabled={disabled}
-          title={chip.title}
+          title={t(chip.titleKey)}
           // e.preventDefault() prevents the input from losing focus / mobile keyboard hiding
           onMouseDown={(e) => {
             e.preventDefault();
@@ -58,8 +61,8 @@ export function MathKeyboardBar({
           }}
           style={{
             flexShrink: 0,
-            minHeight: 40,
-            minWidth: 40,
+            minHeight: 44,
+            minWidth: 44,
             padding: "0 10px",
             display: "inline-flex",
             alignItems: "center",
@@ -86,8 +89,8 @@ export function MathKeyboardBar({
       <button
         type="button"
         disabled={disabled}
-        title="Sil"
-        aria-label="Sil"
+        title={t("backspace")}
+        aria-label={t("backspace")}
         onMouseDown={(e) => {
           e.preventDefault();
           onBackspace();
@@ -98,8 +101,8 @@ export function MathKeyboardBar({
         }}
         style={{
           flexShrink: 0,
-          minHeight: 40,
-          minWidth: 40,
+          minHeight: 44,
+          minWidth: 44,
           padding: "0 10px",
           display: "inline-flex",
           alignItems: "center",
@@ -107,7 +110,7 @@ export function MathKeyboardBar({
           border: "1px solid var(--bor)",
           borderRadius: "var(--rad)",
           background: "var(--sur)",
-          color: "var(--warn, #e53e3e)",
+          color: "var(--warn)",
           fontFamily: "var(--font-mono)",
           fontSize: 16,
           fontWeight: 700,
@@ -124,8 +127,8 @@ export function MathKeyboardBar({
       <button
         type="button"
         disabled={disabled}
-        title="Hamısını təmizlə"
-        aria-label="Hamısını təmizlə"
+        title={t("clear")}
+        aria-label={t("clear")}
         onMouseDown={(e) => {
           e.preventDefault();
           onClear();
@@ -136,8 +139,8 @@ export function MathKeyboardBar({
         }}
         style={{
           flexShrink: 0,
-          minHeight: 40,
-          minWidth: 36,
+          minHeight: 44,
+          minWidth: 44,
           padding: "0 8px",
           display: "inline-flex",
           alignItems: "center",
