@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { getStoredProfile, saveProfile, getProgressReport } from "@/lib/profile/storage";
 import { applyVisualToneFromProfile } from "@/components/ThemeToneSync";
@@ -25,6 +26,21 @@ export default function ProfilePage() {
     if (period === "week") setPeriod("month");
     else if (period === "month") setPeriod("all");
     else setPeriod("week");
+  }
+
+  const router = useRouter();
+
+  function handleEditName() {
+    const nextName = window.prompt(t("editNamePrompt"), profile.fullName || "");
+    if (nextName !== null) {
+      const updated = saveProfile({ fullName: nextName.trim() });
+      setProfile(updated);
+    }
+  }
+
+  function handleReRunOnboarding() {
+    saveProfile({ onboarded: false });
+    router.push("/onboarding");
   }
 
   function handleCopyInvite() {
@@ -103,6 +119,7 @@ export default function ProfilePage() {
             textTransform: "uppercase",
           }}
         >
+          {profile.fullName ? `${profile.fullName.toUpperCase()} · ` : ""}
           {profile.role === "valideyn" ? t("roleBadgeParent") : t("roleBadgeStudent")} · {t("gradeBadge", { grade: profile.grade })}
         </span>
 
@@ -169,6 +186,35 @@ export default function ProfilePage() {
               gap: "18px",
             }}
           >
+            {/* Full Name */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+              <div style={{ display: "grid", rowGap: "2px" }}>
+                <span style={{ fontSize: "14px", color: "var(--t2)" }}>{t("fullNameLabel")}</span>
+                <span style={{ fontSize: "16px", fontWeight: 600, color: "var(--t1)" }}>
+                  {profile.fullName || "Təyin edilməyib"}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleEditName}
+                style={{
+                  minHeight: "36px",
+                  padding: "0 12px",
+                  border: "1px solid var(--bor)",
+                  borderRadius: "var(--radsm)",
+                  background: "transparent",
+                  color: "var(--t2)",
+                  fontFamily: "inherit",
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+              >
+                {t("editName")}
+              </button>
+            </div>
+
+            <div style={{ height: "1px", background: "var(--bor)" }} />
+
             {/* Invite Code */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
               <div style={{ display: "grid", rowGap: "2px" }}>
@@ -302,6 +348,30 @@ export default function ProfilePage() {
                   );
                 })}
               </div>
+            </div>
+
+            <div style={{ height: "1px", background: "var(--bor)" }} />
+
+            {/* Re-run Onboarding */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: "14px", color: "var(--t2)" }}>İlkin quraşdırma</span>
+              <button
+                type="button"
+                onClick={handleReRunOnboarding}
+                style={{
+                  padding: "6px 12px",
+                  border: "1px solid var(--bor)",
+                  borderRadius: "var(--radsm)",
+                  background: "transparent",
+                  color: "var(--acc)",
+                  fontFamily: "inherit",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                {t("reRunOnboarding")}
+              </button>
             </div>
           </div>
 

@@ -52,7 +52,7 @@ alwaysApply: true
 
 ## Current state
 
-- Production: `bb30e06` (2026-08-19), Vercel READY, CI green
+- Production: `17a6fc3` (2026-08-25), Vercel READY, CI green
 - Cascade: enabled via `app_config.cascade_enabled`
 - Model fallback: 2 consecutive 503 → next model in registry (prod + eval `--fallback`)
 - Eval harness: `--from-canonical`, `--fallback`, `leak_rate_by_model` in summaries

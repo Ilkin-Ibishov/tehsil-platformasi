@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { getDeviceId } from "@/lib/telemetry";
 
 // Dəvət kodu ictimai URL-in arxasındakı ödənişli açarı qoruyur (docs/PHASE-1.md S3, ADR-012).
 // Qapıda `/api/invite/check` yoxlayır (ClickUp 86eymrm6g) — səhv kod localStorage-a
@@ -25,7 +26,7 @@ export function clearStoredInviteCode(): void {
   }
 }
 
-type GateError = { kind: "invalid" } | { kind: "network" };
+type GateError = { kind: "invalid" } | { kind: "already_used" } | { kind: "network" };
 
 export function InviteGate({
   onCode,
@@ -50,10 +51,14 @@ export function InviteGate({
       const res = await fetch("/api/invite/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ invite_code: code }),
+        body: JSON.stringify({ invite_code: code, device_id: getDeviceId() }),
       });
       if (res.status === 403) {
         setError({ kind: "invalid" });
+        return;
+      }
+      if (res.status === 409) {
+        setError({ kind: "already_used" });
         return;
       }
       if (!res.ok) {
@@ -73,7 +78,14 @@ export function InviteGate({
     }
   }
 
-  const errorText = gateError?.kind === "invalid" ? t("invalid") : gateError?.kind === "network" ? t("networkError") : null;
+  const errorText =
+    gateError?.kind === "invalid"
+      ? t("invalid")
+      : gateError?.kind === "already_used"
+        ? t("alreadyUsed")
+        : gateError?.kind === "network"
+          ? t("networkError")
+          : null;
 
   return (
     <main style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 16, padding: "24px var(--page-pad-x)" }}>

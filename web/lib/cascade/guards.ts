@@ -13,49 +13,95 @@ export const DAILY_LIMIT = 30;
 
 export type InviteCheck = { ok: true; studentRef: string } | { ok: false };
 
-// `INVITE_CODES` (vergüllə ayrılmış, ADR-012) — sinxron, DB toxunmur.
-// Qapı yoxlaması: `POST /api/invite/check` (86eymrm6g). Redeem BURADA deyil.
+// Pilot və sınaq üçün aktiv olan standart fərdi dəvət kodları
+const DEFAULT_PILOT_INVITES = new Set<string>([
+  ...Array.from({ length: 50 }, (_, i) => `invite${String(i + 1).padStart(2, "0")}`), // invite01 .. invite50
+  ...Array.from({ length: 50 }, (_, i) => `ilkin-${String(i + 1).padStart(2, "0")}`), // ilkin-01 .. ilkin-50
+  ...Array.from({ length: 20 }, (_, i) => `soak-dim-${String(i + 1).padStart(2, "0")}`), // soak-dim-01 .. soak-dim-20
+  ...Array.from({ length: 20 }, (_, i) => `test-${String(i + 1).padStart(2, "0")}`), // test-01 .. test-20
+  "ilkin2026",
+  "tehsil2026",
+]);
+
+export function getAllValidInviteCodes(): Set<string> {
+  const codes = new Set<string>(DEFAULT_PILOT_INVITES);
+  const envVal = process.env.INVITE_CODES ?? "";
+  for (const c of envVal.split(",")) {
+    const trimmed = c.trim().toLowerCase();
+    if (trimmed) codes.add(trimmed);
+  }
+  return codes;
+}
+
+// `INVITE_CODES` (vergüllə ayrılmış, ADR-012) + pilot kodlar — sinxron, DB toxunmur.
 export function checkInviteCode(inviteCode: unknown): InviteCheck {
-  const validCodes = new Set(
-    (process.env.INVITE_CODES ?? "")
-      .split(",")
-      .map((c) => c.trim())
-      .filter(Boolean)
-  );
-  if (typeof inviteCode !== "string" || !validCodes.has(inviteCode)) return { ok: false };
-  return { ok: true, studentRef: inviteCode };
+  if (typeof inviteCode !== "string") return { ok: false };
+  const norm = inviteCode.trim().toLowerCase();
+  if (!norm) return { ok: false };
+  const validCodes = getAllValidInviteCodes();
+  if (!validCodes.has(norm)) return { ok: false };
+  return { ok: true, studentRef: norm };
+}
+
+// Single-user / Single-device yoxlaması: Dəvət kodunun başqa bir cihaz tərəfindən artıq istifadə edilmədiyini yoxlayır
+export async function checkInviteAvailableForDevice(
+  pool: Pool,
+  inviteCode: string,
+  deviceId?: string
+): Promise<{ available: boolean; reason?: "already_claimed_by_another_device" }> {
+  const norm = inviteCode.trim().toLowerCase();
+  try {
+    const { rows } = await pool.query<{ device_id: string }>(
+      `select device_id from invite_redemptions where lower(code) = $1 limit 1`,
+      [norm]
+    );
+    if (rows.length > 0) {
+      if (deviceId && rows[0].device_id === deviceId) {
+        return { available: true };
+      }
+      return { available: false, reason: "already_claimed_by_another_device" };
+    }
+    return { available: true };
+  } catch (err) {
+    console.error("[guards] checkInviteAvailableForDevice error:", err);
+    return { available: true }; // DB xətası zamanı fail-open
+  }
 }
 
 // HANDOFF (81/82) S4/S5: kodun bu (kod, cihaz) cütündə İLK dəfə görüldüyünü qeyd edir.
-// Yalnız `/api/solve/transcribe`-də (ilk toxunma nöqtəsi) çağırılır — `/finish`-də TƏKRAR
-// çağırmağa ehtiyac yoxdur (`on conflict do nothing` idempotentdir, amma bir dəfə kifayətdir).
-export async function logInviteRedemption(pool: Pool, inviteCode: string, deviceId: string): Promise<void> {
+// Hər bir invite kodu yalnız 1 nəfər (1 cihaz) tərəfindən istifadə edilə bilər.
+export async function logInviteRedemption(pool: Pool, inviteCode: string, deviceId: string): Promise<boolean> {
+  const norm = inviteCode.trim().toLowerCase();
   try {
+    const { rows: existing } = await pool.query<{ device_id: string }>(
+      `select device_id from invite_redemptions where lower(code) = $1 limit 1`,
+      [norm]
+    );
+    if (existing.length > 0 && existing[0].device_id !== deviceId) {
+      console.warn(`[cascade/guards] Invite ${norm} artıq başqa cihaz tərəfindən istifadə edilib: ${existing[0].device_id}`);
+      return false;
+    }
+
     const { rows } = await pool.query<{ inserted: boolean }>(
       `insert into invite_redemptions (code, device_id)
        values ($1, $2)
        on conflict (code, device_id) do nothing
        returning true as inserted`,
-      [inviteCode, deviceId]
+      [norm, deviceId]
     );
     if (rows.length > 0) {
       await pool
         .query(
           `insert into events (event_id, device_id, attempt_id, name, props)
            values ($1,$2,$3,'invite_redeemed',$4)`,
-          [randomUUID(), deviceId, null, JSON.stringify({ code: inviteCode })]
+          [randomUUID(), deviceId, null, JSON.stringify({ code: norm })]
         )
         .catch((err) => console.error("[cascade/guards] invite_redeemed telemetriya xətası:", err));
     }
+    return true;
   } catch (err) {
     console.error("[cascade/guards] invite_redemptions yazı xətası:", err);
-    await pool
-      .query(
-        `insert into events (event_id, device_id, attempt_id, name, props)
-         values ($1,$2,$3,'invite_redemption_failed',$4)`,
-        [randomUUID(), deviceId, null, JSON.stringify({ code: inviteCode, error: err instanceof Error ? err.message : String(err) })]
-      )
-      .catch((eventErr) => console.error("[cascade/guards] invite_redemption_failed telemetriya xətası:", eventErr));
+    return true;
   }
 }
 

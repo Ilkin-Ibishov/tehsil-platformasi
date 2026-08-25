@@ -13,6 +13,7 @@ import { normalizePedagogicalTone } from "./tone-prompt";
 
 const KEYS = {
   DEVICE_ID: "th_device_id",
+  FULL_NAME: "th_user_fullname",
   INVITE_CODE: "th_invite_code",
   LOCALE: "th_locale",
   ROLE: "th_role",
@@ -75,17 +76,7 @@ function todayIso(): string {
 
 function resolveOnboarded(): boolean {
   const raw = safeGet(KEYS.ONBOARDED, "");
-  if (raw === "true") return true;
-  if (raw === "false") return false;
-  // Legacy installs (pre-profile): invite or device already present → skip forcing onboarding.
-  const hasLegacy =
-    Boolean(safeGet(KEYS.INVITE_CODE, "")) ||
-    (isBrowser() && Boolean(localStorage.getItem(KEYS.DEVICE_ID)));
-  if (hasLegacy) {
-    safeSet(KEYS.ONBOARDED, "true");
-    return true;
-  }
-  return false;
+  return raw === "true";
 }
 
 export function getStoredProfile(): ProfileData {
@@ -98,11 +89,13 @@ export function getStoredProfile(): ProfileData {
   const goal = (safeGet(KEYS.GOAL, "dim") as Goal) || "dim";
   const inviteCode = safeGet(KEYS.INVITE_CODE, "");
   const deviceId = safeGet(KEYS.DEVICE_ID, "");
+  const fullName = safeGet(KEYS.FULL_NAME, "");
   const streakDays = parseInt(safeGet(KEYS.STREAK_DAYS, "1"), 10) || 1;
   const lastActiveDate = safeGet(KEYS.LAST_ACTIVE_DATE, todayIso());
 
   return {
     deviceId: deviceId || "pending",
+    fullName,
     inviteCode: inviteCode || null,
     locale: ["az", "ru", "en", "tr"].includes(locale) ? locale : "az",
     role: role === "valideyn" ? "valideyn" : "sagird",
@@ -117,6 +110,7 @@ export function getStoredProfile(): ProfileData {
 }
 
 export function saveProfile(partial: Partial<ProfileData>): ProfileData {
+  if (typeof partial.fullName === "string") safeSet(KEYS.FULL_NAME, partial.fullName.trim());
   if (partial.locale) safeSet(KEYS.LOCALE, partial.locale);
   if (partial.role) safeSet(KEYS.ROLE, partial.role);
   if (typeof partial.grade === "number") {

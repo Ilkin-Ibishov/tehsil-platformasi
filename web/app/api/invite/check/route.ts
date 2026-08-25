@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkInviteCode } from "@/lib/cascade/guards";
+import { checkInviteCode, checkInviteAvailableForDevice } from "@/lib/cascade/guards";
+import { pool } from "@/lib/db";
 
-// POST /api/invite/check — ClickUp 86eymrm6g.
+// POST /api/invite/check
 //
-// InviteGate əvvəl istənilən qeyri-boş sətri localStorage-a yazıb irəli aparırdı; real
-// yoxlama yalnız sonrakı API-də (kamera: /api/solve 403, bank: /api/bank/questions 403)
-// baş verirdi. Bank yolunda 403 səssiz boş formaya qayıdırdı.
-//
-// Bu endpoint YALNIZ `checkInviteCode` işlədir — DB yox, `invite_redemptions` yox.
-// Redeem hələ də ilk həqiqi toxunuşdadır (`/api/solve` və ya `/api/solve/transcribe`).
+// 1) Dəvət kodunun etibarlılığını yoxlayır (`checkInviteCode`).
+// 2) Tək-istifadəçi (Single-Person) qaydası: kodun başqa cihaz tərəfindən istifadə edilib-edilmədiyini yoxlayır.
+//    Əgər başqa cihaz artıq bu kodu götürübsə 409 status kodu ilə "invite_already_used" qaytarır.
 
-type Body = { invite_code?: unknown };
+type Body = { invite_code?: unknown; device_id?: unknown };
 
 export async function POST(req: NextRequest) {
   let body: Body;
@@ -20,8 +18,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "json gözlənilir" }, { status: 400 });
   }
 
-  if (!checkInviteCode(body.invite_code).ok) {
+  const codeCheck = checkInviteCode(body.invite_code);
+  if (!codeCheck.ok) {
     return NextResponse.json({ error: "invalid_invite" }, { status: 403 });
   }
+
+  const deviceId = typeof body.device_id === "string" ? body.device_id : undefined;
+  const avail = await checkInviteAvailableForDevice(pool, codeCheck.studentRef, deviceId);
+  if (!avail.available) {
+    return NextResponse.json({ error: "invite_already_used" }, { status: 409 });
+  }
+
   return NextResponse.json({ ok: true }, { status: 200 });
 }

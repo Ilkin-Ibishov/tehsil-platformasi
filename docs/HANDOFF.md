@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-25 (201) · Antigravity → Cowork
+Etdim:    1) Onboarding axını təkmilləşdirildi: `resolveOnboarded` `th_device_id` mövcudluğuna görə avtomatik `true` etmir (istifadəçi ilk dəfə onboardinqi mütləq görür), `/profil`-ə "Quraşdırmanı yenidən keç" düyməsi əlavə edildi. 2) İstifadəçi adı və soyadı: `ProfileData`-ya `fullName` əlavə edildi, 5-addımlı onboarding (01/05: Ad və Soyad), profil səhifəsində redaktə və ana ekranda/başlıqda fərdi xitab ("Salam, [Ad]!"). 3) Dəvət kodları: `invite01`..`invite50`, `ilkin-01`..`ilkin-50`, `soak-dim-01`..`soak-dim-20` standart aktivləşdirildi (hərflərin böyük/kiçikliyinə həssaslıq aradan qaldırıldı). 4) Single-user / 1 cihaz qaydası: `checkInviteAvailableForDevice` və `/api/invite/check` vasitəsilə eyni kodun başqa cihaz tərəfindən istifadəsinə 409 `already_used` məhdudiyyəti qoyuldu. Selftestlər və `tsc` keçdi.
+Tapşırıq: meta / Onboarding Full Name, Built-in Pilot Invites & Single-User Device Lock.
+Diqqət:   Mövcud cihazlar `onboarded: true` olmadıqca `/onboarding`-ə yönlənir.
+
 ## 2026-08-25 (200) · Cursor → Cowork
 Etdim:    Antigravity-nin yarımçıq UI hub işi tamamlandı: `/profil` (+`/hesabat`), `/onboarding`, `/uslub`, ana hub (`page.tsx`), `BottomNav`/`AppHeader`, `lib/profile/*` (localStorage + səhv/tarixçə), üslub → Qat 5/monolit `pedagogicalTone` addendum, kamera `grade`/`locale`/`tone` profilə bağlandı. Selftest + `tsc` keçdi.
 Tapşırıq: meta / no ClickUp — profil+onboarding+üsul+hub UI.

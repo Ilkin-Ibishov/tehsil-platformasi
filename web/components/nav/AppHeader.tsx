@@ -22,7 +22,8 @@ export function AppHeader({
 
   const dayName = tDay(String(new Date().getDay()) as "0");
   const gradeText = tProfil("gradeBadge", { grade: profile.grade });
-  const title = customTitle || `${dayName} · ${gradeText}`;
+  const studentPrefix = profile.fullName ? `${profile.fullName.split(" ")[0].toUpperCase()} · ` : `${dayName} · `;
+  const title = customTitle || `${studentPrefix}${gradeText}`;
   const badge = customBadge || (profile.inviteCode ? profile.inviteCode.toUpperCase() : tNav("profileBadge"));
 
   return (

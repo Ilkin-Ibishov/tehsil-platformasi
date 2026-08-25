@@ -6,6 +6,7 @@ export type Goal = "dim" | "buraxilis" | "mekteb" | "olimpiada";
 
 export type ProfileData = {
   deviceId: string;
+  fullName: string;
   inviteCode: string | null;
   locale: Locale;
   role: Role;

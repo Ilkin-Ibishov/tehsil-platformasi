@@ -66,6 +66,8 @@ export default function HomePage() {
   const weeklyData = report.weeklyActivity.length === 7 ? report.weeklyActivity : [0, 0, 0, 0, 0, 0, 0];
   const maxWeekly = Math.max(1, ...weeklyData);
   const topWeakness = report.repeatedErrors[0];
+  const firstName = profile.fullName ? profile.fullName.trim().split(" ")[0] : "";
+  const greetingText = firstName ? `Salam, ${firstName}! Bugün hansı məsələ ilə ilişdin?` : t("greeting");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
@@ -106,7 +108,7 @@ export default function HomePage() {
               color: "var(--t1)",
             }}
           >
-            {t("greeting")}
+            {greetingText}
           </h1>
         </div>
 

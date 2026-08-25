@@ -21,12 +21,14 @@ check("initial locale default", initial.locale, "az");
 check("initial visual tone", initial.grade <= 8 ? "genc" : "yetkin", initial.visualTone);
 
 const updated = saveProfile({
+  fullName: "Aysel Məmmədova",
   grade: 6,
   role: "valideyn",
   pedagogicalTone: "dostyana",
   goal: "buraxilis",
   onboarded: true,
 });
+check("updated fullName", updated.fullName, "Aysel Məmmədova");
 check("updated grade", updated.grade, 6);
 check("updated role", updated.role, "valideyn");
 check("updated ped tone", updated.pedagogicalTone, "dostyana");

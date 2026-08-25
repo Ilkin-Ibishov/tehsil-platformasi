@@ -11,14 +11,16 @@ export default function OnboardingPage() {
   const t = useTranslations("onboarding");
   const router = useRouter();
 
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [fullName, setFullName] = useState<string>("");
   const [locale, setLocale] = useState<Locale>("az");
   const [role, setRole] = useState<Role>("sagird");
   const [grade, setGrade] = useState<number>(9);
   const [goal, setGoal] = useState<Goal>("dim");
 
-  function persistAndGo(path: string, opts: { locale: Locale; role: Role; grade: number; goal: Goal }) {
+  function persistAndGo(path: string, opts: { fullName: string; locale: Locale; role: Role; grade: number; goal: Goal }) {
     saveProfile({
+      fullName: opts.fullName,
       locale: opts.locale,
       role: opts.role,
       grade: opts.grade,
@@ -30,21 +32,22 @@ export default function OnboardingPage() {
   }
 
   function handleSkip() {
-    persistAndGo("/", { locale: "az", role: "sagird", grade: 9, goal: "dim" });
+    persistAndGo("/", { fullName: fullName || "", locale: "az", role: "sagird", grade: 9, goal: "dim" });
   }
 
   function handleFinish() {
-    persistAndGo("/kamera", { locale, role, grade, goal });
+    persistAndGo("/kamera", { fullName, locale, role, grade, goal });
   }
 
   function goBack() {
-    if (step > 1) setStep((s) => (s - 1) as 1 | 2 | 3 | 4);
+    if (step > 1) setStep((s) => (s - 1) as 1 | 2 | 3 | 4 | 5);
   }
 
   const p1 = step >= 1 ? "var(--acc)" : "var(--bor)";
   const p2 = step >= 2 ? "var(--acc)" : "var(--bor)";
   const p3 = step >= 3 ? "var(--acc)" : "var(--bor)";
   const p4 = step >= 4 ? "var(--acc)" : "var(--bor)";
+  const p5 = step >= 5 ? "var(--acc)" : "var(--bor)";
 
   return (
     <div
@@ -79,19 +82,103 @@ export default function OnboardingPage() {
         <span style={{ height: "6px", borderRadius: "99px", flex: 1, transition: "background 380ms cubic-bezier(0.16,1,0.3,1)", background: p2 }} />
         <span style={{ height: "6px", borderRadius: "99px", flex: 1, transition: "background 380ms cubic-bezier(0.16,1,0.3,1)", background: p3 }} />
         <span style={{ height: "6px", borderRadius: "99px", flex: 1, transition: "background 380ms cubic-bezier(0.16,1,0.3,1)", background: p4 }} />
+        <span style={{ height: "6px", borderRadius: "99px", flex: 1, transition: "background 380ms cubic-bezier(0.16,1,0.3,1)", background: p5 }} />
       </div>
 
       <div style={{ flex: 1, padding: "28px var(--page-pad-x) 24px" }}>
-        {/* Step 1: Language */}
+        {/* Step 1: Full Name */}
         {step === 1 && (
           <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
             <div style={{ display: "grid", rowGap: "8px" }}>
               <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", color: "var(--acc)" }}>
-                {t("step1Counter")}
+                {t("stepNameCounter")}
               </span>
               <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: "var(--hsize)", lineHeight: 1.15, letterSpacing: "-0.02em", color: "var(--t1)" }}>
-                {t("step1Title")}
+                {t("stepNameTitle")}
               </span>
+            </div>
+            <p style={{ margin: 0, fontSize: "15px", lineHeight: 1.6, color: "var(--t2)" }}>
+              {t("stepNameBody")}
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") setStep(2);
+                }}
+                placeholder={t("stepNamePlaceholder")}
+                autoFocus
+                style={{
+                  width: "100%",
+                  minHeight: "56px",
+                  padding: "0 18px",
+                  border: "1px solid var(--bor)",
+                  borderRadius: "var(--rad)",
+                  background: "var(--sur)",
+                  color: "var(--t1)",
+                  fontFamily: "inherit",
+                  fontSize: "16px", // >=16px prevents iOS zoom
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+              />
+
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                style={{
+                  width: "100%",
+                  minHeight: "56px",
+                  border: "none",
+                  borderRadius: "var(--rad)",
+                  background: "var(--acc)",
+                  color: "var(--accink)",
+                  fontFamily: "inherit",
+                  fontSize: "16px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  marginTop: "8px",
+                }}
+              >
+                {t("stepNameContinue")} →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Language */}
+        {step === 2 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <button
+                type="button"
+                onClick={goBack}
+                aria-label={t("backAria")}
+                style={{
+                  minHeight: 44,
+                  minWidth: 44,
+                  padding: 0,
+                  border: "1px solid var(--bor)",
+                  borderRadius: "var(--radsm)",
+                  background: "var(--sur)",
+                  color: "var(--t2)",
+                  fontFamily: "var(--font-mono)",
+                  cursor: "pointer",
+                }}
+              >
+                ←
+              </button>
+              <div style={{ display: "grid", rowGap: "4px" }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", color: "var(--acc)" }}>
+                  {t("step1Counter")}
+                </span>
+                <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: "var(--hsize)", lineHeight: 1.15, letterSpacing: "-0.02em", color: "var(--t1)" }}>
+                  {t("step1Title")}
+                </span>
+              </div>
             </div>
             <p style={{ margin: 0, fontSize: "15px", lineHeight: 1.6, color: "var(--t2)" }}>
               {t("step1Body")}
@@ -110,7 +197,7 @@ export default function OnboardingPage() {
                     type="button"
                     onClick={() => {
                       setLocale(item.code as Locale);
-                      setStep(2);
+                      setStep(3);
                     }}
                     style={{
                       display: "flex",
@@ -138,16 +225,36 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 2: Role */}
-        {step === 2 && (
+        {/* Step 3: Role */}
+        {step === 3 && (
           <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
-            <div style={{ display: "grid", rowGap: "8px" }}>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", color: "var(--acc)" }}>
-                {t("step2Counter")}
-              </span>
-              <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: "var(--hsize)", lineHeight: 1.15, letterSpacing: "-0.02em", color: "var(--t1)" }}>
-                {t("step2Title")}
-              </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <button
+                type="button"
+                onClick={goBack}
+                aria-label={t("backAria")}
+                style={{
+                  minHeight: 44,
+                  minWidth: 44,
+                  padding: 0,
+                  border: "1px solid var(--bor)",
+                  borderRadius: "var(--radsm)",
+                  background: "var(--sur)",
+                  color: "var(--t2)",
+                  fontFamily: "var(--font-mono)",
+                  cursor: "pointer",
+                }}
+              >
+                ←
+              </button>
+              <div style={{ display: "grid", rowGap: "4px" }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", color: "var(--acc)" }}>
+                  {t("step2Counter")}
+                </span>
+                <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: "var(--hsize)", lineHeight: 1.15, letterSpacing: "-0.02em", color: "var(--t1)" }}>
+                  {t("step2Title")}
+                </span>
+              </div>
             </div>
             <p style={{ margin: 0, fontSize: "15px", lineHeight: 1.6, color: "var(--t2)" }}>
               {t("step2Body")}
@@ -157,7 +264,7 @@ export default function OnboardingPage() {
                 type="button"
                 onClick={() => {
                   setRole("sagird");
-                  setStep(3);
+                  setStep(4);
                 }}
                 style={{
                   display: "grid",
@@ -181,7 +288,7 @@ export default function OnboardingPage() {
                 type="button"
                 onClick={() => {
                   setRole("valideyn");
-                  setStep(3);
+                  setStep(4);
                 }}
                 style={{
                   display: "grid",
@@ -204,16 +311,36 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 3: Grade */}
-        {step === 3 && (
+        {/* Step 4: Grade */}
+        {step === 4 && (
           <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
-            <div style={{ display: "grid", rowGap: "8px" }}>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", color: "var(--acc)" }}>
-                {t("step3Counter")}
-              </span>
-              <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: "var(--hsize)", lineHeight: 1.15, letterSpacing: "-0.02em", color: "var(--t1)" }}>
-                {t("step3Title")}
-              </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <button
+                type="button"
+                onClick={goBack}
+                aria-label={t("backAria")}
+                style={{
+                  minHeight: 44,
+                  minWidth: 44,
+                  padding: 0,
+                  border: "1px solid var(--bor)",
+                  borderRadius: "var(--radsm)",
+                  background: "var(--sur)",
+                  color: "var(--t2)",
+                  fontFamily: "var(--font-mono)",
+                  cursor: "pointer",
+                }}
+              >
+                ←
+              </button>
+              <div style={{ display: "grid", rowGap: "4px" }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", color: "var(--acc)" }}>
+                  {t("step3Counter")}
+                </span>
+                <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: "var(--hsize)", lineHeight: 1.15, letterSpacing: "-0.02em", color: "var(--t1)" }}>
+                  {t("step3Title")}
+                </span>
+              </div>
             </div>
             <p style={{ margin: 0, fontSize: "15px", lineHeight: 1.6, color: "var(--t2)" }}>
               {t("step3Body")}
@@ -227,7 +354,7 @@ export default function OnboardingPage() {
                     type="button"
                     onClick={() => {
                       setGrade(g);
-                      setStep(4);
+                      setStep(5);
                     }}
                     style={{
                       minHeight: "56px",
@@ -249,16 +376,36 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 4: Goal & Finish */}
-        {step === 4 && (
+        {/* Step 5: Goal & Finish */}
+        {step === 5 && (
           <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
-            <div style={{ display: "grid", rowGap: "8px" }}>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", color: "var(--acc)" }}>
-                {t("step4Counter")}
-              </span>
-              <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: "var(--hsize)", lineHeight: 1.15, letterSpacing: "-0.02em", color: "var(--t1)" }}>
-                {t("step4Title")}
-              </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <button
+                type="button"
+                onClick={goBack}
+                aria-label={t("backAria")}
+                style={{
+                  minHeight: 44,
+                  minWidth: 44,
+                  padding: 0,
+                  border: "1px solid var(--bor)",
+                  borderRadius: "var(--radsm)",
+                  background: "var(--sur)",
+                  color: "var(--t2)",
+                  fontFamily: "var(--font-mono)",
+                  cursor: "pointer",
+                }}
+              >
+                ←
+              </button>
+              <div style={{ display: "grid", rowGap: "4px" }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", color: "var(--acc)" }}>
+                  {t("step4Counter")}
+                </span>
+                <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: "var(--hsize)", lineHeight: 1.15, letterSpacing: "-0.02em", color: "var(--t1)" }}>
+                  {t("step4Title")}
+                </span>
+              </div>
             </div>
             <p style={{ margin: 0, fontSize: "15px", lineHeight: 1.6, color: "var(--t2)" }}>
               {t("step4Body")}
@@ -296,88 +443,26 @@ export default function OnboardingPage() {
               })}
             </div>
 
+            <button
+              type="button"
+              onClick={handleFinish}
+              style={{
+                width: "100%",
+                minHeight: "56px",
+                border: "none",
+                borderRadius: "var(--rad)",
+                background: "var(--acc)",
+                color: "var(--accink)",
+                fontFamily: "inherit",
+                fontSize: "16px",
+                fontWeight: 700,
+                cursor: "pointer",
+                marginTop: "12px",
+              }}
+            >
+              {t("finishCta")} →
+            </button>
           </div>
-        )}
-      </div>
-
-      <div
-        style={{
-          position: "sticky",
-          bottom: 0,
-          background: "var(--bg)",
-          padding: "12px var(--page-pad-x) 20px",
-          display: "flex",
-          gap: "10px",
-        }}
-      >
-        {step > 1 && (
-          <button
-            type="button"
-            onClick={goBack}
-            aria-label={t("backAria")}
-            style={{
-              minHeight: "56px",
-              padding: "0 20px",
-              border: "1px solid var(--bor)",
-              borderRadius: "var(--rad)",
-              background: "transparent",
-              color: "var(--t2)",
-              fontFamily: "var(--font-mono)",
-              fontSize: "16px",
-              cursor: "pointer",
-            }}
-          >
-            ←
-          </button>
-        )}
-        {step < 4 ? (
-          <button
-            type="button"
-            onClick={() => setStep((s) => (s + 1) as 1 | 2 | 3 | 4)}
-            style={{
-              flex: 1,
-              minHeight: "56px",
-              border: "none",
-              borderRadius: "var(--rad)",
-              background: "var(--acc)",
-              color: "var(--accink)",
-              fontFamily: "inherit",
-              fontSize: "16px",
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 20px",
-            }}
-          >
-            <span>{t("continueCta")}</span>
-            <span style={{ fontFamily: "var(--font-mono)" }}>→</span>
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={handleFinish}
-            style={{
-              flex: 1,
-              minHeight: "56px",
-              border: "none",
-              borderRadius: "var(--rad)",
-              background: "var(--acc)",
-              color: "var(--accink)",
-              fontFamily: "inherit",
-              fontSize: "16px",
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 20px",
-            }}
-          >
-            <span>{t("finishCta")}</span>
-            <span style={{ fontFamily: "var(--font-mono)" }}>→</span>
-          </button>
         )}
       </div>
     </div>
