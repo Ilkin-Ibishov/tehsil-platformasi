@@ -69,6 +69,11 @@ type CascadeTranscript = {
   matchPath: string;
 };
 
+function topicTitleForHistory(topicTitle: unknown, canonical: string): string {
+  if (typeof topicTitle === "string" && topicTitle.trim()) return topicTitle.trim();
+  return canonical.trim();
+}
+
 export default function KameraPage() {
   const t = useTranslations("solve");
   const router = useRouter();
@@ -137,7 +142,7 @@ export default function KameraPage() {
     if (typeof window === "undefined" || !window.location.search) return;
     const code = extractInviteCodeFromSearch(window.location.search);
     if (!code) return;
-    validateAndStoreInviteCode(code).then((valid) => {
+    validateAndStoreInviteCode(code, getDeviceId()).then((valid) => {
       if (valid) {
         setInviteCode(code);
         setStage("capture");
@@ -329,6 +334,7 @@ export default function KameraPage() {
         verified: body.verification?.verified,
         visual: parseVisual(body.visual),
         topicCode: typeof body.topic_code === "string" ? body.topic_code : undefined,
+        topicTitle: topicTitleForHistory(body.topic_title, body.canonical),
       });
       setSolutionAttemptId(typeof body.attempt_id === "string" ? body.attempt_id : currentAttemptIdRef.current ?? null);
       setStage("solved");
@@ -495,6 +501,7 @@ export default function KameraPage() {
       verified: (body.verification as { verified?: boolean } | undefined)?.verified,
       visual: parseVisual(body.visual),
       topicCode: typeof body.topic_code === "string" ? body.topic_code : undefined,
+      topicTitle: topicTitleForHistory(body.topic_title, body.canonical as string),
     });
     setSolutionAttemptId(typeof body.attempt_id === "string" ? body.attempt_id : currentAttemptIdRef.current ?? null);
     setStage("solved");

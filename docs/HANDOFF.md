@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-26 (205) · Cursor → Cowork
+Etdim:    Dəvət hunisi: `validateAndStoreInviteCode(code, deviceId)` InviteGate ilə eyni body (`url.ts`); `/bank?invite=` eyni helper; kamera `setSolution` `topicTitle` (API title və ya canonical). `url.selftest` extract 13/13 + body assert. Lokal `/api/invite/check` 500 (`DATABASE_URL` yoxdur) — 1-klik POST bank/kameradan gedir, qapı açıq qalır.
+Tapşırıq: meta / no ClickUp — invite funnel.
+Diqqət:   `url.ts` `getDeviceId` import etmir. SolveView toxunulmayıb. Parent/resume yox.
+
 ## 2026-08-26 (204) · Cursor → Cowork
 Etdim:    Reviewer follow-up: ana səhifədən «hamısı» linki silindi (`page.tsx` — profil tarixçə siyahısı vəd etmirdi); `clearInviteCode` `storage.ts` + `InviteGate` eyni `th_invite_code` açarını təmizləyir. Selftest keçdi.
 Tapşırıq: meta / no ClickUp — hub honesty leftover.

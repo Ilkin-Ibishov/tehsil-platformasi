@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { trackEvent, getDeviceId } from "@/lib/telemetry";
 import { InviteGate, getStoredInviteCode, clearStoredInviteCode } from "@/components/kamera/InviteGate";
+import { extractInviteCodeFromSearch, cleanInviteFromUrl, validateAndStoreInviteCode } from "@/lib/invite/url";
 import { SolveView, type SolveResult } from "@/components/hell/SolveView";
 import { BottomNav } from "@/components/nav/BottomNav";
 import { parseVisual } from "@/lib/visual";
@@ -43,6 +44,24 @@ export default function BankPage() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [solution, setSolution] = useState<SolveResult | null>(null);
   const [solutionAttemptId, setSolutionAttemptId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.location.search) return;
+    const code = extractInviteCodeFromSearch(window.location.search);
+    if (!code) return;
+    void validateAndStoreInviteCode(code, getDeviceId()).then((ok) => {
+      if (ok) {
+        setInviteCode(code);
+        setInviteError(false);
+        setStage("loading");
+        cleanInviteFromUrl();
+      } else {
+        setInviteError(true);
+        setInviteCode(null);
+        setStage("invite");
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (stage !== "loading" || !inviteCode) return;

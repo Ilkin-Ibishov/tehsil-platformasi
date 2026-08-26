@@ -62,18 +62,19 @@ export function cleanInviteFromUrl(): void {
 }
 
 /**
- * Validates the invite code against /api/invite/check.
- * If valid, persists to localStorage and returns true.
- * If invalid (403), returns false.
+ * Validates the invite code against /api/invite/check with the same body as InviteGate:
+ * `{ invite_code, device_id }`. Same-device return must send device_id or a redeemed
+ * code always 409s. Do not import getDeviceId here — telemetry is `"use client"` and
+ * this module is also loaded by url.selftest.mts.
  */
-export async function validateAndStoreInviteCode(code: string): Promise<boolean> {
+export async function validateAndStoreInviteCode(code: string, deviceId: string): Promise<boolean> {
   const clean = code.trim();
   if (!clean) return false;
   try {
     const res = await fetch("/api/invite/check", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ invite_code: clean }),
+      body: JSON.stringify({ invite_code: clean, device_id: deviceId }),
     });
     if (res.ok) {
       try {

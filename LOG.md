@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-08-26: HANDOFF 205 — 1-klik dəvət `device_id` göndərir, bank `?invite=` oxuyur,
+  kamera tarixçəsinə canonical/title düşür (`url.ts`, `bank/page.tsx`, `kamera/page.tsx`).
 - 2026-08-26: HANDOFF 204 — «hamısı» ana linki silindi; dəvət kodu `clearInviteCode` ilə
   həm localStorage, həm memoryStore-dan düşür.
 - 2026-08-26: HANDOFF 203 — Hub dürüstlüyü: onboarding ad+sinif, fake lent/period/2:14/dil

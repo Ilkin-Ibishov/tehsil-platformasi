@@ -19,7 +19,7 @@ alwaysApply: true
 | ClickUp space | `901810230629` |
 | Latest migration | `0074` |
 | Latest ADR | `031` |
-| Latest HANDOFF | `204` |
+| Latest HANDOFF | `205` |
 | tsconfig target | ES2017 |
 | STEP-SCHEMA version | 2 |
 
@@ -57,5 +57,5 @@ alwaysApply: true
 - Model fallback: 2 consecutive 503 → next model in registry (prod + eval `--fallback`)
 - Eval harness: `--from-canonical`, `--fallback`, `leak_rate_by_model` in summaries
 - E1.9 leak 0% met (text-path, HANDOFF 195); E1.10 open (needs vision)
-- Student UI hub: `/profil`, `/onboarding`, `/uslub`, home (HANDOFF 204) — onboarding ad+sinif; fake feed/period/2:14 gizlidir; `Role`/`Goal`/`Locale` tiplərdə qalır
+- Student UI hub: `/profil`, `/onboarding`, `/uslub`, home (HANDOFF 204); 1-click invite sends `device_id`, bank reads `?invite=` (HANDOFF 205)
 - No real students yet (CLAUDE.md: "production-da real istifadəçi YOXDUR")

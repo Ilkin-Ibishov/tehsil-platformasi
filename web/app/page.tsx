@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { trackEvent } from "@/lib/telemetry";
+import { trackEvent, getDeviceId } from "@/lib/telemetry";
 import { extractInviteCodeFromSearch, cleanInviteFromUrl, validateAndStoreInviteCode } from "@/lib/invite/url";
 import { getStoredProfile, getHistoryItems, getProgressReport, touchStreak } from "@/lib/profile/storage";
 import type { ProfileData, SolvedAttemptItem, ProgressReportData } from "@/lib/profile/types";
@@ -34,7 +34,7 @@ export default function HomePage() {
     if (typeof window !== "undefined" && window.location.search) {
       const code = extractInviteCodeFromSearch(window.location.search);
       if (code) {
-        void validateAndStoreInviteCode(code).then((ok) => {
+        void validateAndStoreInviteCode(code, getDeviceId()).then((ok) => {
           if (ok) cleanInviteFromUrl();
         });
       }
