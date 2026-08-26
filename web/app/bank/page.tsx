@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { trackEvent, getDeviceId } from "@/lib/telemetry";
 import { InviteGate, getStoredInviteCode, clearStoredInviteCode } from "@/components/kamera/InviteGate";
-import { extractInviteCodeFromSearch, cleanInviteFromUrl, validateAndStoreInviteCode } from "@/lib/invite/url";
+import { extractInviteCodeFromSearch, cleanInviteFromUrl, validateAndStoreInviteCode, type InviteCheckResult } from "@/lib/invite/url";
 import { SolveView, type SolveResult } from "@/components/hell/SolveView";
 import { BottomNav } from "@/components/nav/BottomNav";
 import { parseVisual } from "@/lib/visual";
@@ -38,7 +38,7 @@ export default function BankPage() {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>(() => (getStoredInviteCode() ? "loading" : "invite"));
   const [inviteCode, setInviteCode] = useState<string | null>(() => getStoredInviteCode());
-  const [inviteError, setInviteError] = useState(false);
+  const [inviteHint, setInviteHint] = useState<Exclude<InviteCheckResult, "ok"> | null>(null);
   const [questions, setQuestions] = useState<BankQuestion[] | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<TopicGroup | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -49,17 +49,23 @@ export default function BankPage() {
     if (typeof window === "undefined" || !window.location.search) return;
     const code = extractInviteCodeFromSearch(window.location.search);
     if (!code) return;
-    void validateAndStoreInviteCode(code, getDeviceId()).then((ok) => {
-      if (ok) {
+    void validateAndStoreInviteCode(code, getDeviceId()).then((result) => {
+      if (result === "ok") {
         setInviteCode(code);
-        setInviteError(false);
+        setInviteHint(null);
         setStage("loading");
         cleanInviteFromUrl();
-      } else {
-        setInviteError(true);
-        setInviteCode(null);
-        setStage("invite");
+        return;
       }
+      if (result !== "network") cleanInviteFromUrl();
+      const stored = getStoredInviteCode();
+      if (stored) {
+        setInviteCode(stored);
+        setStage("loading");
+        return;
+      }
+      setInviteHint(result);
+      setStage("invite");
     });
   }, []);
 
@@ -71,7 +77,7 @@ export default function BankPage() {
         if (res.status === 403) {
           clearStoredInviteCode();
           if (!cancelled) {
-            setInviteError(true);
+            setInviteHint("invalid");
             setInviteCode(null);
             setStage("invite");
           }
@@ -116,7 +122,7 @@ export default function BankPage() {
       });
       if (res.status === 403) {
         clearStoredInviteCode();
-        setInviteError(true);
+        setInviteHint("invalid");
         setInviteCode(null);
         setStage("invite");
         return;
@@ -151,10 +157,10 @@ export default function BankPage() {
   if (stage === "invite") {
     return (
       <InviteGate
-        invalid={inviteError}
+        hint={inviteHint}
         onCode={(code) => {
           setInviteCode(code);
-          setInviteError(false);
+          setInviteHint(null);
           setStage("loading");
         }}
       />

@@ -28,10 +28,10 @@ type GateError = { kind: "invalid" } | { kind: "already_used" } | { kind: "netwo
 
 export function InviteGate({
   onCode,
-  invalid = false,
+  hint = null,
 }: {
   onCode: (code: string) => void;
-  invalid?: boolean;
+  hint?: GateError["kind"] | null;
 }) {
   const t = useTranslations("invite");
   const router = useRouter();
@@ -39,7 +39,7 @@ export function InviteGate({
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<GateError | null>(null);
   // Derive from prop — avoid setState-in-effect when parent marks invite invalid.
-  const gateError: GateError | null = error ?? (invalid ? { kind: "invalid" } : null);
+  const gateError: GateError | null = error ?? (hint ? { kind: hint } : null);
 
   async function submit() {
     const code = value.trim();

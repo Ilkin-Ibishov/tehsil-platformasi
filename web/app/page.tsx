@@ -34,8 +34,10 @@ export default function HomePage() {
     if (typeof window !== "undefined" && window.location.search) {
       const code = extractInviteCodeFromSearch(window.location.search);
       if (code) {
-        void validateAndStoreInviteCode(code, getDeviceId()).then((ok) => {
-          if (ok) cleanInviteFromUrl();
+        void validateAndStoreInviteCode(code, getDeviceId()).then((result) => {
+          if (result === "ok" || result === "invalid" || result === "already_used") {
+            cleanInviteFromUrl();
+          }
         });
       }
     }

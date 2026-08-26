@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-08-26: HANDOFF 206 — 1-klik 409 `already_used` göstərir; uğursuz URL işlək saxlanılmış
+  dəvəti silmir (`url.ts`, bank/kamera).
 - 2026-08-26: HANDOFF 205 — 1-klik dəvət `device_id` göndərir, bank `?invite=` oxuyur,
   kamera tarixçəsinə canonical/title düşür (`url.ts`, `bank/page.tsx`, `kamera/page.tsx`).
 - 2026-08-26: HANDOFF 204 — «hamısı» ana linki silindi; dəvət kodu `clearInviteCode` ilə

@@ -45,15 +45,30 @@ const body = bodies[0] as { invite_code?: string; device_id?: string };
 const bodyOk = body?.invite_code === "invite01" && body?.device_id === "dev-abc";
 if (!bodyOk) fails++;
 console.log(`${bodyOk ? "PASS" : "FAIL"}  validate body has invite_code+device_id -> ${JSON.stringify(body)}`);
-if (!ok) fails++;
-console.log(`${ok ? "PASS" : "FAIL"}  validate 200 returns true`);
+const okPass = ok === "ok";
+if (!okPass) fails++;
+console.log(`${okPass ? "PASS" : "FAIL"}  validate 200 returns ok`);
 
 bodies.length = 0;
 globalThis.fetch = (async () => ({ ok: false, status: 403 }) as Response) as typeof fetch;
 const rejected = await validateAndStoreInviteCode("bad", "dev-abc");
-const rejectOk = rejected === false;
+const rejectOk = rejected === "invalid";
 if (!rejectOk) fails++;
-console.log(`${rejectOk ? "PASS" : "FAIL"}  validate 403 returns false (no store on fail)`);
+console.log(`${rejectOk ? "PASS" : "FAIL"}  validate 403 returns invalid`);
+
+globalThis.fetch = (async () => ({ ok: false, status: 409 }) as Response) as typeof fetch;
+const used = await validateAndStoreInviteCode("invite01", "other-dev");
+const usedOk = used === "already_used";
+if (!usedOk) fails++;
+console.log(`${usedOk ? "PASS" : "FAIL"}  validate 409 returns already_used`);
+
+globalThis.fetch = (async () => {
+  throw new Error("offline");
+}) as typeof fetch;
+const net = await validateAndStoreInviteCode("invite01", "dev-abc");
+const netOk = net === "network";
+if (!netOk) fails++;
+console.log(`${netOk ? "PASS" : "FAIL"}  validate fetch throw returns network`);
 
 globalThis.fetch = origFetch;
 

@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-08-26 (206) · Cursor → Cowork
+Etdim:    Reviewer follow-up: 1-klik `InviteCheckResult` (`ok`/`invalid`/`already_used`/`network`); URL uğursuz olsa saxlanılmış kod silinmir (`bank`/`kamera`); 409 qapıda `already_used` mətnidir, generic invalid deyil.
+Tapşırıq: meta / no ClickUp — invite funnel leftover.
+Diqqət:   Şəbəkə xətasında `?invite=` URL-də qalır ki, yeniləmə təkrar cəhd etsin.
+
 ## 2026-08-26 (205) · Cursor → Cowork
 Etdim:    Dəvət hunisi: `validateAndStoreInviteCode(code, deviceId)` InviteGate ilə eyni body (`url.ts`); `/bank?invite=` eyni helper; kamera `setSolution` `topicTitle` (API title və ya canonical). `url.selftest` extract 13/13 + body assert. Lokal `/api/invite/check` 500 (`DATABASE_URL` yoxdur) — 1-klik POST bank/kameradan gedir, qapı açıq qalır.
 Tapşırıq: meta / no ClickUp — invite funnel.

@@ -8,7 +8,7 @@ import { uuidv4 } from "@/lib/telemetry/uuid";
 import { CaptureView, type Captured } from "@/components/kamera/CaptureView";
 import { CropView } from "@/components/kamera/CropView";
 import { InviteGate, getStoredInviteCode, clearStoredInviteCode } from "@/components/kamera/InviteGate";
-import { extractInviteCodeFromSearch, cleanInviteFromUrl, validateAndStoreInviteCode } from "@/lib/invite/url";
+import { extractInviteCodeFromSearch, cleanInviteFromUrl, validateAndStoreInviteCode, type InviteCheckResult } from "@/lib/invite/url";
 import { LoadingView } from "@/components/hell/LoadingView";
 import { SolveView, type SolveResult } from "@/components/hell/SolveView";
 import { TranscriptConfirmView } from "@/components/hell/TranscriptConfirmView";
@@ -80,7 +80,7 @@ export default function KameraPage() {
   const [stage, setStage] = useState<Stage>(() => (getStoredInviteCode() ? "capture" : "invite"));
   const [inviteCode, setInviteCode] = useState<string | null>(() => getStoredInviteCode());
   const [captured, setCaptured] = useState<Captured | null>(null);
-  const [inviteError, setInviteError] = useState(false);
+  const [inviteHint, setInviteHint] = useState<Exclude<InviteCheckResult, "ok"> | null>(null);
   const [solution, setSolution] = useState<SolveResult | null>(null);
   const [solutionAttemptId, setSolutionAttemptId] = useState<string | null>(null);
   const [refusalReason, setRefusalReason] = useState<string | null>(null);
@@ -142,15 +142,22 @@ export default function KameraPage() {
     if (typeof window === "undefined" || !window.location.search) return;
     const code = extractInviteCodeFromSearch(window.location.search);
     if (!code) return;
-    validateAndStoreInviteCode(code, getDeviceId()).then((valid) => {
-      if (valid) {
+    validateAndStoreInviteCode(code, getDeviceId()).then((result) => {
+      if (result === "ok") {
         setInviteCode(code);
+        setInviteHint(null);
         setStage("capture");
         cleanInviteFromUrl();
-      } else {
-        setInviteError(true);
-        setStage("invite");
+        return;
       }
+      if (result !== "network") cleanInviteFromUrl();
+      const stored = getStoredInviteCode();
+      if (stored) {
+        setInviteCode(stored);
+        return;
+      }
+      setInviteHint(result);
+      setStage("invite");
     });
   }, []);
 
@@ -260,7 +267,7 @@ export default function KameraPage() {
         clearStoredInviteCode();
         trackEvent("solve.failed", { reason: "invalid_invite", http_status: 403, attempts: 1 });
         pendingSince.current = null;
-        setInviteError(true);
+        setInviteHint("invalid");
         setStage("invite");
         return;
       }
@@ -537,7 +544,7 @@ export default function KameraPage() {
         clearStoredInviteCode();
         trackEvent("solve.failed", { reason: "invalid_invite", http_status: 403, attempts: 1 });
         pendingSince.current = null;
-        setInviteError(true);
+        setInviteHint("invalid");
         setStage("invite");
         return;
       }
@@ -712,10 +719,10 @@ export default function KameraPage() {
   if (stage === "invite") {
     return (
       <InviteGate
-        invalid={inviteError}
+        hint={inviteHint}
         onCode={(code) => {
           setInviteCode(code);
-          setInviteError(false);
+          setInviteHint(null);
           setStage("capture");
         }}
       />
