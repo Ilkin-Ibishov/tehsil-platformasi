@@ -1,17 +1,34 @@
 {
   "safety-guard": {
-    "enabled": false,
+    "enabled": true,
     "PreToolUse": [
       {
         "matcher": "run_command",
         "hooks": [
           {
             "type": "command",
-            "command": "node .cursor/hooks/protect-main.js"
+            "command": "node guard.mjs",
+            "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "view_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node guard.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node guard.mjs",
+        "timeout": 10
       }
     ]
   }
 }
-

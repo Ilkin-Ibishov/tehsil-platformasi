@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-10 (207) · Antigravity → Cowork
+Etdim:    Agent kontekst modullaşdırma auditi və təkmilləşdirilməsi: 4 yeni skill yaradıldı (.agents/skills/ & .cursor/skills/ - critical-thinker, backend-developer, it-business-analyst, student-reviewer), push-verify və fix-lockfile sinxronlaşdırıldı, Antigravity iyerarxik qaydaları (.agents/rules/*.md) və aktiv həyat dövrü hook-u (.agents/hooks.json + scripts/hooks/antigravity-guard.mjs) quruldu, AGENTS.md və 99-agent-context yeniləndi.
+Tapşırıq: meta / no ClickUp — Agent Context Modularization Audit & Customizations Expansion.
+Diqqət:   Antigravity və Cursor konfiqurasiyaları tam sinxronlaşdırıldı, npx tsc keçdi.
+
 ## 2026-08-26 (206) · Cursor → Cowork
 Etdim:    Reviewer follow-up: 1-klik `InviteCheckResult` (`ok`/`invalid`/`already_used`/`network`); URL uğursuz olsa saxlanılmış kod silinmir (`bank`/`kamera`); 409 qapıda `already_used` mətnidir, generic invalid deyil.
 Tapşırıq: meta / no ClickUp — invite funnel leftover.

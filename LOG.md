@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-09-10: HANDOFF 207 — Agent kontekst modullaşdırma auditi: 4 yeni skill (critical-thinker,
+  backend-developer, it-business-analyst, student-reviewer), .agents/rules/*.md qaydaları, aktiv guard hook.
 - 2026-08-26: HANDOFF 206 — 1-klik 409 `already_used` göstərir; uğursuz URL işlək saxlanılmış
   dəvəti silmir (`url.ts`, bank/kamera).
 - 2026-08-26: HANDOFF 205 — 1-klik dəvət `device_id` göndərir, bank `?invite=` oxuyur,

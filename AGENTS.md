@@ -1,13 +1,14 @@
-# AGENTS — Cursor əməliyyat təlimatı
+# AGENTS — Cursor və Antigravity əməliyyat təlimatı
 
-Konstitusiya `CLAUDE.md`-dir. Cowork onu yeniləyir. Bu fayl Cursor-a **haradan oxumağı** deyir, yaşayan vəziyyəti təkrar etmir.
+Konstitusiya `CLAUDE.md`-dir. Cowork onu yeniləyir. Bu fayl icraçı agentlərə (Cursor və Antigravity) **haradan oxumağı** deyir, yaşayan vəziyyəti təkrar etmir.
 
 ## Rollar
 
 | Kim | Harada | İş |
 |---|---|---|
 | Cowork | Claude Project | BA / PO, `CLAUDE.md`, `PRODUCT.md`, `STEP-SCHEMA.json` |
-| Cursor | bu IDE | executor (əvvəl Claude Code). `main`-də işlə, HANDOFF yaz, ClickUp yenilə |
+| Cursor | IDE | executor. `main`-də işlə, HANDOFF yaz, ClickUp yenilə |
+| Antigravity | IDE / CLI | executor. `main`-də işlə, HANDOFF yaz, ClickUp yenilə |
 
 ## Kontekst büdcəsi
 
@@ -31,16 +32,21 @@ Yaşayan rəqəm, növbə bloku, model adı, miqrasiya nömrəsi **qaydaya/skill
 4. Ayrı feature branch açma. `main`-ə merge olunmayan kod Vercel-ə çatmır.
 5. İstifadəçi push istəyəndə `git push`-dan SONRA mütləq verify et: `gh run list --limit 1` (CI) və `vercel ls` (deploy). Status `failure`/`Error` olarsa "tamamlandı" demə, logu aç (`gh run view --log-failed`, `vercel inspect <url> --logs`) və səbəbi bildir.
 
-## Cursor xəritəsi
+## Agent konfiqurasiya xəritəsi
 
-| Parça | Yol | Nə vaxt yüklənir |
-|---|---|---|
-| Qaydalar | `.cursor/rules/*.mdc` | `alwaysApply` və ya glob |
-| Skill-lər | `.cursor/skills/` (əməliyyat) + `.claude/skills/` (məhsul/UX) | Təsvir uyğun gələndə |
-| Subagent | `.cursor/agents/` | `reviewer`, `product` |
-| Hook | `.cursor/hooks.json` | `git push --force` / sirr oxuma |
-| MCP | istifadəçi: ClickUp, Railway, Slack. layihə: Supabase (OAuth) | Alət çağırışı |
+| Parça | Cursor | Antigravity | Nə vaxt yüklənir |
+|---|---|---|---|
+| Qaydalar | `.cursor/rules/*.mdc` | `AGENTS.md` + `.agents/rules/*.md` | Always / glob / iyerarxik |
+| Skill-lər | `.cursor/skills/` + `.claude/skills/` | `.agents/skills/` | Təsvir uyğun gələndə |
+| Hook-lar | `.cursor/hooks.json` | `.agents/hooks.json` | PreToolUse (komanda, sirr), Stop |
+| Subagent | `.cursor/agents/` | `define_subagent` / `invoke_subagent` | Tələb olduqda |
+| MCP | Supabase, ClickUp, Slack | Supabase, sequential-thinking, github, chrome | Alət çağırışı |
 
-Məhsul sualı → `product-analyst` skill və ya `product` subagent.
-UI audit → `ux-design-review` skill (əvvəl `known-state.md`).
-Koddan sonra → `reviewer` subagent.
+Spesifik bacarıqlar:
+- Düşüncə və Sokratik analiz → `critical-thinker` (sequential-thinking MCP).
+- Backend, kaskad və DB → `backend-developer`.
+- Tələblərin təhlili və texniki sənədləşdirmə → `it-business-analyst`.
+- Şagird və abituriyent gözü ilə sınaq / erqonomika → `student-reviewer`.
+- Məhsul sualı → `product-analyst` skill və ya `product` subagent.
+- UI audit → `ux-audit` və ya `ux-design-review` skill (əvvəl `known-state.md`).
+- Koddan sonra → `reviewer` subagent.
