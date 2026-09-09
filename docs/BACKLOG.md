@@ -1,0 +1,136 @@
+# BACKLOG — Təhsil Platforması Agent & Sistem Tapşırıqları
+
+Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem təkmilləşdirmələri, təhlükəsizlik baryerləri, test avtomatlaşdırması, pedaqoji auditlər və əməliyyat tapşırıqlarının vahid idarəetmə reyestridir.
+
+---
+
+## 1. Status və Prioritet Şkalası
+
+| Prioritet | Məna | Reaksiya |
+|---|---|---|
+| **P0** | Blocker / Kritik Təhlükəsizlik / Faza 1 Qapısı | Dərhal icra edilir, kompromis yoxdur. |
+| **P1** | Yüksək / Əməliyyat və Keyfiyyət Gücləndirilməsi | Növbəti sessiyalarda prioritetləşdirilir. |
+| **P2** | Orta / Texniki Borc və Erqonomika | Planlaşdırılmış sprintlərdə tamamlanır. |
+| **P3** | Aşağı / İdeyalar və Gələcək Optimizasiyalar | Vaxt olduqda və ya Faza 2-də baxılır. |
+
+| Status | Məna |
+|---|---|
+| `Complete` | Tamamlanıb, testlərdən keçib və təsdiqlənib. |
+| `In Progress` | Hazırda icra olunur və ya monitorinqdədir. |
+| `To Do` | Tələbləri aydınlaşdırılıb, icraya hazırdır. |
+| `Blocked` | Qərar (ADR) və ya asılılıq səbəbindən dayanıb. |
+
+---
+
+## 2. Tapşırıqların İcmal Cədvəli (Master Matrix)
+
+| ID | Başlıq | Sahə | Prioritet | Status | Məsuliyyət | Hədəf |
+|---|---|---|---|---|---|---|
+| **AG-001** | Agent Kontekst Modullaşdırması & 4 Yeni Skill | Agent / DX | **P0** | `Complete` | Antigravity | HANDOFF 207 |
+| **AG-002** | 10-Saniyəlik Lokal Pre-Flight Yoxlama Skripti | CI/CD / Ops | **P0** | `Complete` | Antigravity | scripts/preflight.mjs |
+| **AG-003** | Avtomatlaşdırılmış Skill Sinxronizasiyası | Agent / DX | **P1** | `Complete` | Antigravity | scripts/sync-agent-context.mjs |
+| **AG-004** | Hook Genişlənməsi (`PreInvocation` & `PostToolUse`) | Lifecycle Hooks | **P1** | `To Do` | Executor | .agents/hooks.json |
+| **AG-005** | Öz-Özünü Sağaldan Taksonomiya Triyajı (`triage-taxonomy`) | Data / LLM | **P1** | `To Do` | Backend / BA | v_taxonomy_review |
+| **AG-006** | DİM "Qaralanmış Toplu" Eval Dəsti (`golden-set-dim-annotated`) | Vision / Qat 1 | **P1** | `To Do` | Eval Team | evals/ |
+| **AG-007** | DİM Dərslik Terminologiyası və Pedaqoji Lüğət | Pedaqogika | **P2** | `To Do` | Student Reviewer | docs/DIM-GLOSSARY.md |
+| **AG-008** | Faza 1 Şagird Qapısı İntizamı (15–20 Real Şagird) | Məhsul / QA | **P0** | `In Progress` | Cowork / BA | docs/PHASE-1.md |
+| **AG-009** | Antigravity Deklarativ Subagent Qeydiyyatı | Multi-Agent | **P2** | `To Do` | Antigravity | .agents/agents/ |
+
+---
+
+## 3. Ətraflı Tapşırıq Kartları
+
+### 🎯 AG-001: Agent Kontekst Modullaşdırması & 4 Yeni Skill
+- **Sahə:** Agentik İnfrastruktur / Context Engineering
+- **Prioritet:** P0 | **Status:** `Complete` (HANDOFF 207, commit `4f0ed47`)
+- **Təsvir:** Cowork, Cursor və Antigravity arasındakı kontekst boşluqları audit edildi. 4 yeni skill yaradıldı (`critical-thinker`, `backend-developer`, `it-business-analyst`, `student-reviewer`), Antigravity iyerarxik qaydaları (`.agents/rules/*.md`) və təhlükəsizlik hook-u (`scripts/hooks/antigravity-guard.mjs`) quruldu.
+- **Qəbul Meyarları:**
+  - [x] Bütün 4 skill `.agents/skills/` və `.cursor/skills/` daxilindədir.
+  - [x] Antigravity `PreToolUse` destruktiv əmrləri və sirlərin oxunmasını bloklayır.
+  - [x] `Stop` hook-u kod dəyişdikdə HANDOFF yazılmasını tələb edir.
+
+---
+
+### ⚡ AG-002: 10-Saniyəlik Lokal Pre-Flight Yoxlama Skripti
+- **Sahə:** CI/CD / Geliştirici Əməliyyatları
+- **Prioritet:** P0 | **Status:** `Complete`
+- **Təsvir:** `git push`-dan əvvəl TypeScript tip yoxlamasını (`web`), 4 əsas selftesti (URL, Answer, Template, Leak), təhlükəsizlik hook testini və Python eval yoxlamasını <10 saniyədə birləşdirən pre-flight mühərriki.
+- **Fayllar:** `scripts/preflight.mjs`, `scripts/preflight.bat`.
+- **Qəbul Meyarları:**
+  - [x] Bir əmrlə (`node scripts/preflight.mjs` və ya `scripts\preflight.bat`) işə düşür.
+  - [x] Hər hansı bir yoxlama uğursuz olduqda qırmızı çıxış və exit code 1 qaytarır.
+  - [x] Bütün yoxlamalar uğurlu olduqda <10 saniyə ərzində "Ready for push" bildirir.
+
+---
+
+### 🔄 AG-003: Avtomatlaşdırılmış Skill Sinxronizasiyası
+- **Sahə:** Agent / Alət İnteqrasiyası
+- **Prioritet:** P1 | **Status:** `Complete`
+- **Təsvir:** `.agents/skills/` və `.cursor/skills/` qovluqları arasında manual kopyalama zərurətini aradan qaldıran avtomatlaşdırılmış sinxronizasiya skripti.
+- **Fayllar:** `scripts/sync-agent-context.mjs`.
+- **Qəbul Meyarları:**
+  - [x] Mənbə kimi `.agents/skills/` qovluğunu qəbul edir.
+  - [x] Fərqlənən və ya yeni əlavə olunan faylları avtomatik `.cursor/skills/`-ə güzgüləyir.
+  - [x] Pre-flight və ya git hook-a inteqrasiya oluna bilir.
+
+---
+
+### 🛡️ AG-004: Hook Genişlənməsi (`PreInvocation` & `PostToolUse`)
+- **Sahə:** Antigravity Həyat Dövrü Qoruyucuları
+- **Prioritet:** P1 | **Status:** `To Do`
+- **Təsvir:**
+  - `PreInvocation`: Agent `prompts/` və ya `web/app/api/solve/` fayllarına toxunarkən efemer olaraq ADR-017 sızma qadağası və 3-hallı verification xatırlatması inyeksiya edilir.
+  - `PostToolUse`: `web/` daxilində fayl redaktə edildikdən dərhal sonra sintaksis və tip xətalarını yoxlayıb anında xəbərdarlıq edir.
+- **Qəbul Meyarları:**
+  - [ ] `.agents/hooks.json` daxilində `PreInvocation` və `PostToolUse` konfiqurasiyası qurulur.
+  - [ ] Agent yanlış tip yazdıqda növbəti addıma keçmədən səhvi görür.
+
+---
+
+### 📊 AG-005: Öz-Özünü Sağaldan Taksonomiya Triyajı (`triage-taxonomy`)
+- **Sahə:** Verilənlər Bazası / LLM Taksonomiyası
+- **Prioritet:** P1 | **Status:** `To Do`
+- **Təsvir:** `public.topic_codes` və `public.error_codes` cədvəllərində `needs_review=true` ilə qeydə alınmış sətirləri oxuyan, tezlik analizi aparan və ya prompt təkmilləşdirməsi, ya da yeni ADR təklif edən skill və skript.
+- **Qəbul Meyarları:**
+  - [ ] `v_taxonomy_review` cədvəlindən ən çox təkrarlanan naməlum kodları qruplaşdırır.
+  - [ ] Çıxış formatında hansı kodların sinonim (məs. `SIMULTANEOUS_EQ` vs `SYSTEM_OF_EQUATIONS`) olduğunu göstərir.
+
+---
+
+### 📸 AG-006: DİM "Qaralanmış Toplu" Eval Dəsti
+- **Sahə:** Vision OCR / Kaskad Qat 1
+- **Prioritet:** P1 | **Status:** `To Do`
+- **Təsvir:** Şagirdlərin real karandaş qeydləri, variant qaralamaları və qatlanmış səhifələrindən ibarət 20 suallıq xüsusi eval korpusu (`golden-set-dim-annotated`).
+- **Qəbul Meyarları:**
+  - [ ] Qat 1 OCR qələm izlərini riyazi kəsr xətti və ya mətn kimi qəbul etmir.
+  - [ ] Dəqiqlik və imtina dərəcələri `scripts/eval.py` ilə ölçülür.
+
+---
+
+### 📖 AG-007: DİM Dərslik Terminologiyası və Pedaqoji Lüğət
+- **Sahə:** Pedaqogika / Azərbaycan Dili i18n
+- **Prioritet:** P2 | **Status:** `To Do`
+- **Təsvir:** Azərbaycan məktəb dərsliklərində (5–11-ci sinif) işlədilən standart termin və ifadələrin toplusu (`docs/DIM-GLOSSARY.md`). Süni intellektin tərcümə üslubunu aradan qaldırmaq üçün Qat 5 promptuna referans verilir.
+- **Qəbul Meyarları:**
+  - [ ] Dərsliklərdən ən çox işlənən 100 riyazi ifadə və onların qadağan olunmuş robotik ekvivalentləri cədvəlləşdirilir.
+  - [ ] `student-reviewer` tərəfindən test edilir.
+
+---
+
+### 🚪 AG-008: Faza 1 Şagird Qapısı İntizamı (15–20 Real Şagird)
+- **Sahə:** Məhsul / QA İntizamı
+- **Prioritet:** P0 | **Status:** `In Progress`
+- **Təsvir:** [`docs/PHASE-1.md`](file:///c:/Programming/Tehsil-Platformasi/docs/PHASE-1.md) qapı meyarlarının qorunması. Real şagird dəvətləri başlamadan qeyri-zəruri funksionallıqların (social feed, gamification) sistemə daxil olmasının qarşısının alınması.
+- **Qəbul Meyarları:**
+  - [ ] 15–20 real şagird pilot dəvəti tamamlanır.
+  - [ ] 100+ real həll toplanır.
+  - [ ] 20 şagirddən ≥8-i 7 gün ərzində ≥3 dəfə qayıdır.
+
+---
+
+### 🤖 AG-009: Antigravity Deklarativ Subagent Qeydiyyatı
+- **Sahə:** Multi-Agent Orkestrasiyası
+- **Prioritet:** P2 | **Status:** `To Do`
+- **Təsvir:** Cursor-dakı `.cursor/agents/` analoqu olaraq Antigravity üçün xüsusi rolların (`reviewer`, `student-tester`, `ba-analyst`) deklarativ konfiqurasiyası və `invoke_subagent` inteqrasiyası.
+- **Qəbul Meyarları:**
+  - [ ] Agentlər tək əmrlə ixtisaslaşmış kontekstdə işə düşür və nəticəni əsas agentə ötürür.

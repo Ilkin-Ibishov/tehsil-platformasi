@@ -1,32 +1,48 @@
 ---
 name: clickup-task
-description: ClickUp task lifecycle for this repo via MCP server user-clickup_extended_local. Use when starting work on a task, moving status, adding a progress comment, creating a task on a Phase list, searching the backlog, or closing a task after a commit or HANDOFF.
+description: >-
+  ClickUp task lifecycle management via the fast REST CLI (scripts/clickup.mjs) avoiding MCP rate limits. Use when starting work on a task, posting progress comments, searching the backlog, or completing tasks.
 ---
 
-# ClickUp
+# ClickUp Task Management
 
-MCP server: `user-clickup_extended_local`. List IDs live in `CLAUDE.md` (ClickUp section). Do not copy them here.
+Do NOT use the ClickUp MCP server (50 calls/24h limit). Use `scripts/clickup.mjs` REST API (100 req/min).
 
-If a tool returns auth/token errors, stop and tell the user to refresh `CLICKUP_API_TOKEN` in user MCP settings. Do not write tokens into the repo.
+Token `CLICKUP_TOKEN` lives in `.env`.
 
-## Statuslar (2026-08-15, list details ilə ölçüldü)
+## Key Space Details
 
-Space-də yalnız iki status var: `to do` və `complete`. **`in progress` yoxdur** — o string 400 qaytarır.
+- Workspace ID: `90182536078`
+- Space ID: `901810230629`
+- Available Statuses: `to do` and `complete` (There is NO `in progress` status; sending `in progress` returns HTTP 400).
 
-## Start
+## List IDs
 
-1. Find the task (`clickup_get_task` / `clickup_search_tasks` with workspace id from `CLAUDE.md`).
-2. Do **not** change status (leave `to do`).
-3. Comment: what you will change.
+| List | List ID |
+|---|---|
+| Faza 0 · Eval | `901820224519` |
+| Faza 1 · Şaquli dilim | `901820224521` |
+| Backlog | `901820224524` |
+| Bloklar və qərarlar | `901820224530` |
 
-Phase 1 list is the default for executor work. Eval / backlog / blockers lists as named in `CLAUDE.md`.
+## Common Commands
 
-## Finish
+1. **List tasks in a list:**
+   ```bash
+   node scripts/clickup.mjs ls 901820224521
+   ```
 
-1. Comment: files + one-line result (markdown).
-2. Status `complete`.
-3. Then HANDOFF (`close-session`).
+2. **Add a progress comment:**
+   ```bash
+   node scripts/clickup.mjs comment <task_id> --md tmp/comment.md
+   ```
 
-## Create
+3. **Complete a task:**
+   ```bash
+   node scripts/clickup.mjs status <task_id> complete
+   ```
 
-Only when the user asks, or HANDOFF says a task must be copied onto a list (rate-limit workaround). Keep the description short; the source of truth is still HANDOFF + code.
+4. **Create a task:**
+   ```bash
+   node scripts/clickup.mjs create 901820224521 "<task_name>" --md tmp/task_desc.md --priority high
+   ```

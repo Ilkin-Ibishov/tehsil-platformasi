@@ -1,9 +1,10 @@
 ---
 name: push-verify
-description: Post-push verification for Təhsil Platforması — confirm GitHub CI and Vercel deploy after git push. Use when the user asks to push, after any push to main, or before claiming a session is complete following a push.
+description: >-
+  Post-push verification for Təhsil Platforması — confirm GitHub CI and Vercel deploy after git push. Use when the user asks to push, after any push to main, or before claiming a session is complete following a push.
 ---
 
-# Push verify
+# Push Verify & Deployment Health
 
 Run only **after** a successful `git push` (usually to `main`).
 
@@ -22,7 +23,7 @@ gh run view <run-id> --log-failed
 
 Report the failing job and first actionable error. Do not mark the session complete.
 
-## 2. Vercel deploy
+## 2. Vercel Deploy
 
 ```bash
 vercel ls

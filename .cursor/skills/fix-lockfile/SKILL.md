@@ -1,9 +1,10 @@
 ---
 name: fix-lockfile
-description: Fix npm Invalid Version CI failures in web/package-lock.json — rolldown stubs, regenerate, verify npm ci. Use when CI or Vercel fails on npm ci with Invalid Version, or after vitest/rolldown dependency changes.
+description: >-
+  Fix npm Invalid Version CI failures in web/package-lock.json — rolldown stubs, regenerate, verify npm ci. Use when CI or Vercel fails on npm ci with Invalid Version, or after vitest/rolldown dependency changes.
 ---
 
-# Fix lockfile
+# Fix Lockfile
 
 Symptom: CI/Vercel `npm ci` fails with `npm error Invalid Version:` in `web/`.
 
@@ -39,7 +40,7 @@ npx next build   # optional but catches TS issues before push
 
 3. Commit `web/package-lock.json` (and `package.json` if changed).
 
-4. Push → `.cursor/skills/push-verify/SKILL.md`.
+4. Push → `.agents/skills/push-verify/SKILL.md`.
 
 ## Prevent
 

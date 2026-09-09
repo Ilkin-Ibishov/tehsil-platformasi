@@ -1,26 +1,28 @@
 ---
 name: write-migration
-description: Writes or reviews Supabase SQL migrations for this app using expand-contract, explicit app_runtime grants, RLS in the same file, and self-healing student-path inserts. Use when adding, editing, or reviewing files under supabase/migrations/, or when a code change needs a new table, function, grant, or constraint.
+description: >-
+  Writes or reviews Supabase SQL migrations for Təhsil Platforması enforcing expand-contract patterns, explicit app_runtime grants, row-level security (RLS), and self-healing inserts. Use when adding, editing, or validating database schema and migrations.
 ---
 
-# Write a migration
+# Write a Migration
 
-## Before SQL
+## Pre-requisites
 
-1. Read the TypeScript that **writes** the table (`persist.ts`, route handlers, RPCs).
-2. Confirm the object is on a live code path (lesson: `resolve_translation` exists and is unused).
-3. Next filename: `NNNN_snake_name.sql` after the highest existing `NNNN`.
+1. Read the TypeScript code that writes/reads the affected table (`web/lib/cascade/persist.ts`, API handlers, RPCs).
+2. Confirm the object is on a live code path.
+3. Determine the next migration file name: `NNNN_snake_case_name.sql` (after the highest existing migration).
 
-## Checklist (same file)
+## Migration Checklist (in the same SQL file)
 
-- [ ] Additive, or expand-contract (new object + shim now, drop later in a **follow-up** migration after code is on `main`)
-- [ ] New table has `enable row level security` + policy
-- [ ] Explicit `grant` to `app_runtime` (table CRUD, function EXECUTE, sequence USAGE)
-- [ ] Student-path: no hard FK/CHECK that 500s unknown `topic_code` / `error_code`
-- [ ] After any REVOKE, re-check the full `app_runtime` grant matrix — advisors will not catch a missing EXECUTE
+- [ ] **Expand-Contract**: Additive first (create new column/table, preserve a compatibility shim). Never rename/drop objects in the same migration that adds them.
+- [ ] **Row Level Security (RLS)**: Every new table MUST execute `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` and include its policies.
+- [ ] **Explicit `app_runtime` Grants**:
+  - `GRANT SELECT, INSERT, UPDATE ON public.my_table TO app_runtime;`
+  - `GRANT EXECUTE ON FUNCTION public.my_func TO app_runtime;`
+  - `GRANT USAGE, SELECT ON SEQUENCE public.my_seq TO app_runtime;`
+- [ ] **Answer Isolation**: Correct answers and steps live in `private` schema. `app_runtime` has NO direct select on `private.*`.
+- [ ] **Self-Healing Student Path**: Do not place hard FK/CHECK constraints that 500 when LLM produces an unknown `topic_code` or `error_code`. Register with `needs_review=true`.
 
-## After SQL
+## Post-Migration Rule
 
-Code that **reads** the new columns must not merge to `main` before this migration is applied. `main` push deploys.
-
-Do not put a `TODO` in code and keep going. If you need a Cowork decision, HANDOFF `Blok:` and stop.
+Code that reads the new schema changes must not be merged to `main` before the migration has been successfully applied to the database.

@@ -34,18 +34,50 @@ When presented with a complex problem, ambiguous feature request, or architectur
 
 ## 2. Sequential Thinking Protocol (MCP Integration)
 
-For high-stakes decisions, subtle bug investigations, or architectural modifications, execute a formal multi-thought sequential analysis using the `sequential-thinking` MCP server (`sequentialthinking` tool).
+For high-stakes decisions, subtle bug investigations, or architectural modifications, execute a formal multi-thought sequential analysis using the `sequential-thinking` MCP server (`sequentialthinking` tool via `call_mcp_tool`).
 
 ### Standard Execution Pattern
 
-Break down the problem across 5 to 10 thoughts before proposing modifications.
-Use branching (`branchFromThought`) to explore alternative hypotheses and revisions (`isRevision: true`) when assumptions are falsified.
+```typescript
+// Initial thought: Frame the problem and estimate depth
+call_mcp_tool({
+  ServerName: "sequential-thinking",
+  ToolName: "sequentialthinking",
+  Arguments: {
+    thought: "Problemin dekonstruksiyası: [Məsələnin dəqiq təsviri]. Hipotez 1: ... Hipotez 2: ...",
+    thoughtNumber: 1,
+    totalThoughts: 5,
+    nextThoughtNeeded: true
+  }
+});
+```
+
+### Thought Progression Rules
+
+1. **Thought 1 (Framing & Hypothesis Generation)**: Define boundary conditions, invariants, and competing hypotheses.
+2. **Thought 2 (Analytical Testing & Data Grounding)**: Verify against real files (`CLAUDE.md`, `STEP-SCHEMA.json`, `docs/DATA-MODEL.md`, `prompts/`).
+3. **Thought 3 (Branching / Inversion)**:
+   - Use `branchFromThought` and `branchId` to evaluate an alternative hypothesis:
+     *"Bəs əgər problem LLM-də deyil, kliyentin visualViewport listener-indədirsə?"*
+4. **Thought 4 (Revision & Counter-Evidence)**:
+   - Use `isRevision: true` and `revisesThought` if an earlier assumption is falsified by project evidence.
+5. **Thought 5 (Synthesis & Decisive Verdict)**:
+   - Summarize the verified resolution and set `nextThoughtNeeded: false`.
 
 ---
 
 ## 3. The 5-Whys Root Cause Analysis
 
-Do not stop at the first visible error message or bug symptom. Trace the causal chain 5 levels down to unearth architectural flaws before writing fixes.
+Do not stop at the first visible error message or bug symptom. Trace the causal chain 5 levels down:
+
+```
+[Semptom]: Şagird addımı cavablamadan "Növbəti" basıb keçdi.
+  ↳ Niyə? Kliyent UI-da "Keç" düyməsi error_code tələb etmədən aktivləşdi.
+    ↳ Niyə? API /api/steps/pass endpoint-i statusu yoxlamadan 200 qaytardı.
+      ↳ Niyə? persist.ts-də step_events cədvəlinə is_correct=false yazıldı, amma error_code null getdi.
+        ↳ Niyə? Prompt addım üçün xüsusi distractor/misconception kodu təyin etməmişdi.
+          ↳ Kök Səbəb: Qat 5 sistem promptunda orta addımlar üçün məcburi distractor qaydası unudulub.
+```
 
 ---
 
@@ -54,15 +86,23 @@ Do not stop at the first visible error message or bug symptom. Trace the causal 
 Before finalizing any technical plan, invert the question:
 > *"Təsəvvür edək ki, sabah bu funksiya production-da 100 şagirdin qarşısına çıxdı və tamamilə iflas etdi. Bu necə baş verdi?"*
 
-Primary checkpoints: Offline/slow cellular networks, blurry or handwritten DİM pages, answer leakage, hidden unit cost blowouts.
+### Primary Inversion Checkpoints
+
+1. **Offline / Zəif Şəbəkə**: Şagird kənd yerində 3G ilə şəkil çəkir, 19 saniyə gözləyir və səhifəni bağlayır.
+2. **Bulanıq / Əyri DİM Səhifəsi**: Şagird qələmlə qaralanmış test toplusunu çəkir. Qat 1 OCR səhv oxuyur, Qat 5 isə xəyali tənlik həll edir.
+3. **Cavab Ovcuna Verilməsi**: İpucu o qədər açıqdır ki, şagird düşünmədən cavabı yazır və öyrənmə sıfır olur.
+4. **Gizli Xərc Partlayışı**: Bir istifadəçi eyni sualı 10 dəfə fərqli bucaqdan çəkir, keş bypass olur, xərc \$0.15-ə qalxır.
 
 ---
 
 ## 5. Invariant Gatekeeper Checklist
 
 Every architectural or code proposal must pass these 5 gates:
-1. Golden Rule: Error code taxonomy preserved.
-2. Zero Leakage: No answer hints before verification.
-3. Unit Economics: $\le \$0.010$/solve.
-4. Three-State Honesty: `verification.verified` (`true`/`false`/`null`).
-5. Self-Healing Schema: No hard student-path FK 500 crashes.
+
+| Qapı | Tələb | Keçid Şərti |
+|---|---|---|
+| **Qızıl Qayda** | Səhvin adlandırılması (`error_code`) | Səhvi dəqiq adlandırmayan heç bir həll qəbul edilmir. |
+| **Sızma Qadağası (ADR-017)** | Sıfır sızma (`leak_rate = 0%`) | Aralıq addımlarda yekun cavab və ya həllin açarı əsla görünməməlidir. |
+| **Vahid İqtisadiyyatı** | $\le \$0.010$/həll | Keş qatları (0, 2, 3) işləməli, gərəksiz LLM çağırışları bloklanmalıdır. |
+| **Üçlü Status Dürüstlüyü** | `verification.verified` | `true`, `false` və ya `null`. `method='none'` olduqda əsla `true` göndərilməməlidir. |
+| **Özünü-Sağaldan Sxem** | Self-healing student path | Şagird axınında naməlum `topic_code`/`error_code` üçün DB 500 atmamalı, `needs_review=true` ilə qeydə almalıdır. |
