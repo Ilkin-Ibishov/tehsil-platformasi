@@ -75,17 +75,23 @@ function isSecretFile(filePath) {
   const base = basename(filePath).toLowerCase();
   const isExample = base === ".env.example";
   const isEnv = /^\.env(\.|$)/i.test(base);
-  const isSecret = /^credentials\.json$/i.test(base) || /service[-_]?account.*\.json$/i.test(base);
+  const isSecret =
+    /^credentials\.json$/i.test(base) ||
+    /service[-_]?account.*\.json$/i.test(base) ||
+    /(\.pem|\.key|id_rsa|id_ed25519)$/i.test(base);
   return (isEnv && !isExample) || isSecret;
 }
 
 function isSolveOrPromptPath(filePath) {
-  const norm = normalizePath(filePath);
+  const norm = normalizePath(filePath).toLowerCase();
   return (
     norm.includes("prompts/") ||
-    norm.includes("web/app/api/solve/") ||
-    norm.startsWith("prompts/") ||
-    norm.startsWith("web/app/api/solve/")
+    norm.includes("prompts\\") ||
+    norm.startsWith("prompts") ||
+    norm.includes("web/app/api/solve") ||
+    norm.includes("app/api/solve") ||
+    /\bprompts\b/.test(norm) ||
+    /\bapi\/solve\b/.test(norm)
   );
 }
 
@@ -152,21 +158,26 @@ function checkFileSyntax(filePath, codeSnippet = null) {
   const norm = normalizePath(filePath);
   const ext = path.extname(norm).toLowerCase();
 
+  // If the file exists on disk, read the full real file (post-tool use state)
+  const absPath = path.isAbsolute(filePath) ? filePath : path.resolve(repoRoot, filePath);
+  let content = null;
+  if (fs.existsSync(absPath)) {
+    try {
+      content = fs.readFileSync(absPath, "utf8");
+    } catch {}
+  }
+  // If file doesn't exist on disk (e.g. simulated test payload), use codeSnippet
+  if (content === null && codeSnippet !== null) {
+    content = codeSnippet;
+  }
+  if (content === null) return null;
+
   // JSON syntax check
   if (ext === ".json") {
-    let content = codeSnippet;
-    if (content === null) {
-      const absPath = path.isAbsolute(filePath) ? filePath : path.resolve(repoRoot, filePath);
-      if (fs.existsSync(absPath)) {
-        content = fs.readFileSync(absPath, "utf8");
-      }
-    }
-    if (content !== null) {
-      try {
-        JSON.parse(content);
-      } catch (err) {
-        return `[JSON Sintaksis Xətası] ${filePath}: ${err.message}`;
-      }
+    try {
+      JSON.parse(content);
+    } catch (err) {
+      return `[JSON Sintaksis Xətası] ${filePath}: ${err.message}`;
     }
     return null;
   }
@@ -176,31 +187,26 @@ function checkFileSyntax(filePath, codeSnippet = null) {
     const ts = getTs();
     if (!ts) return null;
 
-    let content = codeSnippet;
-    if (content === null) {
-      const absPath = path.isAbsolute(filePath) ? filePath : path.resolve(repoRoot, filePath);
-      if (fs.existsSync(absPath)) {
-        content = fs.readFileSync(absPath, "utf8");
-      }
+    const isJsx = ext === ".tsx" || ext === ".jsx";
+    const compilerOptions = {
+      target: ts.ScriptTarget.ES2020,
+    };
+    if (isJsx) {
+      compilerOptions.jsx = ts.JsxEmit.ReactJSX;
     }
-    if (content !== null) {
-      const isJsx = ext === ".tsx" || ext === ".jsx";
-      const transpileRes = ts.transpileModule(content, {
-        reportDiagnostics: true,
-        fileName: filePath,
-        compilerOptions: {
-          jsx: isJsx ? ts.JsxEmit.ReactJSX : ts.JsxEmit.None,
-          target: ts.ScriptTarget.ES2020,
-        },
+
+    const transpileRes = ts.transpileModule(content, {
+      reportDiagnostics: true,
+      fileName: filePath,
+      compilerOptions,
+    });
+    if (transpileRes.diagnostics && transpileRes.diagnostics.length > 0) {
+      const errors = transpileRes.diagnostics.map((d) => {
+        const msg = typeof d.messageText === "string" ? d.messageText : d.messageText.messageText;
+        const line = d.file ? d.file.getLineAndCharacterOfPosition(d.start).line + 1 : 1;
+        return `Line ${line}: TS${d.code} - ${msg}`;
       });
-      if (transpileRes.diagnostics && transpileRes.diagnostics.length > 0) {
-        const errors = transpileRes.diagnostics.map((d) => {
-          const msg = typeof d.messageText === "string" ? d.messageText : d.messageText.messageText;
-          const line = d.file ? d.file.getLineAndCharacterOfPosition(d.start).line + 1 : 1;
-          return `Line ${line}: TS${d.code} - ${msg}`;
-        });
-        return `[Sintaksis Xətası / Syntax Error] ${filePath}:\n${errors.join("\n")}`;
-      }
+      return `[Sintaksis Xətası / Syntax Error] ${filePath}:\n${errors.join("\n")}`;
     }
   }
 
@@ -264,6 +270,12 @@ async function main() {
       payload.code ||
       null;
 
+    // If explicit candidate files were provided and NONE of them are web code files, allow immediately
+    if (candidateFiles.length > 0 && !candidateFiles.some(isWebCodeFile)) {
+      respond("allow");
+      return;
+    }
+
     let webFiles = candidateFiles.filter(isWebCodeFile);
 
     // If no candidate files provided in payload, check git status for web files
@@ -285,9 +297,17 @@ async function main() {
       return;
     }
 
+    const targetFile =
+      payload.toolCall?.args?.TargetFile ||
+      payload.toolCall?.args?.AbsolutePath ||
+      payload.toolCall?.args?.target_file ||
+      payload.toolCall?.args?.filePath ||
+      null;
+
     // A. Check syntax
     for (const f of webFiles) {
-      const syntaxErr = checkFileSyntax(f, codeSnippet);
+      const snippet = targetFile && normalizePath(f) === normalizePath(targetFile) ? codeSnippet : null;
+      const syntaxErr = checkFileSyntax(f, snippet);
       if (syntaxErr) {
         respond("warn", syntaxErr);
         return;
@@ -301,11 +321,14 @@ async function main() {
       }
     }
 
-    // B. Check TypeScript type errors
-    const typeErr = checkWebTypeErrors();
-    if (typeErr) {
-      respond("warn", typeErr);
-      return;
+    // B. Check TypeScript type errors (only if non-json web code files were touched)
+    const hasTsFiles = webFiles.some((f) => /\.(tsx?|jsx?|mts|mjs)$/i.test(f)) || (webFiles.length === 0 && codeSnippet);
+    if (hasTsFiles) {
+      const typeErr = checkWebTypeErrors();
+      if (typeErr) {
+        respond("warn", typeErr);
+        return;
+      }
     }
 
     respond("allow");
@@ -344,10 +367,11 @@ async function main() {
     return;
   }
 
-  // 4. PreToolUse: view_file, replace_file_content, write_to_file, edit_file
+  // 4. PreToolUse: view_file, read_file, replace_file_content, write_to_file, edit_file
   if (
     payload.toolCall &&
     (payload.toolCall.name === "view_file" ||
+     payload.toolCall.name === "read_file" ||
      payload.toolCall.name === "replace_file_content" ||
      payload.toolCall.name === "write_to_file" ||
      payload.toolCall.name === "edit_file")

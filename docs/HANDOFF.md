@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-10 (210) · Antigravity → Cowork
+Etdim:    AG-004 hook təftişi və kritik xətaların aradan qaldırılması: PostToolUse daxilində TS6046 jsx tənzimləməsi düzəldildi (.ts fayllarında saxta sintaksis xətası aradan qaldırıldı), non-web fayllara (markdown/json) toxunarkən in-memory TS yoxlaması bloklandı, disk-fayl oxunması təmin edildi, read_file və private key (.key, .pem, id_rsa) mühafizəsi əlavə edildi, root guard.mjs proxy yaradıldı; scripts/hooks/guard.selftest.mjs 26/26 tam keçdi.
+Tapşırıq: AG-004 / no ClickUp — Review & Hardening of Guard Hooks.
+Diqqət:   Bütün 7 preflight yoxlaması (tsc, selftestlər, 26 hook testi, python eval) 100% keçdi.
+
 ## 2026-09-10 (209) · Antigravity → Cowork
 Etdim:    AG-004 Hook Genişlənməsi tamamlandı: .agents/hooks.json və scripts/hooks/antigravity-guard.mjs daxilində PreInvocation (ADR-017 sızma qadağası və 3-hallı verification efemer xatırlatması) və PostToolUse (web/ fayllarında sürətli sintaksis və tip xətaları xəbərdarlığı) quruldu; scripts/hooks/guard.selftest.mjs (19/19 pass) yaradıldı və scripts/preflight.mjs mühərrikinə inteqrasiya olundu; docs/BACKLOG.md Complete edildi.
 Tapşırıq: AG-004 / no ClickUp — Hook Genişlənməsi (PreInvocation & PostToolUse).

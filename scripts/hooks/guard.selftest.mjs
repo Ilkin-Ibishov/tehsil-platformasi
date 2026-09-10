@@ -114,6 +114,27 @@ function assert(condition, testName, extraInfo = "") {
   assert(res.decision === "deny", "Shields .env from write_to_file");
 }
 
+{
+  const res = runGuard({
+    toolCall: { name: "read_file", args: { AbsolutePath: "/repo/.env" } },
+  });
+  assert(res.decision === "deny", "Shields .env from read_file");
+}
+
+{
+  const res = runGuard({
+    toolCall: { name: "view_file", args: { AbsolutePath: "/repo/id_rsa" } },
+  });
+  assert(res.decision === "deny", "Shields id_rsa private key from view_file");
+}
+
+{
+  const res = runGuard({
+    toolCall: { name: "view_file", args: { AbsolutePath: "/repo/server.key" } },
+  });
+  assert(res.decision === "deny", "Shields server.key from view_file");
+}
+
 // 3. PreToolUse on prompts/ and web/app/api/solve/
 {
   const res = runGuard({
@@ -180,6 +201,40 @@ function assert(condition, testName, extraInfo = "") {
   const res = runGuard(
     {
       hookEvent: "PreInvocation",
+      prompt: "api/solve axınını yoxla",
+    },
+    ["--pre-invocation"]
+  );
+  assert(
+    res.decision === "allow" &&
+      res.reason &&
+      res.reason.includes("ADR-017") &&
+      res.reason.includes("verified"),
+    "PreInvocation with api/solve (no trailing slash) injects ADR-017 reminder"
+  );
+}
+
+{
+  const res = runGuard(
+    {
+      hookEvent: "PreInvocation",
+      prompt: "prompts siyahısını nəzərdən keçir",
+    },
+    ["--pre-invocation"]
+  );
+  assert(
+    res.decision === "allow" &&
+      res.reason &&
+      res.reason.includes("ADR-017") &&
+      res.reason.includes("verified"),
+    "PreInvocation with prompts (no trailing slash) injects ADR-017 reminder"
+  );
+}
+
+{
+  const res = runGuard(
+    {
+      hookEvent: "PreInvocation",
       prompt: "README faylını redaktə et",
     },
     ["--pre-invocation"]
@@ -190,19 +245,42 @@ function assert(condition, testName, extraInfo = "") {
   );
 }
 
-// 5. PostToolUse: syntax validation and non-web skips
+// 5. PostToolUse: syntax validation, non-web skips, and .ts vs .tsx
 {
   const res = runGuard(
     {
       hookEvent: "PostToolUse",
       toolCall: {
         name: "replace_file_content",
-        args: { TargetFile: "docs/BACKLOG.md" },
+        args: {
+          TargetFile: "docs/BACKLOG.md",
+          ReplacementContent: "### AG-004: Hook Genişlənməsi\nStatus: Complete\n1. Addim",
+        },
       },
     },
     ["--post"]
   );
-  assert(res.decision === "allow", "PostToolUse skips non-web files with instant allow");
+  assert(res.decision === "allow", "PostToolUse skips non-web files even when ReplacementContent contains markdown");
+}
+
+{
+  const res = runGuard(
+    {
+      hookEvent: "PostToolUse",
+      toolCall: {
+        name: "replace_file_content",
+        args: {
+          TargetFile: "web/lib/dummy.ts",
+          ReplacementContent: "export const DUMMY: number = 42;",
+        },
+      },
+    },
+    ["--post"]
+  );
+  assert(
+    res.decision === "allow",
+    "PostToolUse passes clean .ts (non-jsx) file without TS6046 error"
+  );
 }
 
 {
@@ -213,7 +291,27 @@ function assert(condition, testName, extraInfo = "") {
         name: "replace_file_content",
         args: {
           TargetFile: "web/components/dummy.tsx",
-          ReplacementContent: "const x = ; function {",
+          ReplacementContent: "export const Button = () => <button>Click</button>;",
+        },
+      },
+    },
+    ["--post"]
+  );
+  assert(
+    res.decision === "allow",
+    "PostToolUse passes clean .tsx (React JSX) file"
+  );
+}
+
+{
+  const res = runGuard(
+    {
+      hookEvent: "PostToolUse",
+      toolCall: {
+        name: "replace_file_content",
+        args: {
+          TargetFile: "web/lib/broken.ts",
+          ReplacementContent: "export const x = ; function {",
         },
       },
     },
@@ -222,8 +320,9 @@ function assert(condition, testName, extraInfo = "") {
   assert(
     res.decision === "warn" &&
       res.reason &&
-      res.reason.includes("Sintaksis Xətası"),
-    "PostToolUse catches TypeScript syntax error in code snippet and issues warn"
+      res.reason.includes("Sintaksis Xətası") &&
+      res.reason.includes("web/lib/broken.ts"),
+    "PostToolUse catches TypeScript syntax error in .ts file and issues warn"
   );
 }
 
@@ -249,23 +348,16 @@ function assert(condition, testName, extraInfo = "") {
   );
 }
 
+// 6. Stop hook: verify session closure behavior
 {
-  const res = runGuard(
-    {
-      hookEvent: "PostToolUse",
-      toolCall: {
-        name: "replace_file_content",
-        args: {
-          TargetFile: "web/components/dummy.tsx",
-          ReplacementContent: "export const DUMMY = 42;",
-        },
-      },
-    },
-    ["--post"]
-  );
+  const res = runGuard({
+    hookEvent: "Stop",
+    terminationReason: "completed",
+  });
+  // Since git status in test environment has uncommitted files, verify decision is allow or continue
   assert(
-    res.decision === "allow",
-    "PostToolUse passes clean code snippet through syntax and tsc checks"
+    res.decision === "allow" || res.decision === "continue",
+    "Stop hook responds with valid protojson decision (allow or continue)"
   );
 }
 

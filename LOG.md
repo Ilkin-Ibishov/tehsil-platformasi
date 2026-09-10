@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-09-10: HANDOFF 210 — AG-004 hook təftişi: TS6046 düzəlişi, non-web yoxlama izolasiyası,
+  disk-first oxu, read_file/private key mühafizəsi, guard.mjs proxy, 26/26 selftest keçdi.
 - 2026-09-10: HANDOFF 209 — AG-004: PreInvocation ADR-017 efemer xatırlatması və PostToolUse sintaksis/tip
   xəbərdarlığı quruldu, guard.selftest.mjs (19/19) pre-flight-a əlavə edildi.
 - 2026-09-10: HANDOFF 208 — Sistem Backlog-u (`docs/BACKLOG.md`), 7-addımlı sürətli test (`scripts/preflight.mjs`)
