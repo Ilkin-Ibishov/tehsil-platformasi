@@ -57,7 +57,10 @@ runStep("Taxonomy Triage Selftest (triage-taxonomy.mjs --selftest)", "node scrip
 // 5. DİM Glossary Language Selftest
 runStep("DİM Glossary Language Selftest (glossary-linter.mjs --selftest)", "node scripts/lib/glossary-linter.mjs --selftest");
 
-// 6. Python Eval Harness Selftest (if python exists)
+// 6. Declarative Subagent Registry Selftest
+runStep("Subagent Registry Selftest (agent-registry.mjs --selftest)", "node scripts/lib/agent-registry.mjs --selftest");
+
+// 7. Python Eval Harness Selftest (if python exists)
 try {
   execSync("python --version", { stdio: "pipe" });
   runStep("Python Eval Harness Selftest (eval.py --selftest)", "python scripts/eval.py --selftest");

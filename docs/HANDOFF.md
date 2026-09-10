@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-10 (213) · Antigravity → Cowork
+Etdim:    Push & deploy doğrulaması və AG-009 tamamlandı: son 6 commit main-ə push edildi, GitHub CI (42s) və Vercel deploy (26s) Ready təsdiqləndi; AG-009 üzrə Antigravity üçün deklarativ subagent infrastrukturu (.agents/agents/*.md - reviewer, student_tester, ba_analyst, backend_dev, deploy_guard) quruldu, scripts/lib/agent-registry.mjs (5/5 pass) yazıldı, scripts/sync-agent-context.mjs ilə .cursor/agents/ sinxronlaşdırıldı, scripts/preflight.mjs 6-cı addım kimi əlavə olundu; docs/BACKLOG.md Complete edildi.
+Tapşırıq: AG-009 / no ClickUp — Antigravity Deklarativ Subagent Qeydiyyatı.
+Diqqət:   Subagentlər define_subagent vasitəsilə aktivləşdirildi və invoke_subagent ilə birbaşa çağırıla bilər.
+
 ## 2026-09-10 (212) · Antigravity → Cowork
 Etdim:    AG-007 DİM Dərslik Terminologiyası və Pedaqoji Lüğət tamamlandı: docs/DIM-GLOSSARY.md yaradıldı (Top 100 Do's & Don'ts matrisi, DİM standart əmr felləri, 10 Sokratik ipucu qəlibi, fənn terminləri); prompts/solve/core.md (v18, Qayda 18) dərslik dili və kalka qadağaları ilə yeniləndi; scripts/lib/glossary-linter.mjs linteri və 30/30 selftesti yaradıldı; scripts/preflight.mjs 5-ci addım olaraq inteqrasiya edildi; student-reviewer bacarığı lüğətə bağlandı və sinxronlaşdırıldı; docs/BACKLOG.md Complete edildi.
 Tapşırıq: AG-007 / no ClickUp — DİM Dərslik Terminologiyası və Pedaqoji Lüğət.

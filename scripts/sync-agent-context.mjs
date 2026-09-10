@@ -12,8 +12,6 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
-const srcDir = path.join(repoRoot, ".agents", "skills");
-const destDir = path.join(repoRoot, ".cursor", "skills");
 
 function copyRecursive(src, dest) {
   if (!fs.existsSync(src)) return;
@@ -44,10 +42,13 @@ function copyRecursive(src, dest) {
 }
 
 console.log("Synchronizing .agents/skills -> .cursor/skills...");
-if (!fs.existsSync(srcDir)) {
-  console.error("Source directory .agents/skills does not exist!");
-  process.exit(1);
-}
+const srcSkills = path.join(repoRoot, ".agents", "skills");
+const destSkills = path.join(repoRoot, ".cursor", "skills");
+copyRecursive(srcSkills, destSkills);
 
-copyRecursive(srcDir, destDir);
-console.log("Agent skills synchronization complete.");
+console.log("Synchronizing .agents/agents -> .cursor/agents...");
+const srcAgents = path.join(repoRoot, ".agents", "agents");
+const destAgents = path.join(repoRoot, ".cursor", "agents");
+copyRecursive(srcAgents, destAgents);
+
+console.log("Agent context synchronization complete.");

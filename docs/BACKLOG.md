@@ -34,7 +34,7 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
 | **AG-006** | DİM "Qaralanmış Toplu" Eval Dəsti (`golden-set-dim-annotated`) | Vision / Qat 1 | **P1** | `To Do` | Eval Team | evals/ |
 | **AG-007** | DİM Dərslik Terminologiyası və Pedaqoji Lüğət | Pedaqogika | **P2** | `Complete` | Antigravity | docs/DIM-GLOSSARY.md |
 | **AG-008** | Faza 1 Şagird Qapısı İntizamı (15–20 Real Şagird) | Məhsul / QA | **P0** | `In Progress` | Cowork / BA | docs/PHASE-1.md |
-| **AG-009** | Antigravity Deklarativ Subagent Qeydiyyatı | Multi-Agent | **P2** | `To Do` | Antigravity | .agents/agents/ |
+| **AG-009** | Antigravity Deklarativ Subagent Qeydiyyatı | Multi-Agent | **P2** | `Complete` | Antigravity | .agents/agents/ |
 
 ---
 
@@ -136,7 +136,10 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
 
 ### 🤖 AG-009: Antigravity Deklarativ Subagent Qeydiyyatı
 - **Sahə:** Multi-Agent Orkestrasiyası
-- **Prioritet:** P2 | **Status:** `To Do`
-- **Təsvir:** Cursor-dakı `.cursor/agents/` analoqu olaraq Antigravity üçün xüsusi rolların (`reviewer`, `student-tester`, `ba-analyst`) deklarativ konfiqurasiyası və `invoke_subagent` inteqrasiyası.
+- **Prioritet:** P2 | **Status:** `Complete` (HANDOFF 213)
+- **Təsvir:** Cursor-dakı `.cursor/agents/` analoqu olaraq Antigravity üçün xüsusi rolların (`reviewer`, `student_tester`, `ba_analyst`, `backend_dev`, `deploy_guard`) deklarativ manifestləri (`.agents/agents/*.md`), `scripts/lib/agent-registry.mjs` mühərriki, sinxronizasiya və preflight inteqrasiyası quruldu.
 - **Qəbul Meyarları:**
-  - [ ] Agentlər tək əmrlə ixtisaslaşmış kontekstdə işə düşür və nəticəni əsas agentə ötürür.
+  - [x] Bütün 5 subagent `.agents/agents/` daxilində YAML frontmatter və sistem təlimatı ilə təmin edildi.
+  - [x] `scripts/sync-agent-context.mjs` `.cursor/agents/` ilə tam sinxronlaşdırmanı təmin edir.
+  - [x] `scripts/lib/agent-registry.mjs` selftest ilə `scripts/preflight.mjs`-ə əlavə olundu.
+  - [x] Agentlər tək əmrlə (`invoke_subagent`) ixtisaslaşmış kontekstdə işə düşür və nəticəni əsas agentə ötürür.
