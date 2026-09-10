@@ -19,6 +19,9 @@ export function MathKeyboardBar({
   const t = useTranslations("mathKeyboard");
 
   const MATH_CHIPS = [
+    { label: "x", symbol: "x", titleKey: "x" as const },
+    { label: "(", symbol: "(", titleKey: "openParen" as const },
+    { label: ")", symbol: ")", titleKey: "closeParen" as const },
     { label: "√", symbol: "√", titleKey: "root" as const },
     { label: "/", symbol: "/", titleKey: "fraction" as const },
     { label: "x²", symbol: "²", titleKey: "square" as const },

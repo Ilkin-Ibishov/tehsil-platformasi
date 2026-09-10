@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-09-10: HANDOFF 214 — Şagird və Sokratik təhlil rəyləri: MathKeyboardBar-a 'x' və '()' əlavə edildi,
+  səhv bildirişi humanistləşdirildi ('qeyd olundu, birlikdə düzəldəcəyik'), onboarding 'TANIŞLIQ' edildi.
 - 2026-09-10: HANDOFF 213 — Push & Deploy doğrulaması (GitHub CI green, Vercel Ready) və
   AG-009: Antigravity deklarativ subagent infrastrukturu (`.agents/agents/*.md`, `scripts/lib/agent-registry.mjs`).
 - 2026-09-10: HANDOFF 212 — AG-007: DİM dərslik terminologiyası və pedaqoji lüğət (`docs/DIM-GLOSSARY.md`),

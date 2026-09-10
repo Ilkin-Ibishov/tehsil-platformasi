@@ -107,7 +107,7 @@
     "onboardingLabel": "İlkin quraşdırma"
   },
   "onboarding": {
-    "headerLabel": "QURAŞDIRMA",
+    "headerLabel": "TANIŞLIQ",
     "skip": "keç",
     "stepNameCounter": "01 / 02",
     "stepNameTitle": "Adın və Soyadın nədir?",
@@ -279,7 +279,7 @@
       "check": "yoxla",
       "checking": "yoxlanır…",
       "correct": "Doğru.",
-      "errorRecorded": "hesabatına yazıldı",
+      "errorRecorded": "qeyd olundu, birlikdə düzəldəcəyik",
       "retry": "yenidən yaz",
       "networkError": "Şəbəkə xətası — cavabın yoxlanıla bilmədi. Yenidən cəhd et.",
       "needHint": "Bu addımı başa düşmədim",
@@ -311,6 +311,9 @@
   },
   "mathKeyboard": {
     "toolbar": "Riyazi simvollar",
+    "x": "x dəyişəni",
+    "openParen": "Mötərizə aç",
+    "closeParen": "Mötərizə bağla",
     "root": "Kök",
     "fraction": "Kəsr / Bölmə",
     "square": "Kvadrat",
