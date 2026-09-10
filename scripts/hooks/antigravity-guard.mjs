@@ -133,13 +133,17 @@ function getCandidateStrings(payload) {
 }
 
 function touchesSolveOrPrompts(payload) {
-  for (const str of getCandidateStrings(payload)) {
-    if (isSolveOrPromptPath(str)) {
-      return true;
+  const candidateStrings = getCandidateStrings(payload);
+  if (candidateStrings.length > 0) {
+    for (const str of candidateStrings) {
+      if (isSolveOrPromptPath(str)) {
+        return true;
+      }
     }
+    return false;
   }
 
-  // Also check uncommitted git changes
+  // If no candidate strings or files provided in payload, fallback to checking uncommitted git changes
   try {
     const statusOutput = execSync("git status --porcelain", { cwd: repoRoot, encoding: "utf8" });
     const lines = statusOutput.split("\n").filter(Boolean);

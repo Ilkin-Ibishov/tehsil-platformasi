@@ -19,7 +19,7 @@ alwaysApply: true
 | ClickUp space | `901810230629` |
 | Latest migration | `0074` |
 | Latest ADR | `031` |
-| Latest HANDOFF | `211` |
+| Latest HANDOFF | `212` |
 | tsconfig target | ES2017 |
 | STEP-SCHEMA version | 2 |
 
@@ -43,6 +43,8 @@ alwaysApply: true
 | Telemetry spec | `docs/TELEMETRY.md` |
 | Step schema | `docs/STEP-SCHEMA.json` |
 | System Backlog | `docs/BACKLOG.md` |
+| DİM Glossary | `docs/DIM-GLOSSARY.md` |
+| Glossary linter | `scripts/lib/glossary-linter.mjs` |
 | Pre-flight test suite | `scripts/preflight.mjs` |
 | Skill synchronization | `scripts/sync-agent-context.mjs` |
 | Taxonomy triage | `scripts/triage-taxonomy.mjs` |

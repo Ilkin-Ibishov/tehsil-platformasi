@@ -32,10 +32,11 @@ Qiymətləndirmə apararkən kontekstdən asılı olaraq aşağıdakı üç əsa
 
 ## 2. Qiymətləndirmə Meyarları (Alpha Review Dimensions)
 
-### A. Təbii Dərslik Dili (Language & Tone)
+### A. Təbii Dərslik Dili (Language & Tone — [DIM-GLOSSARY.md](file:///c:/Programming/Tehsil-Platformasi/docs/DIM-GLOSSARY.md))
 - Mətnlər süni intellektin tərcümə robotu dilindədir, yoxsa Azərbaycan məktəblərində müəllimlərin işlətdiyi təbii dərslik dilində?
-- *Yaxşı*: "Mənfi işarəsini mötərizənin xaricinə çıxaraq", "Tənliyin hər iki tərəfini 2-yə vuraq".
-- *Pis*: "İşarənin tətbiqini icra edin", "Nəticənin kvadrat tənliyini təmin edin".
+- Bütün termin və ifadələr `docs/DIM-GLOSSARY.md` (Top 100 Do's & Don'ts matrisi və DİM əmr felləri) standartlarına tam cavab verirmi?
+- *Yaxşı*: "Tənliyin hər iki tərəfini kvadrata yüksəldin", "Məchulu sağ tərəfə əks işarə ilə keçirin", "Kəsri ixtisar edin", "Məxrəci irrasionallıqdan azad edin".
+- *Pis*: "Kvadratını icra edin", "Fraksiya", "Nümerator", "Sadə rəqəm", "Faktor cütü", "Dəyişəni sağ tərəfə tətbiq edin".
 
 ### B. İlişmə və İpucu Faydalılığı (Hint Quality)
 - Səhv cavab verəndə göstərilən ipucu şagirdə harada ilişdiyini başa salırmı?

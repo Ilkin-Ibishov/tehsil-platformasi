@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-10 (212) · Antigravity → Cowork
+Etdim:    AG-007 DİM Dərslik Terminologiyası və Pedaqoji Lüğət tamamlandı: docs/DIM-GLOSSARY.md yaradıldı (Top 100 Do's & Don'ts matrisi, DİM standart əmr felləri, 10 Sokratik ipucu qəlibi, fənn terminləri); prompts/solve/core.md (v18, Qayda 18) dərslik dili və kalka qadağaları ilə yeniləndi; scripts/lib/glossary-linter.mjs linteri və 30/30 selftesti yaradıldı; scripts/preflight.mjs 5-ci addım olaraq inteqrasiya edildi; student-reviewer bacarığı lüğətə bağlandı və sinxronlaşdırıldı; docs/BACKLOG.md Complete edildi.
+Tapşırıq: AG-007 / no ClickUp — DİM Dərslik Terminologiyası və Pedaqoji Lüğət.
+Diqqət:   Token büdcəsini qorumaq üçün sistem promptuna yalnız ən kritik 10 kalka qaydası daxil edildi, tam 100+ maddəlik matris docs/DIM-GLOSSARY.md-də saxlanılır.
+
 ## 2026-09-10 (211) · Antigravity → Cowork
 Etdim:    AG-005 Öz-Özünü Sağaldan Taksonomiya Triyajı tamamlandı: scripts/triage-taxonomy.mjs yaradıldı (lexical clustering, sinonim və domen analizi, --selftest, --save, --sql), .agents/skills/triage-taxonomy/SKILL.md və .cursor/skills/ sinxronlaşdırıldı, Supabase canlı v_taxonomy_review-dan 27 naməlum kod analiz edildi və rəsmi hesabat docs/reports/taxonomy-triage-2026-09-10.md çıxarıldı; scripts/preflight.mjs 8-ci addım kimi inteqrasiya olundu; docs/BACKLOG.md Complete edildi.
 Tapşırıq: AG-005 / no ClickUp — Self-Healing Taxonomy Triage Engine.

@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-09-10: HANDOFF 212 — AG-007: DİM dərslik terminologiyası və pedaqoji lüğət (`docs/DIM-GLOSSARY.md`),
+  `prompts/solve/core.md` (v18, Qayda 18), `scripts/lib/glossary-linter.mjs` (30/30), preflight inteqrasiyası və student-reviewer yeniləndi.
 - 2026-09-10: HANDOFF 211 — AG-005: Taksonomiya triyaj mühərriki (`scripts/triage-taxonomy.mjs`, `triage-taxonomy` skill),
   27 canlı kod analizi və rəsmi hesabat (`docs/reports/taxonomy-triage-2026-09-10.md`) tamamlandı. Pre-flight 8 addımla keçdi.
 - 2026-09-10: HANDOFF 210 — AG-004 hook təftişi: TS6046 düzəlişi, non-web yoxlama izolasiyası,

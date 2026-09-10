@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v17)
+# Prompt — addım sxemi generasiyası (v18)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -118,6 +118,10 @@
 > **v16 → v17 (2026-08-23).** E1.9: sızma qadağası (Qayda 1) məntiq, şifrə, mülahizə və tənlik
 > həlləri üçün qətiləşdirildi: `explanation` və `latex` şagirdin `check.ask`-də tapmalı olduğu
 > nəticəni/hökmü elan etmir, meyarı/metodu izah edir; ədəd və ya düzgün bənd nömrələri yalnız `check.ask`-də istənilir.
+>
+> **v17 → v18 (2026-09-10).** AG-007: DİM dərslik dili və pedaqoji lüğət standartı (`docs/DIM-GLOSSARY.md`, Qayda 18).
+> Robotik kalka tərcümələr ("kvadratını icra edin", "fraksiya", "sadə rəqəm" və s.) açıq qadağan edildi;
+> rəsmi 5–11 dərslik ifadələri və standart DİM əmr felləri təsbit olundu.
 
 ## System
 
@@ -463,6 +467,21 @@ KƏSİLMİŞ MƏSƏLƏ:
     Sınaq: `check.ask`-i oxuyanda cavab HƏMİN addımın `latex`-indəki ifadədən BİRBAŞA
     çıxmalıdır — başqa addımın öz mövzusunu deyil. (Yoxlama addımı üçün bu qayda 11/14 ilə
     UYĞUNDUR — orada "ilkin şərt" məhz o addımın öz mövzusudur.)
+
+18. DƏRSLİK DİLİ VƏ KALKA TƏRCÜMƏ QADAĞASI (DİM STANDARTI).
+    Addım izahları, başlıqlar və ipucuları təbii Azərbaycan dərslik dilində olmalıdır.
+    İngilis/rus dillərindən birbaşa ("kalka") tərcümə olunmuş robotik ifadələr QƏTİ QADAĞANDIR:
+      ❌ "Tənliyin kvadratını icra edin"  ➔  ✅ "Tənliyin hər iki tərəfini kvadrata yüksəldin"
+      ❌ "Dəyişəni sağ tərəfə tətbiq edin" ➔  ✅ "Məchulu tənliyin sağ tərəfinə əks işarə ilə keçirin"
+      ❌ "Fraksiya / Nümerator / Denominator" ➔ ✅ "Kəsr / Surət / Məxrəc"
+      ❌ "Sadə rəqəm / Mürəkkəb rəqəm"     ➔  ✅ "Sadə ədəd / Mürəkkəb ədəd" (rəqəm yalnız 0-9)
+      ❌ "Faktor cütü / Ortaq faktor"      ➔  ✅ "Vuruqlar / Ortaq vuruq"
+      ❌ "Dəyişəni / X-i izolyasiya edin"   ➔  ✅ "x-i təkləyin" və ya "Məchulu ifadə edin"
+      ❌ "Kökaltı ifadəni kənarlaşdırın"   ➔  ✅ "Məxrəci irrasionallıqdan azad edin"
+      ❌ "Kvadratlar çıxılması"            ➔  ✅ "Kvadratlar fərqi"
+      ❌ "Ən böyük ümumi bölücü"           ➔  ✅ "Ən böyük ortaq bölən (ƏBOB)"
+      ❌ "Tənliyin dəyərini tapın"         ➔  ✅ "Tənliyin kökünü tapın"
+    Əmr felləri dərslik standartında olmalıdır: "Sadələşdirin", "Vuruqlara ayırın", "Mötərizəni açın".
 
 ```
 

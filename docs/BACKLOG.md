@@ -32,7 +32,7 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
 | **AG-004** | Hook Genişlənməsi (`PreInvocation` & `PostToolUse`) | Lifecycle Hooks | **P1** | `Complete` | Antigravity | .agents/hooks.json |
 | **AG-005** | Öz-Özünü Sağaldan Taksonomiya Triyajı (`triage-taxonomy`) | Data / LLM | **P1** | `Complete` | Antigravity | scripts/triage-taxonomy.mjs |
 | **AG-006** | DİM "Qaralanmış Toplu" Eval Dəsti (`golden-set-dim-annotated`) | Vision / Qat 1 | **P1** | `To Do` | Eval Team | evals/ |
-| **AG-007** | DİM Dərslik Terminologiyası və Pedaqoji Lüğət | Pedaqogika | **P2** | `To Do` | Student Reviewer | docs/DIM-GLOSSARY.md |
+| **AG-007** | DİM Dərslik Terminologiyası və Pedaqoji Lüğət | Pedaqogika | **P2** | `Complete` | Antigravity | docs/DIM-GLOSSARY.md |
 | **AG-008** | Faza 1 Şagird Qapısı İntizamı (15–20 Real Şagird) | Məhsul / QA | **P0** | `In Progress` | Cowork / BA | docs/PHASE-1.md |
 | **AG-009** | Antigravity Deklarativ Subagent Qeydiyyatı | Multi-Agent | **P2** | `To Do` | Antigravity | .agents/agents/ |
 
@@ -113,11 +113,13 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
 
 ### 📖 AG-007: DİM Dərslik Terminologiyası və Pedaqoji Lüğət
 - **Sahə:** Pedaqogika / Azərbaycan Dili i18n
-- **Prioritet:** P2 | **Status:** `To Do`
-- **Təsvir:** Azərbaycan məktəb dərsliklərində (5–11-ci sinif) işlədilən standart termin və ifadələrin toplusu (`docs/DIM-GLOSSARY.md`). Süni intellektin tərcümə üslubunu aradan qaldırmaq üçün Qat 5 promptuna referans verilir.
+- **Prioritet:** P2 | **Status:** `Complete` (HANDOFF 212)
+- **Təsvir:** Azərbaycan məktəb dərsliklərində (5–11-ci sinif) işlədilən standart termin və ifadələrin toplusu (`docs/DIM-GLOSSARY.md`). Süni intellektin tərcümə üslubunu aradan qaldırmaq üçün Qat 5 promptuna referans verilir, pre-flight linteri və student-reviewer inteqrasiyası tamamlandı.
 - **Qəbul Meyarları:**
-  - [ ] Dərsliklərdən ən çox işlənən 100 riyazi ifadə və onların qadağan olunmuş robotik ekvivalentləri cədvəlləşdirilir.
-  - [ ] `student-reviewer` tərəfindən test edilir.
+  - [x] Dərsliklərdən ən çox işlənən 100 riyazi ifadə və onların qadağan olunmuş robotik ekvivalentləri cədvəlləşdirilir (`docs/DIM-GLOSSARY.md`).
+  - [x] `prompts/solve/core.md` (v18, Qayda 18) standart DİM dərslik dili və kalka qadağaları ilə təchiz edildi.
+  - [x] Avtomatlaşdırılmış linter (`scripts/lib/glossary-linter.mjs` --selftest) yazıldı və `scripts/preflight.mjs`-ə inteqrasiya olundu.
+  - [x] `student-reviewer` bacarığına dərslik dili qiymətləndirmə meyarı kimi bağlandı.
 
 ---
 
