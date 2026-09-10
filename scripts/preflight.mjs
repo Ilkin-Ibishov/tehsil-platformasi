@@ -51,7 +51,10 @@ runStep("Answer Leakage Guard Selftest (leak.selftest.mts)", "npx tsx web/lib/ve
 // 3. Antigravity Guard Hook Selftest Suite
 runStep("Antigravity Guard Selftest Suite (guard.selftest.mjs)", "node scripts/hooks/guard.selftest.mjs");
 
-// 4. Python Eval Harness Selftest (if python exists)
+// 4. Taxonomy Triage Selftest
+runStep("Taxonomy Triage Selftest (triage-taxonomy.mjs --selftest)", "node scripts/triage-taxonomy.mjs --selftest");
+
+// 5. Python Eval Harness Selftest (if python exists)
 try {
   execSync("python --version", { stdio: "pipe" });
   runStep("Python Eval Harness Selftest (eval.py --selftest)", "python scripts/eval.py --selftest");

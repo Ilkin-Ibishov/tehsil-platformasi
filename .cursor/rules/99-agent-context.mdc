@@ -19,7 +19,7 @@ alwaysApply: true
 | ClickUp space | `901810230629` |
 | Latest migration | `0074` |
 | Latest ADR | `031` |
-| Latest HANDOFF | `208` |
+| Latest HANDOFF | `211` |
 | tsconfig target | ES2017 |
 | STEP-SCHEMA version | 2 |
 
@@ -45,6 +45,7 @@ alwaysApply: true
 | System Backlog | `docs/BACKLOG.md` |
 | Pre-flight test suite | `scripts/preflight.mjs` |
 | Skill synchronization | `scripts/sync-agent-context.mjs` |
+| Taxonomy triage | `scripts/triage-taxonomy.mjs` |
 | Eval harness | `scripts/eval.py` |
 | Eval pipelines / fallback | `scripts/lib/pipelines.py`, `scripts/lib/llm_client.py` |
 | Eval reports | `scripts/lib/report.py` |
@@ -64,6 +65,6 @@ alwaysApply: true
 - Student UI hub: `/profil`, `/onboarding`, `/uslub`, home (HANDOFF 204); 1-click invite sends `device_id`, bank reads `?invite=` (HANDOFF 205–206)
 - No real students yet (CLAUDE.md: "production-da real istifadəçi YOXDUR")
 - Agent context modularization: unified across Cursor & Antigravity, `.agents/rules/*.md` established, `.agents/hooks.json` active guard enabled, 4 new skills added (`critical-thinker`, `backend-developer`, `it-business-analyst`, `student-reviewer`)
-- System Backlog & Pre-flight: `docs/BACKLOG.md` tracking AG-001..AG-009; `scripts/preflight.mjs` running 7 automated checks in <32s
+- System Backlog & Pre-flight: `docs/BACKLOG.md` tracking AG-001..AG-009; `scripts/preflight.mjs` running 8 automated checks; AG-004 & AG-005 Complete (taxonomy triage engine + live report)
 
 

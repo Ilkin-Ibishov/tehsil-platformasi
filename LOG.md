@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-09-10: HANDOFF 211 — AG-005: Taksonomiya triyaj mühərriki (`scripts/triage-taxonomy.mjs`, `triage-taxonomy` skill),
+  27 canlı kod analizi və rəsmi hesabat (`docs/reports/taxonomy-triage-2026-09-10.md`) tamamlandı. Pre-flight 8 addımla keçdi.
 - 2026-09-10: HANDOFF 210 — AG-004 hook təftişi: TS6046 düzəlişi, non-web yoxlama izolasiyası,
   disk-first oxu, read_file/private key mühafizəsi, guard.mjs proxy, 26/26 selftest keçdi.
 - 2026-09-10: HANDOFF 209 — AG-004: PreInvocation ADR-017 efemer xatırlatması və PostToolUse sintaksis/tip

@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-10 (211) · Antigravity → Cowork
+Etdim:    AG-005 Öz-Özünü Sağaldan Taksonomiya Triyajı tamamlandı: scripts/triage-taxonomy.mjs yaradıldı (lexical clustering, sinonim və domen analizi, --selftest, --save, --sql), .agents/skills/triage-taxonomy/SKILL.md və .cursor/skills/ sinxronlaşdırıldı, Supabase canlı v_taxonomy_review-dan 27 naməlum kod analiz edildi və rəsmi hesabat docs/reports/taxonomy-triage-2026-09-10.md çıxarıldı; scripts/preflight.mjs 8-ci addım kimi inteqrasiya olundu; docs/BACKLOG.md Complete edildi.
+Tapşırıq: AG-005 / no ClickUp — Self-Healing Taxonomy Triage Engine.
+Diqqət:   VEC.OPERATIONS ➔ GEO.VECTORS və GEO.SOLID_CONE_VOLUME ➔ GEO.CONE_VOLUME kimi sinonim ziddiyyətləri aşkarlandı.
+
 ## 2026-09-10 (210) · Antigravity → Cowork
 Etdim:    AG-004 hook təftişi və kritik xətaların aradan qaldırılması: PostToolUse daxilində TS6046 jsx tənzimləməsi düzəldildi (.ts fayllarında saxta sintaksis xətası aradan qaldırıldı), non-web fayllara (markdown/json) toxunarkən in-memory TS yoxlaması bloklandı, disk-fayl oxunması təmin edildi, read_file və private key (.key, .pem, id_rsa) mühafizəsi əlavə edildi, root guard.mjs proxy yaradıldı; scripts/hooks/guard.selftest.mjs 26/26 tam keçdi.
 Tapşırıq: AG-004 / no ClickUp — Review & Hardening of Guard Hooks.

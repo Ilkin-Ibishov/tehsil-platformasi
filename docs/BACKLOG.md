@@ -30,7 +30,7 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
 | **AG-002** | 10-Saniyəlik Lokal Pre-Flight Yoxlama Skripti | CI/CD / Ops | **P0** | `Complete` | Antigravity | scripts/preflight.mjs |
 | **AG-003** | Avtomatlaşdırılmış Skill Sinxronizasiyası | Agent / DX | **P1** | `Complete` | Antigravity | scripts/sync-agent-context.mjs |
 | **AG-004** | Hook Genişlənməsi (`PreInvocation` & `PostToolUse`) | Lifecycle Hooks | **P1** | `Complete` | Antigravity | .agents/hooks.json |
-| **AG-005** | Öz-Özünü Sağaldan Taksonomiya Triyajı (`triage-taxonomy`) | Data / LLM | **P1** | `To Do` | Backend / BA | v_taxonomy_review |
+| **AG-005** | Öz-Özünü Sağaldan Taksonomiya Triyajı (`triage-taxonomy`) | Data / LLM | **P1** | `Complete` | Antigravity | scripts/triage-taxonomy.mjs |
 | **AG-006** | DİM "Qaralanmış Toplu" Eval Dəsti (`golden-set-dim-annotated`) | Vision / Qat 1 | **P1** | `To Do` | Eval Team | evals/ |
 | **AG-007** | DİM Dərslik Terminologiyası və Pedaqoji Lüğət | Pedaqogika | **P2** | `To Do` | Student Reviewer | docs/DIM-GLOSSARY.md |
 | **AG-008** | Faza 1 Şagird Qapısı İntizamı (15–20 Real Şagird) | Məhsul / QA | **P0** | `In Progress` | Cowork / BA | docs/PHASE-1.md |
@@ -90,11 +90,14 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
 
 ### 📊 AG-005: Öz-Özünü Sağaldan Taksonomiya Triyajı (`triage-taxonomy`)
 - **Sahə:** Verilənlər Bazası / LLM Taksonomiyası
-- **Prioritet:** P1 | **Status:** `To Do`
-- **Təsvir:** `public.topic_codes` və `public.error_codes` cədvəllərində `needs_review=true` ilə qeydə alınmış sətirləri oxuyan, tezlik analizi aparan və ya prompt təkmilləşdirməsi, ya da yeni ADR təklif edən skill və skript.
+- **Prioritet:** P1 | **Status:** `Complete`
+- **Təsvir:** `public.topic_codes` və `public.error_codes` cədvəllərində `needs_review=true` ilə qeydə alınmış sətirləri oxuyan, tezlik analizi aparan, sinonimləri qruplaşdıran və ya prompt təkmilləşdirməsi, ya da yeni ADR/SQL təklif edən skill və skript.
+- **Fayllar:** `scripts/triage-taxonomy.mjs`, `.agents/skills/triage-taxonomy/SKILL.md`, `docs/reports/taxonomy-triage-2026-09-10.md`.
 - **Qəbul Meyarları:**
-  - [ ] `v_taxonomy_review` cədvəlindən ən çox təkrarlanan naməlum kodları qruplaşdırır.
-  - [ ] Çıxış formatında hansı kodların sinonim (məs. `SIMULTANEOUS_EQ` vs `SYSTEM_OF_EQUATIONS`) olduğunu göstərir.
+  - [x] `v_taxonomy_review` cədvəlindən naməlum kodları qruplaşdırır (27 real istehsalat kodu analiz edildi).
+  - [x] Sinonim və prefiks ziddiyyətlərini (`VEC.OPERATIONS` vs `GEO.VECTORS`, `GEO.SOLID_CONE_VOLUME` vs `GEO.CONE_VOLUME`) aşkarlayır.
+  - [x] Rəsmi markdown hesabatı (`docs/reports/`) və SQL tənzimləmə layihəsi (`--sql`) generasiya edir.
+  - [x] `scripts/preflight.mjs` test mühərrikinə inteqrasiya olunub.
 
 ---
 
