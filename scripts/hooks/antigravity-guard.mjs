@@ -1,6 +1,37 @@
 #!/usr/bin/env node
+/**
+ * antigravity-guard.mjs
+ *
+ * Antigravity & Cursor Lifecycle Guard:
+ * - PreInvocation: ephemeral ADR-017 zero-leakage & 3-state verification injection
+ * - PreToolUse: commands safety (no force push to main, ask on reset/drop), secrets shielding
+ * - PostToolUse: instant syntax & TypeScript typecheck warnings on web/ modifications
+ * - Stop: enforces docs/HANDOFF.md updates when code files have changed
+ */
+
 import { execSync } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, "../..");
+
+let tsModule = null;
+function getTs() {
+  if (tsModule) return tsModule;
+  try {
+    tsModule = require(path.join(repoRoot, "web", "node_modules", "typescript"));
+  } catch {
+    try {
+      tsModule = require("typescript");
+    } catch {}
+  }
+  return tsModule;
+}
 
 function readStdin() {
   return new Promise((resolve) => {
@@ -30,16 +61,258 @@ function respond(decision, reason) {
   process.exit(0);
 }
 
+function normalizePath(filePath) {
+  return String(filePath || "").replace(/\\/g, "/");
+}
+
 function basename(filePath) {
-  const norm = String(filePath || "").replace(/\\/g, "/");
+  const norm = normalizePath(filePath);
   const idx = norm.lastIndexOf("/");
   return idx >= 0 ? norm.slice(idx + 1) : norm;
+}
+
+function isSecretFile(filePath) {
+  const base = basename(filePath).toLowerCase();
+  const isExample = base === ".env.example";
+  const isEnv = /^\.env(\.|$)/i.test(base);
+  const isSecret = /^credentials\.json$/i.test(base) || /service[-_]?account.*\.json$/i.test(base);
+  return (isEnv && !isExample) || isSecret;
+}
+
+function isSolveOrPromptPath(filePath) {
+  const norm = normalizePath(filePath);
+  return (
+    norm.includes("prompts/") ||
+    norm.includes("web/app/api/solve/") ||
+    norm.startsWith("prompts/") ||
+    norm.startsWith("web/app/api/solve/")
+  );
+}
+
+function isWebCodeFile(filePath) {
+  const norm = normalizePath(filePath);
+  const isWeb = norm.startsWith("web/") || norm.includes("/web/");
+  const isCode = /\.(tsx?|jsx?|mts|mjs|json)$/i.test(norm);
+  return isWeb && isCode;
+}
+
+const ADR017_REMINDER = `[ADR-017 & Solve Cascade Invariants Reminder]
+- Qızıl Qayda (Zero Leakage - ADR-017): Addım izahatı (explanation, formula, hint) qətiyyən son cavabı sızdırmamalıdır.
+- 3-Hallı Təsdiq (Verification Contract): verification.verified yalnız 3 qiymət ala bilər: true, false (həlli gizlət), və ya null (göstər + unverified). method='none' olduqda verified: true göndərilməsi qadağandır.
+- STEP-SCHEMA İntizamı: error_codes donmuş 11-kodlu enumdur. Naməlum kodlar DB-də needs_review=true ilə qeydə alınır.`;
+
+function getCandidateFiles(payload) {
+  const files = [];
+  const args = payload.toolCall?.args || {};
+  for (const key of ["TargetFile", "AbsolutePath", "target_file", "filePath", "path", "file", "targetFile"]) {
+    if (args[key]) files.push(String(args[key]));
+    if (payload[key]) files.push(String(payload[key]));
+  }
+  if (Array.isArray(payload.files)) {
+    for (const f of payload.files) files.push(String(f));
+  }
+  return files;
+}
+
+function getCandidateStrings(payload) {
+  const list = [
+    payload.prompt,
+    payload.userMessage,
+    payload.input,
+    payload.message,
+    payload.query,
+    ...getCandidateFiles(payload),
+  ];
+  return list.filter(Boolean).map(String);
+}
+
+function touchesSolveOrPrompts(payload) {
+  for (const str of getCandidateStrings(payload)) {
+    if (isSolveOrPromptPath(str)) {
+      return true;
+    }
+  }
+
+  // Also check uncommitted git changes
+  try {
+    const statusOutput = execSync("git status --porcelain", { cwd: repoRoot, encoding: "utf8" });
+    const lines = statusOutput.split("\n").filter(Boolean);
+    for (const line of lines) {
+      const file = normalizePath(line.slice(3).trim());
+      if (isSolveOrPromptPath(file)) {
+        return true;
+      }
+    }
+  } catch {}
+
+  return false;
+}
+
+function checkFileSyntax(filePath, codeSnippet = null) {
+  const norm = normalizePath(filePath);
+  const ext = path.extname(norm).toLowerCase();
+
+  // JSON syntax check
+  if (ext === ".json") {
+    let content = codeSnippet;
+    if (content === null) {
+      const absPath = path.isAbsolute(filePath) ? filePath : path.resolve(repoRoot, filePath);
+      if (fs.existsSync(absPath)) {
+        content = fs.readFileSync(absPath, "utf8");
+      }
+    }
+    if (content !== null) {
+      try {
+        JSON.parse(content);
+      } catch (err) {
+        return `[JSON Sintaksis Xətası] ${filePath}: ${err.message}`;
+      }
+    }
+    return null;
+  }
+
+  // TS / JS syntax check
+  if (/\.(tsx?|jsx?|mts|mjs)$/i.test(norm)) {
+    const ts = getTs();
+    if (!ts) return null;
+
+    let content = codeSnippet;
+    if (content === null) {
+      const absPath = path.isAbsolute(filePath) ? filePath : path.resolve(repoRoot, filePath);
+      if (fs.existsSync(absPath)) {
+        content = fs.readFileSync(absPath, "utf8");
+      }
+    }
+    if (content !== null) {
+      const isJsx = ext === ".tsx" || ext === ".jsx";
+      const transpileRes = ts.transpileModule(content, {
+        reportDiagnostics: true,
+        fileName: filePath,
+        compilerOptions: {
+          jsx: isJsx ? ts.JsxEmit.ReactJSX : ts.JsxEmit.None,
+          target: ts.ScriptTarget.ES2020,
+        },
+      });
+      if (transpileRes.diagnostics && transpileRes.diagnostics.length > 0) {
+        const errors = transpileRes.diagnostics.map((d) => {
+          const msg = typeof d.messageText === "string" ? d.messageText : d.messageText.messageText;
+          const line = d.file ? d.file.getLineAndCharacterOfPosition(d.start).line + 1 : 1;
+          return `Line ${line}: TS${d.code} - ${msg}`;
+        });
+        return `[Sintaksis Xətası / Syntax Error] ${filePath}:\n${errors.join("\n")}`;
+      }
+    }
+  }
+
+  return null;
+}
+
+function checkWebTypeErrors() {
+  try {
+    execSync("npx tsc --noEmit", {
+      cwd: path.join(repoRoot, "web"),
+      stdio: "pipe",
+      encoding: "utf8",
+      timeout: 20000,
+    });
+    return null;
+  } catch (err) {
+    const output = (err.stdout || "") + (err.stderr || "");
+    const trimmed = output.trim();
+    if (trimmed && /error TS\d+:/.test(trimmed)) {
+      return `[Tip Xətası / TypeScript Error in web/]\n${trimmed}\n\nZəhmət olmasa növbəti addıma keçməzdən əvvəl bu tip xətasını aradan qaldırın.`;
+    }
+    return null;
+  }
 }
 
 async function main() {
   const payload = await readStdin();
 
-  // 1. PreToolUse: run_command
+  const isPreInvocation =
+    process.argv.includes("--pre-invocation") ||
+    payload.hookEvent === "PreInvocation" ||
+    payload.event === "PreInvocation" ||
+    payload.phase === "pre-invocation" ||
+    payload.phase === "pre_invocation";
+
+  const isPostTool =
+    process.argv.includes("--post") ||
+    payload.hookEvent === "PostToolUse" ||
+    payload.event === "PostToolUse" ||
+    payload.phase === "post" ||
+    payload.phase === "post_tool_use" ||
+    payload.toolResult !== undefined ||
+    payload.result !== undefined;
+
+  // 1. PreInvocation: ephemeral ADR-017 and 3-state verification injection
+  if (isPreInvocation) {
+    if (touchesSolveOrPrompts(payload)) {
+      respond("allow", ADR017_REMINDER);
+      return;
+    }
+    respond("allow");
+    return;
+  }
+
+  // 2. PostToolUse: check syntax and types if web files were touched
+  if (isPostTool) {
+    const candidateFiles = getCandidateFiles(payload);
+    const codeSnippet =
+      payload.toolCall?.args?.ReplacementContent ||
+      payload.toolCall?.args?.CodeContent ||
+      payload.code ||
+      null;
+
+    let webFiles = candidateFiles.filter(isWebCodeFile);
+
+    // If no candidate files provided in payload, check git status for web files
+    if (webFiles.length === 0 && candidateFiles.length === 0) {
+      try {
+        const statusOutput = execSync("git status --porcelain", { cwd: repoRoot, encoding: "utf8" });
+        const lines = statusOutput.split("\n").filter(Boolean);
+        for (const line of lines) {
+          const file = normalizePath(line.slice(3).trim());
+          if (isWebCodeFile(file)) {
+            webFiles.push(file);
+          }
+        }
+      } catch {}
+    }
+
+    if (webFiles.length === 0 && !codeSnippet) {
+      respond("allow");
+      return;
+    }
+
+    // A. Check syntax
+    for (const f of webFiles) {
+      const syntaxErr = checkFileSyntax(f, codeSnippet);
+      if (syntaxErr) {
+        respond("warn", syntaxErr);
+        return;
+      }
+    }
+    if (webFiles.length === 0 && codeSnippet) {
+      const syntaxErr = checkFileSyntax("web/in-memory-check.ts", codeSnippet);
+      if (syntaxErr) {
+        respond("warn", syntaxErr);
+        return;
+      }
+    }
+
+    // B. Check TypeScript type errors
+    const typeErr = checkWebTypeErrors();
+    if (typeErr) {
+      respond("warn", typeErr);
+      return;
+    }
+
+    respond("allow");
+    return;
+  }
+
+  // 3. PreToolUse: run_command
   if (payload.toolCall && payload.toolCall.name === "run_command") {
     const args = payload.toolCall.args || {};
     const command = String(args.CommandLine || args.command || "");
@@ -71,18 +344,24 @@ async function main() {
     return;
   }
 
-  // 2. PreToolUse: view_file
-  if (payload.toolCall && payload.toolCall.name === "view_file") {
+  // 4. PreToolUse: view_file, replace_file_content, write_to_file, edit_file
+  if (
+    payload.toolCall &&
+    (payload.toolCall.name === "view_file" ||
+     payload.toolCall.name === "replace_file_content" ||
+     payload.toolCall.name === "write_to_file" ||
+     payload.toolCall.name === "edit_file")
+  ) {
     const args = payload.toolCall.args || {};
-    const targetFile = String(args.AbsolutePath || args.filePath || args.path || "");
-    const base = basename(targetFile).toLowerCase();
+    const targetFile = String(args.AbsolutePath || args.TargetFile || args.filePath || args.path || "");
 
-    const isExample = base === ".env.example";
-    const isEnv = /^\.env(\.|$)/i.test(base);
-    const isSecret = /^credentials\.json$/i.test(base) || /service[-_]?account.*\.json$/i.test(base);
+    if (isSecretFile(targetFile)) {
+      respond("deny", "Refusing to read/write secrets file into agent context.");
+      return;
+    }
 
-    if ((isEnv && !isExample) || isSecret) {
-      respond("deny", "Refusing to read secrets file into agent context.");
+    if (isSolveOrPromptPath(targetFile)) {
+      respond("allow", ADR017_REMINDER);
       return;
     }
 
@@ -90,14 +369,14 @@ async function main() {
     return;
   }
 
-  // 3. Stop: verify session closure if code was modified
-  if (payload.terminationReason) {
+  // 5. Stop: verify session closure if code was modified
+  if (payload.terminationReason || payload.hookEvent === "Stop" || payload.event === "Stop") {
     try {
-      const statusOutput = execSync("git status --porcelain", { encoding: "utf8" });
+      const statusOutput = execSync("git status --porcelain", { cwd: repoRoot, encoding: "utf8" });
       const changedLines = statusOutput.split("\n").filter(Boolean);
-      
+
       const codeChanged = changedLines.some((line) => {
-        const file = line.slice(3).trim().replace(/\\/g, "/");
+        const file = normalizePath(line.slice(3).trim());
         return (
           file.startsWith("web/") ||
           file.startsWith("supabase/") ||
@@ -107,7 +386,7 @@ async function main() {
       });
 
       const handoffUpdated = changedLines.some((line) => {
-        const file = line.slice(3).trim().replace(/\\/g, "/");
+        const file = normalizePath(line.slice(3).trim());
         return file === "docs/HANDOFF.md";
       });
 

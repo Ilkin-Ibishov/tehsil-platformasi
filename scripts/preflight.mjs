@@ -48,8 +48,8 @@ runStep("Answer Matcher Selftest (answer.selftest.mts)", "npx tsx web/lib/verify
 runStep("DIM Template Engine Selftest (template.selftest.mts)", "npx tsx web/lib/cascade/template.selftest.mts");
 runStep("Answer Leakage Guard Selftest (leak.selftest.mts)", "npx tsx web/lib/verify/leak.selftest.mts");
 
-// 3. Antigravity Guard Hook Test
-runStep("Antigravity Guard Hook Assertions", 'node -e "const { execSync } = require(\'child_process\'); const res = execSync(\'node scripts/hooks/antigravity-guard.mjs\', { input: JSON.stringify({ toolCall: { name: \'run_command\', args: { CommandLine: \'git push origin main --force\' } } }), encoding: \'utf8\' }); if (!res.includes(\'deny\')) process.exit(1);"');
+// 3. Antigravity Guard Hook Selftest Suite
+runStep("Antigravity Guard Selftest Suite (guard.selftest.mjs)", "node scripts/hooks/guard.selftest.mjs");
 
 // 4. Python Eval Harness Selftest (if python exists)
 try {

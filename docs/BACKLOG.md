@@ -29,7 +29,7 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
 | **AG-001** | Agent Kontekst Modullaşdırması & 4 Yeni Skill | Agent / DX | **P0** | `Complete` | Antigravity | HANDOFF 207 |
 | **AG-002** | 10-Saniyəlik Lokal Pre-Flight Yoxlama Skripti | CI/CD / Ops | **P0** | `Complete` | Antigravity | scripts/preflight.mjs |
 | **AG-003** | Avtomatlaşdırılmış Skill Sinxronizasiyası | Agent / DX | **P1** | `Complete` | Antigravity | scripts/sync-agent-context.mjs |
-| **AG-004** | Hook Genişlənməsi (`PreInvocation` & `PostToolUse`) | Lifecycle Hooks | **P1** | `To Do` | Executor | .agents/hooks.json |
+| **AG-004** | Hook Genişlənməsi (`PreInvocation` & `PostToolUse`) | Lifecycle Hooks | **P1** | `Complete` | Antigravity | .agents/hooks.json |
 | **AG-005** | Öz-Özünü Sağaldan Taksonomiya Triyajı (`triage-taxonomy`) | Data / LLM | **P1** | `To Do` | Backend / BA | v_taxonomy_review |
 | **AG-006** | DİM "Qaralanmış Toplu" Eval Dəsti (`golden-set-dim-annotated`) | Vision / Qat 1 | **P1** | `To Do` | Eval Team | evals/ |
 | **AG-007** | DİM Dərslik Terminologiyası və Pedaqoji Lüğət | Pedaqogika | **P2** | `To Do` | Student Reviewer | docs/DIM-GLOSSARY.md |
@@ -77,13 +77,14 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
 
 ### 🛡️ AG-004: Hook Genişlənməsi (`PreInvocation` & `PostToolUse`)
 - **Sahə:** Antigravity Həyat Dövrü Qoruyucuları
-- **Prioritet:** P1 | **Status:** `To Do`
+- **Prioritet:** P1 | **Status:** `Complete`
 - **Təsvir:**
   - `PreInvocation`: Agent `prompts/` və ya `web/app/api/solve/` fayllarına toxunarkən efemer olaraq ADR-017 sızma qadağası və 3-hallı verification xatırlatması inyeksiya edilir.
   - `PostToolUse`: `web/` daxilində fayl redaktə edildikdən dərhal sonra sintaksis və tip xətalarını yoxlayıb anında xəbərdarlıq edir.
 - **Qəbul Meyarları:**
-  - [ ] `.agents/hooks.json` daxilində `PreInvocation` və `PostToolUse` konfiqurasiyası qurulur.
-  - [ ] Agent yanlış tip yazdıqda növbəti addıma keçmədən səhvi görür.
+  - [x] `.agents/hooks.json` daxilində `PreInvocation` və `PostToolUse` konfiqurasiyası qurulur.
+  - [x] Agent yanlış tip yazdıqda növbəti addıma keçmədən səhvi görür.
+  - [x] `scripts/hooks/guard.selftest.mjs` ilə 19 fərqli ssenari (PreInvocation, PreToolUse, PostToolUse, Stop) avtomatlaşdırılmış şəkildə test edilir və pre-flight mühərrikinə inteqrasiya olunub.
 
 ---
 

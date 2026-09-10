@@ -1,6 +1,13 @@
 {
   "safety-guard": {
     "enabled": true,
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "node guard.mjs --pre-invocation",
+        "timeout": 10
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "run_command",
@@ -19,6 +26,58 @@
             "type": "command",
             "command": "node guard.mjs",
             "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node guard.mjs",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "write_to_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node guard.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node guard.mjs --post",
+            "timeout": 25
+          }
+        ]
+      },
+      {
+        "matcher": "write_to_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node guard.mjs --post",
+            "timeout": 25
+          }
+        ]
+      },
+      {
+        "matcher": "edit_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node guard.mjs --post",
+            "timeout": 25
           }
         ]
       }

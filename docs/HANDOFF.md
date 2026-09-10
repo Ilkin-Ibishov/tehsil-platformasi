@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-10 (209) · Antigravity → Cowork
+Etdim:    AG-004 Hook Genişlənməsi tamamlandı: .agents/hooks.json və scripts/hooks/antigravity-guard.mjs daxilində PreInvocation (ADR-017 sızma qadağası və 3-hallı verification efemer xatırlatması) və PostToolUse (web/ fayllarında sürətli sintaksis və tip xətaları xəbərdarlığı) quruldu; scripts/hooks/guard.selftest.mjs (19/19 pass) yaradıldı və scripts/preflight.mjs mühərrikinə inteqrasiya olundu; docs/BACKLOG.md Complete edildi.
+Tapşırıq: AG-004 / no ClickUp — Hook Genişlənməsi (PreInvocation & PostToolUse).
+Diqqət:   Protojson deserializasiyası üçün payload ciddi şəkildə { decision, reason } sxemində saxlanıldı. Bütün 7 preflight testi keçdi.
+
 ## 2026-09-10 (208) · Antigravity → Cowork
 Etdim:    Backlog və avtomatlaşdırma alətləri: docs/BACKLOG.md yaradıldı (AG-001..AG-009 prioritetlər və statuslar ilə), scripts/preflight.mjs (.bat) 7 addımlı lokal test mühərriki və scripts/sync-agent-context.mjs sinxronizasiya skripti əlavə edildi. Bütün 7 pre-flight yoxlaması keçdi.
 Tapşırıq: meta / no ClickUp — System Backlog Creation & Rapid Pre-Flight Tooling.

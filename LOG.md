@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-09-10: HANDOFF 209 — AG-004: PreInvocation ADR-017 efemer xatırlatması və PostToolUse sintaksis/tip
+  xəbərdarlığı quruldu, guard.selftest.mjs (19/19) pre-flight-a əlavə edildi.
 - 2026-09-10: HANDOFF 208 — Sistem Backlog-u (`docs/BACKLOG.md`), 7-addımlı sürətli test (`scripts/preflight.mjs`)
   və skill sinxronizasiyası (`scripts/sync-agent-context.mjs`) quruldu. Pre-flight tam keçdi.
 - 2026-09-10: HANDOFF 207 — Agent kontekst modullaşdırma auditi: 4 yeni skill (critical-thinker,
