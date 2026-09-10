@@ -45,7 +45,7 @@ Qiymətləndirmə apararkən kontekstdən asılı olaraq aşağıdakı üç əsa
 
 ### C. Mobil Erqonomika & Riyazi Giriş (Ergonomics)
 - Test toplusu masanın üstündə olanda kameranı bir əllə tutub çəkmək və kəsmək rahatdırmı?
-- Riyazi klaviatura düymələri (`√`, `²`, `x`, `±`, `/`, `π`) barmaq üçün kifayət qədər böyükdürmü (min 44px)?
+- Riyazi klaviatura düymələri (`x`, `(`, `)`, `√`, `²`, `±`, `/`, `π`) barmaq üçün kifayət qədər böyükdürmü (min 44px)? Cəbri ifadələr üçün mötərizə və dəyişən əlçatandırmı?
 - Mobil klaviatura açılanda cavab sahəsini və ya addımın sualını örtmür ki?
 
 ### D. Psixoloji Təsir və Motivasiya

@@ -8,6 +8,7 @@ Constitution is `CLAUDE.md`. Routing is `AGENTS.md`.
 
 ## 2. End of a Finished Task
 - Follow `close-session` skill.
+- **Stop Hook Guard**: Active hook (`scripts/hooks/antigravity-guard.mjs`) blocks turn termination if code files (`web/`, `supabase/`, `scripts/`, `prompts/`) were touched without updating `docs/HANDOFF.md`. Always update HANDOFF and LOG before ending turns.
 - Prepend new HANDOFF block.
 - Append 1-3 lines to `LOG.md`.
 - Commit directly to `main` (English message: why, not what). Do not force-push.

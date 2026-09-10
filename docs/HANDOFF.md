@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-10 (215) · Antigravity → Cowork
+Etdim:    /learn əsasında daimi qaydalar və bacarıqlar yeniləndi: .agents/rules/10-web-ui.md (Math Keyboard Invariant və Empathetic Copy Invariant), .agents/rules/00-session.md (Stop Hook Guard intizamı), .agents/skills/student-reviewer/SKILL.md (mötərizə və dəyişən erqonomika meyarları); .cursor/skills/ ilə sinxronlaşdırıldı; 10 preflight testi keçdi.
+Tapşırıq: meta / no ClickUp — /learn Persistent Rules & Ergonomics Invariants.
+Diqqət:   Stop hook-un turn sonlandırmasını bloklamaması üçün kod dəyişikliyindən sonra HANDOFF və LOG hər zaman əvvəlcədən yenilənir.
+
 ## 2026-09-10 (214) · Antigravity → Cowork
 Etdim:    Şagird və Sokratik təhlil rəyləri implement edildi: MathKeyboardBar-a 'x' dəyişəni, '(' və ')' mötərizələri əlavə edildi (i18n ilə); errorRecorded bildirişi 'qeyd olundu, birlikdə düzəldəcəyik' olaraq humanistləşdirildi; onboarding headerLabel 'TANIŞLIQ' edildi; bütün 10 preflight testi keçdi.
 Tapşırıq: meta / no ClickUp — Student Reviewer & Critical Thinker Ergonomics Hardening.
