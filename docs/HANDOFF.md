@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-11 (219) · Antigravity → Cowork
+Etdim:    PostHog tam inteqrasiya: `posthog-node` əlavə edildi, `web/lib/posthog-server.ts` server-side `$ai_generation` tracking modulu yaradıldı. `callVisionLLM`-in hər iki çıxış yolu (native cache + OpenAI-compat) PostHog-a `$ai_model`, `$ai_latency`, token sayları, xərc və fallback məlumatı göndərir. Client-side `PostHogProvider.tsx` təkmilləşdirildi: manual pageview tracking (SPA), autocapture, pageleave, `device_id`-lə identify. `.env.example`-ə PostHog/Sentry açarları əlavə edildi. Supabase MCP ilə `0076_bug_reports` miqrasiyası canlı bazaya tətbiq edildi.
+Tapşırıq: meta / no ClickUp
+Diqqət:   `NEXT_PUBLIC_POSTHOG_KEY` olmadan PostHog sükutla deaktivdir (no-op). Server-side `trackAIGeneration` eyni key-i oxuyur.
+
 ## 2026-09-11 (218) · Antigravity → Cowork
 Etdim:    Tester Control Panel (`web/app/tester/page.tsx`, `web/components/TesterPanel.tsx`), PostHog və Sentry inteqrasiyaları əlavə olundu (`layout.tsx`, `next.config.ts`, `sentry.*.config.ts`). `public.bug_reports` üçün Supabase miqrasiyası (`0076_bug_reports.sql`) və daxil olan hesabatları yazan API (`web/app/api/reports/route.ts`) yaradıldı.
 Tapşırıq: meta / no ClickUp

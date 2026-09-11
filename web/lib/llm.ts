@@ -12,6 +12,7 @@
 
 import { createHash } from "crypto";
 import { resolveConnection, listKnownModelIds } from "./models";
+import { trackAIGeneration } from "./posthog-server";
 
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 const MAX_ATTEMPTS = 5;
@@ -506,7 +507,7 @@ export async function callVisionLLM(opts: {
       signal: opts.signal,
     });
     if (native) {
-      return {
+      const result: LLMResult = {
         parsed: parseJsonContent(native.rawText),
         rawText: native.rawText,
         usage: native.usage,
@@ -516,6 +517,15 @@ export async function callVisionLLM(opts: {
         fallbackUsed: false,
         fallbackFrom: null,
       };
+      trackAIGeneration({
+        distinctId: "server",
+        model,
+        latencyMs: native.latencyMs,
+        inputTokens: native.usage?.prompt_tokens,
+        outputTokens: native.usage?.completion_tokens,
+        cacheHit: true,
+      });
+      return result;
     }
     // Fall through to OpenAI-compat + extra_body, then inline.
   }
@@ -632,6 +642,18 @@ export async function callVisionLLM(opts: {
       usage,
     });
   }
+
+  trackAIGeneration({
+    distinctId: "server",
+    model: activeModel,
+    latencyMs,
+    inputTokens: usage?.prompt_tokens,
+    outputTokens: usage?.completion_tokens,
+    costUsd: usage?.cost_usd ?? undefined,
+    cacheHit: usedCache && cachedTokensFromUsage(usage) != null,
+    fallbackUsed: didFallback,
+    fallbackFrom: didFallback ? model : null,
+  });
 
   return {
     parsed: parseJsonContent(rawText),
