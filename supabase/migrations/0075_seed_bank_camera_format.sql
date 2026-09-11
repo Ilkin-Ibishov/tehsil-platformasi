@@ -57,10 +57,10 @@ begin
       jsonb_build_object(
         'index', 1,
         'title', 'Birinci gün satılanı hesabla',
-        'latex', '20\%',
-        'explanation', 'Birinci gün bütün malın 20%-i satılıb. Bu rəqəmi qeyd edirik.',
+        'latex', '\text{Birinci gün faizi}',
+        'explanation', 'Məsələdə birinci günün satış faizi verilir. Bu rəqəmi müəyyənləşdiririk.',
         'why', 'İki mərhələli faiz məsələsində hər mərhələni ayrıca hesablamaq lazımdır.',
-        'hint', 'Bütün malın neçə faizi satılıb?',
+        'hint', 'Məsələdə birinci gün bütün malın neçə faizi satılıb?',
         'error_code', 'FORMULA_MISAPPLIED',
         'check', jsonb_build_object('ask', 'Birinci gün neçə faiz satıldı?', 'input_kind', 'number')
       ),
@@ -521,10 +521,10 @@ begin
       jsonb_build_object(
         'index', 2,
         'title', 'Kök sayını müəyyənləşdir',
-        'latex', 'D > 0 \Rightarrow 2 \text{ kök}, \quad D = 0 \Rightarrow 1 \text{ kök}, \quad D < 0 \Rightarrow 0 \text{ kök}',
-        'explanation', 'Diskriminantın işarəsinə görə kök sayını təyin edirik.',
+        'latex', 'D > 0 \Rightarrow 2 \text{ kök}, \quad D = 0 \Rightarrow ?, \quad D < 0 \Rightarrow 0 \text{ kök}',
+        'explanation', 'Diskriminantın işarəsinə görə kök sayını təyin edirik. Əvvəlki addımda tapılan D qiymətini bu qaydaya tətbiq edirik.',
         'why', 'Bu, kvadrat tənliyin əsas qaydasıdır.',
-        'hint', 'Diskriminantın qiymətinə bax: müsbət, sıfır, ya mənfi?',
+        'hint', 'Diskriminantın qiymətinə bax: müsbət, sıfır, ya mənfi? Hansı halda olursan?',
         'error_code', 'SIGN_CHOICE',
         'check', jsonb_build_object('ask', 'Tənliyin neçə həqiqi kökü var?', 'input_kind', 'number')
       )
