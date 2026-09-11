@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-11 (229) · Antigravity → Cowork
+Etdim:    Vercel deploy xətasının aradan qaldırılması: `web/components/PostHogProvider.tsx`-də `useSearchParams()` işlədən `PostHogPageView` komponenti `<Suspense fallback={null}>` ilə əhatə olundu; Next.js `/_not-found` statik prerender xətası (`missing-suspense-with-csr-bailout`) tam həll edildi.
+Tapşırıq: meta / no ClickUp — Vercel Deploy Suspense Boundary Fix
+Diqqət:   Next.js App Router-də kök layout daxilində `useSearchParams()` mütləq `Suspense` sərhədi daxilində saxlanmalıdır.
+
 ## 2026-09-11 (228) · Antigravity → Cowork
 Etdim:    /learn və /critical-thinker əsasında sistem dərsləri daimi qaydalara həkk olundu: `.agents/rules/00-session.md` və `.cursor/rules/00-session.mdc`-yə PowerShell `$variable` genişlənmə tələsi əlavə edildi; `.agents/rules/40-telemetry.md` və `.cursor/rules/40-telemetry.mdc`-yə ad-blocker proxy invariantı (`/ingest/*`), `trackEvent` ikili qeydiyyatı, profil xüsusiyyətləri (`grade`, `role`, `goal`, `onboarded`) ilə identify və diaqnostik test marşrutları yazıldı; `learning_proposal.md` sənədləşdirildi; preflight 12/12 tam keçdi.
 Tapşırıq: meta / no ClickUp — /learn Persistent Observability & Quoting Invariants

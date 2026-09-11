@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-09-11: HANDOFF 229 — Vercel deploy xətasının təmiri: PostHogProvider.tsx-də useSearchParams() istifadə edən PostHogPageView Suspense fallback={null} ilə əhatə olundu; /_not-found statik prerender xətası tam həll edildi.
+- 2026-09-11: HANDOFF 228 — /learn və /critical-thinker daimi qaydaları: PowerShell $ dəyişən qaçışı, telemetry ad-blocker proxy invariantı (/ingest/*), PostHog telemetriya və Sentry qaydaları; preflight 12/12 pass.
 - 2026-09-11: HANDOFF 225 — Kənan UX Review təhlili və bərkidilməsi (P0-P2): riyazi bərabərsizlik və tənlik normalizatoru (m>25/4, 25/4<m, 4m>25, x=1/2), son ekranda status ziddiyyətinin təmiri ('həll səhvdir' ➔ 'İzahda xəta var? Səhv bildir 🚩'), kamerasız desktop-da birincili fayl seçici CTA-sı, 'demo' çoxistifadəli dəvət kodu, preflight 12/12 pass.
 - 2026-09-11: HANDOFF 224 — Onboarding QA auditi və bərkidilməsi (AG-011..AG-014): TP-ONBOARDING.md test planı (15 test case), skip & back tələsi həlli, sinif-ton avto-sinxron, dinamik pedaqoji izah, PostHog onboarding telemetriyası, preflight 12/12 pass.
 - 2026-09-11: HANDOFF 223 — Yeni qa_tester rolu və qa-tester skill-i yaradıldı, docs/testing/QA-FRAMEWORK.md sənədləşdirildi, agent registry və Cursor sinxronlaşdırıldı, preflight 12/12 pass.
