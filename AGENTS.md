@@ -49,4 +49,5 @@ Spesifik bacarıqlar:
 - Şagird və abituriyent gözü ilə sınaq / erqonomika → `student-reviewer`.
 - Məhsul sualı → `product-analyst` skill və ya `product` subagent.
 - UI audit → `ux-audit` və ya `ux-design-review` skill (əvvəl `known-state.md`).
+- Hərtərəfli test planlar, ssenarilər və axın optimizasiyası → `qa-tester` skill və ya `qa_tester` subagent.
 - Koddan sonra → `reviewer` subagent.

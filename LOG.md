@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-09-11: HANDOFF 223 — Yeni qa_tester rolu və qa-tester skill-i yaradıldı, docs/testing/QA-FRAMEWORK.md sənədləşdirildi, agent registry və Cursor sinxronlaşdırıldı, preflight 12/12 pass.
 - 2026-09-11: HANDOFF 222 — Müşahidə və telemetriya ekosisteminin tam analitik inteqrasiyası: 4 skill PostHog/Sentry ilə zənginləşdirildi, guard hook 29/29 keçdi, preflight 12/12 pass.
 - 2026-09-11: HANDOFF 221 — Cursor agent konteksti `.agents` ilə sinxron: 4 skill kopyası,
   qaydalar 00/10/20/30/40 `.mdc` yeniləndi, `sync-agent-context.mjs --check` preflight-a düşdü.

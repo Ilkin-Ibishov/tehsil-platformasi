@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-11 (223) · Antigravity → Cowork
+Etdim:    Yeni `qa_tester` rolu və `qa-tester` bacarığı yaradıldı (`.agents/agents/qa-tester.md`, `.agents/skills/qa-tester/SKILL.md`); universal test çərçivəsi (`docs/testing/QA-FRAMEWORK.md`) və input/flow matrisi sənədləşdirildi; `scripts/lib/agent-registry.mjs` və `AGENTS.md` yeniləndi; `.cursor/` kopyaları sinxronlaşdırıldı; preflight 12/12 tam keçdi.
+Tapşırıq: meta / no ClickUp — Yeni `qa_tester` rolu və QA test çərçivəsinin qurulması
+Diqqət:   `qa_tester` həm texniki, həm də biznes/pedaqoji (Zero Leakage) və UX axın optimizasiyası sınaqlarını həyata keçirir.
+
 ## 2026-09-11 (222) · Antigravity → Cowork
 Etdim:    Müşahidə və telemetriya ekosisteminin tam analitik inteqrasiyası: 4 əsas skill (`student-reviewer`, `product-analyst`, `backend-developer`, `push-verify`) PostHog və Sentry alətləri ilə zənginləşdirildi; `antigravity-guard.mjs` qarmağına PreInvocation müşahidə xatırlatması, PreToolUse-da interaktiv CLI wizard bloklanması və hardcoded credential qoruması əlavə edildi; `guard.selftest.mjs` 29/29 keçdi; preflight 12/12 tam keçdi.
 Tapşırıq: meta / no ClickUp — /learn Müşahidə və Qarmaq sisteminin analitik təkmilləşdirilməsi

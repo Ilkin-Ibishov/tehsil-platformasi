@@ -134,11 +134,11 @@ This is a test prompt that satisfies minimum length requirements.`;
 
   // 2. Real directory loading test
   const agents = loadAgents();
-  if (agents.length < 4) {
-    throw new Error(`Expected at least 4 registered agents, got ${agents.length}`);
+  if (agents.length < 5) {
+    throw new Error(`Expected at least 5 registered agents, got ${agents.length}`);
   }
 
-  const expectedNames = ["reviewer", "student_tester", "ba_analyst", "backend_dev"];
+  const expectedNames = ["reviewer", "student_tester", "ba_analyst", "backend_dev", "qa_tester"];
   for (const name of expectedNames) {
     const found = agents.find((a) => a.name === name);
     if (!found) {
