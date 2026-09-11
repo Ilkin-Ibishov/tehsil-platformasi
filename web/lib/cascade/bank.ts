@@ -62,15 +62,17 @@ export function canonicalHash(canonical: string): string {
 // cavab variantı saxlamır, camera isə saxlayır → uyğunluq HEÇVAXT tapılmırdı.
 // Həll: cavab variantlarını canonical-dan stripləyib, SONRA fingerprint çıxart.
 export function numericFingerprint(canonical: string): string {
-  // Cavab variantlarını sil: A) 123 B) 456 C) 789 və ya a) 12 b) 34 formaları.
-  // Nümunələr: "A) 58%" "B) 34%" "C) 68%" "D) 80%" "E) 40%" VƏ YA "a) 5" "b) 10".
-  // YALNIZ ehtimal olan cavab variantı pozisiyalarını sil — məsələ MƏTN İÇİNDƏ 
-  // "a=5" və ya "variant: 3" qeydləri də ola bilər.
-  //
-  // Pattern: [A-E] və ya [a-e], sonra ), sonra ixtiyari boşluq, sonra rəqəm(lər)/faiz.
-  // Bunu silmək üçün variantları yalnız sətirdə yan-yana görünəndə (bir neçə variant
-  // ardıcıl) tanıyırıq.
-  const withoutChoices = canonical.replace(/\b[A-Ea-e]\)\s*-?\d+(\.\d+)?%?\b/g, "");
+  // Cavab variantlarını sil — amma YALNIZ çoxlu seçim halında (≥2 A-E marker).
+  // Tək "a) 5" məsələ mətni ola bilər ("a) 5 ədədi götürün"), onu silmək YANLIŞDIR.
+  // Nümunələr: "A) 58%" "B) 34%" "C) 68%" və ya "a) 5" "b) 10" "c) 15".
+  const choicePattern = /\b[A-Ea-e]\)\s*-?\d+(\.\d+)?%?\b/g;
+  const choiceMatches = canonical.match(choicePattern);
+  
+  // ≥2 seçim markeri varsa — cavab variant bloku, strip et. Əks halda toxunma.
+  const withoutChoices = (choiceMatches && choiceMatches.length >= 2)
+    ? canonical.replace(choicePattern, "")
+    : canonical;
+  
   return (withoutChoices.match(/-?\d+(\.\d+)?/g) ?? []).join(",");
 }
 
