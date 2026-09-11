@@ -17,9 +17,9 @@ alwaysApply: true
 | Vercel project | `prj_gbbPOoE3m91lRDyEQAzt4Aj5d7N0` (name: web) |
 | ClickUp workspace | `90182536078` |
 | ClickUp space | `901810230629` |
-| Latest migration | `0074` |
+| Latest migration | `0075` |
 | Latest ADR | `031` |
-| Latest HANDOFF | `213` |
+| Latest HANDOFF | `217` |
 | tsconfig target | ES2017 |
 | STEP-SCHEMA version | 2 |
 
