@@ -17,9 +17,9 @@ alwaysApply: true
 | Vercel project | `prj_gbbPOoE3m91lRDyEQAzt4Aj5d7N0` (name: web) |
 | ClickUp workspace | `90182536078` |
 | ClickUp space | `901810230629` |
-| Latest migration | `0074` |
+| Latest migration | `0076` |
 | Latest ADR | `031` |
-| Latest HANDOFF | `213` |
+| Latest HANDOFF | `221` |
 | tsconfig target | ES2017 |
 | STEP-SCHEMA version | 2 |
 
@@ -48,7 +48,7 @@ alwaysApply: true
 | DİM Glossary | `docs/DIM-GLOSSARY.md` |
 | Glossary linter | `scripts/lib/glossary-linter.mjs` |
 | Pre-flight test suite | `scripts/preflight.mjs` |
-| Skill synchronization | `scripts/sync-agent-context.mjs` |
+| Skill synchronization | `scripts/sync-agent-context.mjs` (`--check` in preflight) |
 | Taxonomy triage | `scripts/triage-taxonomy.mjs` |
 | Eval harness | `scripts/eval.py` |
 | Eval pipelines / fallback | `scripts/lib/pipelines.py`, `scripts/lib/llm_client.py` |
@@ -68,7 +68,7 @@ alwaysApply: true
 - E1.9 leak 0% met (text-path, HANDOFF 195); E1.10 open (needs vision)
 - Student UI hub: `/profil`, `/onboarding`, `/uslub`, home (HANDOFF 204); 1-click invite sends `device_id`, bank reads `?invite=` (HANDOFF 205–206)
 - No real students yet (CLAUDE.md: "production-da real istifadəçi YOXDUR")
-- Agent context modularization: unified across Cursor & Antigravity, `.agents/rules/*.md` established, `.agents/hooks.json` active guard enabled, 4 new skills added (`critical-thinker`, `backend-developer`, `it-business-analyst`, `student-reviewer`)
-- System Backlog & Pre-flight: `docs/BACKLOG.md` tracking AG-001..AG-009; `scripts/preflight.mjs` running 8 automated checks; AG-004 & AG-005 Complete (taxonomy triage engine + live report)
+- Agent context modularization: `.agents` is source of truth for shared skills/subagents; Cursor mirrors via `scripts/sync-agent-context.mjs` (byte-copy skills/agents, invariant-check `.cursor/rules/*.mdc`). Cursor-only: `run-eval` skill, `product` agent, `.cursor/hooks.json`
+- System Backlog & Pre-flight: `docs/BACKLOG.md` tracking AG-001..AG-010; `scripts/preflight.mjs` includes agent-context `--check`; AG-004, AG-005, AG-007, AG-009, AG-010 Complete
 
 

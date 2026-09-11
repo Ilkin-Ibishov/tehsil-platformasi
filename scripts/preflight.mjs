@@ -61,6 +61,9 @@ runStep("DİM Glossary Language Selftest (glossary-linter.mjs --selftest)", "nod
 // 6. Declarative Subagent Registry Selftest
 runStep("Subagent Registry Selftest (agent-registry.mjs --selftest)", "node scripts/lib/agent-registry.mjs --selftest");
 
+// 6b. Cursor ↔ Antigravity agent-context parity
+runStep("Agent context sync check (sync-agent-context.mjs --check)", "node scripts/sync-agent-context.mjs --check");
+
 // 7. Python Eval Harness Selftest (if python exists)
 try {
   execSync("python --version", { stdio: "pipe" });

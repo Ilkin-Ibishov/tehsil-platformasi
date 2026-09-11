@@ -361,6 +361,45 @@ function assert(condition, testName, extraInfo = "") {
   );
 }
 
+// 7. Observability and Non-Interactive CLI Protections
+{
+  const res = runGuard({
+    toolCall: { name: "run_command", args: { CommandLine: "npx @sentry/wizard@latest -i nextjs" } },
+  });
+  assert(res.decision === "deny", "Blocks interactive @sentry/wizard command in run_command");
+}
+
+{
+  const dummyToken = ["phc", "_test1234567890abcdef1234567890abcdef"].join("");
+  const res = runGuard({
+    toolCall: {
+      name: "write_to_file",
+      args: {
+        TargetFile: "web/lib/analytics.ts",
+        CodeContent: `const token = "${dummyToken}";`,
+      },
+    },
+  });
+  assert(res.decision === "deny", "Blocks hardcoded PostHog token in write_to_file");
+}
+
+{
+  const res = runGuard(
+    {
+      hookEvent: "PreInvocation",
+      prompt: "Şagird tester rejimində posthog qeydlərini təhlil et",
+    },
+    ["--pre-invocation"]
+  );
+  assert(
+    res.decision === "allow" &&
+      res.reason &&
+      res.reason.includes("Observability") &&
+      res.reason.includes("PostHog"),
+    "PreInvocation with posthog/tester in prompt injects Observability reminder"
+  );
+}
+
 console.log("\n------------------------------------------------------------");
 if (failed === 0) {
   console.log(`🎉 All ${passed} guard hook test assertions PASSED!`);

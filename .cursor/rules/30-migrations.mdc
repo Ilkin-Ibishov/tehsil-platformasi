@@ -12,6 +12,7 @@ Before writing SQL, read the TypeScript that inserts/updates the table. A constr
 - Every new table: RLS policy in the **same** migration.
 - Every function/table/sequence: explicit `grant ... to app_runtime`. Advisors only catch "too open", never "app_runtime lost EXECUTE".
 - Student-path tables: no hard reject. Unknown codes register `active=false, needs_review=true`.
+- **Private schema answer isolation (ADR-017):** correct answers and step payloads live in `private`. `app_runtime` has no direct `SELECT` on `private.*`.
 - Grant only objects the live code path actually calls.
 - Migration must be applied before the reading code merges to `main`.
 

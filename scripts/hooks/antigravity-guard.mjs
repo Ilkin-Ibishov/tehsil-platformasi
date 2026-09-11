@@ -158,6 +158,29 @@ function touchesSolveOrPrompts(payload) {
   return false;
 }
 
+const OBSERVABILITY_REMINDER = `[Observability & Live Tester Runbook Reminder]
+- PostHog MCP (posthog:exec): Use query-llm-traces-list for live latency/token costs, and query-funnel / query-retention for student progression.
+- Supabase MCP (execute_sql): Query public.bug_reports for live student complaints and device screen metrics.
+- Sentry: Ensure all error-handling paths and edge crashes are tagged with device_id, grade, role.`;
+
+function touchesObservability(payload) {
+  const candidateStrings = getCandidateStrings(payload);
+  for (const str of candidateStrings) {
+    const s = str.toLowerCase();
+    if (
+      s.includes("posthog") ||
+      s.includes("sentry") ||
+      s.includes("bug_report") ||
+      s.includes("telemetr") ||
+      s.includes("observab") ||
+      s.includes("tester")
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function checkFileSyntax(filePath, codeSnippet = null) {
   const norm = normalizePath(filePath);
   const ext = path.extname(norm).toLowerCase();
@@ -255,10 +278,14 @@ async function main() {
     payload.toolResult !== undefined ||
     payload.result !== undefined;
 
-  // 1. PreInvocation: ephemeral ADR-017 and 3-state verification injection
+  // 1. PreInvocation: ephemeral ADR-017 and observability injection
   if (isPreInvocation) {
     if (touchesSolveOrPrompts(payload)) {
       respond("allow", ADR017_REMINDER);
+      return;
+    }
+    if (touchesObservability(payload)) {
+      respond("allow", OBSERVABILITY_REMINDER);
       return;
     }
     respond("allow");
@@ -357,6 +384,11 @@ async function main() {
       return;
     }
 
+    if (/@?sentry\/wizard/i.test(command)) {
+      respond("deny", "Interactive CLI wizards (@sentry/wizard) crash with ERR_TTY_INIT_FAILED in non-interactive agent tasks. Author Sentry configuration files directly.");
+      return;
+    }
+
     if (/\bgit\b[\s\S]*\breset\b[\s\S]*--hard\b/.test(command)) {
       respond("ask", "git reset --hard is destructive. Please confirm execution.");
       return;
@@ -386,6 +418,14 @@ async function main() {
     if (isSecretFile(targetFile)) {
       respond("deny", "Refusing to read/write secrets file into agent context.");
       return;
+    }
+
+    const content = String(args.ReplacementContent || args.CodeContent || "");
+    if (content && !isSecretFile(targetFile)) {
+      if (/phc_[A-Za-z0-9]{30,}/.test(content) || /https:\/\/[a-f0-9]+@o\d+\.ingest[a-z0-9.]*\.sentry\.io\/\d+/.test(content)) {
+        respond("deny", "Hardcoding PostHog tokens or Sentry DSNs directly in code files is prohibited. Use environment variables (NEXT_PUBLIC_POSTHOG_KEY, NEXT_PUBLIC_SENTRY_DSN).");
+        return;
+      }
     }
 
     if (isSolveOrPromptPath(targetFile)) {

@@ -1,18 +1,45 @@
 ---
-description: Telemetry event names are a frozen contract — edit TELEMETRY.md before code
+description: Frozen event taxonomy plus PostHog/Sentry observability — edit TELEMETRY.md before new names
 globs:
   - web/lib/telemetry/**/*.ts
   - web/app/api/events/**/*.ts
   - docs/TELEMETRY.md
+  - web/lib/posthog-server.ts
+  - web/lib/llm.ts
+  - web/instrumentation.ts
+  - web/sentry.client.config.ts
+  - web/app/global-error.tsx
+  - web/components/PostHogProvider.tsx
 alwaysApply: false
 ---
 
 # Telemetry
 
-`docs/TELEMETRY.md` is the contract. Event names are append-only. A new name starts in that file, then in code.
+`docs/TELEMETRY.md` is the contract. Event names follow `domain.action` and are append-only. A new name starts in that file, then in code. Never invent event names or rename payload keys on the fly.
 
 Each event answers one question in the TELEMETRY table (S1–S8). No question, no event.
 
 Client creates `event_id` (uuid). `/api/events` upserts. Telemetry failure never surfaces to the student (always 200).
 
 Do not put image bytes or PII in `props`. Metadata only (`image_px`, `image_bytes`).
+
+Record `model`, `fallback_used`, `fallback_from`, and `cost_usd` where the contract specifies them.
+
+## PostHog
+
+- **Client (`posthog-js`):** SPA `$pageview`, `pageleave`, autocapture. Call `posthog.identify(deviceId)` from `th_device_id` so browser sessions join DB telemetry.
+- **Server (`posthog-node`):** LLM `$ai_generation` from `web/lib/llm.ts` via `trackAIGeneration()`. Captures `$ai_model`, `$ai_latency`, tokens, cost, cache hit, and fallback.
+
+## Sentry
+
+- Next.js 15+ needs `web/instrumentation.ts` (`onRequestError`) for server/API crashes and `web/app/global-error.tsx` for the client render boundary.
+- Import `withSentryConfig` from `@sentry/nextjs/config` (not `@sentry/nextjs`).
+- Keep `tunnelRoute: "/monitoring"` so phone ad-blockers do not silently drop reports.
+- Tag `initialScope` with `device_id`, `grade`, and `role` so issues join `attempt_items` and `bug_reports`.
+
+## Skill runbook
+
+- `student-reviewer`: PostHog `$rageclick` / `$dead_click` / recordings and Supabase `bug_reports`.
+- `product-analyst`: PostHog funnel/retention vs Phase 1 gate (read `docs/PHASE-1.md`, do not copy the numbers here).
+- `backend-developer`: PostHog LLM traces and Sentry for cascade latency and fallback.
+- `push-verify`: unresolved Sentry issues on the just-deployed release.

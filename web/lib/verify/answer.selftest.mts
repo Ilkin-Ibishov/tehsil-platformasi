@@ -96,8 +96,8 @@ const VERIFY_CASES: VerifyCase[] = [
   // yeni yol yanlış cavabı GİZLƏTMİR
   { name: "placeholder wrong stays null", canonical: "5+5=?, cəm tapılmalıdır", values: ["11"], expect: null },
   { name: "word problem no relation", canonical: "DƏNİZ sözü 12537 – isə, DƏRƏ sözünü hansı ədəd ifadə edir?", values: ["1282"], expect: null },
-  // fənn qapısı
-  { name: "physics always null", canonical: "2x+6=20", values: ["7"], subject: "physics", expect: null },
+  // fənn qapısı (fizika üçün ədədi yoxlama aktivdir - HANDOFF 217; kimya hələ null qalır)
+  { name: "physics verified numerically", canonical: "2x+6=20", values: ["7"], subject: "physics", expect: true },
   { name: "chemistry always null", canonical: "5+5=?", values: ["10"], subject: "chemistry", expect: null },
 ];
 

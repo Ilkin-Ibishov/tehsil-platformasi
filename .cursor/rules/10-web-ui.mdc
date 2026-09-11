@@ -16,5 +16,8 @@ alwaysApply: false
 - Color, radius, type: `docs/DESIGN-TOKENS.json` → `getThemeVars` → `var(--token)`. No hex/px in components.
 - Layout: `max-width: 480px`. Crop cannot be skipped (real DIM pages are multi-question).
 - Mockups in `design/*.dc.html` are spec. Match structure and copy; tokens still come from JSON.
+- Touch targets: interactive controls (math chips, nav icons) stay at least 44px.
+- **Math Keyboard Invariant:** `MathKeyboardBar.tsx` must expose algebraic primitives (`x`, `(`, `)`) beside arithmetic chips (`√`, `/`, `²`, …) so mobile OS keyboards do not bounce during step answers.
+- **Empathetic Copy Invariant:** error and diagnosis copy is supportive (e.g. `"qeyd olundu, birlikdə düzəldəcəyik"`), never punitive (`"hesabatına yazıldı"`, `"cəza"`). Onboarding labels stay welcoming (`"TANIŞLIQ"`, not mechanical `"QURAŞDIRMA"`).
 - After UI changes, run `ux-design-review` (read `references/known-state.md` first).
-- `error_code` collection is the product. A skip-the-step path that records nothing is a product bug, not a UX nicety.
+- Pedagogical guard: skipping a step without recording an `error_code` is a product defect, not a UX shortcut.

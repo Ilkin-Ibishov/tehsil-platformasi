@@ -15,6 +15,16 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-11 (222) · Antigravity → Cowork
+Etdim:    Müşahidə və telemetriya ekosisteminin tam analitik inteqrasiyası: 4 əsas skill (`student-reviewer`, `product-analyst`, `backend-developer`, `push-verify`) PostHog və Sentry alətləri ilə zənginləşdirildi; `antigravity-guard.mjs` qarmağına PreInvocation müşahidə xatırlatması, PreToolUse-da interaktiv CLI wizard bloklanması və hardcoded credential qoruması əlavə edildi; `guard.selftest.mjs` 29/29 keçdi; preflight 12/12 tam keçdi.
+Tapşırıq: meta / no ClickUp — /learn Müşahidə və Qarmaq sisteminin analitik təkmilləşdirilməsi
+Diqqət:   Kod fayllarına heç vaxt hardcoded token yazılmamalıdır (guard hook bloklayır); interaktiv @sentry/wizard əvəzinə konfiqurasiyalar birbaşa yazılmalıdır.
+
+## 2026-09-11 (221) · Cursor → Cowork
+Etdim:    `.agents` mənbəsinə əsasən Cursor agent kontekstini sinxronlaşdırdım: 4 skill (`backend-developer`, `product-analyst`, `push-verify`, `student-reviewer`) `.cursor/skills/`-ə kopyalandı; `.cursor/rules/` 00/10/20/30/40 `.mdc` fayllarına Stop Hook, math keyboard, empathetic copy, ADR-017 private schema, PostHog/Sentry invariantları yazıldı; `scripts/sync-agent-context.mjs --check` preflight-a qoşuldu.
+Tapşırıq: meta / no ClickUp — Cursor `.cursor/` modularization `.agents/` ilə
+Diqqət:   Cursor-only fayllar (`run-eval`, `product` agent, `.cursor/hooks.json`) Antigravity hook JSON-u ilə əvəz edilmədi.
+
 ## 2026-09-11 (220) · Antigravity → Cowork
 Etdim:    Sentry tam effektivliklə konfiqurasiya edildi: `web/instrumentation.ts` (Next.js 15+ server və API route xətalarını auto-tutmaq üçün `onRequestError`), `web/app/global-error.tsx` (React root error boundary), `web/sentry.client.config.ts` (`browserTracingIntegration`, `device_id`, `grade`, `role` tag-ləri ilə initialScope), `web/next.config.ts` (`@sentry/nextjs/config`, `tunnelRoute: "/monitoring"`, sourcemaps avtomatik təmizlənmə). Həmçinin `web/app/api/reports/route.ts`-də NextRequest/NextResponse importu `next/server`-ə düzəldildi. `npm run typecheck` və `npm run lint` 0 xəta ilə keçir.
 Tapşırıq: meta / no ClickUp — Sentry tam inteqrasiyası

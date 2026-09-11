@@ -36,10 +36,10 @@ Yaşayan rəqəm, növbə bloku, model adı, miqrasiya nömrəsi **qaydaya/skill
 
 | Parça | Cursor | Antigravity | Nə vaxt yüklənir |
 |---|---|---|---|
-| Qaydalar | `.cursor/rules/*.mdc` | `AGENTS.md` + `.agents/rules/*.md` | Always / glob / iyerarxik |
-| Skill-lər | `.cursor/skills/` + `.claude/skills/` | `.agents/skills/` | Təsvir uyğun gələndə |
-| Hook-lar | `.cursor/hooks.json` | `.agents/hooks.json` | PreToolUse (komanda, sirr), Stop |
-| Subagent | `.cursor/agents/` | `define_subagent` / `invoke_subagent` | Tələb olduqda |
+| Qaydalar | `.cursor/rules/*.mdc` (`.agents/rules/*.md` məzmunu, Cursor frontmatter) | `AGENTS.md` + `.agents/rules/*.md` | Always / glob / iyerarxik |
+| Skill-lər | `.cursor/skills/` (mənbə: `.agents/skills/` via `scripts/sync-agent-context.mjs`) | `.agents/skills/` | Təsvir uyğun gələndə |
+| Hook-lar | `.cursor/hooks.json` (Cursor shell/read qoruyucuları — Antigravity hook JSON-u köçürülmür) | `.agents/hooks.json` | PreToolUse (komanda, sirr), Stop |
+| Subagent | `.cursor/agents/` (mənbə: `.agents/agents/`) | `define_subagent` / `invoke_subagent` | Tələb olduqda |
 | MCP | Supabase, ClickUp, Slack | Supabase, sequential-thinking, github, chrome | Alət çağırışı |
 
 Spesifik bacarıqlar:

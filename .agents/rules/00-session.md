@@ -18,3 +18,8 @@ Constitution is `CLAUDE.md`. Routing is `AGENTS.md`.
 - Never paste living values (active model, $/solve, latency, migration number, full HANDOFF) into rules or skills. Point to the file and read it.
 - Work on `main`. Feature branches that are not merged never reach Vercel.
 - UI copy in `az` via `next-intl` (`web/messages/az.json`). Code and commits in English. Docs and HANDOFF in Azerbaijani.
+
+## 4. Execution Pitfalls & Tooling Invariants
+- **No Interactive CLI Wizards**: Never run interactive wizards (e.g. `npx @sentry/wizard`) in background or autonomous agent tasks. They crash with `ERR_TTY_INIT_FAILED (EBADF)`. Author configuration files deterministically.
+- **Secrets Shielding**: Never attempt to inspect or rewrite `.env.local` directly with read tools (denied by pre-tool safety hook). When configuring user-provided credentials, append via shell commands (e.g., PowerShell `Add-Content`).
+- **Observability Preservation**: Never remove or bypass `trackAIGeneration()` when editing `web/lib/llm.ts` or cascade handlers.

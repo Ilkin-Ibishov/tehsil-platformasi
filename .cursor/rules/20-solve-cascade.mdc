@@ -20,7 +20,9 @@ Layers (code: `web/lib/cascade/`): 0 image cache, 1 transcribe, 2 hash/fingerpri
 
 Student-path inserts self-heal unknown `topic_code`/`error_code` (`needs_review=true`). Do not add hard FKs that 500 a live solve.
 
-Active model is `public.app_config.active_model`, not an env hardcoded in a component. Price lives next to the model in `web/lib/models.ts`.
+Zero leakage (ADR-017): intermediate steps must never give away the final answer.
+
+Active model is `public.app_config.active_model`, not an env hardcoded in a component. Price lives next to the model in `web/lib/models.ts`. Do not remove `trackAIGeneration()` from `web/lib/llm.ts`.
 
 ## LLM fallback (2026-08-19)
 

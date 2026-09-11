@@ -1,7 +1,7 @@
 ---
 name: backend-developer
 description: >-
-  Specialized backend engineering for Təhsil Platforması: Next.js App Router API endpoints, Supabase Postgres & RLS, LLM cascade pipelines (Qat 0..5), NDJSON streaming, SymPy verification, model fallback orchestration, and self-healing telemetry. Use when implementing or refactoring backend routes, database interactions, streaming pipelines, or third-party API integrations.
+  Specialized backend engineering for Təhsil Platforması: Next.js App Router API endpoints, Supabase Postgres & RLS, LLM cascade pipelines (Qat 0..5), NDJSON streaming, SymPy verification, model fallback orchestration, and self-healing telemetry. Use when implementing or refactoring backend routes, database interactions, streaming pipelines, third-party API integrations, or diagnosing live LLM latency/errors with PostHog traces and Sentry.
 ---
 
 # Backend Developer & Pipeline Engineer
@@ -23,6 +23,8 @@ Architectural guide and execution runbook for the server-side infrastructure, da
 | **DB Persist & Telemetriya** | `web/lib/cascade/persist.ts` | Supabase Postgres yazılışı |
 | **Model Registry & Fallback** | `web/lib/llm.ts`, `web/lib/models.ts` | 503 ardıcıl keçid mexanizmi |
 | **SymPy Riyazi Yoxlama** | `web/lib/verify/sympy.ts` | 3-hallı simvolik bərabərlik |
+| **LLM Müşahidəsi (Observability)**| `web/lib/posthog-server.ts` | Server-side `$ai_generation` tracking |
+| **Xəta Mühafizəsi (Sentry)** | `web/instrumentation.ts` | Next.js 15+ server crash tutucusu |
 
 ---
 
@@ -63,16 +65,21 @@ Hər həll sorğusu ən ucuz və sürətli qatdan başlayaraq emal olunur:
 
 ---
 
-## 3. İki Əsas API Giriş Nöqtəsi
+## 3. Canlı LLM Diaqnostikası (PostHog Traces & Sentry)
 
-1. **`/api/solve` (Monolit və ya Standart Kaskad)**:
-   - Şəkil qəbul edilir, `captures` private bucket-inə yazılır (ADR-024).
-   - Kaskad aktivdirsə (`app_config.cascade_enabled=true`), Qat 1 icra olunur, ardınca Qat 2..5 işləyir.
-   - Bütöv JSON nəticə qaytarır.
-2. **`/api/solve/finish` (NDJSON Axını - Streaming)**:
-   - Müştəri öncə `/api/solve/transcribe` ilə transkript əldə edir.
-   - `/api/solve/finish` transkripti qəbul edir və addımları müştəriyə birbaşa stream edir (`onPublicStep`).
-   - Kliyent bağlantısı qırıldıqda belə DB persist itkisinin qarşısını almaq üçün `streamPersistencePromise` gözlənilir.
+Gecikmə və ya xətaları araşdırarkən lokal fərziyyələr yerinə real alətləri sorğulayın:
+
+### A. PostHog AI İzləmə (`posthog:exec`)
+- `query-llm-traces-list`: Son LLM zənglərinin siyahısını, latency və xərclərini çıxarın.
+- `query-llm-trace`: Tək bir zəngin daxili detallarına (model, prompt token sayı, output token sayı, keş olub-olmaması) baxın.
+- Yoxlayın:
+  - `$ai_latency > 10s` olan zənglər hansı modellə baş verib?
+  - `$ai_fallback_used = true` hansı saatlarda sıxlaşıb (Google 503 dalğaları)?
+  - `$ai_cache_hit = true` nisbəti gözlənilən səviyyədədirmi?
+
+### B. Sentry API Profilinqi
+- Next.js 15+ server marşrutlarında (`/api/solve`, `/api/solve/finish`, `/api/reports`) baş verən unhandled rejection-ları və 500 statuslarını yoxlayın.
+- Hər xətada `device_id` teqi üzrə Supabase `attempt_items` cədvəlindəki həmin cəhdi tapıb root-cause təhlili aparın.
 
 ---
 
@@ -84,15 +91,14 @@ Hər həll sorğusu ən ucuz və sürətli qatdan başlayaraq emal olunur:
   3. Registry default (`web/lib/models.ts`).
 - **Resilience (Dayanıqlıq)**:
   - 2 ardıcıl 503 (və ya rate-limit) xətası zamanı `pickFallbackModel()` avtomatik olaraq reyestrdə növbəti modelə keçir (`web/lib/llm.ts`).
-  - Nəticədə `attempt_items.model_used` sahəsinə `{ "qat1": "...", "qat5": "...", "fallbackUsed": true, "fallbackFrom": "..." }` yazılır.
+  - Hər fallback zamanı PostHog `$ai_generation` hadisəsində `fallbackUsed: true` qeydə alınır.
   - Telemetriyaya `model`, `fallback_used`, `fallback_from` hadisə xüsusiyyətləri göndərilir.
 
 ---
 
 ## 5. Verilənlər Bazası & Miqrasiya Qanunları
 
-1. **Expand-Contract Qaydası**:
-   - Əvvəl əlavə et (additive), köhnə deploy üçün uyğunluq qoruyucusu (shim) saxla, kodu deploy et, yalnız sonra köhnə sütunu/funksiyanı sil.
+1. **Expand-Contract Qaydası**: Əvvəl əlavə et (additive), köhnə deploy üçün uyğunluq qoruyucusu saxla, kodu deploy et, yalnız sonra köhnə sütunu/funksiyanı sil.
 2. **Hər Yeni Cədvəldə Məcburi RLS**:
    ```sql
    alter table public.new_table enable row level security;
@@ -105,11 +111,8 @@ Hər həll sorğusu ən ucuz və sürətli qatdan başlayaraq emal olunur:
    grant execute on function public.my_func to app_runtime;
    grant usage, select on sequence public.new_table_id_seq to app_runtime;
    ```
-4. **Şagird Axınında Öz-Özünü Sağaldan Sxem (Self-Healing)**:
-   - `step_events` və ya `questions` cədvəlinə yazarkən naməlum `topic_code` və ya `error_code` gələrsə, sərt FK/CHECK xətası ilə 500 atmayın.
-   - `trg_register_topic_code` və `trg_register_error_code` triggerləri naməlum kodu `active=false, needs_review=true` olaraq qeyd edir və sorğu uğurla tamamlanır.
-5. **Cavabların Təcrid Edilməsi (ADR-017)**:
-   - Düzgün cavablar və addım həlləri `private` sxemində saxlanılır. `app_runtime` istifadəçisinin `private.*` üzərinə birbaşa oxuma hüququ yoxdur.
+4. **Şagird Axınında Öz-Özünü Sağaldan Sxem (Self-Healing)**: Naməlum `topic_code` və ya `error_code` gələrsə, sərt FK ilə 500 atmayın; triggerlər `active=false, needs_review=true` ilə qeydə almalıdır.
+5. **Cavabların Təcrid Edilməsi (ADR-017)**: Düzgün cavablar və addım həlləri `private` sxemində saxlanılır. `app_runtime` birbaşa `private.*` oxuya bilməz.
 
 ---
 
@@ -120,7 +123,7 @@ Doğrulama üç qiymətlidir və DB ilə tam eyni olmalıdır:
 - `false`: Həll yanlışdır (həll şagirddən gizlədilir).
 - `null`: Avtomatlaşdırılmış yoxlama aparılmadı (həll göstərilir, lakin "yoxlanılmadı" nişanı ilə).
 
-> **Kritik Qayda**: `method='none'` olduqda müştəriyə və ya DB-yə əsla `verified: true` göndərilməməlidir (Bax: CLAUDE.md Dərs 7).
+> **Kritik Qayda**: `method='none'` olduqda müştəriyə və ya DB-yə əsla `verified: true` göndərilməməlidir (CLAUDE.md Dərs 7).
 
 ---
 
@@ -128,7 +131,7 @@ Doğrulama üç qiymətlidir və DB ilə tam eyni olmalıdır:
 
 - [ ] API endpoint-i `next-intl` üçün uyğun i18n xəta strukturu qaytarır.
 - [ ] Yeni SQL obyektləri üçün `grant ... to app_runtime` yazılıb.
-- [ ] Zənginləşdirilmiş telemetriya hadisələri `docs/TELEMETRY.md` taksonomiyasına uyğundur.
-- [ ] Sızma qoruyucusu (`leak.ts`) yoxlanılıb (0% sızma hədəfi).
+- [ ] `web/lib/llm.ts`-də `trackAIGeneration()` çağırışı qorunur.
+- [ ] Next.js API marşrutlarında `NextRequest`, `NextResponse` `next/server`-dən idxal olunub.
 - [ ] Type check keçir: `cd web && npx tsc --noEmit`.
-- [ ] Testlər keçir: `node scripts/replay-prod-verify.mts` və ya `npm test`.
+- [ ] Testlər keçir: `node scripts/preflight.mjs`.

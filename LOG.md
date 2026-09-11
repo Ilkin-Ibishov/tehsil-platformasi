@@ -1,5 +1,8 @@
 # LOG
 
+- 2026-09-11: HANDOFF 222 — Müşahidə və telemetriya ekosisteminin tam analitik inteqrasiyası: 4 skill PostHog/Sentry ilə zənginləşdirildi, guard hook 29/29 keçdi, preflight 12/12 pass.
+- 2026-09-11: HANDOFF 221 — Cursor agent konteksti `.agents` ilə sinxron: 4 skill kopyası,
+  qaydalar 00/10/20/30/40 `.mdc` yeniləndi, `sync-agent-context.mjs --check` preflight-a düşdü.
 - 2026-09-11: HANDOFF 220 — Sentry tam instrumentasiyası: instrumentation.ts (onRequestError), global-error.tsx, client scope device/grade/role tag-ləri, tunnelRoute /monitoring, next.config Sentry build options, typecheck və lint 0 xəta.
 - 2026-09-11: HANDOFF 216 — AG-010 Vizuallaşdırma mühərriki auditi: `visual.selftest.mts` (43/43) preflight-a qoşuldu
   (11/11 pass), Supabase Bank suallarına (kvadrat/ədəd oxu) 2 nümunə `visual` seed edildi, BACKLOG AG-010 rəsmiləşdirildi.
