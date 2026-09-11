@@ -1,3 +1,8 @@
+## 2026-09-11 (217) · Cursor → Cowork
+Etdim:    Bank seed — 10 real DİM camera-format sualı (PR #10): supabase/migrations/0075_seed_bank_camera_format.sql (ARITH.PERCENT_*, ALG.LINEAR/QUADRATIC/VIETA/ARITHMETIC_SEQUENCE, mütənasiblik, kəsr, kvadrat kök); scripts/verify-bank-seed.mjs (11/11 test keçdi: fingerprint strip düzgün, choice order müstəqil); docs/VERIFY-BANK-SEED.md (S6 post-merge yoxlama təlimatı PP üçün). PR #9 (choice strip) üzərinə tikir, kamera formatında canonical + cavab variantları, fingerprint_digits hesablanmış (PR #9 məntiqi ilə), addımlar ADR-017 compliant (private.step_answers).
+Tapşırıq: bank-bake / Qat2–Qat3 coverage · Seed bank with camera-format DİM (follow-up to PR #9).
+Diqqət:   Kiçik təsdiqlənmiş seed (10 sual) — "Prove It Works" məqsədilə. 50–100 genişləndirmə ayrı PR-dir. Migration 0075 production-a apply olunmadan Qat2 hit YOXDUR (bank hələ 225 synthetic template formatındadır).
+
 ## 2026-09-11 (216) · Cursor → Cowork
 Etdim:    Bank hit rate diaqnozu və answer-choice-stripping fixi: 40/40 camera solve llm-ə düşdüyünün səbəbi tapıldı — bank pipe-format şablonları (`FAIZ.OF|n=300|p=5`, fingerprint `300,5`) saxlayır, camera natural DİM məsələləri cavab variantları ilə (`A) 58% B) 34%...`, fingerprint əvvəl `15,20,60,58,34,68,80,40` idi). `numericFingerprint` (web/lib/cascade/bank.ts) cavab variant nümunələrini stripləyir (`/\b[A-Ea-e]\)\s*-?\d+(\.\d+)?%?\b/g`), indi `15,20,60`. PR #9 (draft) — CI keçdi. BU FİKS TƏKBAŞINA bank hit yaratmır (format uyğunsuzluğu qalır), amma gələcək DİM bank seed-i üçün zəruridir. Telemetriya (`match_path`) toxunulmayıb.
 Tapşırıq: meta / no ClickUp — Bank/Template Hit Rate Diaqnozu.
