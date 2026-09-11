@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-11 (216) · Cursor → Cowork
+Etdim:    BA taxonomy triage implement edildi (İlkin lock): miqrasiya 0075 (alias_of sütunu + 23 ADOPT title_az, 3 MERGE alias_of, 1 REJECT ALG.WORD_PROBLEM), prompts/solve/math.md kanonik kodlar və anti-nümunələr (GEO.VECTORS > VEC.*, ALG.RADICALS > ARITH.SQUARE_ROOT, GEO.CONE_VOLUME > GEO.SOLID_CONE_VOLUME), docs/DATA-MODEL.md update; CI keçdi, PR #11 açıq.
+Tapşırıq: meta / no ClickUp — BA Taxonomy Triage (mənbə: docs/reports/taxonomy-triage-2026-09-10.md).
+Diqqət:   Historical questions.topic_code remap out of scope (gələcək PR). Alias_of sütunu FK yoxdur — öz-özünü sağalma qorunur.
+
 ## 2026-09-10 (215) · Antigravity → Cowork
 Etdim:    /learn əsasında daimi qaydalar və bacarıqlar yeniləndi: .agents/rules/10-web-ui.md (Math Keyboard Invariant və Empathetic Copy Invariant), .agents/rules/00-session.md (Stop Hook Guard intizamı), .agents/skills/student-reviewer/SKILL.md (mötərizə və dəyişən erqonomika meyarları); .cursor/skills/ ilə sinxronlaşdırıldı; 10 preflight testi keçdi.
 Tapşırıq: meta / no ClickUp — /learn Persistent Rules & Ergonomics Invariants.
