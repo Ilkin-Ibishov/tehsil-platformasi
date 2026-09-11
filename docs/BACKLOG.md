@@ -35,6 +35,7 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
 | **AG-007** | DİM Dərslik Terminologiyası və Pedaqoji Lüğət | Pedaqogika | **P2** | `Complete` | Antigravity | docs/DIM-GLOSSARY.md |
 | **AG-008** | Faza 1 Şagird Qapısı İntizamı (15–20 Real Şagird) | Məhsul / QA | **P0** | `In Progress` | Cowork / BA | docs/PHASE-1.md |
 | **AG-009** | Antigravity Deklarativ Subagent Qeydiyyatı | Multi-Agent | **P2** | `Complete` | Antigravity | .agents/agents/ |
+| **AG-010** | Vizuallaşdırma Mühərriki & Funksiya Korpusu | Vizual / Faza 4 | **P2** | `Deferred (Phase 4)` | Cowork / Antigravity | ADR-031 / ClickUp 86eyp3auh |
 
 ---
 
@@ -143,3 +144,16 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
   - [x] `scripts/sync-agent-context.mjs` `.cursor/agents/` ilə tam sinxronlaşdırmanı təmin edir.
   - [x] `scripts/lib/agent-registry.mjs` selftest ilə `scripts/preflight.mjs`-ə əlavə olundu.
   - [x] Agentlər tək əmrlə (`invoke_subagent`) ixtisaslaşmış kontekstdə işə düşür və nəticəni əsas agentə ötürür.
+
+---
+
+### 📈 AG-010: Vizuallaşdırma Mühərriki & Funksiya Korpusu
+- **Sahə:** Vizual / Pedaqoji Təsvir / Qrafiklər
+- **Prioritet:** P2 | **Status:** `Deferred (Phase 4)` (ADR-031, ClickUp `86eyp3auh`)
+- **Təsvir:** ADR-031 əsasında deterministik SVG mühərriki (`web/lib/visual.ts`, `VisualFigure.tsx`) tam hazırdır. Real DİM suallarının yalnız ~8–17%-i sadə analitik qrafikdən faydalandığı üçün genişlənmə və funksiya-qrafik korpusu şüurlu şəkildə Faza 4-ə (Şagird dalğası) saxlanılıb. Hazırkı mərhələdə reqressiya qarşısı üçün `visual.selftest.mts` preflight-a qoşuldu və Bank üçün 2 real DİM sualına nümunəvi `visual` JSON bağlandı.
+- **Qəbul Meyarları:**
+  - [x] `web/lib/visual.selftest.mts` (43/43 pass) `scripts/preflight.mjs`-ə 11-ci yoxlama kimi inteqrasiya olundu.
+  - [x] İstehsalat bazasında (Supabase) Bank üçün 2 real DİM sualına (`ALG.QUADRATIC_EQUATION` və `ALG.LINEAR_EQUATION`) nümunəvi `visual` payload bağlandı.
+  - [ ] Faza 4: DİM funksiya-qrafik korpusu genişləndirilir ($n \ge 30$).
+  - [ ] Faza 4: `visual.reported` və `visual.shown` telemetriya metrikaları ölçülür.
+

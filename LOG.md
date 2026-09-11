@@ -1,5 +1,7 @@
 # LOG
 
+- 2026-09-11: HANDOFF 216 — AG-010 Vizuallaşdırma mühərriki auditi: `visual.selftest.mts` (43/43) preflight-a qoşuldu
+  (11/11 pass), Supabase Bank suallarına (kvadrat/ədəd oxu) 2 nümunə `visual` seed edildi, BACKLOG AG-010 rəsmiləşdirildi.
 - 2026-09-10: HANDOFF 215 — /learn daimi qaydalar: 10-web-ui.md (klaviatura və humanist səhv invariantları),
   00-session.md (Stop hook intizamı), student-reviewer (mötərizə/dəyişən erqonomikası); sync və preflight keçdi.
 - 2026-09-10: HANDOFF 214 — Şagird və Sokratik təhlil rəyləri: MathKeyboardBar-a 'x' və '()' əlavə edildi,
