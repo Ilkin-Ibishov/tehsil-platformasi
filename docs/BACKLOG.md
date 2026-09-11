@@ -40,6 +40,11 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
 | **AG-012** | Siniflə Pedaqoji Ton & Dinamik İzah Qutusu | Pedaqogika / UX | **P1** | `Complete` | Antigravity | web/lib/profile/ |
 | **AG-013** | Ad Sahəsi Erqonomikası & Azərbaycan Orfoqrafiyası | Mobil UX / i18n | **P1** | `Complete` | Antigravity | web/app/onboarding/ |
 | **AG-014** | Onboarding Funnel Telemetriyası & Soyuq Başlanğıc | Telemetriya | **P1** | `Complete` | Antigravity | web/lib/telemetry.ts |
+| **AG-015** | Sokratik İpucu İntizamı & Sıfır Semantik Sızma | Prompt / Qat 5 | **P0** | `Complete` | Antigravity | prompts/solve/ |
+| **AG-016** | Sual Bankı Sızan İpuclarının Bərpası & Kurasiyası | DB / Supabase | **P0** | `Complete` | Antigravity | supabase/migrations/ |
+| **AG-017** | Eval Harness Avtomatlaşdırılmış Leak Guard | CI/CD / Eval | **P1** | `Complete` | QA Team | scripts/eval.py |
+| **AG-018** | Təmiz Sessiya Dəvət Qapısı & Bərpa QA Doğrulaması | QA / Onboarding | **P2** | `Complete` | qa_tester | web/components/kamera/ |
+| **AG-019** | Sokratik Çoxpilləli İpucu (Progressive Tiering) | Arxitektura / F2 | **P2** | `To Do` | Cowork / BA | docs/plans/ |
 
 ---
 
@@ -222,4 +227,75 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
   - [x] Onboarding-in hər addımında PostHog hadisələri düzgün xassələrlə (`props`) atılır.
   - [x] Onboarding-də tərk edən istifadəçilər (drop-off) PostHog funnel-ində aydın görünür.
 
+---
 
+### 💡 AG-015: Sokratik İpucu İntizamı & Sıfır Semantik Sızma
+- **Sahə:** Prompt Mühəndisliyi / Kaskad Qat 5 / Pedaqoji Nüvə
+- **Prioritet:** **P0** | **Status:** `Complete` (commit-hazır)
+- **Mənbə:** Aytən Retest (Bug 4 - FAIL), `docs/plans/2026-09-12-socratic-hints-retest-spec.md`
+- **Təsvir:**
+  1. `prompts/solve/core.md`-yə Qayda 19 əlavə edildi: İpucuda (`hint`) `check.ask` sualının yekun cavabını, ədədi nəticəsini və ya 1 addımlıq primitiv hesablama əmrini (məs: '25-4·7 hesabla', 'cavab 3-dür') yazmaq QƏTİ QADAĞANDIR.
+  2. İpucu məcburi şəkildə Sokratik dərslik qaydasına (`docs/DIM-GLOSSARY.md` §3) yönəldir: 'Xatırla: ...', 'Diqqət yetir: ...', 'Yadına sal: ...', 'Qayda: ...'.
+  3. `prompts/solve/math.md`, `physics.md` və mövzu promptlarındakı (`prompts/solve/math/*.md`, `prompts/solve/physics/*.md` — cəmi 39 nümunə) primitiv hesablama əmrləri və sızmalar təmizləndi.
+- **Fayllar:** `prompts/solve/core.md`, `prompts/solve/math.md`, `prompts/solve/physics.md`, `prompts/solve/math/*.md`, `prompts/solve/physics/*.md`.
+- **Qəbul Meyarları:**
+  - [x] `core.md` və bütün fənn/mövzu promptlarında semantik sızma qadağası sənədləşdirilir və tətbiq olunur.
+  - [x] Bütün 39 prompt nümunəsindəki hazır hesablama əmrləri və sızmalar dərslik qəlibləri ilə əvəzlənir.
+  - [x] Qat 5 çıxışında ipucunun cavab verməsi riski aradan qaldırılır.
+
+---
+
+### 🗄️ AG-016: Sual Bankı Sızan İpuclarının Bərpası & Kurasiyası
+- **Sahə:** Verilənlər Bazası / Məlumat Keyfiyyəti / Supabase
+- **Prioritet:** **P0** | **Status:** `Complete` (0077_fix_bank_hint_semantic_leakage.sql tətbiq edildi)
+- **Mənbə:** Aytən Retest (Bug 4 - FAIL), `docs/plans/2026-09-12-socratic-hints-retest-spec.md`
+- **Təsvir:**
+  1. İstehsalat bazasındakı (`question_translations`) sualların `steps` massivində mövcud sızan `hint` dəyərləri audit edildi.
+  2. Aytənin test etdiyi və ən çox işlənən mövzular (`ALG.QUADRATIC_EQUATION`, `PROB.BASIC`) üzrə sızan `hint`-lər SQL miqrasiyası ilə Sokratik formaya salındı və canlı DB-yə tətbiq edildi.
+- **Fayllar:** `supabase/migrations/0077_fix_bank_hint_semantic_leakage.sql`.
+- **Qəbul Meyarları:**
+  - [x] "7082409e" sualında "6.25-dən böyük ilk tam ədədi götür" və "25 − 4·7 hesabla" ipucları Sokratik mətnlə əvəzlənir.
+  - [x] "4a2fa001" sualında "yəni cəmi 3 kök var" sızması aradan qaldırılır.
+  - [x] Bank suallarında şagird heç vaxt hazır cavabla üzləşmir.
+
+---
+
+### 🛡️ AG-017: Eval Harness Avtomatlaşdırılmış İpucu Sızması Detektoru
+- **Sahə:** CI/CD / QA Avtomatlaşdırması / Eval Harness
+- **Prioritet:** **P1** | **Status:** `Complete` (`leak-guard.mjs`, `eval.py`)
+- **Mənbə:** `docs/plans/2026-09-12-socratic-hints-retest-spec.md`
+- **Təsvir:**
+  1. `scripts/eval.py`, `scripts/lib/leak.py`, `scripts/lib/leak-guard.mjs` və `scripts/preflight.mjs`-ə `SEMANTIC_HINT_LEAK` yoxlaması əlavə edildi.
+  2. Addımın `expected_answer` tokeni və ya birbaşa hesablama əmri `hint` mətnində aşkarlanarsa, test FAIL verir və preflight bloklayır.
+- **Fayllar:** `scripts/eval.py`, `scripts/lib/leak.py`, `scripts/lib/leak-guard.mjs`, `scripts/preflight.mjs`.
+- **Qəbul Meyarları:**
+  - [x] `eval.py` test dəstlərində ipucu sızmasını avtomatik ölçür.
+  - [x] Preflight mühərrikində hint leakage üçün linter inteqrasiya olunur.
+
+---
+
+### 🚪 AG-018: Təmiz Sessiya Dəvət Qapısı & Bərpa QA Doğrulaması
+- **Sahə:** Manual & Avtomatlaşdırılmış QA / Dəvət Qapısı
+- **Prioritet:** **P2** | **Status:** `Complete` (`TP-INVITE-RECOVERY.md`, `InviteGate.tsx`)
+- **Mənbə:** Aytən Retest (Bug 1 - YOXLANMADI)
+- **Təsvir:**
+  1. Aytənin re-testində toxunulmamış qalan Dəvət Qapısı recovery kartının təmiz mühitdə (Incognito və ya `clearStoredInviteCode()`) sınaqdan keçirilməsi üçün QA planı hazırlandı.
+  2. Səhv və ya bitmiş kodda `'demo' kodu ilə sınaqdan keçir →` düyməsinin 1 kliklə daxilolma və kamera axınına buraxması təmin edildi.
+- **Fayllar:** `web/components/kamera/InviteGate.tsx`, `docs/testing/plans/TP-INVITE-RECOVERY.md`.
+- **Qəbul Meyarları:**
+  - [x] Təmiz sessiyada dəvət divarının aşılması 1 kliklə təsdiqlənir.
+  - [x] QA test protokolu sənədləşdirilir və Aytən/alfa testçilərinə təqdim edilir.
+
+---
+
+### 🏛️ AG-019: Sokratik Çoxpilləli İpucu (Progressive Tiered Hinting) Arxitekturası
+- **Sahə:** Sistem Arxitekturası / Faza 2
+- **Prioritet:** **P2** | **Status:** `To Do`
+- **Mənbə:** Aytən Retest Təklifi ("Səviyyəli hint: ilişmə yeri → üsul → istiqamət")
+- **Təsvir:**
+  1. `STEP-SCHEMA.json` v2-ni pozmadan (və ya gələcək v3 üçün ADR layihəsi ilə) 3 pilləli ipucu mexanizminin (1: Konseptual, 2: Strateji, 3: Taktiki istiqamət) arxitekturasının tədqiqi.
+  2. UI-da hər kliklə növbəti dərinlik səviyyəsinin açılması üçün texniki təklif hazırlanır.
+- **Fayllar:** `docs/plans/2026-09-12-socratic-hints-retest-spec.md`, `docs/decisions/ADR-033-progressive-hinting.md` (təklif).
+- **Qəbul Meyarları:**
+  - [ ] Geriye uyğun pilləli ipucu arxitekturası sənədləşdirilir.
+  - [ ] ADR layihəsi hazırlanaraq Cowork müzakirəsinə təqdim edilir.

@@ -30,7 +30,7 @@ Eyni ədədlər `ALG.QUADRATIC_EQUATION`-dan FƏRQLİ sualdır (ADR-008). Diskri
         "input_kind": "number"
       },
       "error_code": "COEFFICIENT_READ",
-      "hint": "b = −5, a = 1 → −(−5)/1."
+      "hint": "Diqqət yetir: Viyet teoremində x-in əmsalının (b) əks işarəsini x²-ın əmsalına (a) böl."
     },
     {
       "index": 2,
@@ -44,7 +44,7 @@ Eyni ədədlər `ALG.QUADRATIC_EQUATION`-dan FƏRQLİ sualdır (ADR-008). Diskri
         "input_kind": "number"
       },
       "error_code": "SUBSTITUTION_SKIPPED",
-      "hint": "Viyet cəmi ilə tutuşdur."
+      "hint": "Xatırla: Tapılmış köklərin cəmi ilə Viyet düsturundan alınan qiymət üst-üstə düşməlidir."
     }
   ]
 }

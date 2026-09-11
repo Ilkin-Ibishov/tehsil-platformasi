@@ -1,4 +1,4 @@
-# Prompt — addım sxemi generasiyası (v18)
+# Prompt — addım sxemi generasiyası (v19)
 
 **Çıxış:** `docs/STEP-SCHEMA.json`-a uyğun **saf JSON**. Başqa heç nə.
 **Temperature:** `0.2`. **Struktur çıxış:** provayder dəstəkləyirsə `response_format={"type":"json_object"}`.
@@ -122,6 +122,11 @@
 > **v17 → v18 (2026-09-10).** AG-007: DİM dərslik dili və pedaqoji lüğət standartı (`docs/DIM-GLOSSARY.md`, Qayda 18).
 > Robotik kalka tərcümələr ("kvadratını icra edin", "fraksiya", "sadə rəqəm" və s.) açıq qadağan edildi;
 > rəsmi 5–11 dərslik ifadələri və standart DİM əmr felləri təsbit olundu.
+>
+> **v18 → v19 (2026-09-12).** AG-015: Sokratik İpucu İntizamı və Sıfır Semantik Sızma (Qayda 19).
+> İpucuda (`hint`) `check.ask` sualının yekun cavabını, ədədi nəticəsini və ya 1 addımlıq birbaşa hesablama
+> əmrini (məs: '25-4·7 hesabla', 'cavab 3-dür', '6.25-dən böyük ilk tam ədədi götür') vermək qadağan edildi;
+> `docs/DIM-GLOSSARY.md` §3 dərslik əsaslı Sokratik yönləndirici qəliblər təsbit olundu.
 
 ## System
 
@@ -483,6 +488,18 @@ KƏSİLMİŞ MƏSƏLƏ:
       ❌ "Tənliyin dəyərini tapın"         ➔  ✅ "Tənliyin kökünü tapın"
     Əmr felləri dərslik standartında olmalıdır: "Sadələşdirin", "Vuruqlara ayırın", "Mötərizəni açın".
 
+19. SOKRATİK İPUCU İNTİZAMI VƏ SIFIR SEMANTİK SIZMA (HINT ZERO-LEAKAGE).
+    İpucu (`hint`) şagird çətinlik çəkdikdə ona hazır cavabı deyil, dərslikdəki müvafiq qayda və ya prinsipi xatırlatmalıdır.
+    İPUCUDA QƏTİ QADAĞANDIR:
+      – `check.ask` sualının yekun və ya aralıq cavabını sızdırmaq (məs: "cavab 3-dür", "2 kök var").
+      – Birbaşa 1 addımlıq primitiv hesablama əmri vermək (məs: "25 − 4·7 hesabla", "12-ni 3-ə böl", "3-ü 4-ə vur").
+      – Şagirdin yerinə seçim etmək (məs: "6.25-dən böyük ilk tam ədədi götür", "mənfi kökü at").
+    İPUCU MƏCBURİ ŞƏKİLDƏ SOKRATİK VƏ DƏRSLİK ƏSASLI OLMALIDIR (`docs/DIM-GLOSSARY.md` §3):
+      ✅ "Xatırla: ..." (məs: "Xatırla: Kvadratlar fərqi düsturu necə açılırdı?")
+      ✅ "Diqqət yetir: ..." (məs: "Diqqət yetir: Hasilin sıfıra bərabər olması üçün vuruqlar necə olmalıdır?")
+      ✅ "Yadına sal: ..." (məs: "Yadına sal: Natural ədədlər hansı ədədlərdir?")
+      ✅ "Qayda: ..." / "İpucu: ..." (məs: "İpucu: Tənliyin hər iki tərəfini x-in əmsalına böldükdə bərabərlik saxlanılır.")
+    İpucunun uzunluğu 140 simvoldan çox olmamalıdır.
 ```
 
 ## User (dəyişənlərlə)

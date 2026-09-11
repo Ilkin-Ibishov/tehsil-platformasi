@@ -196,6 +196,7 @@ def evaluate_item(item, result, cfg):
     entry["choice_match"] = _choice_match(item.get("expected_choice"), raw)
     entry["step_structural"] = steps_compare.check_structure(raw.get("steps", []))
     entry["leaked"] = leak.detect_leak(raw.get("steps", []), values)
+    entry["hint_leaked"] = leak.detect_hint_leak(raw.get("steps", []))
     entry["model_subject"] = raw.get("subject")
     entry["model_topic_code"] = raw.get("topic_code")
     entry["model_canonical"] = raw.get("canonical")
@@ -304,6 +305,7 @@ def aggregate(entries, human_review=None):
         attempted, "final_answer_correct", lambda v: v is True, lambda v: v is not None
     )
     metrics["leak_rate"] = _rate(attempted, "leaked", lambda v: v is True, lambda v: v is not None)
+    metrics["hint_leak_rate"] = _rate(attempted, "hint_leaked", lambda v: v is True, lambda v: v is not None)
 
     metrics["verify_conflict"] = _rate(attempted, "verify_conflict", lambda v: v is True, lambda v: v is not None)
     metrics["verify_conflict_ids"] = [

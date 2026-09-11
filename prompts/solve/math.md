@@ -85,7 +85,7 @@ E1.9: son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (`cor
         "input_kind": "number"
       },
       "error_code": "ARITHMETIC",
-      "hint": "12-ni 3-ə bölmə əməliyyatını et."
+      "hint": "Qayda: Məchul vuruğu tapmaq üçün hasili məlum vuruğa bölmək lazımdır."
     },
     {
       "index": 2,
@@ -99,7 +99,7 @@ E1.9: son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (`cor
         "input_kind": "number"
       },
       "error_code": "SUBSTITUTION_SKIPPED",
-      "hint": "3-ü 4-ə vur."
+      "hint": "Diqqət yetir: Tapılmış x qiymətini 3x ifadəsində yerinə qoyaraq hasili yoxla."
     }
   ]
 }
@@ -132,7 +132,7 @@ E1.9: son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (`cor
         "input_kind": "number"
       },
       "error_code": "SIGN_LOST",
-      "hint": "40-ı sağdan sola keçirəndə işarəsi dəyişir."
+      "hint": "Xatırla: Həddi tənliyin bir tərəfindən digərinə keçirdikdə işarəsi əksinə dəyişir."
     },
     {
       "index": 2,
@@ -147,7 +147,7 @@ E1.9: son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (`cor
         "input_kind": "number"
       },
       "error_code": "SQUARE_FORGOTTEN",
-      "hint": "Əvvəlcə 3² = 9, sonra 4·1·(−40) = −160, D = 9 − (−160)."
+      "hint": "Diqqət yetir: D = b² − 4ac düsturunda əmsalların işarəsinə və mənfini mənfiyə vurma qaydasına."
     },
     {
       "index": 3,
@@ -160,7 +160,7 @@ E1.9: son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (`cor
         "input_kind": "number"
       },
       "error_code": "ARITHMETIC",
-      "hint": "13² = 169 olduğunu yoxla."
+      "hint": "Xatırla: Hansı ədədin kvadratı 169 edir? 10-dan böyük ədədlərin kvadratlarını nəzərdən keçir."
     },
     {
       "index": 4,
@@ -173,7 +173,7 @@ E1.9: son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (`cor
         "input_kind": "number"
       },
       "error_code": "ORDER_OF_OPS",
-      "hint": "Əvvəlcə −3+13-ü hesabla, sonra 2-yə böl."
+      "hint": "Qayda: Kəsrin qiymətini tapmaq üçün əvvəlcə surətdəki cəmi tap, sonra məxrəcə böl."
     },
     {
       "index": 5,
@@ -186,7 +186,7 @@ E1.9: son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (`cor
         "input_kind": "number"
       },
       "error_code": "SIGN_CHOICE",
-      "hint": "Mənfi kökü at, en mənfi olmaz."
+      "hint": "Diqqət yetir: Həndəsi ölçü (uzunluq, en) həmişə müsbət kəmiyyət olmalıdır."
     },
     {
       "index": 6,
@@ -199,7 +199,7 @@ E1.9: son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (`cor
         "input_kind": "number"
       },
       "error_code": "SUBSTITUTION_SKIPPED",
-      "hint": "x-i x+3-ə vur."
+      "hint": "Yadına sal: Düzbucaqlının sahəsi eni ilə uzunluğunun hasilinə bərabərdir."
     }
   ]
 }

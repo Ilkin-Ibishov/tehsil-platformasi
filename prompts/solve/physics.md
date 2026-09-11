@@ -49,7 +49,7 @@ topic_code dəqiq: MECH.MOMENTUM_CONSERVATION → MECH.MOMENTUM; PHYS.SELF_INDUC
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "Əvvəl t^2, sonra yarısı ilə a-nın hasili. Vahidi values-ə yazma."
+      "hint": "Xatırla: Əməllər sırasında əvvəlcə dərəcəyə yüksəltmə, sonra vurma və bölmə icra olunur."
     }
   ]
 }
@@ -80,7 +80,7 @@ topic_code dəqiq: MECH.MOMENTUM_CONSERVATION → MECH.MOMENTUM; PHYS.SELF_INDUC
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "f=v/λ, vahid herts. Son ədədi izahda yazma."
+      "hint": "Yadına sal: Dalğanın yayılma sürəti, dalğa uzunluğu və tezlik arasındakı əlaqə düsturu necədir?"
     }
   ]
 }
@@ -111,7 +111,7 @@ topic_code dəqiq: MECH.MOMENTUM_CONSERVATION → MECH.MOMENTUM; PHYS.SELF_INDUC
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "p=ρgh, g=10. Əmsalı check.ask istəyir."
+      "hint": "Diqqət yetir: Qravitasiya sahəsinin intensivliyini (g) hidrostatik təzyiq düsturunda yerinə qoy."
     }
   ]
 }
@@ -142,7 +142,7 @@ topic_code dəqiq: MECH.MOMENTUM_CONSERVATION → MECH.MOMENTUM; PHYS.SELF_INDUC
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "I qanun: ΔU=Q−A. Fərqi şagird hesabla."
+      "hint": "Xatırla: Termodinamikanın I qanununa görə daxili enerjinin dəyişməsi görülən iş və istilik miqdarı ilə necə bağlıdır?"
     }
   ]
 }

@@ -52,7 +52,7 @@ SVG/path YOX. Naməlum kind UYDURMA.
         "input_kind": "number"
       },
       "error_code": "ARITHMETIC",
-      "hint": "40+60=100, üstəgəl 5."
+      "hint": "Xatırla: Əvvəlcə onluqları, sonra təklikləri ardıcıl topla."
     },
     {
       "index": 2,
@@ -66,7 +66,7 @@ SVG/path YOX. Naməlum kind UYDURMA.
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "Cəmi 180-dən çıx, 90-dan yox."
+      "hint": "Yadına sal: İxtiyari üçbucağın daxili bucaqlarının cəmi neçə dərəcədir?"
     }
   ]
 }

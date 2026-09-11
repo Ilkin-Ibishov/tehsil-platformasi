@@ -30,7 +30,7 @@
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "sin 30° = cos 60° = 1/2; sin 60° = √3/2."
+      "hint": "Xatırla: Düzbucaqlı üçbucaqda 30°-li bucaq qarşısındakı katet hipotenuzun hansı hissəsinə bərabərdir?"
     },
     {
       "index": 2,
@@ -44,7 +44,7 @@
         "input_kind": "number"
       },
       "error_code": "ARITHMETIC",
-      "hint": "İki yarım bir tamdır."
+      "hint": "Yadına sal: Məxrəcləri eyni olan kəsrləri topladıqda surətlər toplanır, məxrəc isə olduğu kimi qalır."
     }
   ]
 }

@@ -30,7 +30,7 @@ Son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (E1.7).
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "Əvvəl 4200·2, sonra ·10. Hasili izahda yazma."
+      "hint": "Yadına sal: Ədədlərin hasilini taparkən vurmanın qruplaşdırma və paylama xassələrini tətbiq et."
     }
   ]
 }

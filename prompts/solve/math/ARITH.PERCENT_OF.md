@@ -30,7 +30,7 @@
         "input_kind": "number"
       },
       "error_code": "ARITHMETIC",
-      "hint": "200 · 15 = 3000, sonra 100-ə böl."
+      "hint": "Qayda: Ədədin faizini tapmaq üçün ədədi faiz göstərən ədədə vurub 100-ə böl."
     }
   ]
 }

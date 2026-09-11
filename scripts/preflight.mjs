@@ -58,6 +58,10 @@ runStep("Taxonomy Triage Selftest (triage-taxonomy.mjs --selftest)", "node scrip
 // 5. DİM Glossary Language Selftest
 runStep("DİM Glossary Language Selftest (glossary-linter.mjs --selftest)", "node scripts/lib/glossary-linter.mjs --selftest");
 
+// 5b. Semantic Hint Leak Guard Selftest & Prompt Check
+runStep("Semantic Hint Leak Guard Selftest (leak-guard.mjs --selftest)", "node scripts/lib/leak-guard.mjs --selftest");
+runStep("Prompt Hint Socratic Check (leak-guard.mjs --check-prompts)", "node scripts/lib/leak-guard.mjs --check-prompts");
+
 // 6. Declarative Subagent Registry Selftest
 runStep("Subagent Registry Selftest (agent-registry.mjs --selftest)", "node scripts/lib/agent-registry.mjs --selftest");
 

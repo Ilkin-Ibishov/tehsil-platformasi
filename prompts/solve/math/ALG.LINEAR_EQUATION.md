@@ -39,7 +39,7 @@ y=kx+b qrafiki / ox kəsişməsi varsa visual YAZ: {"kind":"linear","k":…,"b":
         "input_kind": "number"
       },
       "error_code": "COEFFICIENT_READ",
-      "hint": "(0;−5) nöqtəsində y-koordinat b-dir."
+      "hint": "Xatırla: Düz xəttin ordinat oxu ilə kəsişmə nöqtəsində absis sıfıra bərabərdir (x=0)."
     },
     {
       "index": 2,
@@ -53,7 +53,7 @@ y=kx+b qrafiki / ox kəsişməsi varsa visual YAZ: {"kind":"linear","k":…,"b":
         "input_kind": "number"
       },
       "error_code": "SIGN_LOST",
-      "hint": "0=5k+(−5) → 5k=5."
+      "hint": "Qayda: Məchul həddi tapmaq üçün məlum ədədi bərabərliyin əks tərəfinə keçir."
     },
     {
       "index": 3,
@@ -67,7 +67,7 @@ y=kx+b qrafiki / ox kəsişməsi varsa visual YAZ: {"kind":"linear","k":…,"b":
         "input_kind": "number"
       },
       "error_code": "ARITHMETIC",
-      "hint": "Müsbət və mənfini topla."
+      "hint": "Yadına sal: Müxtəlif işarəli ədədləri topladıqda modulu böyük olanın işarəsi saxlanılır."
     }
   ]
 }
@@ -98,7 +98,7 @@ y=kx+b qrafiki / ox kəsişməsi varsa visual YAZ: {"kind":"linear","k":…,"b":
         "input_kind": "number"
       },
       "error_code": "ARITHMETIC",
-      "hint": "Əvvəl çıxma, sonra bölmə. x-i explanation-da demə."
+      "hint": "Qayda: Əvvəlcə məlum həddi sağ tərəfə əks işarə ilə keçir, sonra hər iki tərəfi x-in əmsalına böl."
     }
   ]
 }

@@ -39,7 +39,7 @@ Sahə mətn məsələsində visual YAZMA. SVG/path YOX. Naməlum kind (hiperbola
         "input_kind": "number"
       },
       "error_code": "SQUARE_FORGOTTEN",
-      "hint": "Əvvəlcə (−5)², sonra 4·1·6."
+      "hint": "Diqqət yetir: D = b² − 4ac düsturunda mənfi əmsalların kvadratına və işarələrin hasilinə."
     },
     {
       "index": 2,
@@ -52,7 +52,7 @@ Sahə mətn məsələsində visual YAZMA. SVG/path YOX. Naməlum kind (hiperbola
         "input_kind": "number"
       },
       "error_code": "ORDER_OF_OPS",
-      "hint": "Əvvəlcə cəmi, sonra 2-yə böl."
+      "hint": "Qayda: Kəsrin qiymətini tapmaq üçün əvvəlcə surətdəki əməli yerinə yetir, sonra məxrəcə böl."
     },
     {
       "index": 3,
@@ -66,7 +66,7 @@ Sahə mətn məsələsində visual YAZMA. SVG/path YOX. Naməlum kind (hiperbola
         "input_kind": "number"
       },
       "error_code": "SUBSTITUTION_SKIPPED",
-      "hint": "9 − 15 + 6."
+      "hint": "Yadına sal: Əməllər sırasına görə əvvəlcə dərəcəyə yüksəltmə və vurmanı, sonra toplama və çıxmanı icra et."
     }
   ]
 }

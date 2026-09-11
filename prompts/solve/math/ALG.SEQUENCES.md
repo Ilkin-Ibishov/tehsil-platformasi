@@ -39,7 +39,7 @@ Tək a_n tapmaq üçün visual YAZMA. SVG/path YOX. Naməlum kind UYDURMA.
         "input_kind": "number"
       },
       "error_code": "ORDER_OF_OPS",
-      "hint": "Əvvəl vur, sonra topla."
+      "hint": "Xatırla: Əməllər sırasına görə əvvəlcə vurma, sonra toplama icra olunur."
     },
     {
       "index": 2,
@@ -53,7 +53,7 @@ Tək a_n tapmaq üçün visual YAZMA. SVG/path YOX. Naməlum kind UYDURMA.
         "input_kind": "number"
       },
       "error_code": "SUBSTITUTION_SKIPPED",
-      "hint": "n=1 qoy: 2·1+1."
+      "hint": "Diqqət yetir: Birinci həddi tapmaq üçün ümumi hədd düsturunda n-in yerinə 1 yaz."
     }
   ]
 }

@@ -122,3 +122,52 @@ def detect_leak(steps, final_answer_values):
             prior_accept.update(_leak_needles(a))
 
     return False
+
+
+_DIRECT_ARITHMETIC_RE = re.compile(
+    r"(?<![\w.])\d+\s*[-+*/·×÷−]\s*\d+(?!\d*-(ci|cı|cü|cu|nci|ncı|ncü|ncu|inci|ıncı|uncu|üncü))\b",
+    re.UNICODE,
+)
+_DIRECT_VERB_RE = re.compile(
+    r"\b\d+-(?:ü|i|ı|u|yə|ya|ə|a|ni|nı|nu|nü)\s+\d+-(?:ə|a|yə|ya|ü|i|ı|u)\s+(?:vur|böl|topla|çıx)",
+    re.IGNORECASE | re.UNICODE,
+)
+_DIRECT_CALC_COMMAND_RE = re.compile(
+    r"[-+*/·×÷−]\s*\d+.*?\b(?:hesabla|tap|yaz)\b",
+    re.IGNORECASE | re.UNICODE,
+)
+_IMPERATIVE_SELECTION_RE = re.compile(
+    r"\b(?:ilk|ən\s+kiçik|ən\s+böyük|mənfi|müsbət)\s+(?:tam\s+ədədi|kökü|həddi)\s+(?:götür|seç|at)\b",
+    re.IGNORECASE | re.UNICODE,
+)
+_DIRECT_ANSWER_DECLARATION_RE = re.compile(
+    r"\b(?:cavab|nəticə)\s+\d+-(?:dir|dür|dur|dır)\b|\byəni\s+(?:cəmi\s+)?\d+\s+(?:natural\s+)?kök\s+var\b",
+    re.IGNORECASE | re.UNICODE,
+)
+
+
+def detect_hint_leak(steps):
+    """AG-017 / Rule 19: İpucuda cavab sızması və ya birbaşa primitiv hesablama əmri.
+    Qaytarır: True əgər addımın hint-ində sızma varsa, False əgər təmizdirsə."""
+    for step in steps:
+        hint = step.get("hint", "")
+        if not hint:
+            continue
+        if _DIRECT_ARITHMETIC_RE.search(hint):
+            return True
+        if _DIRECT_VERB_RE.search(hint):
+            return True
+        if _DIRECT_CALC_COMMAND_RE.search(hint):
+            return True
+        if _IMPERATIVE_SELECTION_RE.search(hint):
+            return True
+        if _DIRECT_ANSWER_DECLARATION_RE.search(hint):
+            return True
+
+        accept = (step.get("check") or {}).get("accept") or []
+        for a in accept:
+            for n in _leak_needles(a):
+                if _leaked_in_text(n, hint):
+                    return True
+    return False
+

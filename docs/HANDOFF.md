@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (230) · Antigravity → Cowork
+Etdim:    AG-015..AG-018 Sokratik İpucu İntizamı, Sual Bankı Bərpası və Retest Bərkidilməsi tamamlandı: `prompts/solve/core.md` (v19, Qayda 19 — ipucuda cavab və birbaşa 1-addımlıq hesablama qadağası); `prompts/solve/math.md`, `physics.md` və bütün 39 mövzu promptundakı (`prompts/solve/math/*.md`, `prompts/solve/physics/*.md`) few-shot nümunələrindəki primitiv hesablar və sızmalar dərslik əsaslı Sokratik qaydalarla əvəzləndi; `supabase/migrations/0077_fix_bank_hint_semantic_leakage.sql` miqrasiyası yazıldı və canlı Supabase bazasına (project `oxjzehxnbumgyoqjonju`) tətbiq edildi (`7082409e` və `4a2fa001` suallarının ipucları bərpa olundu); `scripts/lib/leak-guard.mjs`, `scripts/lib/leak.py`, `scripts/eval.py` və `scripts/lib/report.py`-yə `SEMANTIC_HINT_LEAK` detektoru, recursive prompt checker və eval metrikləri (`hint_leaked`, `hint_leak_rate`) əlavə edildi; `scripts/preflight.mjs`-ə iki yeni addım qoşuldu (14/14 pass); `web/components/kamera/InviteGate.tsx`-də demo bərpa kartı 1-kliklə daxilolma rejiminə keçirildi; `docs/testing/plans/TP-INVITE-RECOVERY.md` sənədləşdirildi; `docs/BACKLOG.md` yeniləndi.
+Tapşırıq: AG-015..AG-018 — Sokratik İpucu İntizamı, Sual Bankı Bərpası və Retest Bərkidilməsi
+Diqqət:   İpucular heç vaxt `check.ask` cavabını və ya birbaşa hesablama əmrini (məs: "25-4·7 hesabla") verməməlidir; `docs/DIM-GLOSSARY.md` §3 Sokratik qəliblərinə tabe olmalıdır.
+
 ## 2026-09-11 (229) · Antigravity → Cowork
 Etdim:    Vercel deploy xətasının aradan qaldırılması: `web/components/PostHogProvider.tsx`-də `useSearchParams()` işlədən `PostHogPageView` komponenti `<Suspense fallback={null}>` ilə əhatə olundu; Next.js `/_not-found` statik prerender xətası (`missing-suspense-with-csr-bailout`) tam həll edildi.
 Tapşırıq: meta / no ClickUp — Vercel Deploy Suspense Boundary Fix

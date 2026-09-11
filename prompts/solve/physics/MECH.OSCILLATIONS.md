@@ -29,7 +29,7 @@ T=2π√(L/g). Son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istə
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "√(10/10)=1. Hasili izahda yazma."
+      "hint": "Xatırla: Riyazi rəqqasın period düsturunda kökaltı ifadəni sadələşdirdikdən sonra vurma əməlini icra et."
     }
   ]
 }

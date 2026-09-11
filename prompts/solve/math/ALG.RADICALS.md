@@ -30,7 +30,7 @@
         "input_kind": "number"
       },
       "error_code": "FACTOR_PAIR",
-      "hint": "25·2=50."
+      "hint": "Yadına sal: 50-nin vuruqları arasında hansı ədəd tam kvadratdır?"
     },
     {
       "index": 2,
@@ -44,7 +44,7 @@
         "input_kind": "number"
       },
       "error_code": "SQUARE_FORGOTTEN",
-      "hint": "Sadələşmiş formanın kvadratı ilkin ədədi verməlidir."
+      "hint": "Diqqət yetir: Sadələşmiş vuruğu kök altına daxil etdikdə kvadratını kökaltı ifadəyə vur."
     }
   ]
 }

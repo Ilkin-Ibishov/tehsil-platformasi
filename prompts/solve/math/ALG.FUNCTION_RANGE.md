@@ -39,7 +39,7 @@ y=k/x hiperbola — kind YOXDUR, visual YAZMA (boş şəkil uydurma). SVG/path Y
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "x² heç vaxt mənfi olmur."
+      "hint": "Xatırla: Həqiqi ədədin kvadratı həmişə qeyri-mənfidir (x² ≥ 0)."
     },
     {
       "index": 2,
@@ -53,7 +53,7 @@ y=k/x hiperbola — kind YOXDUR, visual YAZMA (boş şəkil uydurma). SVG/path Y
         "input_kind": "number"
       },
       "error_code": "SUBSTITUTION_SKIPPED",
-      "hint": "3≥1 olduğu üçün kök olmalıdır."
+      "hint": "Diqqət yetir: Seçilmiş ədəd tapılmış qiymət çoxluğuna daxildirsə, ona uyğun həqiqi arqument mövcuddur."
     }
   ]
 }

@@ -52,7 +52,7 @@ Tək uzunluq √(x²+y²) mətnində visual YAZMA. SVG/path YOX.
         "input_kind": "number"
       },
       "error_code": "SIGN_LOST",
-      "hint": "İkinci komponentdə −1 var."
+      "hint": "Diqqət yetir: Vektorları topladıqda uyğun koordinatlar (absis absislə, ordinat ordinatla) cəmlənir."
     },
     {
       "index": 2,
@@ -66,7 +66,7 @@ Tək uzunluq √(x²+y²) mətnində visual YAZMA. SVG/path YOX.
         "input_kind": "number"
       },
       "error_code": "ARITHMETIC",
-      "hint": "3−1=2."
+      "hint": "Qayda: Müxtəlif işarəli ədədləri topladıqda böyük moduldan kiçik modul çıxılır və böyüyün işarəsi yazılır."
     }
   ]
 }

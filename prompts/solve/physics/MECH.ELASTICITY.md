@@ -29,7 +29,7 @@ k∝S/l. Son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (E
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "9/2=4,5; 10·4,5. Nəticəni izahda yazma."
+      "hint": "Diqqət yetir: Əvvəlcə dərəcəyə yüksəltməni icra et, sonra hasili məxrəcə bölərək sadələşdir."
     }
   ]
 }

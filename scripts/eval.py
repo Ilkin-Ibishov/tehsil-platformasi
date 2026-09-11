@@ -230,12 +230,14 @@ def _selftest_cases():
             actual["verified"] = verified
             actual["conflict"] = conflict
             actual["leaked"] = leak.detect_leak(raw.get("steps", []), values)
+            actual["hint_leaked"] = leak.detect_hint_leak(raw.get("steps", []))
             actual["structural_all_pass"] = steps_compare.check_structure(raw.get("steps", []))["all_pass"]
             actual["choice_match"] = report._choice_match(case.get("expected_choice"), raw)
         else:
             actual["verified"] = None
             actual["conflict"] = None
             actual["leaked"] = None
+            actual["hint_leaked"] = None
             actual["structural_all_pass"] = None
             actual["choice_match"] = None
 
@@ -476,8 +478,9 @@ def _selftest_physics_prompt():
         failures.append("physics_example_valid")
         return failures
     leaked = leak.detect_leak(example.get("steps", []), values)
-    ok_c = leaked is False and "Sızma qadağası" in system
-    print(f"[{'PASS' if ok_c else 'FAIL'}] physics_example_no_leak  leaked={leaked}")
+    hint_leaked = leak.detect_hint_leak(example.get("steps", []))
+    ok_c = leaked is False and hint_leaked is False and "Sızma qadağası" in system
+    print(f"[{'PASS' if ok_c else 'FAIL'}] physics_example_no_leak  leaked={leaked} hint_leaked={hint_leaked}")
     if not ok_c:
         failures.append("physics_example_no_leak")
     return failures
@@ -519,13 +522,39 @@ def _selftest_prompt_schema_invariants():
         if schema_valid:
             structural = steps_compare.check_structure(example.get("steps", []))
             detail["structural"] = structural
-            ok_b = structural["all_pass"]
+            hint_leaked = leak.detect_hint_leak(example.get("steps", []))
+            detail["hint_leaked"] = hint_leaked
+            ok_b = structural["all_pass"] and (hint_leaked is False)
         else:
             detail["schema_errors"] = schema_errors
         marker_b = "PASS" if ok_b else "FAIL"
         print(f"[{marker_b}] prompt_example_valid  {detail}")
         if not ok_b:
             failures.append("prompt_example_valid")
+
+    return failures
+
+
+def _selftest_semantic_hint_leak():
+    """AG-017 / Rule 19: Sokratik ipucu intizamı və semantik sızma guard testləri."""
+    failures = []
+    bad_step = [{"index": 1, "hint": "25 − 4·7 hesabla.", "check": {"ask": "D?", "accept": ["-3"]}}]
+    ok_bad = leak.detect_hint_leak(bad_step) is True
+    print(f"[{'PASS' if ok_bad else 'FAIL'}] hint_leak_direct_arithmetic")
+    if not ok_bad:
+        failures.append("hint_leak_direct_arithmetic")
+
+    leak_step = [{"index": 2, "hint": "Köklər x = 0, x = 4 və x = 5-dir, yəni cəmi 3 kök var.", "check": {"ask": "Köklər?", "accept": ["3"]}}]
+    ok_leak = leak.detect_hint_leak(leak_step) is True
+    print(f"[{'PASS' if ok_leak else 'FAIL'}] hint_leak_answer_declaration")
+    if not ok_leak:
+        failures.append("hint_leak_answer_declaration")
+
+    socratic_step = [{"index": 1, "hint": "Tam ədəd anlayışını və ədədlər oxunda 6,25-dən böyük ilk tam nöqtəni nəzərdən keçir.", "check": {"ask": "Ədəd?", "accept": ["7"]}}]
+    ok_socratic = leak.detect_hint_leak(socratic_step) is False
+    print(f"[{'PASS' if ok_socratic else 'FAIL'}] hint_leak_socratic_clean")
+    if not ok_socratic:
+        failures.append("hint_leak_socratic_clean")
 
     return failures
 
@@ -567,6 +596,7 @@ def selftest():
     invariant_failures = _selftest_prompt_schema_invariants()
     image_failures = _selftest_image_resolve()
     physics_failures = _selftest_physics_prompt()
+    hint_failures = _selftest_semantic_hint_leak()
     api_failures = _selftest_api_failure_exclusion()
     retry_failures = _selftest_llm_retry()
     kind_failures = _selftest_choice_kind()
@@ -575,11 +605,12 @@ def selftest():
         + invariant_failures
         + image_failures
         + physics_failures
+        + hint_failures
         + api_failures
         + retry_failures
         + kind_failures
     )
-    extra = 2 + 3 + 3 + 4 + 3 + 2  # prompt + image + physics + failed-exclusion + retry + choice-kind
+    extra = 2 + 3 + 3 + 3 + 4 + 3 + 2  # prompt + image + physics + hint + failed-exclusion + retry + choice-kind
     total = n_cases + extra
 
     if failures:

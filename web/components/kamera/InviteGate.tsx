@@ -41,8 +41,8 @@ export function InviteGate({
   // Derive from prop — avoid setState-in-effect when parent marks invite invalid.
   const gateError: GateError | null = error ?? (hint ? { kind: hint } : null);
 
-  async function submit() {
-    const code = value.trim();
+  async function submit(codeOverride?: string) {
+    const code = (typeof codeOverride === "string" ? codeOverride : value).trim();
     if (!code || checking) return;
     setChecking(true);
     setError(null);
@@ -122,7 +122,9 @@ export function InviteGate({
             onClick={() => {
               setValue("demo");
               setError(null);
+              void submit("demo");
             }}
+            data-testid="use-demo-code-btn"
             style={{
               alignSelf: "flex-start",
               border: "none",
@@ -168,7 +170,7 @@ export function InviteGate({
       />
       <button
         type="button"
-        onClick={submit}
+        onClick={() => submit()}
         disabled={checking || !value.trim()}
         style={{
           alignSelf: "flex-start",

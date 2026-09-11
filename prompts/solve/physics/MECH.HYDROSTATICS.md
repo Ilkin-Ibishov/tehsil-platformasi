@@ -29,7 +29,7 @@ p=ρgh; Arximed. Son ədəd `explanation`/`latex`-də yoxdur — `check.ask` ist
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "p=ρgh, g=10. Əmsalı check.ask istəyir."
+      "hint": "Diqqət yetir: Qravitasiya sahəsinin intensivliyini hidrostatik təzyiq düsturunda yerinə qoyaraq əmsalı müəyyən et."
     }
   ]
 }

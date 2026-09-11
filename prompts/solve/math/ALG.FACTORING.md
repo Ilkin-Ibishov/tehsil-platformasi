@@ -29,7 +29,7 @@ Cüt axtarışı; diskriminant düsturu bu mövzunun nümunəsi DEYİL.
         "input_kind": "number"
       },
       "error_code": "FACTOR_PAIR",
-      "hint": "−2 və −3: (−2)+(−3)=−5, (−2)·(−3)=6."
+      "hint": "Xatırla: Hasili müsbət, cəmi mənfi olan iki ədədin hər ikisi mənfi işarəli olmalıdır."
     },
     {
       "index": 2,
@@ -42,7 +42,7 @@ Cüt axtarışı; diskriminant düsturu bu mövzunun nümunəsi DEYİL.
         "input_kind": "number"
       },
       "error_code": "SUBSTITUTION_SKIPPED",
-      "hint": "−2x − 3x = −5x."
+      "hint": "Diqqət yetir: Oxşar hədləri islah edərkən mənfi əmsalları toplama qaydasını tətbiq et."
     }
   ]
 }

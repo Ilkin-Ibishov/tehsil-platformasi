@@ -30,7 +30,7 @@ Son ədəd `explanation`/`latex`-də yoxdur — `check.ask` istəyir (E1.7).
         "input_kind": "number"
       },
       "error_code": "FORMULA_MISAPPLIED",
-      "hint": "10^8 ixtisar olunur, 3/2 qalır. 1,5-i izahda yazma."
+      "hint": "Xatırla: Mütləq sınma əmsalı düsturunda eyni dərəcəli vuruqları ixtisar edərək kəsrin qiymətini onluq kəsrlə ifadə et."
     }
   ]
 }
