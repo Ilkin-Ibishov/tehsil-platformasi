@@ -141,7 +141,7 @@ begin
         'why', 'Viyet teoremi kökləri hesablamadan onların cəmini və hasilini tapmağa imkan verir.',
         'hint', 'x² - 7x + 12 = 0 tənliyində a, b və c əmsallarını müəyyənləşdir.',
         'error_code', 'FORMULA_MISAPPLIED',
-        'check', jsonb_build_object('ask', 'Viyet teoreminə görə x₁·x₂ hansı düsturla tapılır? (cavab: c/a)', 'input_kind', 'expression')
+        'check', jsonb_build_object('ask', 'Viyet teoreminə görə x₁·x₂ hansı düsturla tapılır?', 'input_kind', 'expression')
       ),
       jsonb_build_object(
         'index', 2,
