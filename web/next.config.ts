@@ -1,6 +1,7 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 const nextConfig: NextConfig = {
   // lib/design-tokens.ts docs/DESIGN-TOKENS.json-u (repo kökündə, web/-dən kənarda) idxal edir —
@@ -22,20 +23,31 @@ const nextConfig: NextConfig = {
   agentRules: false,
 };
 
-import { withSentryConfig } from "@sentry/nextjs";
-
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 export default withSentryConfig(
   withNextIntl(nextConfig),
   {
-    silent: true, // Suppresses all logs
-    org: process.env.SENTRY_ORG,
-    project: process.env.SENTRY_PROJECT,
+    // Sentry build-time options
+    silent: true,
+    org: process.env.SENTRY_ORG || "essential-inc-vq",
+    project: process.env.SENTRY_PROJECT || "javascript-nextjs",
+
+    // Source maps upload — requires SENTRY_AUTH_TOKEN
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+
+    // Upload a larger set of source maps for readability
     widenClientFileUpload: true,
-    transpileClientSDK: true,
+
+    // Tunnel Sentry events through our domain to bypass ad-blockers
     tunnelRoute: "/monitoring",
-    hideSourceMaps: true,
-    disableLogger: true,
+
+    // Automatically delete source maps after upload
+    sourcemaps: {
+      deleteSourcemapsAfterUpload: true,
+    },
+
+    // Automatically associate commits and releases
+    release: { name: process.env.NEXT_PUBLIC_APP_VERSION || "dev" },
   }
 );

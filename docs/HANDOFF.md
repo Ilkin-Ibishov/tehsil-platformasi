@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-11 (220) · Antigravity → Cowork
+Etdim:    Sentry tam effektivliklə konfiqurasiya edildi: `web/instrumentation.ts` (Next.js 15+ server və API route xətalarını auto-tutmaq üçün `onRequestError`), `web/app/global-error.tsx` (React root error boundary), `web/sentry.client.config.ts` (`browserTracingIntegration`, `device_id`, `grade`, `role` tag-ləri ilə initialScope), `web/next.config.ts` (`@sentry/nextjs/config`, `tunnelRoute: "/monitoring"`, sourcemaps avtomatik təmizlənmə). Həmçinin `web/app/api/reports/route.ts`-də NextRequest/NextResponse importu `next/server`-ə düzəldildi. `npm run typecheck` və `npm run lint` 0 xəta ilə keçir.
+Tapşırıq: meta / no ClickUp — Sentry tam inteqrasiyası
+Diqqət:   Canlı xətaların Sentry-yə çatması üçün `.env.local` və Vercel-ə `NEXT_PUBLIC_SENTRY_DSN` yazılmalıdır.
+
 ## 2026-09-11 (219) · Antigravity → Cowork
 Etdim:    PostHog tam inteqrasiya: `posthog-node` əlavə edildi, `web/lib/posthog-server.ts` server-side `$ai_generation` tracking modulu yaradıldı. `callVisionLLM`-in hər iki çıxış yolu (native cache + OpenAI-compat) PostHog-a `$ai_model`, `$ai_latency`, token sayları, xərc və fallback məlumatı göndərir. Client-side `PostHogProvider.tsx` təkmilləşdirildi: manual pageview tracking (SPA), autocapture, pageleave, `device_id`-lə identify. `.env.example`-ə PostHog/Sentry açarları əlavə edildi. Supabase MCP ilə `0076_bug_reports` miqrasiyası canlı bazaya tətbiq edildi.
 Tapşırıq: meta / no ClickUp

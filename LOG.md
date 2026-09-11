@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-09-11: HANDOFF 220 — Sentry tam instrumentasiyası: instrumentation.ts (onRequestError), global-error.tsx, client scope device/grade/role tag-ləri, tunnelRoute /monitoring, next.config Sentry build options, typecheck və lint 0 xəta.
 - 2026-09-11: HANDOFF 216 — AG-010 Vizuallaşdırma mühərriki auditi: `visual.selftest.mts` (43/43) preflight-a qoşuldu
   (11/11 pass), Supabase Bank suallarına (kvadrat/ədəd oxu) 2 nümunə `visual` seed edildi, BACKLOG AG-010 rəsmiləşdirildi.
 - 2026-09-10: HANDOFF 215 — /learn daimi qaydalar: 10-web-ui.md (klaviatura və humanist səhv invariantları),
