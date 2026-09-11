@@ -458,7 +458,7 @@ begin
         'explanation', '5 alma 10 manata başa gəlir. Bir almanın qiymətini tapmaq üçün bölürük.',
         'why', 'Bir vahidin qiymətini bilsək, istənilən sayını tapa bilərik.',
         'hint', '10 manatı 5 almaya böl.',
-        'error_code', 'ARITHMETIC',
+        'error_code', 'FORMULA_MISAPPLIED',
         'check', jsonb_build_object('ask', '1 alma neçə manatdır?', 'input_kind', 'number')
       ),
       jsonb_build_object(
