@@ -1,2 +1,3 @@
+- 2026-09-11: PostHog inteqrasiyası təkmilləşdirildi: ilk test hadisələri EU endpoint-inə çatdırıldı, ad-blocker-ləri aşmaq üçün /ingest rewrite-ları, session recording və profil identifikasiyası əlavə edildi.
 - 2026-09-11: Sentry inteqrasiyası və doğrulama infrastrukturu tamamlandı: test hadisəsi Sentry-yə göndərildi, /sentry-example-page və /api/sentry-example-api test nöqtələri əlavə edildi.
 - 2026-09-11: UI-da fizika məhdudiyyətini ləğv etdim, yoxlama (verify) mərhələsində fizika vahidlərini (N, m/s, sm) emal edə biləcək ədədi yoxlamanı aktivləşdirdim və fizika mövzularını Sual Bankına daxil etmək üçün 0075 nömrəli baza miqrasiyasını hazırladım.

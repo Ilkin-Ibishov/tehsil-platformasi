@@ -79,6 +79,19 @@ async function flush(): Promise<void> {
 export function trackEvent(name: string, props: Record<string, unknown> = {}): void {
   if (typeof window === "undefined") return; // server-side render zamanı no-op
 
+  // PostHog-a da sinxron ötür (əgər klientdə aktivdirsə)
+  try {
+    const ph = (window as unknown as { posthog?: { capture: (evt: string, data?: Record<string, unknown>) => void } }).posthog;
+    if (ph && typeof ph.capture === "function") {
+      ph.capture(name, {
+        ...props,
+        attempt_id: currentAttemptId,
+      });
+    }
+  } catch {
+    // PostHog xətası heç vaxt daxili telemetriyanı bloklamır
+  }
+
   const event: TelemetryEvent = {
     event_id: uuidv4(),
     device_id: getDeviceId(),

@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-11 (227) · Antigravity → Cowork
+Etdim:    PostHog inteqrasiyası və doğrulama infrastrukturu tamamlandı: test hadisələri (`app_opened`, `$pageview`, `posthog_setup_verification`) EU endpoint-inə uğurla çatdırıldı və status 200 OK alındı; `web/next.config.ts`-ə ad-blocker-lərdən yan keçmək üçün rəsmi `/ingest/*` proxy rewrite-ları əlavə edildi; `web/components/PostHogProvider.tsx`-də session recording aktivləşdirildi, `th_device_id` və şagird profil metrikaları (`grade`, `role`, `goal`, `onboarded`) ilə identify zənginləşdirildi; `web/lib/telemetry/index.ts`-də `trackEvent` daxili hadisələri PostHog-a sinxron ötürməyə başladı; test səhifəsinə PostHog yoxlama düyməsi əlavə edildi.
+Tapşırıq: meta / no ClickUp — PostHog Setup Verification & Ingest Proxy
+Diqqət:   PostHog açarı `NEXT_PUBLIC_POSTHOG_KEY` ilə təmin olunur, klient xətaları əsas iş axınını heç vaxt bloklamır.
+
 ## 2026-09-11 (226) · Antigravity → Cowork
 Etdim:    Sentry inteqrasiyası və doğrulama infrastrukturu tamamlandı: DSN konfiqurasiyası və `essential-inc-vq` / `javascript-nextjs` layihə əlaqəsi yoxlanıldı; ilk doğrulama hadisəsi (`ef598c26ea5a499cba7192c5f96abf2f`) birbaşa Sentry API-yə uğurla göndərildi; interaktiv test səhifəsi (`web/app/sentry-example-page/page.tsx`) və server-side test API endpoint-i (`web/app/api/sentry-example-api/route.ts`) əlavə edildi; `typecheck` 0 xəta ilə təsdiqləndi.
 Tapşırıq: meta / no ClickUp — Sentry Setup Verification & Example Page

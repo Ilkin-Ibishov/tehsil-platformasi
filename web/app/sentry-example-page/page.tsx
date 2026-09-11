@@ -30,6 +30,23 @@ export default function SentryExamplePage() {
     }
   };
 
+  const triggerPostHogEvent = () => {
+    try {
+      const ph = (window as unknown as { posthog?: { capture: (name: string, props?: Record<string, unknown>) => void } }).posthog;
+      if (ph && typeof ph.capture === "function") {
+        ph.capture("manual_posthog_test_click", {
+          source: "/sentry-example-page",
+          timestamp: new Date().toISOString(),
+        });
+        alert("PostHog test hadisəsi göndərildi! (manual_posthog_test_click)");
+      } else {
+        alert("PostHog açarı tapılmadı və ya klient hələ yüklənməyib.");
+      }
+    } catch (e) {
+      alert(`PostHog xətası: ${(e as Error).message}`);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--background)] text-[var(--text-primary)]">
       <div className="max-w-md w-full p-8 rounded-2xl border border-[var(--border)] shadow-xl bg-[var(--surface)] text-center space-y-6">
@@ -63,6 +80,14 @@ export default function SentryExamplePage() {
             className="w-full py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-medium transition-colors cursor-pointer"
           >
             3. Server API Xətası Çağır (/api/sentry-example-api)
+          </button>
+
+          <button
+            type="button"
+            onClick={triggerPostHogEvent}
+            className="w-full py-3 px-4 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-medium transition-colors cursor-pointer"
+          >
+            4. PostHog Test Hadisəsi Göndər (posthog.capture)
           </button>
         </div>
 

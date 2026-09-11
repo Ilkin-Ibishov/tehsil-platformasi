@@ -21,6 +21,23 @@ const nextConfig: NextConfig = {
   // Repo kökündə artıq öz CLAUDE.md-imiz var (Cowork sahibliyindədir, fayl sahibliyi cədvəli).
   // Next.js-in avtomatik web/CLAUDE.md + web/AGENTS.md generasiyası onunla toqquşur.
   agentRules: false,
+  skipTrailingSlashRedirect: true,
+  async rewrites() {
+    return [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://eu-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://eu.i.posthog.com/:path*",
+      },
+      {
+        source: "/ingest/decide",
+        destination: "https://eu.i.posthog.com/decide",
+      },
+    ];
+  },
 };
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
