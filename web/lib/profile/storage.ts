@@ -6,6 +6,7 @@ import type {
   Role,
   Goal,
   VisualTone,
+  PedagogicalTone,
   ErrorStats,
   TopicStats,
 } from "./types";
@@ -83,10 +84,12 @@ export function getStoredProfile(): ProfileData {
   const gradeNum = Math.min(11, Math.max(5, parseInt(safeGet(KEYS.GRADE, "9"), 10) || 9));
   const visualToneDefault: VisualTone = gradeNum <= 8 ? "genc" : "yetkin";
   const visualTone = (safeGet(KEYS.VISUAL_TONE, visualToneDefault) as VisualTone) || visualToneDefault;
-  const pedTone = normalizePedagogicalTone(safeGet(KEYS.PEDAGOGICAL_TONE, "yetkin"));
+  const pedToneDefault: PedagogicalTone = gradeNum <= 9 ? "dostyana" : "yetkin";
+  const pedTone = normalizePedagogicalTone(safeGet(KEYS.PEDAGOGICAL_TONE, pedToneDefault));
   const locale = (safeGet(KEYS.LOCALE, "az") as Locale) || "az";
   const role = (safeGet(KEYS.ROLE, "sagird") as Role) || "sagird";
-  const goal = (safeGet(KEYS.GOAL, "dim") as Goal) || "dim";
+  const goalDefault: Goal = gradeNum <= 8 ? "mekteb" : gradeNum === 9 ? "buraxilis" : "dim";
+  const goal = (safeGet(KEYS.GOAL, goalDefault) as Goal) || goalDefault;
   const inviteCode = safeGet(KEYS.INVITE_CODE, "");
   const deviceId = safeGet(KEYS.DEVICE_ID, "");
   const fullName = safeGet(KEYS.FULL_NAME, "");
@@ -119,6 +122,12 @@ export function saveProfile(partial: Partial<ProfileData>): ProfileData {
     safeSet(KEYS.GRADE, String(g));
     if (!partial.visualTone) {
       safeSet(KEYS.VISUAL_TONE, g <= 8 ? "genc" : "yetkin");
+    }
+    if (!partial.pedagogicalTone) {
+      safeSet(KEYS.PEDAGOGICAL_TONE, g <= 9 ? "dostyana" : "yetkin");
+    }
+    if (!partial.goal) {
+      safeSet(KEYS.GOAL, g <= 8 ? "mekteb" : g === 9 ? "buraxilis" : "dim");
     }
   }
   if (partial.goal) safeSet(KEYS.GOAL, partial.goal);

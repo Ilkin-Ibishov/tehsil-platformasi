@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-11 (224) · Antigravity → Cowork
+Etdim:    Onboarding axınının QA auditi və bərkidilməsi (AG-011..AG-014): `docs/testing/plans/TP-ONBOARDING.md` test planı (15 test case); `web/app/onboarding/page.tsx` (skip loqikası bərkidildi, 9-cu sinif tələsi aradan qaldırıldı, router.replace ilə Android back loop həll edildi, mobil klaviatura/autoCapitalize/enterKeyHint təkmilləşdirildi, 7 düyməli balanslı qrid və dinamik sinif izah qutusu əlavə edildi); `web/lib/profile/storage.ts` (sinif dəyişdikdə `pedagogicalTone` və `goal` avto-sinxronizasiyası); `web/messages/az.json` (soyad/ixtiyari təmizləndi, dərslik dili tətbiq edildi); `web/app/profil/page.tsx` (az əlifbası ilə böyük hərf); `docs/TELEMETRY.md` və `web/app/page.tsx` (cold start və onboarding telemetriyası); `docs/BACKLOG.md` yeniləndi; preflight 12/12 tam keçdi.
+Tapşırıq: AG-011..AG-014 — Onboarding axınının QA sınağı və pedaqoji təkmilləşdirilməsi
+Diqqət:   Sinif dəyişdikdə `pedagogicalTone` və `goal` avtomatik sinxron qalır; `onboarding.started` və `app.opened` soyuq başlanğıcda itmir; 'Keç' düyməsi aktiv sinfi qoruyur.
+
 ## 2026-09-11 (223) · Antigravity → Cowork
 Etdim:    Yeni `qa_tester` rolu və `qa-tester` bacarığı yaradıldı (`.agents/agents/qa-tester.md`, `.agents/skills/qa-tester/SKILL.md`); universal test çərçivəsi (`docs/testing/QA-FRAMEWORK.md`) və input/flow matrisi sənədləşdirildi; `scripts/lib/agent-registry.mjs` və `AGENTS.md` yeniləndi; `.cursor/` kopyaları sinxronlaşdırıldı; preflight 12/12 tam keçdi.
 Tapşırıq: meta / no ClickUp — Yeni `qa_tester` rolu və QA test çərçivəsinin qurulması

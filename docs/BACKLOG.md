@@ -36,6 +36,10 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
 | **AG-008** | Faza 1 Şagird Qapısı İntizamı (15–20 Real Şagird) | Məhsul / QA | **P0** | `In Progress` | Cowork / BA | docs/PHASE-1.md |
 | **AG-009** | Antigravity Deklarativ Subagent Qeydiyyatı | Multi-Agent | **P2** | `Complete` | Antigravity | .agents/agents/ |
 | **AG-010** | Vizuallaşdırma Mühərriki & Funksiya Korpusu | Vizual / Faza 4 | **P2** | `Deferred (Phase 4)` | Cowork / Antigravity | ADR-031 / ClickUp 86eyp3auh |
+| **AG-011** | Onboarding Naviqasiya & "Keç" Təhlükəsizliyi | Onboarding / Nav | **P0** | `Complete` | Antigravity | web/app/onboarding/ |
+| **AG-012** | Siniflə Pedaqoji Ton & Dinamik İzah Qutusu | Pedaqogika / UX | **P1** | `Complete` | Antigravity | web/lib/profile/ |
+| **AG-013** | Ad Sahəsi Erqonomikası & Azərbaycan Orfoqrafiyası | Mobil UX / i18n | **P1** | `Complete` | Antigravity | web/app/onboarding/ |
+| **AG-014** | Onboarding Funnel Telemetriyası & Soyuq Başlanğıc | Telemetriya | **P1** | `Complete` | Antigravity | web/lib/telemetry.ts |
 
 ---
 
@@ -156,4 +160,66 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
   - [x] İstehsalat bazasında (Supabase) Bank üçün 2 real DİM sualına (`ALG.QUADRATIC_EQUATION` və `ALG.LINEAR_EQUATION`) nümunəvi `visual` payload bağlandı.
   - [ ] Faza 4: DİM funksiya-qrafik korpusu genişləndirilir ($n \ge 30$).
   - [ ] Faza 4: `visual.reported` və `visual.shown` telemetriya metrikaları ölçülür.
+
+---
+
+### 🛡️ AG-011: Onboarding Naviqasiya & "Keç" (Skip) Təhlükəsizlik Möhkəmləndirməsi
+- **Sahə:** Onboarding Axını / Naviqasiya İntizamı
+- **Prioritet:** P0 | **Status:** `Complete` (TP-ONBOARDING, BUG-ONB-03, BUG-ONB-04, BUG-ONB-07)
+- **Təsvir:**
+  1. `handleSkip()`-in sinfi məcburi 9 etməsi (P0 tələsi) aradan qaldırıldı: Step 1-də "keç" Step 2-yə (sinif seçiminə) yönləndirir; Step 2-də "keç" seçilmiş sinfi saxlayır (`persistAndGo(fullName.trim(), grade)`).
+  2. Tarixçə tələsi: `persistAndGo` daxilində `router.push("/")` ➔ `router.replace("/")` edildi; Android geri jesti onboarding dövriyyəsi yaratmır.
+  3. Yenidən onboarding məlumat itkisi: `/profil`-dən gələrkən form `getStoredProfile()` dəyərləri ilə inisializasiya olunur.
+- **Fayllar:** `web/app/onboarding/page.tsx`, `web/app/profil/page.tsx`.
+- **Qəbul Meyarları:**
+  - [x] Step 1-də "keç" basıldıqda Step 2 açılır, sinif 9 olaraq zorlanmır.
+  - [x] Step 2-də 11-ci sinif seçilib "keç" basıldıqda sinif 11 olaraq saxlanılır.
+  - [x] Quraşdırma bitdikdən sonra ana ekranda "Geri" basıldıqda onboarding-ə qayıtmır.
+  - [x] `/profil`-dən "Quraşdırmanı yenidən keç" basıldıqda mövcud ad və sinif form xanalarında görünür.
+
+---
+
+### 🎓 AG-012: Siniflə Pedaqoji Tonun Avtomatik Əlaqələndirilməsi & Dinamik İzah Qutusu
+- **Sahə:** Pedaqogika / DİM Standartı / UX
+- **Prioritet:** P1 | **Status:** `Complete` (TP-ONBOARDING, BUG-ONB-05, BUG-ONB-11)
+- **Təsvir:**
+  1. Sinif seçimi ilə yanaşı `web/lib/profile/storage.ts`-də həm `visualTone`, həm də `pedagogicalTone` avtomatik təyin olunur: 5-8 siniflər üçün `dostyana` + `mekteb`, 9 üçün `dostyana` + `buraxilis`, 10-11 üçün `yetkin` + `dim`.
+  2. `design/Onboarding.dc.html`-də mövcud olan dinamik sinif izah mətni (`IZAH[sinif]`) bərpa olundu.
+  3. `az.json`-dakı "vizual ton" dizayner jarqonu dərslik dili ilə əvəzləndi.
+- **Fayllar:** `web/lib/profile/storage.ts`, `web/app/onboarding/page.tsx`, `web/messages/az.json`.
+- **Qəbul Meyarları:**
+  - [x] 5-8 sinif seçildikdə `pedagogicalTone: "dostyana"` yadda saxlanılır.
+  - [x] Sinif düyməsinə basıldıqda dərhal altında müvafiq dərslik izah mətni çıxır.
+  - [x] "Vizual ton" ifadəsi interfeysdən təmizlənir, dərslik dilinə uyğunlaşdırılır.
+
+---
+
+### 📱 AG-013: Ad Sahəsi Erqonomikası, Simvol Məhdudiyyəti & Azərbaycan Orfoqrafiyası
+- **Sahə:** Mobil Daxiletmə Erqonomikası / i18n
+- **Prioritet:** P1 | **Status:** `Complete` (TP-ONBOARDING, BUG-ONB-01, BUG-ONB-02, BUG-ONB-06, BUG-ONB-10)
+- **Təsvir:**
+  1. "Soyad" tələbi ləğv edildi, "Səni necə çağıraq? (İxtiyari)" şəklinə gətirildi.
+  2. `<input>` sahəsinə `maxLength={50}`, `autoCapitalize="words"`, `autoComplete="given-name"`, `enterKeyHint="next"`, `spellCheck={false}` əlavə edildi.
+  3. Dağıdıcı `autoFocus` ləğv edildi.
+  4. `profil/page.tsx`-dəki `.toUpperCase()` Azərbaycan orfoqrafiyası üçün `.toLocaleUpperCase("az")` edildi.
+  5. 7 sinif düyməsi üçün asimmetrik `repeat(4, 1fr)` şəbəkəsi səliqəli `repeat(7, 1fr)` strukturuna salındı.
+- **Fayllar:** `web/app/onboarding/page.tsx`, `web/app/profil/page.tsx`, `web/messages/az.json`.
+- **Qəbul Meyarları:**
+  - [x] 50-dən artıq simvol daxil edilə bilmir, UI heç vaxt dağılmır.
+  - [x] Mobildə ad yazarkən klaviatura böyük hərflə başlayır və "Next" düyməsi verir.
+  - [x] "ilkin" adı profil ekranında "ILKIN" deyil, "İLKİN" kimi böyüyür.
+
+---
+
+### 📡 AG-014: Onboarding Funnel Telemetriyası və Soyuq Başlanğıc İzlənməsi
+- **Sahə:** Telemetriya / PostHog Analitikası
+- **Prioritet:** P1 | **Status:** `Complete` (TP-ONBOARDING, BUG-ONB-09)
+- **Təsvir:**
+  1. Onboarding addımları üçün 4 rəsmi telemetriya hadisəsi əlavə edildi: `onboarding.started`, `onboarding.step_viewed`, `onboarding.step_submitted`, `onboarding.completed`, `onboarding.skipped`.
+  2. `web/app/page.tsx`-də soyuq başlanğıc zamanı `app.opened` hadisəsinin onboarding redirect-i səbəbindən itməsinin qarşısı alındı.
+- **Fayllar:** `web/lib/telemetry.ts`, `docs/TELEMETRY.md`, `web/app/onboarding/page.tsx`, `web/app/page.tsx`.
+- **Qəbul Meyarları:**
+  - [x] Onboarding-in hər addımında PostHog hadisələri düzgün xassələrlə (`props`) atılır.
+  - [x] Onboarding-də tərk edən istifadəçilər (drop-off) PostHog funnel-ində aydın görünür.
+
 

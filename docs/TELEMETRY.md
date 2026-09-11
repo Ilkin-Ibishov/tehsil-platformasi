@@ -70,6 +70,11 @@ Düşənlər: `problem_id`, `topic_code`, `error_code`, ölçülər, müddətlə
 ```
 app.opened              props: {cold_start: bool, locale, grade, tone}
 app.backgrounded        props: {session_duration_sec}
+onboarding.started      props: {}
+onboarding.step_viewed  props: {step}                          ← step 1 (ad) və ya 2 (sinif)
+onboarding.step_submitted props: {step, has_name: bool}        ← addım təsdiqləndi
+onboarding.completed    props: {grade, has_name: bool}         ← quraşdırma tamamlandı
+onboarding.skipped      props: {at_step}                       ← "keç" ilə ötürüldü
 invite_redeemed         props: {code}                          ← HANDOFF (81): dəvət kodu bu (kod, cihaz)
                                                                   cütündə İLK dəfə görüldü (server yazır,
                                                                   `invite_redemptions` cədvəli, yalnız

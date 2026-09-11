@@ -42,12 +42,6 @@ export default function HomePage() {
       }
     }
 
-    const currentProfile = getStoredProfile();
-    if (!currentProfile.onboarded) {
-      router.replace("/onboarding");
-      return;
-    }
-
     let coldStart = true;
     try {
       coldStart = localStorage.getItem(DEVICE_ID_KEY) === null;
@@ -55,12 +49,18 @@ export default function HomePage() {
       // ignore
     }
 
+    const currentProfile = getStoredProfile();
     trackEvent("app.opened", {
       cold_start: coldStart,
       locale: currentProfile.locale,
       grade: currentProfile.grade,
       tone: currentProfile.pedagogicalTone,
     });
+
+    if (!currentProfile.onboarded) {
+      router.replace("/onboarding");
+      return;
+    }
   }, [router]);
 
   const streakDays = profile.streakDays || 1;

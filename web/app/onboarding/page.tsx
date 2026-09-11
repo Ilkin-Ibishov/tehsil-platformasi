@@ -1,34 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { saveProfile } from "@/lib/profile/storage";
+import { getStoredProfile, saveProfile } from "@/lib/profile/storage";
 import { applyVisualToneFromProfile } from "@/components/ThemeToneSync";
+import { trackEvent } from "@/lib/telemetry";
 
 export default function OnboardingPage() {
   const t = useTranslations("onboarding");
   const router = useRouter();
+  const startedRef = useRef(false);
 
   const [step, setStep] = useState<1 | 2>(1);
-  const [fullName, setFullName] = useState<string>("");
-  const [grade, setGrade] = useState<number>(9);
+  const [fullName, setFullName] = useState<string>(() => getStoredProfile().fullName || "");
+  const [grade, setGrade] = useState<number>(() => getStoredProfile().grade || 9);
+
+  useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    trackEvent("onboarding.started", {});
+    trackEvent("onboarding.step_viewed", { step: 1 });
+  }, []);
 
   function persistAndGo(name: string, nextGrade: number) {
+    trackEvent("onboarding.completed", {
+      grade: nextGrade,
+      has_name: Boolean(name),
+    });
     saveProfile({
       fullName: name,
       locale: "az",
       role: "sagird",
       grade: nextGrade,
-      goal: "dim",
       onboarded: true,
     });
     applyVisualToneFromProfile();
-    router.push("/");
+    router.replace("/");
   }
 
   function handleSkip() {
-    persistAndGo(fullName.trim(), 9);
+    if (step === 1) {
+      trackEvent("onboarding.skipped", { at_step: 1 });
+      trackEvent("onboarding.step_viewed", { step: 2 });
+      setStep(2);
+    } else {
+      trackEvent("onboarding.skipped", { at_step: 2 });
+      persistAndGo(fullName.trim(), grade);
+    }
+  }
+
+  function goToStep2() {
+    trackEvent("onboarding.step_submitted", { step: 1, has_name: Boolean(fullName.trim()) });
+    trackEvent("onboarding.step_viewed", { step: 2 });
+    setStep(2);
+  }
+
+  function goToStep1() {
+    trackEvent("onboarding.step_viewed", { step: 1 });
+    setStep(1);
   }
 
   const p1 = "var(--acc)";
@@ -86,10 +116,14 @@ export default function OnboardingPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") setStep(2);
+                  if (e.key === "Enter") goToStep2();
                 }}
                 placeholder={t("stepNamePlaceholder")}
-                autoFocus
+                maxLength={50}
+                autoCapitalize="words"
+                autoComplete="given-name"
+                enterKeyHint="next"
+                spellCheck={false}
                 aria-label={t("stepNameTitle")}
                 style={{
                   width: "100%",
@@ -108,7 +142,7 @@ export default function OnboardingPage() {
 
               <button
                 type="button"
-                onClick={() => setStep(2)}
+                onClick={goToStep2}
                 style={{
                   width: "100%",
                   minHeight: "56px",
@@ -134,7 +168,7 @@ export default function OnboardingPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <button
                 type="button"
-                onClick={() => setStep(1)}
+                onClick={goToStep1}
                 aria-label={t("backAria")}
                 style={{
                   minHeight: 44,
@@ -162,7 +196,7 @@ export default function OnboardingPage() {
             <p style={{ margin: 0, fontSize: "15px", lineHeight: 1.6, color: "var(--t2)" }}>
               {t("step3Body")}
             </p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "6px" }}>
               {[5, 6, 7, 8, 9, 10, 11].map((g) => {
                 const isSel = grade === g;
                 return (
@@ -170,22 +204,42 @@ export default function OnboardingPage() {
                     key={g}
                     type="button"
                     onClick={() => setGrade(g)}
+                    aria-pressed={isSel}
+                    aria-label={`${g}-ci sinif`}
                     style={{
-                      minHeight: "56px",
+                      minHeight: "52px",
                       border: isSel ? "2px solid var(--acc)" : "1px solid var(--bor)",
-                      borderRadius: "var(--rad)",
+                      borderRadius: "var(--radsm)",
                       background: isSel ? "var(--accsoft)" : "var(--sur)",
                       color: isSel ? "var(--acc)" : "var(--t1)",
                       fontFamily: "var(--font-mono)",
-                      fontSize: "17px",
-                      fontWeight: 600,
+                      fontSize: "16px",
+                      fontWeight: isSel ? 700 : 500,
                       cursor: "pointer",
+                      transition: "border-color 160ms ease, background 160ms ease",
                     }}
                   >
                     {g}
                   </button>
                 );
               })}
+            </div>
+
+            <div
+              style={{
+                padding: "14px 16px",
+                borderLeft: "3px solid var(--acc)",
+                borderRadius: "var(--radsm)",
+                background: "var(--accsoft)",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                transition: "all 180ms ease",
+              }}
+            >
+              <span style={{ fontSize: "14px", lineHeight: 1.55, color: "var(--t1)" }}>
+                {t(`gradeExpl${grade}` as "gradeExpl5")}
+              </span>
             </div>
 
             <button
@@ -202,7 +256,7 @@ export default function OnboardingPage() {
                 fontSize: "16px",
                 fontWeight: 700,
                 cursor: "pointer",
-                marginTop: "12px",
+                marginTop: "4px",
               }}
             >
               {t("finishCta")} →

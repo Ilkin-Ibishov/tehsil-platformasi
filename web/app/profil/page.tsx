@@ -103,7 +103,7 @@ export default function ProfilePage() {
             textTransform: "uppercase",
           }}
         >
-          {profile.fullName ? `${profile.fullName.toUpperCase()} · ` : ""}
+          {profile.fullName ? `${profile.fullName.toLocaleUpperCase("az")} · ` : ""}
           {t("gradeBadge", { grade: profile.grade })}
         </span>
       </div>

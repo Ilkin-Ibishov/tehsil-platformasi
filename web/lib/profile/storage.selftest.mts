@@ -38,6 +38,16 @@ check("updated goal", updated.goal, "buraxilis");
 check("updated onboarded", updated.onboarded, true);
 check("visual tone from grade 6", updated.visualTone, "genc");
 
+const grade11Profile = saveProfile({ grade: 11 });
+check("grade 11 auto visual tone", grade11Profile.visualTone, "yetkin");
+check("grade 11 auto ped tone", grade11Profile.pedagogicalTone, "yetkin");
+check("grade 11 auto goal", grade11Profile.goal, "dim");
+
+const grade5Profile = saveProfile({ grade: 5 });
+check("grade 5 auto visual tone", grade5Profile.visualTone, "genc");
+check("grade 5 auto ped tone", grade5Profile.pedagogicalTone, "dostyana");
+check("grade 5 auto goal", grade5Profile.goal, "mekteb");
+
 saveHistoryItem({
   id: "test_attempt_1",
   topicCode: "ALG.LINEAR_EQUATION",
