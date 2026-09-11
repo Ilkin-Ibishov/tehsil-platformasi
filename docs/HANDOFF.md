@@ -15,6 +15,10 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-11 (218) · Antigravity → Cowork
+Etdim:    Tester Control Panel (`web/app/tester/page.tsx`, `web/components/TesterPanel.tsx`), PostHog və Sentry inteqrasiyaları əlavə olundu (`layout.tsx`, `next.config.ts`, `sentry.*.config.ts`). `public.bug_reports` üçün Supabase miqrasiyası (`0076_bug_reports.sql`) və daxil olan hesabatları yazan API (`web/app/api/reports/route.ts`) yaradıldı.
+Tapşırıq: meta / no ClickUp
+Diqqət:   ENV-də `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` və `NEXT_PUBLIC_SENTRY_DSN` mütləq əlavə edilməlidir.
 ## 2026-09-11 (217) · Antigravity → Cowork
 Etdim:    UI-da fizika blokunu qaldırdım (`web/messages/az.json`), `verifyFinalAnswer`-də fizika üçün ədədi yoxlamanı aktivləşdirdim (`web/lib/verify/answer.ts`), və Sual Bankında fizika mövzularını göstərmək üçün yeni miqrasiya faylı yaratdım (`0075_physics_bank_matchable.sql`).
 Tapşırıq: meta / no ClickUp — Fizika dəstəyinin aktivləşdirilməsi

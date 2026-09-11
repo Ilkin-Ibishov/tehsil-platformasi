@@ -198,3 +198,5 @@
 - 2026-08-19: E1.11 model fallback telemetriyasi. 0074 miqrasiyasi (model_used jsonb), v_model_health view, solve.response/cascade-a model/fallback props. ClickUp 86eyp5gt2.
 - 2026-08-19: E1.9/E1.10 yeniden olcme. core.md v16 leak qaydasi (butun fenn). layout.py suffix-only (variant ogurlama duzelisi). 255 recrop. question_kind (curriculum|iq_logic). e24 leak 15.2%->4% (1/25), choice curriculum 100%. e110-50 false_refusal 73.7%->4.2% (1/24). API 503 ~50%.
 - 2026-08-15: ClickUp MCP limiti tapildi - MCP server-in AYRI kvotasi var (Free: 24 saatliq rolling pencerede 50 cagiris, sifirlanmir). REST API ise deqiqede 100. `scripts/clickup.mjs` yazildi, MCP artiq islenmir; CLAUDE.md-e qayda elave edildi.
+-   2 0 2 6 - 0 9 - 1 1 :   T e s t e r   c o n t r o l   p a n e l ,   P o s t H o g ,   S e n t r y   a n d   S u p a b a s e   b u g _ r e p o r t s   i n t e g r a t i o n   i m p l e m e n t e d .  
+ 
