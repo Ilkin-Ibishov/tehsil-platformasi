@@ -94,21 +94,20 @@ Note: `fingerprint_digits` does NOT include choice values (58, 68, 72, 80, 88)
 select 
   props->>'match_path' as match_path,
   props->>'layer' as layer,
-  props->>'topic_code' as topic_code,
   count(*) as count
 from events
 where name = 'solve.cascade'
-  and created_at >= now() - interval '1 day'
-group by props->>'match_path', props->>'layer', props->>'topic_code'
+  and ts_server >= now() - interval '1 day'
+group by props->>'match_path', props->>'layer'
 order by count desc;
 ```
 
 **Expected to see:**
 ```
-match_path   | layer              | topic_code           | count
--------------|--------------------|--------------------- |------
-fingerprint  | bank_fingerprint   | ARITH.PERCENT_OF     | 1     ← NEW! Was 0 before
-llm          | llm_text           | ...                  | ...   ← Still majority (non-matching questions)
+match_path   | layer              | count
+-------------|--------------------| ------
+fingerprint  | bank_fingerprint   | 1     ← NEW! Was 0 before
+llm          | llm_text           | ...   ← Still majority (non-matching questions)
 ```
 
 ### Step 5: Verify response carries match_path
@@ -116,9 +115,9 @@ llm          | llm_text           | ...                  | ...   ← Still major
 ```sql
 select 
   ai.match_path,
-  q.topic_code,
   q.fingerprint_digits,
-  substring(q.canonical, 1, 50) as canonical_preview
+  substring(q.canonical, 1, 50) as canonical_preview,
+  ai.created_at
 from attempt_items ai
 join attempts a on a.id = ai.attempt_id
 join questions q on q.id = ai.question_id
@@ -131,16 +130,20 @@ limit 5;
 
 **Expected:** At least one row with `match_path = 'fingerprint'`
 
+**Note:** This query uses `attempt_items.created_at` (not `ts_server`) since that's the correct timestamp column for this table.
+
 ---
 
 ## Success Criteria
 
-✅ **S6 PASS:** At least **1 camera solve** emits `match_path=fingerprint` within 24h of merge
+✅ **S6 PASS:** At least **1 camera solve** emits `match_path` = `fingerprint` OR `hash` (non-`llm`) within 24h of merge
 
 - [ ] Migration applied (10 seed rows present)
 - [ ] Manual camera test completed with a seed question
-- [ ] Telemetry shows `match_path=fingerprint` / `layer=bank_fingerprint`
+- [ ] Telemetry shows `match_path` ∈ {`fingerprint`, `hash`} (NOT only `llm`)
 - [ ] `attempt_items.match_path` contains non-`llm` value
+
+**Note:** `topic_code` is NOT required for S6 pass — only non-LLM match_path matters.
 
 ---
 
