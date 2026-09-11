@@ -96,6 +96,9 @@ function normalize(raw: string): string {
   text = convertLogBase(text);
   text = text.replace(/\\left|\\right/g, "");
   text = text.replace(/\\text\{[^}]*\}/g, "");
+  text = text.replace(/\\le(?:q|slant)?\b|≤/g, "<=");
+  text = text.replace(/\\ge(?:q|slant)?\b|≥/g, ">=");
+  text = text.replace(/==/g, "=");
   text = insertImplicitMultiplication(text.trim());
   return text.trim();
 }
@@ -490,16 +493,92 @@ function matchExactOrNumeric(input: string, accept: string): boolean {
   return numbersClose(inputVal, acceptVal);
 }
 
-/** SYSTEM-REVIEW-2026-08-07 §B1: şagirdin S4-də yazdığı cavab `check.accept`-in EYNİ
- * normallaşdırmasından keçsin (vergül/nöqtə, boşluq, unicode minus/kəsr, `log_b`, gizli
- * vurma) — əvvəllər addım-yoxlaması yalnız trim+lowercase edib sətir bərabərliyinə baxırdı,
- * `0.5` ilə `1/2` fərqli sətir olduğu üçün düzgün cavab səhv sayılırdı. Sətir bərabərliyi
- * (normallaşdırılmış formada) YALNIZ son çarədir — əvvəlcə ədədi ekvivalentlik yoxlanılır. */
-export function studentAnswerMatches(input: string, accept: string): boolean {
-  if (matchExactOrNumeric(input, accept)) return true;
+type ParsedRelation = { lhs: string; op: string; rhs: string };
 
-  const unitStripped = input.replace(/\s*(?:kq|q|sm|mm|km|m|san|s|saat|dəq|N|J|V|A|Vt|W|Pa|Kl|T|Hs|Hz|C|K|rad|sr)(?:\s*\/\s*(?:san|s|saat|dəq|kq|m|sm|mm|km))?(?:²|³|\^2|\^3)?\s*$/i, '');
-  if (unitStripped !== input && matchExactOrNumeric(unitStripped, accept)) return true;
+const FLIP_OP: Record<string, string> = {
+  "<": ">",
+  ">": "<",
+  "<=": ">=",
+  ">=": "<=",
+  "=": "=",
+};
+
+function parseRelation(raw: string): ParsedRelation | null {
+  const norm = normalize(raw);
+  if (!norm) return null;
+  const m = norm.match(/^(.*?)(<=|>=|<|>|=)(.*)$/);
+  if (!m) return null;
+  const rawLhs = m[1].trim();
+  const rawOp = m[2].trim();
+  const rawRhs = m[3].trim();
+  if (!rawLhs || !rawRhs) return null;
+
+  let lhs = rawLhs;
+  let op = rawOp;
+  let rhs = rawRhs;
+
+  // 1. Dəyişən sağ tərəfdədirsə, standart sol formaya çevir (məs: 25/4 < m  ==>  m > 25/4)
+  if (!/^[a-zA-Z]$/.test(lhs) && /^[a-zA-Z]$/.test(rhs)) {
+    lhs = rawRhs;
+    rhs = rawLhs;
+    op = FLIP_OP[rawOp] ?? rawOp;
+  }
+
+  // 2. Əgər sol tərəfdə sadə xətti əmsal varsa (məs: 4*m > 25  ==>  m > (25)/(4))
+  const coefMatch = lhs.match(/^([+-]?\d+(?:\.\d+)?)\*([a-zA-Z])$/);
+  if (coefMatch) {
+    const coef = Number(coefMatch[1]);
+    const varName = coefMatch[2];
+    if (coef !== 0 && Number.isFinite(coef)) {
+      lhs = varName;
+      rhs = `(${rhs})/(${coef})`;
+      if (coef < 0 && op in FLIP_OP) {
+        op = FLIP_OP[op];
+      }
+    }
+  }
+
+  return { lhs, op, rhs };
+}
+
+/** Kənan UX tapıntısı (2026-09-11): Şagird DİM testlərində m>25/4 və ya 25/4<m kimi adi
+ * kəsr və ya fərqli istiqamətli bərabərsizlik daxil etdikdə, yalnız m>6.25 qəbul etmək
+ * şagirdi ədalətsiz şəkildə ilişdirirdi. Bu funksiya tənlik və bərabərsizlikləri simvolik
+ * və ədədi olaraq ekvivalentlik üzrə yoxlayır. */
+export function matchInequalityOrEquation(input: string, accept: string): boolean {
+  const relIn = parseRelation(input);
+  const relAcc = parseRelation(accept);
+  if (!relIn || !relAcc) return false;
+
+  // Dəyişən və münasibət operatoru eyni olmalıdır
+  if (relIn.lhs !== relAcc.lhs || relIn.op !== relAcc.op) return false;
+
+  if (relIn.rhs === relAcc.rhs) return true;
+
+  const valIn = evalNumeric(relIn.rhs);
+  const valAcc = evalNumeric(relAcc.rhs);
+  if (valIn !== null && valAcc !== null && numbersClose(valIn, valAcc)) {
+    return true;
+  }
 
   return false;
 }
+
+/** SYSTEM-REVIEW-2026-08-07 §B1 / KENAN-2026-09-11: şagirdin S4-də yazdığı cavab `check.accept`-in
+ * EYNİ normallaşdırmasından keçsin (vergül/nöqtə, boşluq, unicode minus/kəsr, `log_b`, gizli
+ * vurma) — əvvəllər addım-yoxlaması yalnız trim+lowercase edib sətir bərabərliyinə baxırdı,
+ * `0.5` ilə `1/2` fərqli sətir olduğu üçün düzgün cavab səhv sayılırdı. Sətir bərabərliyi
+ * (normallaşdırılmış formada) YALNIZ son çarədir — əvvəlcə ədədi ekvivalentlik və bərabərsizliklər yoxlanılır. */
+export function studentAnswerMatches(input: string, accept: string): boolean {
+  if (matchExactOrNumeric(input, accept)) return true;
+  if (matchInequalityOrEquation(input, accept)) return true;
+
+  const unitStripped = input.replace(/\s*(?:kq|q|sm|mm|km|m|san|s|saat|dəq|N|J|V|A|Vt|W|Pa|Kl|T|Hs|Hz|C|K|rad|sr)(?:\s*\/\s*(?:san|s|saat|dəq|kq|m|sm|mm|km))?(?:²|³|\^2|\^3)?\s*$/i, '');
+  if (unitStripped !== input) {
+    if (matchExactOrNumeric(unitStripped, accept)) return true;
+    if (matchInequalityOrEquation(unitStripped, accept)) return true;
+  }
+
+  return false;
+}
+

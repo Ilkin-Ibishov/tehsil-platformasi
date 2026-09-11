@@ -21,7 +21,11 @@ const DEFAULT_PILOT_INVITES = new Set<string>([
   ...Array.from({ length: 20 }, (_, i) => `test-${String(i + 1).padStart(2, "0")}`), // test-01 .. test-20
   "ilkin2026",
   "tehsil2026",
+  "demo",
+  "demo2026",
 ]);
+
+export const MULTI_USE_DEMO_CODES = new Set(["demo", "demo2026"]);
 
 export function getAllValidInviteCodes(): Set<string> {
   const codes = new Set<string>(DEFAULT_PILOT_INVITES);
@@ -50,6 +54,9 @@ export async function checkInviteAvailableForDevice(
   deviceId?: string
 ): Promise<{ available: boolean; reason?: "already_claimed_by_another_device" }> {
   const norm = inviteCode.trim().toLowerCase();
+  if (MULTI_USE_DEMO_CODES.has(norm)) {
+    return { available: true };
+  }
   try {
     const { rows } = await pool.query<{ device_id: string }>(
       `select device_id from invite_redemptions where lower(code) = $1 limit 1`,
@@ -69,7 +76,7 @@ export async function checkInviteAvailableForDevice(
 }
 
 // HANDOFF (81/82) S4/S5: kodun bu (kod, cihaz) cütündə İLK dəfə görüldüyünü qeyd edir.
-// Hər bir invite kodu yalnız 1 nəfər (1 cihaz) tərəfindən istifadə edilə bilər.
+// Hər bir invite kodu yalnız 1 nəfər (1 cihaz) tərəfindən istifadə edilə bilər (demo kodları istisna).
 export async function logInviteRedemption(pool: Pool, inviteCode: string, deviceId: string): Promise<boolean> {
   const norm = inviteCode.trim().toLowerCase();
   try {
@@ -77,7 +84,7 @@ export async function logInviteRedemption(pool: Pool, inviteCode: string, device
       `select device_id from invite_redemptions where lower(code) = $1 limit 1`,
       [norm]
     );
-    if (existing.length > 0 && existing[0].device_id !== deviceId) {
+    if (!MULTI_USE_DEMO_CODES.has(norm) && existing.length > 0 && existing[0].device_id !== deviceId) {
       console.warn(`[cascade/guards] Invite ${norm} artıq başqa cihaz tərəfindən istifadə edilib: ${existing[0].device_id}`);
       return false;
     }

@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-11 (225) · Antigravity → Cowork
+Etdim:    Kənan UX Review təhlili və bərkidilməsi (P0-P2): `web/lib/verify/answer.ts` (deterministik bərabərsizlik və tənlik normalizatoru `matchInequalityOrEquation` — m>25/4, 25/4<m, m>6.25, 4m>25, x=1/2 ekvivalentlikləri); `web/lib/verify/answer.selftest.mts` (43/43 pass); `web/messages/az.json` ('həll səhvdir' ➔ 'İzahda xəta var? Səhv bildir', kamera dəstəklənmədikdə və dəvət kodunda köməkçi izahlar); `web/components/hell/SolveView.tsx` (reportWrong linki cavab qutusundan vizual ayrılaraq footer zonasına köçürüldü); `web/components/kamera/CaptureView.tsx` (kamera aşkarlanmadıqda sönük shutter gizlədildi, mərkəzdə böyük 'Qalereyadan / Kompüterdən seç' CTA-sı açıldı); `web/lib/cascade/guards.ts` (MULTI_USE_DEMO_CODES 'demo', 'demo2026' əlavə edildi); `web/components/kamera/InviteGate.tsx` (xətada bir kliklə demo koda keçid köməkçisi); `docs/BACKLOG.md` yeniləndi.
+Tapşırıq: meta / no ClickUp — Kənan UX Review & Ergonomics Hardening
+Diqqət:   Bərabərsizliklərdə əks operatorlar (`<` vs `>`) və fərqli dəyişənlər qətiyyən buraxılmır (fail-safe); son ekranda status ziddiyyəti tam aradan qaldırıldı.
+
 ## 2026-09-11 (224) · Antigravity → Cowork
 Etdim:    Onboarding axınının QA auditi və bərkidilməsi (AG-011..AG-014): `docs/testing/plans/TP-ONBOARDING.md` test planı (15 test case); `web/app/onboarding/page.tsx` (skip loqikası bərkidildi, 9-cu sinif tələsi aradan qaldırıldı, router.replace ilə Android back loop həll edildi, mobil klaviatura/autoCapitalize/enterKeyHint təkmilləşdirildi, 7 düyməli balanslı qrid və dinamik sinif izah qutusu əlavə edildi); `web/lib/profile/storage.ts` (sinif dəyişdikdə `pedagogicalTone` və `goal` avto-sinxronizasiyası); `web/messages/az.json` (soyad/ixtiyari təmizləndi, dərslik dili tətbiq edildi); `web/app/profil/page.tsx` (az əlifbası ilə böyük hərf); `docs/TELEMETRY.md` və `web/app/page.tsx` (cold start və onboarding telemetriyası); `docs/BACKLOG.md` yeniləndi; preflight 12/12 tam keçdi.
 Tapşırıq: AG-011..AG-014 — Onboarding axınının QA sınağı və pedaqoji təkmilləşdirilməsi

@@ -114,6 +114,32 @@ export function InviteGate({
           {errorText}
         </p>
       )}
+      {gateError && (gateError.kind === "already_used" || gateError.kind === "invalid") && (
+        <div style={{ padding: "12px 14px", borderRadius: "var(--radsm)", background: "var(--sur)", border: "1px solid var(--bor)", display: "flex", flexDirection: "column", gap: 8 }}>
+          <span style={{ fontSize: 13, lineHeight: 1.5, color: "var(--t2)" }}>{t("alreadyUsedHelp")}</span>
+          <button
+            type="button"
+            onClick={() => {
+              setValue("demo");
+              setError(null);
+            }}
+            style={{
+              alignSelf: "flex-start",
+              border: "none",
+              background: "transparent",
+              color: "var(--acc)",
+              fontFamily: "inherit",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: "pointer",
+              padding: 0,
+              textDecoration: "underline",
+            }}
+          >
+            {t("useDemoCode")} →
+          </button>
+        </div>
+      )}
       <input
         type="text"
         value={value}

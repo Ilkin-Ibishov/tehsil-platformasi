@@ -211,8 +211,8 @@
     "permissionDeniedTitle": "Kameraya icazə verilmədi",
     "permissionDeniedBody": "Şəkil çəkmək üçün brauzer ayarlarından kameraya icazə verməlisən.",
     "permissionDeniedRetry": "Yenidən cəhd et",
-    "notSupportedTitle": "Bu brauzerdə kamera dəstəklənmir",
-    "notSupportedBody": "Zəhmət olmasa başqa brauzerdən (Chrome, Safari) cəhd et."
+    "notSupportedTitle": "Kamera aşkarlanmadı",
+    "notSupportedBody": "Kompüterindən və ya telefon qalereyandan tapşırıq şəklini seçərək davam edə bilərsən."
   },
   "crop": {
     "label": "KƏSMƏ",
@@ -260,6 +260,8 @@
     "checking": "yoxlanır…",
     "invalid": "Dəvət kodu düzgün deyil. Yenidən yoxla.",
     "alreadyUsed": "Bu dəvət kodu artıq başqa istifadəçi tərəfindən istifadə edilib.",
+    "alreadyUsedHelp": "Dəvət kodun yoxdursa, müəllimindən al və ya sınaq üçün 'demo' kodunu daxil et.",
+    "useDemoCode": "Demo kodla daxil ol (demo)",
     "networkError": "Şəbəkə xətası — kod yoxlanıla bilmədi. Yenidən cəhd et.",
     "pwaHint": "Növbəti dəfə tez açmaq üçün: brauzer menyusundan \"Ana ekrana əlavə et\" seç."
   },
@@ -303,7 +305,7 @@
       "label": "CAVAB",
       "unverified": "yoxlanılmadı — diqqətli ol",
       "revealError": "Şəbəkə xətası — cavab gətirilə bilmədi. Yenidən cəhd et.",
-      "reportWrong": "həll səhvdir",
+      "reportWrong": "İzahda xəta var? Səhv bildir",
       "reportWrongDone": "Qeyd olundu, təşəkkür edirik.",
       "newProblem": "Yeni sual çək",
       "goHome": "Ana ekrana qayıt",

@@ -256,9 +256,29 @@ export function CaptureView({
           )}
 
           {stage === "not-supported" && (
-            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14, padding: 20 }}>
+            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", gap: 14, padding: 24 }}>
+              <span style={{ fontSize: 32 }}>📁</span>
               <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as unknown as number, fontSize: 20 }}>{t("notSupportedTitle")}</span>
-              <span style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)" }}>{t("notSupportedBody")}</span>
+              <span style={{ fontSize: 14, lineHeight: 1.6, color: "var(--t2)", maxWidth: "32ch" }}>{t("notSupportedBody")}</span>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  marginTop: 6,
+                  minHeight: "var(--tap)",
+                  padding: "0 24px",
+                  border: "none",
+                  borderRadius: "var(--rad)",
+                  background: "var(--acc)",
+                  color: "var(--accink)",
+                  fontFamily: "inherit",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                {t("galleryPick")}
+              </button>
             </div>
           )}
         </div>
@@ -286,7 +306,7 @@ export function CaptureView({
       />
 
       <div style={{ position: "sticky", bottom: 0, background: "var(--bg)", display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 16, padding: "18px 20px 26px" }}>
-        {galleryOnly ? (
+        {galleryOnly || stage === "not-supported" ? (
           <span />
         ) : (
           <button
@@ -297,7 +317,7 @@ export function CaptureView({
             {t("gallery")}
           </button>
         )}
-        {galleryOnly ? (
+        {galleryOnly || stage === "not-supported" ? (
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}

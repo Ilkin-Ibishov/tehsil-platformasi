@@ -749,33 +749,6 @@ export function SolveView({
           {finalDisplayText}
         </div>
         <VisualFigure spec={solution.visual} label={t("visual.label")} />
-        <div style={{ padding: "0 var(--page-pad-x)", display: "flex", gap: 20 }}>
-          {!reportedWrong && (
-            <button
-              type="button"
-              onClick={() => {
-                setReportedWrong(true);
-                trackEvent("solution.reported_wrong", {});
-              }}
-              style={{
-                minHeight: 44,
-                padding: 0,
-                border: "none",
-                background: "transparent",
-                color: "var(--t2)",
-                fontFamily: "inherit",
-                fontSize: 14,
-                cursor: "pointer",
-                borderBottom: "1px solid var(--bor)",
-              }}
-            >
-              {t("answer.reportWrong")}
-            </button>
-          )}
-          {reportedWrong && (
-            <span style={{ fontSize: 14, color: "var(--t2)" }}>{t("answer.reportWrongDone")}</span>
-          )}
-        </div>
 
         {/* S6 — "eynisini sən həll et". `transferState` `null`/`loading`/`unavailable` heç nə
             göstərmir (namizəd yoxdursa səssizcə keçilir), `shown`/`checking`/`answered` sual +
@@ -876,6 +849,40 @@ export function SolveView({
             <span>{resetLabel ?? t("answer.newProblem")}</span>
             <span style={{ fontFamily: "var(--font-mono)" }}>＋</span>
           </button>
+
+          <div style={{ display: "flex", justifyContent: "center", padding: "6px 0 14px" }}>
+            {!reportedWrong && (
+              <button
+                type="button"
+                onClick={() => {
+                  setReportedWrong(true);
+                  trackEvent("solution.reported_wrong", {});
+                }}
+                style={{
+                  minHeight: 44,
+                  padding: "0 10px",
+                  border: "none",
+                  background: "transparent",
+                  color: "var(--t3)",
+                  fontFamily: "inherit",
+                  fontSize: 13,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                <span>🚩</span>
+                <span style={{ textDecoration: "underline" }}>{t("answer.reportWrong")}</span>
+              </button>
+            )}
+            {reportedWrong && (
+              <span style={{ fontSize: 13, color: "var(--t2)", display: "flex", alignItems: "center", gap: 6 }}>
+                <span>✓</span>
+                <span>{t("answer.reportWrongDone")}</span>
+              </span>
+            )}
+          </div>
         </div>
       </main>
     );

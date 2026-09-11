@@ -45,6 +45,21 @@ const CASES: [string, string, boolean][] = [
   ["2π", "2*pi", true],
   ["10 ÷ 2", "5", true],
   ["4 · 5", "20", true],
+  // Kənan UX tapıntısı (2026-09-11) — Ekvivalent bərabərsizlik və tənliklər:
+  ["m>25/4", "m>6.25", true],
+  ["25/4<m", "m>6.25", true],
+  ["m>6,25", "m>6.25", true],
+  ["m > 25/4", "m > 6.25", true],
+  ["25/4 < m", "m > 6.25", true],
+  ["4m > 25", "m > 6.25", true],
+  ["x = 1/2", "x = 0.5", true],
+  ["1/2 = x", "x = 0.5", true],
+  ["x = 8", "8 = x", true],
+  ["k <= 4/3", "k <= 1.3333333", true],
+  ["k ≤ 4/3", "k <= 1.3333333", true],
+  ["m < 25/4", "m > 6.25", false], // Əks operator səhv qalmalıdır
+  ["m >= 6.25", "m > 6.25", false], // Ciddi/qeyri-ciddi fərqi səhv qalmalıdır
+  ["y > 6.25", "m > 6.25", false], // Fərqli dəyişən səhv qalmalıdır
 ];
 
 let fails = 0;
