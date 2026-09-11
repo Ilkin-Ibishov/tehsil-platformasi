@@ -22,5 +22,6 @@ UI copy in `az` via `next-intl` (`web/messages/az.json`). Code and commits in En
 ## Execution pitfalls
 
 - **No interactive CLI wizards:** never run interactive setup (e.g. `npx @sentry/wizard`) in autonomous tasks. They crash with `ERR_TTY_INIT_FAILED (EBADF)`. Write config files deterministically.
+- **PowerShell variable expansion trap:** in Windows PowerShell commands, identifiers prefixed with `$` inside double quotes (e.g. `"$pageview"`, `"$exception"`, `"$ai_generation"`) expand to empty strings `""` at shell runtime, causing silent payload corruption (e.g. PostHog 400 `event submitted with an empty event name`). Always use single quotes, backtick escapes (``$pageview``), `String.fromCharCode(36)`, or dedicated script files.
 - **Secrets shielding:** do not inspect or rewrite `.env.local` with read tools (denied by the pre-tool hook). Append user-provided credentials via shell (e.g. PowerShell `Add-Content`).
 - **Observability preservation:** never remove or bypass `trackAIGeneration()` when editing `web/lib/llm.ts` or cascade handlers.

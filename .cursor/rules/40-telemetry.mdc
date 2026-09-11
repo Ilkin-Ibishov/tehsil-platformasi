@@ -27,8 +27,10 @@ Record `model`, `fallback_used`, `fallback_from`, and `cost_usd` where the contr
 
 ## PostHog
 
-- **Client (`posthog-js`):** SPA `$pageview`, `pageleave`, autocapture. Call `posthog.identify(deviceId)` from `th_device_id` so browser sessions join DB telemetry.
+- **Client (`posthog-js`):** SPA `$pageview`, `pageleave`, autocapture. Call `posthog.identify(deviceId, traits)` enriching with student profile traits (`grade`, `role`, `goal`, `onboarded`) from local storage.
 - **Server (`posthog-node`):** LLM `$ai_generation` from `web/lib/llm.ts` via `trackAIGeneration()`. Captures `$ai_model`, `$ai_latency`, tokens, cost, cache hit, and fallback.
+- **Ad-Blocker Reverse Proxy Invariant:** `web/next.config.ts` must maintain `/ingest/*` rewrites to PostHog EU with `skipTrailingSlashRedirect: true`. Client `api_host` points to `/ingest` in production.
+- **Unified Telemetry Dual-Tracking:** `web/lib/telemetry/index.ts` `trackEvent()` synchronously mirrors all internal domain events into `window.posthog.capture()` with `attempt_id`.
 
 ## Sentry
 
@@ -36,6 +38,7 @@ Record `model`, `fallback_used`, `fallback_from`, and `cost_usd` where the contr
 - Import `withSentryConfig` from `@sentry/nextjs/config` (not `@sentry/nextjs`).
 - Keep `tunnelRoute: "/monitoring"` so phone ad-blockers do not silently drop reports.
 - Tag `initialScope` with `device_id`, `grade`, and `role` so issues join `attempt_items` and `bug_reports`.
+- Preserve `/sentry-example-page` and `/api/sentry-example-api` as permanent regression and verification test routes.
 
 ## Skill runbook
 

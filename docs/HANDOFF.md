@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-11 (228) · Antigravity → Cowork
+Etdim:    /learn və /critical-thinker əsasında sistem dərsləri daimi qaydalara həkk olundu: `.agents/rules/00-session.md` və `.cursor/rules/00-session.mdc`-yə PowerShell `$variable` genişlənmə tələsi əlavə edildi; `.agents/rules/40-telemetry.md` və `.cursor/rules/40-telemetry.mdc`-yə ad-blocker proxy invariantı (`/ingest/*`), `trackEvent` ikili qeydiyyatı, profil xüsusiyyətləri (`grade`, `role`, `goal`, `onboarded`) ilə identify və diaqnostik test marşrutları yazıldı; `learning_proposal.md` sənədləşdirildi; preflight 12/12 tam keçdi.
+Tapşırıq: meta / no ClickUp — /learn Persistent Observability & Quoting Invariants
+Diqqət:   PowerShell-də `$pageview` və `$exception` kimi açarlar dırnaq içində boş string-ə çevrilməməsi üçün həmişə escape edilməlidir; ad-blocker-lərdən qorunmaq üçün `/ingest/*` proxy-si daim aktiv saxlanmalıdır.
+
 ## 2026-09-11 (227) · Antigravity → Cowork
 Etdim:    PostHog inteqrasiyası və doğrulama infrastrukturu tamamlandı: test hadisələri (`app_opened`, `$pageview`, `posthog_setup_verification`) EU endpoint-inə uğurla çatdırıldı və status 200 OK alındı; `web/next.config.ts`-ə ad-blocker-lərdən yan keçmək üçün rəsmi `/ingest/*` proxy rewrite-ları əlavə edildi; `web/components/PostHogProvider.tsx`-də session recording aktivləşdirildi, `th_device_id` və şagird profil metrikaları (`grade`, `role`, `goal`, `onboarded`) ilə identify zənginləşdirildi; `web/lib/telemetry/index.ts`-də `trackEvent` daxili hadisələri PostHog-a sinxron ötürməyə başladı; test səhifəsinə PostHog yoxlama düyməsi əlavə edildi.
 Tapşırıq: meta / no ClickUp — PostHog Setup Verification & Ingest Proxy

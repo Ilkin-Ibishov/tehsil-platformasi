@@ -21,5 +21,6 @@ Constitution is `CLAUDE.md`. Routing is `AGENTS.md`.
 
 ## 4. Execution Pitfalls & Tooling Invariants
 - **No Interactive CLI Wizards**: Never run interactive wizards (e.g. `npx @sentry/wizard`) in background or autonomous agent tasks. They crash with `ERR_TTY_INIT_FAILED (EBADF)`. Author configuration files deterministically.
+- **PowerShell Variable Expansion Trap**: In Windows PowerShell commands, identifiers prefixed with `$` inside double quotes (e.g. `"$pageview"`, `"$exception"`, `"$ai_generation"`) expand to empty strings `""` at shell runtime, causing silent payload corruption (e.g., PostHog 400 `event submitted with an empty event name`). Always use single quotes, backtick escapes (``$pageview``), `String.fromCharCode(36)`, or dedicated script files.
 - **Secrets Shielding**: Never attempt to inspect or rewrite `.env.local` directly with read tools (denied by pre-tool safety hook). When configuring user-provided credentials, append via shell commands (e.g., PowerShell `Add-Content`).
 - **Observability Preservation**: Never remove or bypass `trackAIGeneration()` when editing `web/lib/llm.ts` or cascade handlers.
