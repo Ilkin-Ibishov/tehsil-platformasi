@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-11 (226) · Antigravity → Cowork
+Etdim:    Sentry inteqrasiyası və doğrulama infrastrukturu tamamlandı: DSN konfiqurasiyası və `essential-inc-vq` / `javascript-nextjs` layihə əlaqəsi yoxlanıldı; ilk doğrulama hadisəsi (`ef598c26ea5a499cba7192c5f96abf2f`) birbaşa Sentry API-yə uğurla göndərildi; interaktiv test səhifəsi (`web/app/sentry-example-page/page.tsx`) və server-side test API endpoint-i (`web/app/api/sentry-example-api/route.ts`) əlavə edildi; `typecheck` 0 xəta ilə təsdiqləndi.
+Tapşırıq: meta / no ClickUp — Sentry Setup Verification & Example Page
+Diqqət:   Kod fayllarında heç vaxt hardcoded token saxlanmır, `NEXT_PUBLIC_SENTRY_DSN` yalnız `.env.local` və Vercel env-dən oxunur.
+
 ## 2026-09-11 (225) · Antigravity → Cowork
 Etdim:    Kənan UX Review təhlili və bərkidilməsi (P0-P2): `web/lib/verify/answer.ts` (deterministik bərabərsizlik və tənlik normalizatoru `matchInequalityOrEquation` — m>25/4, 25/4<m, m>6.25, 4m>25, x=1/2 ekvivalentlikləri); `web/lib/verify/answer.selftest.mts` (43/43 pass); `web/messages/az.json` ('həll səhvdir' ➔ 'İzahda xəta var? Səhv bildir', kamera dəstəklənmədikdə və dəvət kodunda köməkçi izahlar); `web/components/hell/SolveView.tsx` (reportWrong linki cavab qutusundan vizual ayrılaraq footer zonasına köçürüldü); `web/components/kamera/CaptureView.tsx` (kamera aşkarlanmadıqda sönük shutter gizlədildi, mərkəzdə böyük 'Qalereyadan / Kompüterdən seç' CTA-sı açıldı); `web/lib/cascade/guards.ts` (MULTI_USE_DEMO_CODES 'demo', 'demo2026' əlavə edildi); `web/components/kamera/InviteGate.tsx` (xətada bir kliklə demo koda keçid köməkçisi); `docs/BACKLOG.md` yeniləndi.
 Tapşırıq: meta / no ClickUp — Kənan UX Review & Ergonomics Hardening
