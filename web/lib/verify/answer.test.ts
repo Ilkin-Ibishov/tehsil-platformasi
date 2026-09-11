@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { verifyFinalAnswer, studentAnswerMatches, equationCrossCheck } from "./answer";
 
 describe("verifyFinalAnswer", () => {
-  it("returns null for non-math subjects", () => {
-    const r = verifyFinalAnswer("x + 2 = 5", ["3"], "physics");
+  it("returns null for non-math and non-physics subjects", () => {
+    const r = verifyFinalAnswer("x + 2 = 5", ["3"], "chemistry");
     expect(r.verified).toBeNull();
     expect(r.method).toBe("none");
   });
@@ -78,5 +78,12 @@ describe("studentAnswerMatches", () => {
 
   it("comma-dot normalization", () => {
     expect(studentAnswerMatches("2,5", "2.5")).toBe(true);
+  });
+
+  it("ignores trailing physics units", () => {
+    expect(studentAnswerMatches("15 N", "15")).toBe(true);
+    expect(studentAnswerMatches("15N", "15")).toBe(true);
+    expect(studentAnswerMatches("20 sm", "20")).toBe(true);
+    expect(studentAnswerMatches("5 m/s", "5")).toBe(true);
   });
 });

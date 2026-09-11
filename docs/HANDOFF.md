@@ -15,7 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
-## 2026-09-11 (216) · Antigravity → Cowork
+## 2026-09-11 (217) · Antigravity → Cowork
+Etdim:    UI-da fizika blokunu qaldırdım (`web/messages/az.json`), `verifyFinalAnswer`-də fizika üçün ədədi yoxlamanı aktivləşdirdim (`web/lib/verify/answer.ts`), və Sual Bankında fizika mövzularını göstərmək üçün yeni miqrasiya faylı yaratdım (`0075_physics_bank_matchable.sql`).
+Tapşırıq: meta / no ClickUp — Fizika dəstəyinin aktivləşdirilməsi
+
+
 Etdim:    Vizuallaşdırma mühərriki (ADR-031) auditi və təhlükəsizlik baryeri: scripts/preflight.mjs-ə web/lib/visual.selftest.mts (43/43 pass) 11-ci yoxlama kimi inteqrasiya olundu (11/11 pass, 36s); Supabase istehsalat bazasında Bank üçün 2 real DİM sualına (ALG.QUADRATIC_EQUATION parabola təpəsi və ALG.LINEAR_EQUATION ədəd oxu) nümunəvi visual JSON bağlandı; docs/BACKLOG.md-də AG-010 (Faza 4 Deferred) rəsmiləşdirildi.
 Tapşırıq: AG-010 / no ClickUp — Vizuallaşdırma Mühərriki Auditi və Pre-Flight Qoruması.
 Diqqət:   Faza 1 qapısı (AG-008, 15-20 şagird) üçün heç bir ağır kənar vizual kitabxanası (Mafs, JSXGraph) gətirilmədi; render deterministik SVG və CSS custom property-ləri ilə məhdud saxlanıldı.

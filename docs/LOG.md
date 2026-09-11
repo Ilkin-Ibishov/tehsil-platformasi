@@ -1,0 +1,1 @@
+﻿- 2026-09-11: UI-da fizika məhdudiyyətini ləğv etdim, yoxlama (verify) mərhələsində fizika vahidlərini (N, m/s, sm) emal edə biləcək ədədi yoxlamanı aktivləşdirdim və fizika mövzularını Sual Bankına daxil etmək üçün 0075 nömrəli baza miqrasiyasını hazırladım.

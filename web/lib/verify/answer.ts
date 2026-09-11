@@ -471,19 +471,14 @@ export function verifyFinalAnswer(
   values: string[],
   subject?: string,
 ): { verified: boolean | null; reason: VerificationReason; method: VerificationMethod } {
-  if (subject !== undefined && subject !== "math") {
+  if (subject !== undefined && subject !== "math" && subject !== "physics") {
     return { verified: null, reason: null, method: "none" };
   }
   const result = equationCrossCheck(canonical, values);
   return { ...result, method: methodFor(result.verified) };
 }
 
-/** SYSTEM-REVIEW-2026-08-07 §B1: şagirdin S4-də yazdığı cavab `check.accept`-in EYNİ
- * normallaşdırmasından keçsin (vergül/nöqtə, boşluq, unicode minus/kəsr, `log_b`, gizli
- * vurma) — əvvəllər addım-yoxlaması yalnız trim+lowercase edib sətir bərabərliyinə baxırdı,
- * `0.5` ilə `1/2` fərqli sətir olduğu üçün düzgün cavab səhv sayılırdı. Sətir bərabərliyi
- * (normallaşdırılmış formada) YALNIZ son çarədir — əvvəlcə ədədi ekvivalentlik yoxlanılır. */
-export function studentAnswerMatches(input: string, accept: string): boolean {
+function matchExactOrNumeric(input: string, accept: string): boolean {
   const normInput = normalize(input);
   const normAccept = normalize(accept);
   if (!normInput || !normAccept) return false;
@@ -493,4 +488,18 @@ export function studentAnswerMatches(input: string, accept: string): boolean {
   const acceptVal = evalNumeric(normAccept);
   if (inputVal === null || acceptVal === null) return false;
   return numbersClose(inputVal, acceptVal);
+}
+
+/** SYSTEM-REVIEW-2026-08-07 §B1: şagirdin S4-də yazdığı cavab `check.accept`-in EYNİ
+ * normallaşdırmasından keçsin (vergül/nöqtə, boşluq, unicode minus/kəsr, `log_b`, gizli
+ * vurma) — əvvəllər addım-yoxlaması yalnız trim+lowercase edib sətir bərabərliyinə baxırdı,
+ * `0.5` ilə `1/2` fərqli sətir olduğu üçün düzgün cavab səhv sayılırdı. Sətir bərabərliyi
+ * (normallaşdırılmış formada) YALNIZ son çarədir — əvvəlcə ədədi ekvivalentlik yoxlanılır. */
+export function studentAnswerMatches(input: string, accept: string): boolean {
+  if (matchExactOrNumeric(input, accept)) return true;
+
+  const unitStripped = input.replace(/\s*(?:kq|q|sm|mm|km|m|san|s|saat|dəq|N|J|V|A|Vt|W|Pa|Kl|T|Hs|Hz|C|K|rad|sr)(?:\s*\/\s*(?:san|s|saat|dəq|kq|m|sm|mm|km))?(?:²|³|\^2|\^3)?\s*$/i, '');
+  if (unitStripped !== input && matchExactOrNumeric(unitStripped, accept)) return true;
+
+  return false;
 }
