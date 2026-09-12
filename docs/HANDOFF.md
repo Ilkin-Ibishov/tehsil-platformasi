@@ -15,6 +15,17 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (233) · Antigravity → Cowork
+Etdim:    Admin Analitika və Əməliyyat İdarəetmə Portalı yaradıldı: `web/lib/admin/` (tiplər, auth guard, analitika mühərriki və `analytics.selftest.mts` 6/6 pass); `web/app/api/admin/` (icmal, taksonomiya triage, runtime app_config və forensika API marşrutları); `web/app/admin/` desktop-first interfeysi (`layout.tsx`, `AdminHeaderNav.tsx`, `page.tsx` icmal paneli, `triage/page.tsx`, `config/page.tsx`, `sikayetler/page.tsx`); `globals.css`-də admin eni genişləndirildi; `scripts/preflight.mjs`-ə admin selftesti əlavə olundu (15/15 pass).
+Tapşırıq: meta / no ClickUp — Admin Analitika Portalı (4 Sütun, Taksonomiya Triage, Runtime Config və Forensika)
+Diqqət:   Admin paneli təhlükəsiz auth guard ilə qorunur, canlı Postgres sorğuları optimallaşdırılmış və kalibrlənmiş fallback ilə təchiz edilib; şagird axını və 11 dəyişməz error_code toxunulmazdır.
+
+
+## 2026-09-12 (232) · Antigravity → Cowork
+Etdim:    AG-020 dəyişiklikləri `main` budağına push edildi (commit `6a78b30`); GitHub Actions CI (run 34694897493) 36 saniyədə uğurla tamamlandı; Vercel Production deployment-i (`web-ee8ot2q0y-ilkin-ibishovs-projects.vercel.app`) 29 saniyədə Ready oldu və HTTP 200 OK təsdiqləndi.
+Tapşırıq: AG-020 — Push & Deploy Doğrulaması
+Diqqət:   Canlı mühitdə ana ekran erqonomikası və leksik düzəlişlər aktivdir.
+
 ## 2026-09-12 (231) · Antigravity → Cowork
 Etdim:    AG-020 Ana Ekran Erqonomikası və Leksik Təmizlik tamamlandı: `web/app/page.tsx`-dəki 64px nəhəng yaşıl streak rəqəmi və altındakı təkrarlanan etiket ləğv edildi, ekranda ~90px şaquli sahə azad olunaraq əsas "Tapşırığı çək" (Kamera CTA) düyməsi birbaşa görünən zonaya qaldırıldı; `streakDays >= 2` olduqda zərif `🔥 {count} gün ardıcıl` çipi göstərilir, 1-ci gündə isə birbaşa təmiz xitab açılır; `web/messages/az.json` və `design/Ana ekran.dc.html`-dəki loru "dalbadal" kəlməsi ədəbi/dərslik standartına uyğun "ardıcıl" ilə əvəzləndi; `docs/BACKLOG.md` yeniləndi; typecheck və preflight 14/14 tam keçdi.
 Tapşırıq: AG-020 — Ana Ekran Erqonomikası & Streak Çipi Təmizliyi

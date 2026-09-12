@@ -48,3 +48,10 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+.app-shell:has(.admin-shell),
+body:has(.admin-shell) .app-shell {
+  max-width: 100% !important;
+  width: 100%;
+}
+

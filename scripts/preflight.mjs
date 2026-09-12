@@ -48,6 +48,7 @@ runStep("Answer Matcher Selftest (answer.selftest.mts)", "npx tsx web/lib/verify
 runStep("DIM Template Engine Selftest (template.selftest.mts)", "npx tsx web/lib/cascade/template.selftest.mts");
 runStep("Answer Leakage Guard Selftest (leak.selftest.mts)", "npx tsx web/lib/verify/leak.selftest.mts");
 runStep("Visual SVG Engine Selftest (visual.selftest.mts)", "npx tsx web/lib/visual.selftest.mts");
+runStep("Admin Analytics Selftest (analytics.selftest.mts)", "npx tsx web/lib/admin/analytics.selftest.mts");
 
 // 3. Antigravity Guard Hook Selftest Suite
 runStep("Antigravity Guard Selftest Suite (guard.selftest.mjs)", "node scripts/hooks/guard.selftest.mjs");
