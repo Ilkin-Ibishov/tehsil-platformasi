@@ -51,7 +51,20 @@ async function runSelftest() {
   assert(typeof v.methodNoneCount === "number", "methodNoneCount must be number");
   console.log("PASS: SymPy 3-state verification integrity");
 
-  console.log("\nAll Admin Analytics Selftests passed successfully! (6/6)");
+  // 6. Match paths & cascade integrity
+  const paths = data7d.unitEconomics.matchPaths.map((p) => p.path);
+  assert(paths.length > 0, "matchPaths must not be empty");
+  console.log("PASS: Match paths and cascade layer integrity");
+
+  // 7. Error distribution & titleAz mapping
+  assert(data7d.pedagogical.errorDistribution.length > 0, "errorDistribution must not be empty");
+  for (const err of data7d.pedagogical.errorDistribution) {
+    assert(typeof err.code === "string" && err.code.length > 0, "error code must be valid string");
+    assert(typeof err.titleAz === "string" && err.titleAz.length > 0, "error titleAz must be non-empty");
+  }
+  console.log("PASS: Error distribution and Azerbaijani titleAz mapping");
+
+  console.log("\nAll Admin Analytics Selftests passed successfully! (7/7)");
 }
 
 runSelftest().catch((err) => {
