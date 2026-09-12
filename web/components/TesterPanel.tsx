@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getDeviceId, getAttemptId } from "@/lib/telemetry";
 
@@ -31,13 +31,27 @@ export function TesterPanel() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
+  // Drag state — başlanğıc mövqe: sağ alt künc (offset px)
+  const [pos, setPos] = useState<{ right: number; bottom: number }>({ right: 20, bottom: 20 });
+  const [isDragging, setIsDragging] = useState(false);
+  const posRef = useRef(pos);
+  posRef.current = pos;
+
+  const dragRef = useRef<{
+    active: boolean;
+    startX: number;
+    startY: number;
+    startRight: number;
+    startBottom: number;
+    moved: boolean;
+  }>({ active: false, startX: 0, startY: 0, startRight: 20, startBottom: 20, moved: false });
+
   const pathname = usePathname();
 
-  // İlk yükləmə + reaktiv hadisə dinləyicisi
+  // İlk yükləmə + yadda saxlanmış mövqenin bərpası + reaktiv hadisə dinləyicisi
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Cari vəziyyəti yoxla (setTimeout ilə SSR hydration uyuşmazlığını önlə)
     const check = () => {
       setTimeout(() => {
         setIsActive(hasActiveInvite());
@@ -46,9 +60,25 @@ export function TesterPanel() {
 
     check();
 
-    // Dəvət kodu URL-dən avtomatik yazılanda (InviteGate / url.ts dispatch edir)
+    // Əvvəlki sürüklənmiş mövqeni bərpa et
+    try {
+      const saved = localStorage.getItem("th_tester_panel_pos");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (typeof parsed.right === "number" && typeof parsed.bottom === "number") {
+          const maxRight = Math.max(8, window.innerWidth - 140);
+          const maxBottom = Math.max(8, window.innerHeight - 50);
+          setPos({
+            right: Math.max(8, Math.min(maxRight, parsed.right)),
+            bottom: Math.max(8, Math.min(maxBottom, parsed.bottom)),
+          });
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     window.addEventListener("th_invite_updated", check);
-    // localStorage başqa tabdan dəyişəndə
     window.addEventListener("storage", check);
 
     return () => {
@@ -56,6 +86,65 @@ export function TesterPanel() {
       window.removeEventListener("storage", check);
     };
   }, []);
+
+  // Global pointermove + pointerup — düymə xaricindən çıxdıqda da işləsin
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      const d = dragRef.current;
+      if (!d.active) return;
+      const dx = e.clientX - d.startX;
+      const dy = e.clientY - d.startY;
+      if (!d.moved && Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+      d.moved = true;
+
+      const maxRight = Math.max(8, window.innerWidth - 140);
+      const maxBottom = Math.max(8, window.innerHeight - 50);
+      const newRight = Math.max(8, Math.min(maxRight, d.startRight - dx));
+      const newBottom = Math.max(8, Math.min(maxBottom, d.startBottom - dy));
+      setPos({ right: newRight, bottom: newBottom });
+    };
+
+    const onUp = () => {
+      if (dragRef.current.active && dragRef.current.moved) {
+        try {
+          localStorage.setItem("th_tester_panel_pos", JSON.stringify(posRef.current));
+        } catch {
+          // ignore
+        }
+      }
+      dragRef.current.active = false;
+      setIsDragging(false);
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+  }, []);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (e.button !== 0) return;
+    dragRef.current = {
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      startRight: pos.right,
+      startBottom: pos.bottom,
+      moved: false,
+    };
+    setIsDragging(true);
+  };
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    if (dragRef.current.moved) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    setIsOpen(true);
+  };
 
   if (!isActive) return null;
 
@@ -117,22 +206,28 @@ export function TesterPanel() {
 
   return (
     <>
-      {/* Floating düymə — sağ alt künc */}
+      {/* Sürüklənə bilən (draggable) üzən düymə */}
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-5 right-5 z-50 flex items-center gap-2 px-3.5 py-2.5 rounded-full shadow-lg text-xs font-semibold transition-all active:scale-95"
+        onPointerDown={handlePointerDown}
+        onClick={handleButtonClick}
+        className="fixed z-50 flex items-center gap-2 px-3.5 py-2.5 rounded-full shadow-lg text-xs font-semibold select-none transition-shadow active:scale-95"
         style={{
+          right: `${pos.right}px`,
+          bottom: `${pos.bottom}px`,
           background: "var(--sur)",
           border: "1.5px solid var(--bor)",
           color: "var(--t2)",
           backdropFilter: "blur(8px)",
+          touchAction: "none",
+          cursor: isDragging ? "grabbing" : "grab",
         }}
-        title="Problem, xəta və ya təklif bildir"
+        title="Problem, xəta və ya təklif bildir (Uİ-da istənilən yerə sürükləyə bilərsiniz)"
         aria-label="Problem bildir"
       >
-        <span>🐞</span>
-        <span>Problem bildir</span>
+        <span className="pointer-events-none text-sm">🐞</span>
+        <span className="pointer-events-none">Problem bildir</span>
+        <span className="pointer-events-none opacity-40 text-[10px] ml-0.5 select-none">⠿</span>
       </button>
 
       {/* Modal */}

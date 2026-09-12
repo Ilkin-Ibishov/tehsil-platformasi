@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-09-12: HANDOFF 247 — TesterPanel üzən düyməsi tam sürüklənən (draggable) edildi; pointer event-ləri, viewport sərhədləri, drag vs click həddi və localStorage mövqe yaddaşı əlavə olundu; preflight 16/16 pass.
 - 2026-09-12: HANDOFF 246 — Dəvət kodlu bütün şagirdlər üçün `TesterPanel` avtomatik aktivləşdirildi (`th_invite_code` yoxlaması, `th_invite_updated` event, `getAttemptId()`, metadata.invite_code); admin `/admin/sikayetler`-də dəvət kodu çipi əlavə olundu; tsc sıfır xəta.
 - 2026-09-12: HANDOFF 245 — AdminLoginGate və AdminLogoutButton-da ESLint və React Compiler qaydaları tam tənzimləndi (executeLogin hoisting, useEffect setTimeout, next location assign fix); lokal npx eslint 0 xəta ilə tamamlandı.
 - 2026-09-12: HANDOFF 244 — Admin paneli UX və mobil naviqasiya optimallaşdırıldı (AdminHeaderNav, AdminLoginGate auto-key, analytics soak default 'all', taxonomy merge alias_of); TesterPanel və bug reporting mexanizmi təhlil edildi.

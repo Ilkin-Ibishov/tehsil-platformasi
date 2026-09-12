@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (247) · Antigravity → Cowork
+Etdim:    TesterPanel üzən düyməsi tam sürüklənən (draggable floating button) formata gətirildi: `web/components/TesterPanel.tsx`-də pointer event-ləri (`onPointerDown`, global `pointermove`, `pointerup`) ilə istənilən istiqamətə sürüklənmə təmin edildi; sürükləmə (drag) ilə klikləmə (click) arasındakı fərq 5px hərəkət həddi ilə ayrıldı ki, təsadüfi kliklər modalı açmasın; `window.innerWidth`/`innerHeight` sərhədləri ilə ekran kənarına çıxma önləndi; istifadəçinin təyin etdiyi son mövqe `localStorage.th_tester_panel_pos`-da saxlanılaraq səhifələr arası yaddaşda saxlanıldı; `touchAction: "none"` və `select-none` ilə mobil toxunma erqonomikası və arxadakı elementlərin əlçatanlığı (accessibility) tam sərbəstləşdirildi; preflight 16/16 tam keçdi.
+Tapşırıq: meta / no ClickUp — Sürüklənən (Draggable) Üzən Tester Düyməsi və UI Əlçatanlığı
+Diqqət:   Düymə istifadəçi tərəfindən ekranın istənilən yerinə aparıla bilər və arxadakı düymələrin üstünü örtmür; mövqe yadda saxlanılır.
+
 ## 2026-09-12 (246) · Antigravity → Cowork
 Etdim:    Bütün dəvət kodlu şagirdlər üçün `TesterPanel` avtomatik aktivləşdirildi: `web/lib/telemetry/index.ts`-ə `getAttemptId()` export əlavə edildi; `web/lib/invite/url.ts`-də `validateAndStoreInviteCode` uğurunda `localStorage.setItem("TESTER_MODE","true")` + `window.dispatchEvent(new Event("th_invite_updated"))` yazıldı; `web/components/kamera/InviteGate.tsx`-də manuel daxiletmə uğurunda eyni işlənildi; `web/components/TesterPanel.tsx` tam yenidən yazıldı — `th_invite_code` VƏ ya `TESTER_MODE` yoxlanır, `th_invite_updated`/`storage` hadisə dinləyiciləri əlavə edildi, `getDeviceId()`/`getAttemptId()` düzgün istifadəsi, `metadata.invite_code` rapora əlavə olundu, UI dizayn tokenlərinə uyğunlaşdırıldı; `web/app/api/admin/reports/route.ts`-ə `metadata` sütunu sorğulandı, `inviteCode` çıxarıldı; `web/app/admin/sikayetler/page.tsx`-ə dəvət kodu çipi (siyahı və forensik detail ekranında) əlavə olundu; `npx tsc --noEmit` sıfır xəta ilə keçdi.
 Tapşırıq: meta / no ClickUp — Dəvət Kodlu Şagirdlər üçün Avtomatik Bug Reporting Aktivləşdirilməsi
