@@ -153,12 +153,75 @@ export type AIHealthData = {
   pendingTaxonomyCount: number;
 };
 
+// Admin Tab Bölmələri
+export type AdminTab = "students" | "pedagogy" | "economics";
+
+// Şagird / Pilot İştirakçısı Tipləri (Canlı Telemetriya Axını)
+export type StudentActivityEvent = {
+  id: string;
+  name: string;
+  eventName?: string;
+  humanText: string;
+  actionText?: string;
+  icon: string;
+  timestamp: string;
+  studentName?: string;
+  studentId?: string;
+  grade?: number;
+  props?: Record<string, unknown>;
+  details?: Record<string, unknown> | null;
+};
+
+export type StudentParticipant = {
+  id?: string;
+  displayName?: string;
+  studentRef: string; // "invite01", "aygun-invite", "demo" və s.
+  deviceId: string;
+  grade?: number; // 9, 11
+  tone?: string; // "dostyana", "yetkin"
+  totalSolves?: number;
+  hintsOpened?: number;
+  successRate?: number;
+  lastTopic?: string;
+  lastActive?: string;
+  isTesterInvite?: boolean;
+  attemptCount?: number;
+  totalQuestions?: number;
+  completedQuestions?: number;
+  transferCorrectCount?: number;
+  revealedCount?: number;
+  totalCostUsd?: number;
+  lastActiveAt?: string;
+  firstSeenAt?: string;
+  recentEvents?: StudentActivityEvent[];
+};
+
+export type StudentCohortData = {
+  activeStudentsCount: number;
+  totalSolves?: number;
+  totalSessions?: number;
+  hintsOpenedCount?: number;
+  hintsUsedCount?: number;
+  overallSuccessRate: number;
+  participants: StudentParticipant[];
+  recentFeed: Array<
+    StudentActivityEvent & {
+      studentRef?: string;
+      deviceId?: string;
+      studentName?: string;
+      actionText?: string;
+    }
+  >;
+};
+
 // Tam Admin Dashboard Məlumat Paketi
 export type AdminDashboardPayload = {
   timestamp: string;
   isSampleData: boolean; // true = canlı telemetriya deyil, kalibrlənmiş nümunə modelidir
   filters: AdminFilterParams;
+  currentTab?: AdminTab;
   overview: AdminOverviewKPIs;
+  students: StudentCohortData; // Birinci dərəcəli şagird fəaliyyəti və telemetriya
   pedagogical: PedagogicalHealthData;
   unitEconomics: UnitEconomicsData;
   funnel: StudentFunnelData;

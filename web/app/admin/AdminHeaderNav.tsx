@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import type { TimeRange, EnvironmentKind } from "@/lib/admin/types";
+import type { TimeRange, EnvironmentKind, AdminTab } from "@/lib/admin/types";
 
 export default function AdminHeaderNav() {
   const router = useRouter();
@@ -12,6 +12,7 @@ export default function AdminHeaderNav() {
   const isDashboard = pathname === "/admin";
   const currentRange = (searchParams.get("range") || "7d") as TimeRange;
   const currentKind = (searchParams.get("kind") || "all") as EnvironmentKind;
+  const currentTab = (searchParams.get("tab") || "students") as AdminTab;
 
   const updateParam = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -183,6 +184,51 @@ export default function AdminHeaderNav() {
           >
             ← İcmal Dashboard
           </Link>
+        </div>
+      )}
+
+      {/* 2-ci sətir: Tab Zolağı (Yalnız Dashboard-da) */}
+      {isDashboard && (
+        <div className="w-full border-t border-[var(--bor)] pt-2 pb-1 flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar">
+          <button
+            type="button"
+            onClick={() => updateParam("tab", "students")}
+            className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer whitespace-nowrap ${
+              currentTab === "students"
+                ? "bg-[var(--accsoft)] text-[var(--acc)] font-bold border border-[var(--acc)]/30 shadow-xs"
+                : "text-[var(--t2)] hover:text-[var(--t1)] hover:bg-[var(--bg)] font-medium border border-transparent"
+            }`}
+          >
+            <span>🎓</span>
+            <span>Şagirdlər & Fəaliyyət</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[var(--acc)] text-white ml-0.5">Əsas</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => updateParam("tab", "pedagogy")}
+            className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer whitespace-nowrap ${
+              currentTab === "pedagogy"
+                ? "bg-[var(--accsoft)] text-[var(--acc)] font-bold border border-[var(--acc)]/30 shadow-xs"
+                : "text-[var(--t2)] hover:text-[var(--t1)] hover:bg-[var(--bg)] font-medium border border-transparent"
+            }`}
+          >
+            <span>📊</span>
+            <span>Pedaqoji Nəbz & Qıf</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => updateParam("tab", "economics")}
+            className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer whitespace-nowrap ${
+              currentTab === "economics"
+                ? "bg-[var(--accsoft)] text-[var(--acc)] font-bold border border-[var(--acc)]/30 shadow-xs"
+                : "text-[var(--t2)] hover:text-[var(--t1)] hover:bg-[var(--bg)] font-medium border border-transparent"
+            }`}
+          >
+            <span>💰</span>
+            <span>Vahid İqtisadiyyatı & Keş</span>
+          </button>
         </div>
       )}
     </header>

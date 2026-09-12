@@ -119,9 +119,14 @@ async function runSelftest() {
       );
     }
   }
-  console.log("PASS: Error distribution and Frozen 11 enum adherence (P2 verified)");
+  // 8. Student Cohort & Live Telemetry Feed
+  assert(!!data7d.students, "Students cohort object must exist");
+  assert(typeof data7d.students.activeStudentsCount === "number", "activeStudentsCount must be number");
+  assert(Array.isArray(data7d.students.participants), "participants must be array");
+  assert(Array.isArray(data7d.students.recentFeed), "recentFeed must be array");
+  console.log(`PASS: Students cohort verified (${data7d.students.participants.length} participants, ${data7d.students.recentFeed.length} feed items)`);
 
-  console.log("\nAll Admin Analytics & Security Selftests passed successfully! (7/7)");
+  console.log("\nAll Admin Analytics & Security Selftests passed successfully! (8/8)");
 }
 
 runSelftest().catch((err) => {
