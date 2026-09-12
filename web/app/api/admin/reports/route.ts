@@ -52,20 +52,21 @@ export async function GET(req: NextRequest) {
 
         // attempt_items və həll addımları
         const itemRes = await pool.query<{
-          stem: string;
+          stem: unknown;
           payload: unknown;
         }>(`
           select qt.stem, s.payload
           from public.attempt_items ai
-          left join public.questions q on q.id = ai.problem_id
+          left join public.questions q on q.id = ai.question_id
           left join public.question_translations qt on qt.question_id = q.id and qt.lang = 'az'
           left join public.solutions s on s.id = ai.solution_id
-          where ai.id = $1
+          where ai.id = $1 or ai.attempt_id = $1
           limit 1
         `, [effectiveAttemptId]);
 
         if (itemRes.rows[0]) {
-          stem = itemRes.rows[0].stem;
+          const rawStem = itemRes.rows[0].stem;
+          stem = typeof rawStem === "object" && rawStem !== null ? JSON.stringify(rawStem) : String(rawStem || "");
           stepsJson = itemRes.rows[0].payload;
         }
       }

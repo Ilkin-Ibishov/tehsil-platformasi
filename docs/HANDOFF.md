@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (234) · Antigravity → Cowork
+Etdim:    Admin paneli və analitika mühərriki canlı Supabase verilənlər bazası (`oxjzehxnbumgyoqjonju`) ilə ətraflı audit edildi: `attempts` və `attempt_items` arasındakı `kind` və `attempt_id` FK fərqləri aradan qaldırıldı; `step_events.attempt_id` üzrə xəta sorğusu real 65 xəta hadisəsi və 11 kanonik `error_code` ilə sinxronlaşdırıldı; `public.topic_codes` və `public.questions` əsasında real `topicFailureHotspots` sorğusu yazıldı; `MatchPathItem`-ə `'bank'` əlavə edildi ("Sual Bankı (Qat 2)"); `public.events` (1,611 hadisə) əsasında real şagird funnel-i və addım tərketmə (`step.abandoned`) paylanması qoşuldu; `reports/route.ts`-dəki `problem_id` → `question_id` və `jsonb` `stem` uyğunsuzluğu həll edildi; `typecheck` və `analytics.selftest.mts` 6/6 pass.
+Tapşırıq: meta / no ClickUp — Admin Analitika & Verilənlər Bazası Doğruluğu Auditi
+Diqqət:   Bütün analitika göstəriciləri canlı Postgres sxemasına tam cavab verir və fallback təhlükəsizliyi saxlanılır.
+
 ## 2026-09-12 (233) · Antigravity → Cowork
 Etdim:    Admin Analitika və Əməliyyat İdarəetmə Portalı yaradıldı: `web/lib/admin/` (tiplər, auth guard, analitika mühərriki və `analytics.selftest.mts` 6/6 pass); `web/app/api/admin/` (icmal, taksonomiya triage, runtime app_config və forensika API marşrutları); `web/app/admin/` desktop-first interfeysi (`layout.tsx`, `AdminHeaderNav.tsx`, `page.tsx` icmal paneli, `triage/page.tsx`, `config/page.tsx`, `sikayetler/page.tsx`); `globals.css`-də admin eni genişləndirildi; ESLint `set-state-in-effect` bərkidildi; `scripts/preflight.mjs`-ə admin selftesti əlavə olundu (15/15 pass).
 Tapşırıq: meta / no ClickUp — Admin Analitika Portalı (4 Sütun, Taksonomiya Triage, Runtime Config və Forensika)

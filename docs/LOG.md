@@ -1,3 +1,4 @@
+- 2026-09-12: Admin paneli və analitika SQL sorğuları canlı Supabase bazası ilə audit edildi: attempts/attempt_items fərqləri, step_events FK, topic_codes, 11 kanonik error_codes, real funnel telemetriyası və reports question_id uyğunsuzluqları aradan qaldırıldı.
 - 2026-09-11: /learn və /critical-thinker dərsləri daimi qaydalara yazıldı: 00-session (PowerShell quoting invariantı), 40-telemetry (PostHog proxy, identify traits, dual-track, diaqnostik endpointlər), preflight 12/12 tam keçdi.
 - 2026-09-11: PostHog inteqrasiyası təkmilləşdirildi: ilk test hadisələri EU endpoint-inə çatdırıldı, ad-blocker-ləri aşmaq üçün /ingest rewrite-ları, session recording və profil identifikasiyası əlavə edildi.
 - 2026-09-11: Sentry inteqrasiyası və doğrulama infrastrukturu tamamlandı: test hadisəsi Sentry-yə göndərildi, /sentry-example-page və /api/sentry-example-api test nöqtələri əlavə edildi.

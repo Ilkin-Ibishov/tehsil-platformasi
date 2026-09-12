@@ -61,7 +61,7 @@ export type PedagogicalHealthData = {
 
 // SÜTUN 2: Vahid İqtisadiyyatı & Kaskad Keş
 export type MatchPathItem = {
-  path: "image_cache" | "hash" | "fingerprint" | "template" | "embedding" | "llm" | "other";
+  path: "bank" | "image_cache" | "hash" | "fingerprint" | "template" | "embedding" | "llm" | "other";
   label: string;
   count: number;
   percentage: number;
