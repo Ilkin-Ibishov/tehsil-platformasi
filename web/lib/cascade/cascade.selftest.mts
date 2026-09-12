@@ -32,6 +32,8 @@ check("fingerprint: mənfi əmsallar SAXLANILIR", numericFingerprint("x^2-x-2=0 
 check("fingerprint: faiz məsələsi", numericFingerprint("300 ədədinin 5%-i neçədir?"), "300,5");
 check("fingerprint: onluq kəsr", numericFingerprint("0.3 və 12.5 cəmi"), "0.3,12.5");
 check("fingerprint: rəqəmsiz məsələ boş qaytarır", numericFingerprint("ifadəni sadələşdir"), "");
+check("fingerprint: DİM cavab variantları striplənir (≥2 marker)", numericFingerprint("15. Malın 20%-i satıldı. A) 58% B) 34% C) 68%"), "15,20");
+check("fingerprint: mətndəki tək marker qorunur", numericFingerprint("a) 5 ədədi götürün və 10-a vurun"), "5,10");
 
 // `normalizeCanonical` sabitdirsə `canonicalHash` da sabitdir — hash-in ÖZ dəyəri deyil,
 // BOŞLUQ/REGİSTR fərqinə həssas OLMAMASI qıfıllanır (dedup açarıdır).

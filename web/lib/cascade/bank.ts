@@ -56,8 +56,24 @@ export function canonicalHash(canonical: string): string {
 // `DATA-MODEL.md`: "mətndəki bütün ədədlər sıra ilə: '60,2,3'". Mənfi işarə DAXİL EDİLİR —
 // bankın `QUAD.*` şablonları `-1,-2` kimi mənfi əmsallar saxlayır, işarəni atsaydıq
 // `1,2` (kök cütü) ilə `-1,-2` (əmsallar) qarışardı.
+//
+// DİM məsələlərindəki cavab variantları (A) 58% B) 34% C) 68%) rəqəm izinə DAXIL OLMASINI
+// istəmirik — onlar məsələnin ÖZÜ deyil, SEÇIM METRİKASIDIR. Bank şablonları heç vaxt
+// cavab variantı saxlamır, camera isə saxlayır → uyğunluq HEÇVAXT tapılmırdı.
+// Həll: cavab variantlarını canonical-dan stripləyib, SONRA fingerprint çıxart.
 export function numericFingerprint(canonical: string): string {
-  return (canonical.match(/-?\d+(\.\d+)?/g) ?? []).join(",");
+  // Cavab variantlarını sil — amma YALNIZ çoxlu seçim halında (≥2 A-E marker).
+  // Tək "a) 5" məsələ mətni ola bilər ("a) 5 ədədi götürün"), onu silmək YANLIŞDIR.
+  // Nümunələr: "A) 58%" "B) 34%" "C) 68%" və ya "a) 5" "b) 10" "c) 15".
+  const choicePattern = /\b[A-Ea-e]\)\s*-?\d+(\.\d+)?%?\b/g;
+  const choiceMatches = canonical.match(choicePattern);
+
+  // ≥2 seçim markeri varsa — cavab variant bloku, strip et. Əks halda toxunma.
+  const withoutChoices = (choiceMatches && choiceMatches.length >= 2)
+    ? canonical.replace(choicePattern, "")
+    : canonical;
+
+  return (withoutChoices.match(/-?\d+(\.\d+)?/g) ?? []).join(",");
 }
 
 type BankRow = {

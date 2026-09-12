@@ -219,7 +219,7 @@ OCR training korpusu VƏ forensika. Hər çəkiliş üçün **iki fayl** yazıl�
 datadır. Silinmə tarixi `ocr_captures.created_at + 90 gün`-dən hesablanır, bucket obyekti
 `storage_path` ilə 1-1 uyğundur. Bax `INVARIANTS.md` INV-09.
 
-## `public.topic_codes` / `public.error_codes` — taksonomiya (`0051`, `0058`, `0061`, `0072`)
+## `public.topic_codes` / `public.error_codes` — taksonomiya (`0051`, `0058`, `0061`, `0072`, `0078`)
 
 Kodların yeganə DB mənbəyi. FK YOXDUR (şagird axını qırılmasın) —
 `trg_register_topic_code`/`trg_register_error_code` naməlum kodu `active=false,
@@ -230,6 +230,12 @@ needs_review=true` ilə avtomatik qeydə alır, `v_taxonomy_review`-da görünü
   (tarixi `step_events` sətirləri qırılmasın).
 - **RLS hər ikisində AKTİVDİR** (`0061`): `app_runtime` üçün full policy (trigger-lər hər
   şagird sorğusunda bu cədvəllərə insert edir), `anon`/`authenticated` üçün heç bir policy.
+- **BA Taxonomy Triage (`0078`, 2026-09-11)**: 27 kod triaj edildi — 23 adopt (title_az təyin
+  edildi), 3 merge (alias_of ilə kanonik kodlara istinad: VEC.OPERATIONS→GEO.VECTORS,
+  GEO.SOLID_CONE_VOLUME→GEO.CONE_VOLUME, ARITH.SQUARE_ROOT→ALG.RADICALS), 1 reject
+  (ALG.WORD_PROBLEM — topic deyil, problem_type-dır). `topic_codes.alias_of` (nullable text)
+  əlavə edildi — sərt FK yox, konvensiya ilə istinad. Alias qeydləri `active=false` və
+  `v_taxonomy_review`-dan çıxır.
 - Fizika ağacı (`0072` + `0073`): `MECH.*` (kinematika, dinamika, iş/enerji, impuls,
   fırlanma, statika, rəqslər, dalğa, hidrostatika, elastiklik), `THERMO.*` (istilik,
   qaz, I qanun, rütubət), `ELEC.*` / `MAG.*` / `EM.*` (Om, dövrə, sahə, potensial,

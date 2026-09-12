@@ -49,4 +49,16 @@ describe("numericFingerprint", () => {
     expect(numericFingerprint("x^2 + 5x - 6 = 0")).toBe("2,5,6,0");
     expect(numericFingerprint("a=-3, b=-7")).toBe("-3,-7");
   });
+
+  it("strips DIM answer choice blocks when >= 2 markers present", () => {
+    expect(
+      numericFingerprint(
+        "15. Mağazada malın 20%-i satıldı. A) 58% B) 34% C) 68% D) 80% E) 40%"
+      )
+    ).toBe("15,20");
+  });
+
+  it("preserves lone choice marker in problem text", () => {
+    expect(numericFingerprint("a) 5 ədədi götürün və 10-a vurun")).toBe("5,10");
+  });
 });

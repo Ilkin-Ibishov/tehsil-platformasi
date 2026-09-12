@@ -15,6 +15,16 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (243) · Antigravity → Cowork
+Etdim:    PR #9 və PR #11 audit edildi, toqquşmalar həll olunaraq `main`-ə inteqrasiya edildi: PR #9-dan DİM test variantlarının (`A) 58% B) 34%...`) `numericFingerprint`-dən təmizlənməsi `web/lib/cascade/bank.ts`-ə tətbiq edildi və vahid testləri əlavə olundu (`cascade.selftest.mts`, `persist.test.ts`); PR #11-in `0076` nömrə toqquşması aradan qaldırılaraq `0078_ba_taxonomy_triage_ilkin_sep11.sql` (23 ADOPT, 3 MERGE `alias_of`, 1 REJECT `ALG.WORD_PROBLEM`) kimi yaradıldı və canlı Supabase DB-yə uğurla tətbiq olundu (27 baxış gözləyən mövzu 0-a endi); `prompts/solve/math.md`-ə kanonik taksonomiya qaydaları Sokratik ipucu intizamı pozulmadan inteqrasiya edildi; `docs/DATA-MODEL.md` 0078 qeydi ilə yeniləndi; preflight 16/16 tam keçdi.
+Tapşırıq: meta / no ClickUp — PR #9 və PR #11 İnteqrasiyası, Taksonomiya Miqrasiyası 0078 və Kaskad Fingerprint Təmizlənməsi
+Diqqət:   0076 nömrə toqquşması `0078` ilə önləndi; `math.md`-dəki Sokratik ipucular toxunulmaz saxlanıldı (ADR-017 sıfır sızma); PR #9 və PR #11 branch-ları bağlanmağa hazırdır.
+
+## 2026-09-12 (242) · Antigravity → Cowork
+Etdim:    İstifadəçinin sorğusu əsasında `https://web-ilkin-ibishovs-projects.vercel.app/admin?kind=student` və oxşar `kind` səhifələri Playwright / Chrome DevTools MCP ilə analiz edildi: təmiz brauzer sessiyasında auth cookie olmadığı üçün AdminLoginGate-in açıldığı və `London2027@@` şifrəsi ilə daxil olduqdan sonra `kind=student` ekranının 6 həll, $0.0035 maya dəyəri və 73.1% transfer dərəcəsi ilə açıldığı təsdiqləndi; canlı DB-də `corpus_soak` datası 16-17 avqustda (26 gün əvvəl) qaldığı üçün defolt `range=7d` filtrində 0 nəticə verib avtomatik SAMPLE MODE-a düşdüyü aşkarlandı (`range=all` zamanı 24 soak həlli görünür); LoginGate-də `router.refresh()` əvəzinə `window.location.reload()` tələbatı sənədləşdirildi.
+Tapşırıq: meta / no ClickUp — Admin Paneli Kind Səhifələri və Canlı Brauzer Diaqnostikası
+Diqqət:   Soak testlərinin təhlili üçün vaxt filtri `range=all` (və ya `30d`) seçilməlidir; şifrəsiz birbaşa URL sorğuları təhlükəsizlik səbəbilə LoginGate-ə yönləndirilir.
+
 ## 2026-09-12 (241) · Antigravity → Cowork
 Etdim:    İstifadəçinin tələbi ilə Admin paneli üçün gizli giriş açarı `London2027@@` təyin edildi və konfiqurasiya olundu: `web/lib/admin/auth.ts`-də `DEFAULT_DEV_SECRET = "London2027@@"`; `web/.env.example`-ə `ADMIN_SECRET_KEY` sənədləşməsi əlavə olundu; Vercel CLI vasitəsilə `ilkin-ibishovs-projects/web` layihəsinin həm `Production`, həm də `Development` mühitlərinə `ADMIN_SECRET_KEY="London2027@@"` şifrələnmiş dəyişən kimi uğurla əlavə edildi (`vercel env add`); `web/lib/admin/analytics.selftest.mts` (7/7) və `npx tsc --noEmit` tam keçdi.
 Tapşırıq: meta / no ClickUp — Admin Paneli Giriş Açarının Təyini (Password: London2027@@)

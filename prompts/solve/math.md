@@ -7,6 +7,16 @@ düşür — hazırda YALNIZ nümunə JSON-u, çünki fizika/kimya hələ ayrı 
 yoxdursa fallback (`ADR-030`). `prompts/solve/math/{TOPIC_CODE}.md` varsa onun `Nümunə`
 bloku bunu əvəz edir.
 
+## Taksonomiya (BA Triage 2026-09-11)
+
+**Kanonik kodlar — bu kodları işlət:**
+- Vektorlar üçün **`GEO.VECTORS`** (heç vaxt VEC.OPERATIONS yazma)
+- Kökaltı ifadələr üçün **`ALG.RADICALS`** (heç vaxt ARITH.SQUARE_ROOT yazma)
+- Konusun həcmi üçün **`GEO.CONE_VOLUME`** (heç vaxt GEO.SOLID_CONE_VOLUME yazma)
+
+**Rədd edilmiş kodlar — heç vaxt topic_code kimi yazma:**
+- `ALG.WORD_PROBLEM` (mətnli məsələ problem_type-dır, topic deyil)
+
 `ADR-015` Tapıntı 3b: TƏK nümunə (əvvəllər yalnız 3 addımlıq) modelə "addım sayı budur"
 siqnalı verirdi — DB-də ölçülmüş 7 real həllin 6-sı 4 addım idi, sxem 2–6-ya icazə versə də.
 v11 (86eyn28kq): birinci nümunə **1 addımlıq** (`5+5`) — əks halda model qayda 3/nümunəyə
