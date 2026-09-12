@@ -35,7 +35,10 @@ export function TesterPanel() {
   const [pos, setPos] = useState<{ right: number; bottom: number }>({ right: 20, bottom: 20 });
   const [isDragging, setIsDragging] = useState(false);
   const posRef = useRef(pos);
-  posRef.current = pos;
+
+  useEffect(() => {
+    posRef.current = pos;
+  }, [pos]);
 
   const dragRef = useRef<{
     active: boolean;
@@ -68,10 +71,12 @@ export function TesterPanel() {
         if (typeof parsed.right === "number" && typeof parsed.bottom === "number") {
           const maxRight = Math.max(8, window.innerWidth - 140);
           const maxBottom = Math.max(8, window.innerHeight - 50);
-          setPos({
-            right: Math.max(8, Math.min(maxRight, parsed.right)),
-            bottom: Math.max(8, Math.min(maxBottom, parsed.bottom)),
-          });
+          setTimeout(() => {
+            setPos({
+              right: Math.max(8, Math.min(maxRight, parsed.right)),
+              bottom: Math.max(8, Math.min(maxBottom, parsed.bottom)),
+            });
+          }, 0);
         }
       }
     } catch {
