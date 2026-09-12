@@ -45,6 +45,7 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
 | **AG-017** | Eval Harness Avtomatlaşdırılmış Leak Guard | CI/CD / Eval | **P1** | `Complete` | QA Team | scripts/eval.py |
 | **AG-018** | Təmiz Sessiya Dəvət Qapısı & Bərpa QA Doğrulaması | QA / Onboarding | **P2** | `Complete` | qa_tester | web/components/kamera/ |
 | **AG-019** | Sokratik Çoxpilləli İpucu (Progressive Tiering) | Arxitektura / F2 | **P2** | `To Do` | Cowork / BA | docs/plans/ |
+| **AG-020** | Ana Ekran Erqonomikası & Streak Çipi Təmizliyi | Mobil UI / i18n | **P1** | `Complete` | Antigravity | web/app/page.tsx |
 
 ---
 
@@ -299,3 +300,22 @@ Bu fayl agentlər (Antigravity, Cursor) və tərtibatçılar üçün sistem tək
 - **Qəbul Meyarları:**
   - [ ] Geriye uyğun pilləli ipucu arxitekturası sənədləşdirilir.
   - [ ] ADR layihəsi hazırlanaraq Cowork müzakirəsinə təqdim edilir.
+
+---
+
+### 📱 AG-020: Ana Ekran Erqonomikası: Nəhəng Streak Rəqəminin Ləğvi & "Ardıcıl" Leksik Standartı
+- **Sahə:** Mobil UI Erqonomikası / Leksika / i18n
+- **Prioritet:** **P1** | **Status:** `Complete` (HANDOFF 231)
+- **Mənbə:** İstifadəçi UI Auditi & /critical-thinker təhlili
+- **Təsvir:**
+  1. `web/app/page.tsx`-dəki 64px nəhəng yaşıl rəqəm və altındakı təkrarlanan etiket ləğv edildi; ekranda ~90px şaquli sahə azad olundu və əsas "Tapşırığı çək" (Kamera CTA) düyməsi birbaşa görünən zonaya qalxdı.
+  2. `web/messages/az.json`-dakı şifahi/loru "dalbadal" sözü ədəbi və dərslik standartına uyğun "ardıcıl" ilə əvəzləndi (`streakDays: "{count} gün ardıcıl"`).
+  3. `streakDays >= 2` olduqda xitabın üstündə zərif çip (`🔥 {count} gün ardıcıl`) göstərilir; `streakDays < 2` olduqda isə heç bir süni yazı çıxmır, birbaşa təmiz xitab açılır.
+- **Fayllar:** `web/app/page.tsx`, `web/messages/az.json`, `design/Ana ekran.dc.html`.
+- **Qəbul Meyarları:**
+  - [x] "dalbadal" sözü interfeysdən və lokalizasiyadan tamamilə təmizlənir.
+  - [x] Eyni rəqəmin ard-arda iki dəfə göstərilməsi aradan qaldırılır.
+  - [x] 1-ci gündə şagirdə məntiqsiz "1 gün ardıcıl" yazılmır, təmiz başlıq açılır.
+  - [x] 2 və daha çox gündə zərif `🔥` çipi göstərilir.
+  - [x] `npm run typecheck` və `scripts/preflight.mjs` tam keçir.
+

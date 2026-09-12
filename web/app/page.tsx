@@ -85,21 +85,28 @@ export default function HomePage() {
       >
         {/* Streak & Greeting */}
         <div style={{ display: "grid", rowGap: "8px" }}>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontWeight: 700,
-              fontSize: "64px",
-              lineHeight: 0.85,
-              letterSpacing: "-0.04em",
-              color: "var(--acc)",
-            }}
-          >
-            {streakDays}
-          </span>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.06em", color: "var(--t3)" }}>
-            {t("streakDays", { count: streakDays })}
-          </span>
+          {streakDays >= 2 && (
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "12px",
+                  letterSpacing: "0.06em",
+                  color: "var(--acc)",
+                  background: "var(--accsoft)",
+                  padding: "4px 8px",
+                  borderRadius: "var(--radsm)",
+                  fontWeight: 700,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                }}
+              >
+                <span>🔥</span>
+                <span>{t("streakDays", { count: streakDays })}</span>
+              </span>
+            </div>
+          )}
           <h1
             style={{
               fontFamily: "var(--hfont)",

@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (231) · Antigravity → Cowork
+Etdim:    AG-020 Ana Ekran Erqonomikası və Leksik Təmizlik tamamlandı: `web/app/page.tsx`-dəki 64px nəhəng yaşıl streak rəqəmi və altındakı təkrarlanan etiket ləğv edildi, ekranda ~90px şaquli sahə azad olunaraq əsas "Tapşırığı çək" (Kamera CTA) düyməsi birbaşa görünən zonaya qaldırıldı; `streakDays >= 2` olduqda zərif `🔥 {count} gün ardıcıl` çipi göstərilir, 1-ci gündə isə birbaşa təmiz xitab açılır; `web/messages/az.json` və `design/Ana ekran.dc.html`-dəki loru "dalbadal" kəlməsi ədəbi/dərslik standartına uyğun "ardıcıl" ilə əvəzləndi; `docs/BACKLOG.md` yeniləndi; typecheck və preflight 14/14 tam keçdi.
+Tapşırıq: AG-020 — Ana Ekran Erqonomikası & Streak Çipi Təmizliyi
+Diqqət:   Ana ekranda şagirdin diqqəti streak rəqəminə yox, əsas hərəkətə (Kamera CTA) yönəlməlidir; "dalbadal" jarqonu interfeysə qayıtmamalıdır.
+
 ## 2026-09-12 (230) · Antigravity → Cowork
 Etdim:    AG-015..AG-018 Sokratik İpucu İntizamı, Sual Bankı Bərpası və Retest Bərkidilməsi tamamlandı: `prompts/solve/core.md` (v19, Qayda 19 — ipucuda cavab və birbaşa 1-addımlıq hesablama qadağası); `prompts/solve/math.md`, `physics.md` və bütün 39 mövzu promptundakı (`prompts/solve/math/*.md`, `prompts/solve/physics/*.md`) few-shot nümunələrindəki primitiv hesablar və sızmalar dərslik əsaslı Sokratik qaydalarla əvəzləndi; `supabase/migrations/0077_fix_bank_hint_semantic_leakage.sql` miqrasiyası yazıldı və canlı Supabase bazasına (project `oxjzehxnbumgyoqjonju`) tətbiq edildi (`7082409e` və `4a2fa001` suallarının ipucları bərpa olundu); `scripts/lib/leak-guard.mjs`, `scripts/lib/leak.py`, `scripts/eval.py` və `scripts/lib/report.py`-yə `SEMANTIC_HINT_LEAK` detektoru, recursive prompt checker və eval metrikləri (`hint_leaked`, `hint_leak_rate`) əlavə edildi; `scripts/preflight.mjs`-ə iki yeni addım qoşuldu (14/14 pass); `web/components/kamera/InviteGate.tsx`-də demo bərpa kartı 1-kliklə daxilolma rejiminə keçirildi; `docs/testing/plans/TP-INVITE-RECOVERY.md` sənədləşdirildi; `docs/BACKLOG.md` yeniləndi.
 Tapşırıq: AG-015..AG-018 — Sokratik İpucu İntizamı, Sual Bankı Bərpası və Retest Bərkidilməsi
