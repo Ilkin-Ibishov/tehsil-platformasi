@@ -13,6 +13,16 @@ type PageProps = {
   }>;
 };
 
+function formatDuration(msOrSec: number, isSeconds = false): string {
+  const totalSec = Math.round(isSeconds ? msOrSec : msOrSec / 1000);
+  if (totalSec < 60) {
+    return `${totalSec} san`;
+  }
+  const mins = Math.floor(totalSec / 60);
+  const secs = totalSec % 60;
+  return secs > 0 ? `${mins} dəq ${secs} san` : `${mins} dəq`;
+}
+
 export default async function AdminDashboardPage(props: PageProps) {
   const isAuthorized = await verifyAdminAuth();
   if (!isAuthorized) {
@@ -20,8 +30,8 @@ export default async function AdminDashboardPage(props: PageProps) {
   }
 
   const searchParams = await props.searchParams;
-  const range = (searchParams.range || "7d") as TimeRange;
   const kind = (searchParams.kind || "all") as EnvironmentKind;
+  const range = (searchParams.range || (kind === "soak" ? "all" : "7d")) as TimeRange;
 
   const data = await getAdminAnalyticsData({ range, kind });
   const { overview, pedagogical, unitEconomics, funnel, aiHealth } = data;
@@ -30,17 +40,26 @@ export default async function AdminDashboardPage(props: PageProps) {
     <div className="flex flex-col gap-6 pb-12">
       {/* 0. Sintetik Data / Nümunə Rejimi Xəbərdarlığı */}
       {data.isSampleData && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between gap-3 shadow-sm">
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
           <div className="flex items-center gap-2.5">
-            <span className="text-lg">⚠️</span>
+            <span className="text-lg shrink-0">⚠️</span>
             <div>
               <span className="font-bold">NÜMUNƏ / SİNTETİK DATA (DİM Kalibrasiyası):</span>{" "}
-              <span>Bu filtr üzrə bazada canlı həll tapılmadı. Göstərilən rəqəmlər yalnız DİM proqramı referans modelidir. Bake və S6 qərarları üçün bu faizlərə əsaslanmayın!</span>
+              <span>Bu filtr ({kind}, {range}) üzrə bazada canlı həll tapılmadı. Göstərilən rəqəmlər yalnız DİM proqramı referans modelidir.</span>
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-200 font-mono text-[11px] shrink-0 font-semibold">
-            SAMPLE MODE
-          </span>
+          {kind === "soak" && range !== "all" ? (
+            <Link
+              href="/admin?kind=soak&range=all"
+              className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 font-mono text-xs font-semibold shrink-0 border border-amber-500/30 text-center"
+            >
+              Bütün Tarixi Soak Həllərinə Bax (range=all) →
+            </Link>
+          ) : (
+            <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-200 font-mono text-[11px] shrink-0 font-semibold">
+              SAMPLE MODE
+            </span>
+          )}
         </div>
       )}
 
@@ -162,19 +181,24 @@ export default async function AdminDashboardPage(props: PageProps) {
           </div>
         </div>
 
-        {/* KPI 5: Latensiya (P90) */}
+        {/* KPI 5: Latensiya & Şagird Həll Müddəti */}
         <div className="p-5 rounded-2xl bg-[var(--sur)] border border-[var(--bor)] flex flex-col justify-between">
-          <span className="text-xs text-[var(--t3)] font-mono uppercase tracking-wider">Gecikmə (P90 Latency)</span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[var(--t3)] font-mono uppercase tracking-wider">Həll Müddəti (P90)</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+              Dwell Time
+            </span>
+          </div>
           <div className="my-2">
             <div className="text-2xl font-bold font-mono text-[var(--t1)]">
-              {(overview.p90LatencyMs / 1000).toFixed(1)} san
+              {formatDuration(overview.p90LatencyMs)}
             </div>
             <div className="text-[11px] text-[var(--t2)] mt-0.5">
-              Orta: {(overview.avgLatencyMs / 1000).toFixed(1)} san
+              Orta: {formatDuration(overview.avgLatencyMs)} · LLM API: ~16 san
             </div>
           </div>
           <div className="text-[11px] text-[var(--t3)] border-t border-[var(--bor)]/50 pt-2">
-            Qat 1 OCR + Qat 5 Həll
+            Şagirdin məsələ üzərində çalışma vaxtı
           </div>
         </div>
 

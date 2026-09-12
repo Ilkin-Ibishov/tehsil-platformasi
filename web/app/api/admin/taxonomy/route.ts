@@ -161,11 +161,18 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === "merge") {
-      // Alias kimi qeyd et və deaktivləşdir
-      await pool.query(
-        `update ${table} set active = false, needs_review = false where code = $1`,
-        [code]
-      );
+      // Alias kimi qeyd et (alias_of = target) və deaktivləşdir (ADR-008, 0078 miqrasiyası)
+      if (table === "public.topic_codes") {
+        await pool.query(
+          `update public.topic_codes set alias_of = $1, active = false, needs_review = false where code = $2`,
+          [target || null, code]
+        );
+      } else {
+        await pool.query(
+          `update ${table} set active = false, needs_review = false where code = $1`,
+          [code]
+        );
+      }
       return NextResponse.json({ ok: true, message: `${code} kodu ${target || ""} ilə birləşdirildi.` });
     }
 

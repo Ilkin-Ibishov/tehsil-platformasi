@@ -19,9 +19,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="admin-shell min-h-screen w-full flex bg-[var(--bg)] text-[var(--t1)] font-sans">
-      {/* 1. Sol Naviqasiya Paneli (Sidebar) */}
-      <aside className="w-64 border-r border-[var(--bor)] bg-[var(--sur)] flex flex-col shrink-0">
+    <div className="admin-shell min-h-screen w-full flex flex-col md:flex-row bg-[var(--bg)] text-[var(--t1)] font-sans pb-16 md:pb-0">
+      {/* 1. Sol Naviqasiya Paneli (Desktop Sidebar) */}
+      <aside className="hidden md:flex w-64 border-r border-[var(--bor)] bg-[var(--sur)] flex-col shrink-0">
         {/* Logo & Başlıq */}
         <div className="p-5 border-b border-[var(--bor)] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -106,8 +106,47 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </Suspense>
 
         {/* Səhifə Məzmunu */}
-        <main className="p-6 flex-1 max-w-[1600px] w-full mx-auto">{children}</main>
+        <main className="p-4 sm:p-6 flex-1 max-w-[1600px] w-full mx-auto">{children}</main>
       </div>
+
+      {/* 3. Mobil Alt Naviqasiya Paneli */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-[var(--sur)]/95 backdrop-blur-md border-t border-[var(--bor)] flex items-center justify-around px-2 z-30">
+        <Link
+          href="/admin"
+          className="flex flex-col items-center justify-center gap-0.5 text-[10px] text-[var(--t2)] hover:text-[var(--acc)] py-1 px-2"
+        >
+          <span className="text-base">📊</span>
+          <span>Dashboard</span>
+        </Link>
+        <Link
+          href="/admin/triage"
+          className="flex flex-col items-center justify-center gap-0.5 text-[10px] text-[var(--t2)] hover:text-[var(--acc)] py-1 px-2"
+        >
+          <span className="text-base">🏷️</span>
+          <span>Triage</span>
+        </Link>
+        <Link
+          href="/admin/config"
+          className="flex flex-col items-center justify-center gap-0.5 text-[10px] text-[var(--t2)] hover:text-[var(--acc)] py-1 px-2"
+        >
+          <span className="text-base">⚙️</span>
+          <span>Config</span>
+        </Link>
+        <Link
+          href="/admin/sikayetler"
+          className="flex flex-col items-center justify-center gap-0.5 text-[10px] text-[var(--t2)] hover:text-[var(--acc)] py-1 px-2"
+        >
+          <span className="text-base">🚨</span>
+          <span>Şikayətlər</span>
+        </Link>
+        <Link
+          href="/"
+          className="flex flex-col items-center justify-center gap-0.5 text-[10px] text-[var(--t3)] hover:text-[var(--t1)] py-1 px-2"
+        >
+          <span className="text-base">📱</span>
+          <span>Tətbiq</span>
+        </Link>
+      </nav>
     </div>
   );
 }

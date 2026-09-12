@@ -75,10 +75,20 @@ async function runSelftest() {
   assert(data7d.funnel.steps.length >= 5, "funnel must have at least 5 stages");
   console.log("PASS: 7d analytics data structure, cameraCacheHitRate & honest P90 calculations");
 
-  // 4. Test soak vs student filter isolation
-  const dataSoak = await getAdminAnalyticsData({ range: "30d", kind: "soak" });
-  assert(dataSoak.filters.kind === "soak", "Filter kind must be 'soak'");
-  console.log("PASS: Soak test filter isolation");
+  // 4. Test soak vs student filter isolation & smart range default
+  const dataSoakDefault = await getAdminAnalyticsData({ range: "7d", kind: "soak" });
+  assert(dataSoakDefault.filters.kind === "soak", "Filter kind must be 'soak'");
+  assert(dataSoakDefault.filters.range === "all", "Soak tests must default to range='all' to show real historical runs");
+
+  // Funnel non-negative drop-off rate assertion
+  for (const step of data7d.funnel.steps) {
+    assert(step.dropOffRate >= 0, `Drop-off rate for ${step.id} must never be negative: got ${step.dropOffRate}`);
+    assert(step.conversionFromStart >= 0 && step.conversionFromStart <= 100, `Conversion rate for ${step.id} must be in [0, 100]`);
+  }
+  for (const step of dataSoakDefault.funnel.steps) {
+    assert(step.dropOffRate >= 0, `Soak drop-off rate for ${step.id} must never be negative: got ${step.dropOffRate}`);
+  }
+  console.log("PASS: Soak test filter isolation & non-negative funnel mathematical integrity");
 
   const dataStudent = await getAdminAnalyticsData({ range: "24h", kind: "student" });
   assert(dataStudent.filters.kind === "student", "Filter kind must be 'student'");

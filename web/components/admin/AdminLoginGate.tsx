@@ -1,18 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function AdminLoginGate() {
-  const router = useRouter();
   const [secret, setSecret] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const clean = secret.trim();
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const key = urlParams.get("admin_key") || urlParams.get("secret");
+    if (key && key.trim()) {
+      setSecret(key.trim());
+      executeLogin(key.trim(), true);
+    }
+  }, []);
+
+  const executeLogin = async (candidateSecret: string, isAutoFromUrl = false) => {
+    const clean = candidateSecret.trim();
     if (!clean) {
       setError("Zəhmət olmasa admin açarını daxil edin.");
       return;
@@ -29,8 +36,13 @@ export default function AdminLoginGate() {
 
       const data = await res.json();
       if (res.ok && data.ok) {
-        // Uğurlu daxilolma -> səhifəni yeniləyərək admin layout-unu aktivləşdir
-        router.refresh();
+        // Uğurlu daxilolma -> admin_key parametrini URL-dən təmizləyərək səhifəni tam yenilə
+        if (typeof window !== "undefined") {
+          const url = new URL(window.location.href);
+          url.searchParams.delete("admin_key");
+          url.searchParams.delete("secret");
+          window.location.href = url.toString();
+        }
       } else {
         setError(data.error || "Giriş açarı yanlışdır. İcazə verilmədi.");
       }
@@ -39,6 +51,11 @@ export default function AdminLoginGate() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeLogin(secret);
   };
 
   return (

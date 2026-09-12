@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function AdminLogoutButton() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
@@ -15,7 +13,7 @@ export default function AdminLogoutButton() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "logout" }),
       });
-      router.refresh();
+      window.location.href = "/admin";
     } catch (err) {
       console.error("Çıxış xətası:", err);
     } finally {

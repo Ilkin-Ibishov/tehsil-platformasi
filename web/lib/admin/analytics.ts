@@ -83,14 +83,25 @@ export async function getAdminAnalyticsData(
 ): Promise<AdminDashboardPayload> {
   const now = new Date().toISOString();
 
+  // Əgər kind 'soak' seçilibsə və range '7d' olaraq qalıbsa, real soak testlərini (avqust) göstərmək üçün defolt 'all' edilir
+  const effectiveRange =
+    filters.kind === "soak" && (filters.range === "7d" || !filters.range)
+      ? "all"
+      : (filters.range || "7d");
+
+  const effectiveFilters: AdminFilterParams = {
+    range: effectiveRange,
+    kind: filters.kind || "all",
+  };
+
   try {
     const dbPool = await getDbPool();
     if (!dbPool) {
-      return getCalibratedFallbackData(filters);
+      return getCalibratedFallbackData(effectiveFilters);
     }
 
-    const timeClauseAi = getTimeClause(filters.range, "ai.created_at");
-    const kindClauseAtt = getKindClause(filters.kind, "att");
+    const timeClauseAi = getTimeClause(effectiveFilters.range, "ai.created_at");
+    const kindClauseAtt = getKindClause(effectiveFilters.kind, "att");
     const whereAi = `${timeClauseAi} and ${kindClauseAtt}`;
 
     // 1. İcmal və Vahid İqtisadiyyatı Sorğusu
@@ -135,7 +146,7 @@ export async function getAdminAnalyticsData(
 
     // Əgər bu filtr üzrə hələ məlumat yoxdursa, kalibrlənmiş hədəf modelini qaytarırıq
     if (totalSolves === 0) {
-      return getCalibratedFallbackData(filters);
+      return getCalibratedFallbackData(effectiveFilters);
     }
 
     const completedSolves = Number(rawOverview.completed_solves || 0);
@@ -456,7 +467,7 @@ export async function getAdminAnalyticsData(
           count(*) filter (where name = 'app.opened') as app_opened,
           count(*) filter (where name = 'capture.photo_taken') as photo_taken,
           count(*) filter (where name = 'crop.confirmed') as crop_confirmed,
-          count(*) filter (where name = 'solve.requested' or name = 'solve.response') as solve_response,
+          count(*) filter (where name = 'solve.response') as solve_response,
           count(*) filter (where name = 'step.shown') as step_shown,
           count(*) filter (where name = 'solution.completed') as solution_completed,
           count(*) filter (where name = 'step.hint_opened') as hint_opened,
@@ -481,13 +492,18 @@ export async function getAdminAnalyticsData(
         const stepProgress = Number(ev.step_shown || 0);
         const solCompleted = Number(ev.solution_completed || 0);
 
+        const safeRate = (num: number, denom: number) =>
+          denom > 0 ? Math.max(0, Math.min(100, (num / denom) * 100)) : 0;
+        const safeDrop = (prev: number, curr: number) =>
+          prev > 0 ? Math.max(0, Math.min(100, ((prev - Math.min(prev, curr)) / prev) * 100)) : 0;
+
         funnelSteps = [
           { id: "app_opened", label: "Tətbiq Açılışı", count: appOpened, conversionFromStart: 100, dropOffRate: 0 },
-          { id: "photo_taken", label: "Şəkil Çəkilişi", count: photoTaken, conversionFromStart: (photoTaken / appOpened) * 100, dropOffRate: appOpened > 0 ? ((appOpened - photoTaken) / appOpened) * 100 : 0 },
-          { id: "crop_confirmed", label: "Kəsmə Təsdiqi", count: cropConfirmed, conversionFromStart: (cropConfirmed / appOpened) * 100, dropOffRate: photoTaken > 0 ? ((photoTaken - cropConfirmed) / photoTaken) * 100 : 0 },
-          { id: "solve_response", label: "Həll Yaradıldı", count: solveResp, conversionFromStart: (solveResp / appOpened) * 100, dropOffRate: cropConfirmed > 0 ? ((cropConfirmed - solveResp) / cropConfirmed) * 100 : 0 },
-          { id: "step_progress", label: "Addım İrəliləyişi", count: stepProgress, conversionFromStart: (stepProgress / appOpened) * 100, dropOffRate: 0 },
-          { id: "solution_completed", label: "Həll Tamamlandı", count: solCompleted, conversionFromStart: (solCompleted / appOpened) * 100, dropOffRate: stepProgress > 0 ? ((stepProgress - solCompleted) / stepProgress) * 100 : 0 },
+          { id: "photo_taken", label: "Şəkil Çəkilişi", count: photoTaken, conversionFromStart: safeRate(photoTaken, appOpened), dropOffRate: safeDrop(appOpened, photoTaken) },
+          { id: "crop_confirmed", label: "Kəsmə Təsdiqi", count: cropConfirmed, conversionFromStart: safeRate(cropConfirmed, appOpened), dropOffRate: safeDrop(photoTaken, cropConfirmed) },
+          { id: "solve_response", label: "Həll Yaradıldı", count: solveResp, conversionFromStart: safeRate(solveResp, appOpened), dropOffRate: safeDrop(cropConfirmed, solveResp) },
+          { id: "step_progress", label: "Addım İrəliləyişi", count: stepProgress, conversionFromStart: safeRate(stepProgress, appOpened), dropOffRate: safeDrop(solveResp, stepProgress) },
+          { id: "solution_completed", label: "Həll Tamamlandı", count: solCompleted, conversionFromStart: safeRate(solCompleted, appOpened), dropOffRate: safeDrop(stepProgress, solCompleted) },
         ];
 
         const trShown = Number(ev.transcript_shown || 0);
@@ -653,7 +669,7 @@ export async function getAdminAnalyticsData(
     return {
       timestamp: now,
       isSampleData: false,
-      filters,
+      filters: effectiveFilters,
       overview,
       pedagogical,
       unitEconomics,
@@ -662,7 +678,7 @@ export async function getAdminAnalyticsData(
     };
   } catch (err) {
     console.error("[admin-analytics] DB sorğusu xətası, fallback modelinə düşülür:", err);
-    return getCalibratedFallbackData(filters);
+    return getCalibratedFallbackData(effectiveFilters);
   }
 }
 

@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (244) · Antigravity → Cowork
+Etdim:    Admin paneli UX və mobil naviqasiya optimallaşdırıldı: `AdminHeaderNav.tsx`-də mobil menyu təkmilləşdirildi, alt səhifələrdə "← Dashboard" düyməsi əlavə edildi; `AdminLoginGate.tsx`-ə URL vasitəsilə `admin_key` parametri ilə avtomatik daxilolma və `window.location.href` yönləndirməsi əlavə olundu; `analytics.ts`-də soak testləri üçün defolt vaxt aralığı `all` təyin edildi və sıfıra bölünmə qoruyucuları (`safeRate`, `safeDrop`) yazıldı; `taxonomy/route.ts`-də merge zamanı `alias_of` təyini (ADR-008) bərkidildi; qohum şagirdlər üçün `TesterPanel` (`TESTER_MODE`, `/tester`) arxitekturası təhlil edilərək istifadəçiyə detallı izahat verildi.
+Tapşırıq: meta / no ClickUp — Admin Paneli UX Təkmilləşdirməsi və Tester Paneli Təhlili
+Diqqət:   `/tester` rejimi default olaraq adi şagirdlərdən gizlədilib, yalnız `TESTER_MODE=true` olduqda sağ altda görünür.
+
 ## 2026-09-12 (243) · Antigravity → Cowork
 Etdim:    PR #9 və PR #11 audit edildi, toqquşmalar həll olunaraq `main`-ə inteqrasiya edildi: PR #9-dan DİM test variantlarının (`A) 58% B) 34%...`) `numericFingerprint`-dən təmizlənməsi `web/lib/cascade/bank.ts`-ə tətbiq edildi və vahid testləri əlavə olundu (`cascade.selftest.mts`, `persist.test.ts`); PR #11-in `0076` nömrə toqquşması aradan qaldırılaraq `0078_ba_taxonomy_triage_ilkin_sep11.sql` (23 ADOPT, 3 MERGE `alias_of`, 1 REJECT `ALG.WORD_PROBLEM`) kimi yaradıldı və canlı Supabase DB-yə uğurla tətbiq olundu (27 baxış gözləyən mövzu 0-a endi); `prompts/solve/math.md`-ə kanonik taksonomiya qaydaları Sokratik ipucu intizamı pozulmadan inteqrasiya edildi; `docs/DATA-MODEL.md` 0078 qeydi ilə yeniləndi; preflight 16/16 tam keçdi.
 Tapşırıq: meta / no ClickUp — PR #9 və PR #11 İnteqrasiyası, Taksonomiya Miqrasiyası 0078 və Kaskad Fingerprint Təmizlənməsi
