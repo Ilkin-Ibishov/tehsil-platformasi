@@ -8,17 +8,7 @@ export default function AdminLoginGate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const urlParams = new URLSearchParams(window.location.search);
-    const key = urlParams.get("admin_key") || urlParams.get("secret");
-    if (key && key.trim()) {
-      setSecret(key.trim());
-      executeLogin(key.trim(), true);
-    }
-  }, []);
-
-  const executeLogin = async (candidateSecret: string, isAutoFromUrl = false) => {
+  const executeLogin = async (candidateSecret: string) => {
     const clean = candidateSecret.trim();
     if (!clean) {
       setError("Zəhmət olmasa admin açarını daxil edin.");
@@ -53,9 +43,22 @@ export default function AdminLoginGate() {
     }
   };
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const key = urlParams.get("admin_key") || urlParams.get("secret");
+    if (key && key.trim()) {
+      const timer = setTimeout(() => {
+        setSecret(key.trim());
+        void executeLogin(key.trim());
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    executeLogin(secret);
+    void executeLogin(secret);
   };
 
   return (

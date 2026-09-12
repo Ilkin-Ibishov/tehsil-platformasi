@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-09-12: HANDOFF 245 — AdminLoginGate və AdminLogoutButton-da ESLint və React Compiler qaydaları tam tənzimləndi (executeLogin hoisting, useEffect setTimeout, next location assign fix); lokal npx eslint 0 xəta ilə tamamlandı.
 - 2026-09-12: HANDOFF 244 — Admin paneli UX və mobil naviqasiya optimallaşdırıldı (AdminHeaderNav, AdminLoginGate auto-key, analytics soak default 'all', taxonomy merge alias_of); TesterPanel və bug reporting mexanizmi təhlil edildi.
 - 2026-09-12: HANDOFF 240 — Admin paneli auditi və təhlükəsizlik düzəlişləri main-ə push edildi (commit 77015d4); GitHub CI (run 34700865747) green, Vercel Ready (web-cg0s1nw2l); canlı yoxlama: sıfır RSC sızması, tam AdminLoginGate qorunması.
 - 2026-09-12: HANDOFF 239 — /learn Persistent PowerShell curl.exe, invite single-device lock və push-verify canlı HTTP 200 invariantları.

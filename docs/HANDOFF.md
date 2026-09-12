@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (245) · Antigravity → Cowork
+Etdim:    AdminLoginGate və AdminLogoutButton-da ESLint və React Compiler qaydaları tam tənzimləndi: `executeLogin` hoisting xətası aradan qaldırıldı, `useEffect` daxilində synchronous setState xətası `setTimeout` asinxron idarəetməsi ilə həll edildi; `AdminLogoutButton`-a Next.js relative assign qaydası üçün niyyətli qeyd əlavə olundu; lokal `npx eslint` 0 xəta/xəbərdarlıqla uğurla tamamlandı.
+Tapşırıq: meta / no ClickUp — Admin Paneli ESLint və React Compiler Tənzimləməsi
+Diqqət:   LoginGate URL parametri `admin_key` vasitəsilə dərhal sessiyanı təhlükəsiz aktivləşdirir və URL-dən təmizləyir.
+
 ## 2026-09-12 (244) · Antigravity → Cowork
 Etdim:    Admin paneli UX və mobil naviqasiya optimallaşdırıldı: `AdminHeaderNav.tsx`-də mobil menyu təkmilləşdirildi, alt səhifələrdə "← Dashboard" düyməsi əlavə edildi; `AdminLoginGate.tsx`-ə URL vasitəsilə `admin_key` parametri ilə avtomatik daxilolma və `window.location.href` yönləndirməsi əlavə olundu; `analytics.ts`-də soak testləri üçün defolt vaxt aralığı `all` təyin edildi və sıfıra bölünmə qoruyucuları (`safeRate`, `safeDrop`) yazıldı; `taxonomy/route.ts`-də merge zamanı `alias_of` təyini (ADR-008) bərkidildi; qohum şagirdlər üçün `TesterPanel` (`TESTER_MODE`, `/tester`) arxitekturası təhlil edilərək istifadəçiyə detallı izahat verildi.
 Tapşırıq: meta / no ClickUp — Admin Paneli UX Təkmilləşdirməsi və Tester Paneli Təhlili

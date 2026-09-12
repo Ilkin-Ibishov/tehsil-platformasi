@@ -13,6 +13,8 @@ export default function AdminLogoutButton() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "logout" }),
       });
+      // Hard navigation to reset admin layout state and force gate mount
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = "/admin";
     } catch (err) {
       console.error("Çıxış xətası:", err);
