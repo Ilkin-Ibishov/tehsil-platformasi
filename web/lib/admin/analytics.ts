@@ -26,19 +26,19 @@ async function getDbPool(): Promise<Pool | null> {
 
 const TARGET_COST_USD = 0.010;
 
-// Səhv kodlarının Azərbaycan dilində rəsmi izah lüğəti
+// DİM və STEP-SCHEMA.json üzrə frozen 11 dəyişməz səhv kodu taksonomiyası (ADR-008, miqrasiya 0058)
 const ERROR_CODE_LABELS: Record<string, string> = {
-  SIGN_ERROR: "İşarə səhvi (mənfi/müsbət)",
-  FORMULA_MISAPPLIED: "Düsturun yanlış tətbiqi",
-  DOMAIN_VIOLATION: "Təyin oblastının pozulması (məs. sıfıra bölmə)",
-  ARITHMETIC: "Hesablama xətası",
-  UNITS_MISMATCH: "Ölçü vahidi uyğunsuzluğu",
-  DISTRACTOR_MATCH: "Tipik DİM çaşdırıcı cavabı",
-  STEP_SKIPPED: "Vacib məntiqi addımın buraxılması",
-  EQUATION_UNBALANCED: "Tənliyin tərəflərinin bərabərləşdirilməməsi",
-  GEOM_PROPERTY_CONFUSED: "Həndəsi xassələrin qarışdırılması",
-  MISREAD_QUESTION: "Şərtin yanlış oxunması",
-  OTHER: "Digər xəta",
+  SIGN_LOST: "İşarə itdi (mənfi əmsalı köçürəndə minusu itirir)",
+  SQUARE_FORGOTTEN: "Kvadrat unuduldu (kvadrata yüksəltməni atlayır)",
+  SIGN_CHOICE: "İşarə seçimi (± işarəsindən yanlış variantı seçir)",
+  SUBSTITUTION_SKIPPED: "Yerinəqoyma (yoxlama addımını atlayır)",
+  ARITHMETIC: "Hesablama xətası (sadə hesab səhvi)",
+  FACTOR_PAIR: "Vuruq cütü (vuruqlara ayırmada cütü səhv tapır)",
+  ORDER_OF_OPS: "Əməl sırası (əməllərin ardıcıllığını pozur)",
+  FORMULA_MISAPPLIED: "Düstur səhvi (düzgün düsturu yanlış yerdə tətbiq edir)",
+  COEFFICIENT_READ: "Əmsal oxunuşu (əmsalı tənlikdən səhv çıxarır)",
+  UNIT_MISMATCH: "Vahid uyğunsuzluğu (vahidləri çevirmir)",
+  TRANSCRIPTION: "Köçürmə (rəqəmi bir sətirdən digərinə səhv köçürür)",
 };
 
 /**
@@ -103,6 +103,12 @@ export async function getAdminAnalyticsData(
       transfer_total_count: string;
       revealed_count: string;
       avg_latency: string;
+      p50_latency: string;
+      p90_latency: string;
+      p99_latency: string;
+      bank_solves: string;
+      camera_solves: string;
+      camera_cached_solves: string;
     }>(`
       select
         count(*) as total_solves,
@@ -112,7 +118,13 @@ export async function getAdminAnalyticsData(
         count(*) filter (where ai.transfer_correct = true) as transfer_correct_count,
         count(*) filter (where ai.transfer_correct is not null) as transfer_total_count,
         count(*) filter (where ai.revealed_answer = true) as revealed_count,
-        coalesce(avg(ai.duration_sec), 0) as avg_latency
+        coalesce(avg(ai.duration_sec), 0) as avg_latency,
+        coalesce(percentile_cont(0.50) within group (order by ai.duration_sec), 0) as p50_latency,
+        coalesce(percentile_cont(0.90) within group (order by ai.duration_sec), 0) as p90_latency,
+        coalesce(percentile_cont(0.99) within group (order by ai.duration_sec), 0) as p99_latency,
+        count(*) filter (where ai.match_path = 'bank') as bank_solves,
+        count(*) filter (where ai.match_path is distinct from 'bank') as camera_solves,
+        count(*) filter (where ai.match_path is distinct from 'bank' and ai.match_path is distinct from 'llm') as camera_cached_solves
       from public.attempt_items ai
       left join public.attempts att on att.id = ai.attempt_id
       where ${whereAi}
@@ -133,11 +145,22 @@ export async function getAdminAnalyticsData(
     const transferTotalCount = Number(rawOverview.transfer_total_count || 0);
     const revealedCount = Number(rawOverview.revealed_count || 0);
     const avgLatencySec = Number(rawOverview.avg_latency || 0);
+    const p50LatencyMs = Math.round(Number(rawOverview.p50_latency || 0) * 1000);
+    const p90LatencyMs = Math.round(Number(rawOverview.p90_latency || 0) * 1000);
+    const p99LatencyMs = Math.round(Number(rawOverview.p99_latency || 0) * 1000);
+
+    const bankSolves = Number(rawOverview.bank_solves || 0);
+    const cameraSolves = Number(rawOverview.camera_solves || 0);
+    const cameraCachedSolves = Number(rawOverview.camera_cached_solves || 0);
 
     const completionRate = totalSolves > 0 ? (completedSolves / totalSolves) * 100 : 0;
     const transferSuccessRate =
       transferTotalCount > 0 ? (transferCorrectCount / transferTotalCount) * 100 : completedSolves > 0 ? 73.1 : 0;
     const revealedAnswerRate = totalSolves > 0 ? (revealedCount / totalSolves) * 100 : 0;
+
+    // Kamera həlləri (S6 Bake) vs Sual Bankı (Qat 2) dürüst bölgüsü
+    const cameraCacheHitRate = cameraSolves > 0 ? (cameraCachedSolves / cameraSolves) * 100 : 0;
+    const bankMatchRate = totalSolves > 0 ? (bankSolves / totalSolves) * 100 : 0;
 
     // 2. Kaskad Qatları (`match_path`)
     const matchPathRes = await dbPool.query<{
@@ -380,7 +403,9 @@ export async function getAdminAnalyticsData(
       // fallback
     }
 
-    // 9. Telemetriya İntizamı & Funnel Məlumatları
+    // 9. Telemetriya İntizamı & Funnel Məlumatları (ts_server vaxt filtri ilə)
+    const timeClauseEvents = getTimeClause(filters.range, "ts_server");
+
     let funnelSteps = [
       { id: "app_opened", label: "Tətbiq Açılışı", count: totalSolves * 3, conversionFromStart: 100, dropOffRate: 0 },
       { id: "photo_taken", label: "Şəkil Çəkilişi", count: Math.round(totalSolves * 2.1), conversionFromStart: 70, dropOffRate: 30 },
@@ -399,11 +424,17 @@ export async function getAdminAnalyticsData(
     let frictionSignals = {
       multiCandidatesShownRate: 14.2,
       transcriptCorrectedRate: 8.7,
-      cameraRefusalCount: 3,
+      cameraRefusalCount: 0,
     };
 
-    let hintsOpenedCount = Math.round(totalSolves * 0.42);
-    let whyOpenedCount = Math.round(totalSolves * 0.28);
+    let hintsOpenedCount = 0;
+    let whyOpenedCount = 0;
+    let successAfterHintRate = 0;
+    let totalTokensIn = 0;
+    let totalTokensOut = 0;
+    let cachedTokens = 0;
+    let cacheSavingsPct = 0;
+    let waitingAbandonedCount = 0;
 
     try {
       const eventsRes = await dbPool.query<{
@@ -414,10 +445,12 @@ export async function getAdminAnalyticsData(
         step_shown: string;
         solution_completed: string;
         hint_opened: string;
+        why_opened: string;
         transcript_shown: string;
         transcript_corrected: string;
         refusal_shown: string;
         camera_denied: string;
+        waiting_abandoned: string;
       }>(`
         select
           count(*) filter (where name = 'app.opened') as app_opened,
@@ -427,15 +460,20 @@ export async function getAdminAnalyticsData(
           count(*) filter (where name = 'step.shown') as step_shown,
           count(*) filter (where name = 'solution.completed') as solution_completed,
           count(*) filter (where name = 'step.hint_opened') as hint_opened,
+          count(*) filter (where name = 'step.why_opened') as why_opened,
           count(*) filter (where name = 'transcript.shown') as transcript_shown,
           count(*) filter (where name = 'transcript.corrected') as transcript_corrected,
           count(*) filter (where name = 'refusal.shown') as refusal_shown,
-          count(*) filter (where name = 'capture.permission_denied') as camera_denied
+          count(*) filter (where name = 'capture.permission_denied') as camera_denied,
+          count(*) filter (where name = 'solve.waiting_abandoned') as waiting_abandoned
         from public.events
+        where ${timeClauseEvents}
       `);
 
       const ev = eventsRes.rows[0];
       const appOpened = Number(ev?.app_opened || 0);
+      waitingAbandonedCount = Number(ev?.waiting_abandoned || 0);
+
       if (appOpened > 0) {
         const photoTaken = Number(ev.photo_taken || 0);
         const cropConfirmed = Number(ev.crop_confirmed || 0);
@@ -455,25 +493,22 @@ export async function getAdminAnalyticsData(
         const trShown = Number(ev.transcript_shown || 0);
         const trCorr = Number(ev.transcript_corrected || 0);
         frictionSignals = {
-          multiCandidatesShownRate: Number(ev.refusal_shown || 0) > 0 ? 11.4 : 8.2,
-          transcriptCorrectedRate: trShown > 0 ? (trCorr / trShown) * 100 : 5.6,
+          multiCandidatesShownRate: Number(ev.refusal_shown || 0) > 0 ? 11.4 : 0,
+          transcriptCorrectedRate: trShown > 0 ? Number(((trCorr / trShown) * 100).toFixed(1)) : 0,
           cameraRefusalCount: Number(ev.camera_denied || 0),
         };
 
-        const hintsCount = Number(ev.hint_opened || 0);
-        if (hintsCount > 0) {
-          hintsOpenedCount = hintsCount;
-          whyOpenedCount = Math.round(hintsCount * 0.6);
-        }
+        hintsOpenedCount = Number(ev.hint_opened || 0);
+        whyOpenedCount = Number(ev.why_opened || 0);
       }
 
-      // Addım tərketmə (step.abandoned)
+      // Addım tərketmə (step.abandoned) — ts_server filtri ilə
       const abanRes = await dbPool.query<{ step_num: number; count: string }>(`
         select 
           coalesce((props->>'index')::int + 1, 1) as step_num,
           count(*) as count
         from public.events
-        where name = 'step.abandoned' and props->>'index' is not null
+        where name = 'step.abandoned' and props->>'index' is not null and ${timeClauseEvents}
         group by 1
         order by 1
       `);
@@ -484,6 +519,52 @@ export async function getAdminAnalyticsData(
           count: Number(r.count),
           percentage: totalAban > 0 ? (Number(r.count) / totalAban) * 100 : 0,
         }));
+      }
+
+      // Real ipucu uğur dərəcəsi: hint açılan sessiyalarda düzgün tamamlama
+      if (hintsOpenedCount > 0) {
+        const hintSuccessRes = await dbPool.query<{
+          total_hint_solves: string;
+          successful_hint_solves: string;
+        }>(`
+          with hint_sessions as (
+            select distinct attempt_id
+            from public.events
+            where name = 'step.hint_opened' and attempt_id is not null and ${timeClauseEvents}
+          )
+          select
+            count(*) as total_hint_solves,
+            count(*) filter (where ai.completed = true or ai.transfer_correct = true) as successful_hint_solves
+          from public.attempt_items ai
+          join hint_sessions hs on hs.attempt_id = ai.attempt_id
+        `);
+        const hs = hintSuccessRes.rows[0];
+        const totH = Number(hs?.total_hint_solves || 0);
+        const sucH = Number(hs?.successful_hint_solves || 0);
+        if (totH > 0) {
+          successAfterHintRate = Number(((sucH / totH) * 100).toFixed(1));
+        }
+      }
+
+      // Real token qənaəti (events.props cached_tokens)
+      const tokenRes = await dbPool.query<{
+        tokens_in: string;
+        tokens_out: string;
+        cached_tokens: string;
+      }>(`
+        select
+          coalesce(sum(nullif(props->>'tokens_in', '')::numeric), 0) as tokens_in,
+          coalesce(sum(nullif(props->>'tokens_out', '')::numeric), 0) as tokens_out,
+          coalesce(sum(nullif(props->>'cached_tokens', '')::numeric), 0) as cached_tokens
+        from public.events
+        where name = 'solve.response' and ${timeClauseEvents}
+      `);
+      const tr = tokenRes.rows[0];
+      totalTokensIn = Number(tr?.tokens_in || 0);
+      totalTokensOut = Number(tr?.tokens_out || 0);
+      cachedTokens = Number(tr?.cached_tokens || 0);
+      if (totalTokensIn + cachedTokens > 0) {
+        cacheSavingsPct = Number(((cachedTokens / (totalTokensIn + cachedTokens)) * 100).toFixed(1));
       }
     } catch {
       // telemetry fallback
@@ -497,10 +578,12 @@ export async function getAdminAnalyticsData(
       totalCostUsd,
       costTargetAlert: avgCostUsd > TARGET_COST_USD,
       cacheHitRate,
+      cameraCacheHitRate,
+      bankMatchRate,
       transferSuccessRate,
       revealedAnswerRate,
       avgLatencyMs: avgLatencySec * 1000,
-      p90LatencyMs: avgLatencySec * 1400,
+      p90LatencyMs,
       sympyVerifiedRate,
       pendingTaxonomyCount,
       unresolvedReportsCount: bugReports.length,
@@ -513,7 +596,7 @@ export async function getAdminAnalyticsData(
       hintsImpact: {
         hintsOpenedCount,
         whyOpenedCount,
-        successAfterHintRate: 71.5,
+        successAfterHintRate,
       },
       errorDistribution,
       topicFailureHotspots,
@@ -524,19 +607,21 @@ export async function getAdminAnalyticsData(
       targetCostUsd: TARGET_COST_USD,
       costTargetAlert: avgCostUsd > TARGET_COST_USD,
       cacheHitRate,
+      cameraCacheHitRate,
+      bankMatchRate,
       matchPaths,
       dailyTrends,
       tokenEfficiency: {
-        totalTokensIn: totalSolves * 2400,
-        totalTokensOut: totalSolves * 850,
-        cachedTokens: totalSolves * 1800,
-        cacheSavingsPct: 62.5,
+        totalTokensIn,
+        totalTokensOut,
+        cachedTokens,
+        cacheSavingsPct,
       },
       latencyHistogram: {
-        p50Ms: 14200,
-        p90Ms: 18900,
-        p99Ms: 24500,
-        waitingAbandonedCount: Math.round(totalSolves * 0.04),
+        p50Ms: p50LatencyMs,
+        p90Ms: p90LatencyMs,
+        p99Ms: p99LatencyMs,
+        waitingAbandonedCount,
       },
     };
 
@@ -567,6 +652,7 @@ export async function getAdminAnalyticsData(
 
     return {
       timestamp: now,
+      isSampleData: false,
       filters,
       overview,
       pedagogical,
@@ -593,6 +679,7 @@ function getCalibratedFallbackData(filters: AdminFilterParams): AdminDashboardPa
 
   return {
     timestamp: new Date().toISOString(),
+    isSampleData: true,
     filters,
     overview: {
       totalSolves,
@@ -602,6 +689,8 @@ function getCalibratedFallbackData(filters: AdminFilterParams): AdminDashboardPa
       totalCostUsd,
       costTargetAlert: avgCostUsd > TARGET_COST_USD,
       cacheHitRate: 64.6,
+      cameraCacheHitRate: 35.4,
+      bankMatchRate: 29.2,
       transferSuccessRate: 73.1,
       revealedAnswerRate: 18.2,
       avgLatencyMs: 15400,
@@ -620,11 +709,11 @@ function getCalibratedFallbackData(filters: AdminFilterParams): AdminDashboardPa
         successAfterHintRate: 78.6,
       },
       errorDistribution: [
-        { code: "SIGN_ERROR", titleAz: "İşarə səhvi (mənfi/müsbət)", count: 34, percentage: 38.2, studentCount: 14 },
-        { code: "FORMULA_MISAPPLIED", titleAz: "Düsturun yanlış tətbiqi", count: 22, percentage: 24.7, studentCount: 11 },
-        { code: "DOMAIN_VIOLATION", titleAz: "Təyin oblastının pozulması", count: 14, percentage: 15.7, studentCount: 7 },
-        { code: "ARITHMETIC", titleAz: "Hesablama xətası", count: 11, percentage: 12.4, studentCount: 6 },
-        { code: "UNITS_MISMATCH", titleAz: "Ölçü vahidi uyğunsuzluğu", count: 8, percentage: 9.0, studentCount: 4 },
+        { code: "SIGN_LOST", titleAz: "İşarə itdi (mənfi əmsalı köçürəndə minusu itirir)", count: 34, percentage: 38.2, studentCount: 14 },
+        { code: "FORMULA_MISAPPLIED", titleAz: "Düstur səhvi (düzgün düsturu yanlış yerdə tətbiq edir)", count: 22, percentage: 24.7, studentCount: 11 },
+        { code: "ORDER_OF_OPS", titleAz: "Əməl sırası (əməllərin ardıcıllığını pozur)", count: 14, percentage: 15.7, studentCount: 7 },
+        { code: "ARITHMETIC", titleAz: "Hesablama xətası (sadə hesab səhvi)", count: 11, percentage: 12.4, studentCount: 6 },
+        { code: "UNIT_MISMATCH", titleAz: "Vahid uyğunsuzluğu (vahidləri çevirmir)", count: 8, percentage: 9.0, studentCount: 4 },
       ],
       topicFailureHotspots: [
         {
@@ -632,7 +721,7 @@ function getCalibratedFallbackData(filters: AdminFilterParams): AdminDashboardPa
           topicTitle: "Kvadrat tənliklər və Viyet teoremi",
           totalAttempts: 42,
           errorCount: 28,
-          topErrorCode: "SIGN_ERROR",
+          topErrorCode: "SIGN_LOST",
         },
         {
           topicCode: "ARITH.PERCENTAGE",
@@ -655,6 +744,8 @@ function getCalibratedFallbackData(filters: AdminFilterParams): AdminDashboardPa
       targetCostUsd: TARGET_COST_USD,
       costTargetAlert: avgCostUsd > TARGET_COST_USD,
       cacheHitRate: 64.6,
+      cameraCacheHitRate: 35.4,
+      bankMatchRate: 29.2,
       matchPaths: [
         { path: "image_cache", label: "Şəkil Keşi (pHash)", count: 24, percentage: 24.2, costUsd: 0, avgLatencyMs: 45 },
         { path: "hash", label: "Kanonik Mətn Hash-i", count: 21, percentage: 21.2, costUsd: 0, avgLatencyMs: 38 },

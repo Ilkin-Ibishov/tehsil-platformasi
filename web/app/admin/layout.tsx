@@ -3,12 +3,21 @@ import Link from "next/link";
 import { Suspense } from "react";
 import AdminHeaderNav from "./AdminHeaderNav";
 
+import { verifyAdminAuth } from "@/lib/admin/auth";
+import AdminLoginGate from "@/components/admin/AdminLoginGate";
+import AdminLogoutButton from "@/components/admin/AdminLogoutButton";
+
 export const metadata: Metadata = {
   title: "Admin İdarəetmə Paneli — Təhsil Platforması",
   description: "Pedaqoji nəbz, vahid iqtisadiyyatı, kaskad keş analitikası və taksonomiya idarəetmə mərkəzi",
 };
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const isAuthorized = await verifyAdminAuth();
+  if (!isAuthorized) {
+    return <AdminLoginGate />;
+  }
+
   return (
     <div className="admin-shell min-h-screen w-full flex bg-[var(--bg)] text-[var(--t1)] font-sans">
       {/* 1. Sol Naviqasiya Paneli (Sidebar) */}
@@ -85,6 +94,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             <span>← Şagird Tətbiqinə Qayıt</span>
           </Link>
+          <AdminLogoutButton />
         </div>
       </aside>
 

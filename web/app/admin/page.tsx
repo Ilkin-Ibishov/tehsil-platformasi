@@ -21,6 +21,22 @@ export default async function AdminDashboardPage(props: PageProps) {
 
   return (
     <div className="flex flex-col gap-6 pb-12">
+      {/* 0. Sintetik Data / Nümunə Rejimi Xəbərdarlığı */}
+      {data.isSampleData && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-2.5">
+            <span className="text-lg">⚠️</span>
+            <div>
+              <span className="font-bold">NÜMUNƏ / SİNTETİK DATA (DİM Kalibrasiyası):</span>{" "}
+              <span>Bu filtr üzrə bazada canlı həll tapılmadı. Göstərilən rəqəmlər yalnız DİM proqramı referans modelidir. Bake və S6 qərarları üçün bu faizlərə əsaslanmayın!</span>
+            </div>
+          </div>
+          <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-200 font-mono text-[11px] shrink-0 font-semibold">
+            SAMPLE MODE
+          </span>
+        </div>
+      )}
+
       {/* 1. Başlıq və Vəziyyət Xülasəsi */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--sur)] p-6 rounded-2xl border border-[var(--bor)] shadow-sm">
         <div>
@@ -117,17 +133,25 @@ export default async function AdminDashboardPage(props: PageProps) {
           </div>
         </div>
 
-        {/* KPI 4: Kaskad Keş Səmərəsi */}
+        {/* KPI 4: Kamera Keş Səmərəsi (S6 Bake) vs Sual Bankı */}
         <div className="p-5 rounded-2xl bg-[var(--sur)] border border-[var(--bor)] flex flex-col justify-between">
-          <span className="text-xs text-[var(--t3)] font-mono uppercase tracking-wider">Kaskad Keş Hit-Rate</span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[var(--t3)] font-mono uppercase tracking-wider">Kamera Keşi (S6 Bake)</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              match_path
+            </span>
+          </div>
           <div className="my-2">
             <div className="text-2xl font-bold font-mono text-sky-400">
-              {overview.cacheHitRate.toFixed(1)}%
+              {overview.cameraCacheHitRate.toFixed(1)}%
             </div>
-            <div className="text-[11px] text-[var(--t2)] mt-0.5">LLM-siz 0 xərcli həllər</div>
+            <div className="text-[11px] text-[var(--t2)] mt-0.5">
+              Yalnız kamera (non-LLM) · Bank: {overview.bankMatchRate.toFixed(1)}%
+            </div>
           </div>
-          <div className="text-[11px] text-[var(--t3)] border-t border-[var(--bor)]/50 pt-2">
-            Hədəf: &gt; 70%
+          <div className="text-[11px] text-[var(--t3)] border-t border-[var(--bor)]/50 pt-2 flex items-center justify-between">
+            <span>Ümumi Keş:</span>
+            <span className="font-mono text-[var(--t1)]">{overview.cacheHitRate.toFixed(1)}%</span>
           </div>
         </div>
 

@@ -17,7 +17,9 @@ export type AdminOverviewKPIs = {
   avgCostUsd: number;
   totalCostUsd: number;
   costTargetAlert: boolean; // avgCostUsd > 0.010 olanda true
-  cacheHitRate: number; // match_path != 'llm' olanların faizi (0 - 100 %)
+  cacheHitRate: number; // Ümumi non-llm həllərin payı (0 - 100 %)
+  cameraCacheHitRate: number; // YALNIZ kamera (photo_solve) üzrə Qat 0-3 non-llm payı (S6 Bake üçün tək etibarlı metrika)
+  bankMatchRate: number; // match_path = 'bank' (Qat 2) payı (0 - 100 %)
 
   // Pedaqoji Nəbz
   transferSuccessRate: number; // transfer_correct = true % (Həqiqi öyrənmə)
@@ -83,6 +85,8 @@ export type UnitEconomicsData = {
   targetCostUsd: number; // 0.010
   costTargetAlert: boolean;
   cacheHitRate: number;
+  cameraCacheHitRate: number; // Yalnız kamera (photo_solve) üzrə S6 Bake metrikası
+  bankMatchRate: number; // Sual bankı (Qat 2) payı
   matchPaths: MatchPathItem[];
   dailyTrends: DailyCostPoint[];
   tokenEfficiency: {
@@ -152,6 +156,7 @@ export type AIHealthData = {
 // Tam Admin Dashboard Məlumat Paketi
 export type AdminDashboardPayload = {
   timestamp: string;
+  isSampleData: boolean; // true = canlı telemetriya deyil, kalibrlənmiş nümunə modelidir
   filters: AdminFilterParams;
   overview: AdminOverviewKPIs;
   pedagogical: PedagogicalHealthData;

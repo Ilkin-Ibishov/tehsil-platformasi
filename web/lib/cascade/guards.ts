@@ -23,6 +23,10 @@ const DEFAULT_PILOT_INVITES = new Set<string>([
   "tehsil2026",
   "demo",
   "demo2026",
+  "aygun-invite",
+  "rustam-invite",
+  "deniz-invite",
+  "ulvi-invite",
 ]);
 
 export const MULTI_USE_DEMO_CODES = new Set(["demo", "demo2026"]);

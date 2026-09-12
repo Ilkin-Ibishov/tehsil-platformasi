@@ -1,6 +1,7 @@
 # LOG
 
-- 2026-09-12: HANDOFF 233 — Admin Analitika Portalı: 4 Sütun (Pedaqoji Nəbz, Vahid İqtisadiyyatı, Səyahət Qıfı, AI Keyfiyyəti), Taksonomiya Triage, Runtime Model Config, Şikayət & Şəkil Forensikası; preflight 15/15 pass.
+- 2026-09-12: HANDOFF 236 — Yeni pilot dəvət kodları sistemə əlavə edildi: aygun-invite, rustam-invite, deniz-invite, ulvi-invite; guards.selftest.mts və preflight inteqrasiyası.
+- 2026-09-12: HANDOFF 235 — /learn Persistent Invariants: PowerShell ';' zəncirləmə, PostgreSQL attempt_items vs attempts fərqləri, question_id və 11 kanonik xəta kodu.
 - 2026-09-12: HANDOFF 231 — AG-020: Ana Ekran Erqonomikası: 64px streak rəqəmi ləğv edildi, streak>=2 üçün zərif çip quruldu, loru 'dalbadal' kəlməsi 'ardıcıl' ilə əvəzləndi, ekranda 90px yer azad olundu; preflight 14/14 pass.
 - 2026-09-12: HANDOFF 230 — AG-015..AG-018 Sokratik İpucu İntizamı, Sual Bankı Bərpası və Retest Bərkidilməsi: prompts/solve/core.md (v19, Qayda 19), 39 fənn və mövzu promptunun Sokratik kurasiyası, 0077_fix_bank_hint_semantic_leakage.sql tətbiqi, leak-guard.mjs rekursiv yoxlama, eval hint_leak metrikləri, InviteGate.tsx 1-klik bərpa, TP-INVITE-RECOVERY.md, preflight 14/14 pass.
 - 2026-09-11: HANDOFF 229 — Vercel deploy xətasının təmiri: PostHogProvider.tsx-də useSearchParams() istifadə edən PostHogPageView Suspense fallback={null} ilə əhatə olundu; /_not-found statik prerender xətası tam həll edildi.

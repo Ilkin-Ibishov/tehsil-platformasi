@@ -2,26 +2,57 @@
 import { cookies } from "next/headers";
 import { type NextRequest } from "next/server";
 
-const ADMIN_COOKIE_NAME = "th_admin_session";
+export const ADMIN_COOKIE_NAME = "th_admin_session";
 const DEFAULT_DEV_SECRET = "tehsil-admin-secret-2026";
 
-export function getExpectedAdminSecret(): string {
-  return process.env.ADMIN_SECRET_KEY || DEFAULT_DEV_SECRET;
+/**
+ * Gözlənilən admin açarını qaytarır.
+ * Təhlükəsizlik Qaydası (P0):
+ * Production mühitində ADMIN_SECRET_KEY mütləq env-dən gəlməlidir.
+ * Default dev açarından yalnız qeyri-production mühitdə istifadə oluna bilər.
+ */
+export function getExpectedAdminSecret(): string | null {
+  const secret = process.env.ADMIN_SECRET_KEY;
+  if (secret && secret.trim().length > 0) {
+    return secret.trim();
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    return DEFAULT_DEV_SECRET;
+  }
+
+  // Production mühitində gizli açar env-də yoxdursa, heç bir halda default qəbul edilmir!
+  console.error("[admin-auth] KRİTİK: Production mühitində ADMIN_SECRET_KEY təyin edilməyib!");
+  return null;
+}
+
+/**
+ * Təqdim olunan açarın doğruluğunu yoxlayır.
+ */
+export function isValidAdminSecret(candidateSecret?: string | null): boolean {
+  if (!candidateSecret) return false;
+  const expected = getExpectedAdminSecret();
+  if (!expected) return false;
+  return candidateSecret.trim() === expected;
 }
 
 /**
  * Server komponentləri və ya API marşrutlarında admin icazəsini yoxlayır.
  * Giriş üsulları:
  * 1. Authorization: Bearer <secret>
- * 2. Cookie: th_admin_session=<secret>
- * 3. URL param: ?admin_key=<secret> (ilk daxilolma üçün rahatlıq)
- * 4. Qeyri-production mühitdə default dev token qəbul edilir
+ * 2. x-admin-key header
+ * 3. URL query parametri: ?admin_key=<secret>
+ * 4. HttpOnly cookie: th_admin_session=<secret>
  */
 export async function verifyAdminAuth(req?: NextRequest | Request): Promise<boolean> {
   const expected = getExpectedAdminSecret();
+  if (!expected) {
+    // Production-da secret təyin edilməyibsə, heç kimə icazə verilmir (fail-safe)
+    return false;
+  }
 
-  // 1. Authorization header
   if (req) {
+    // 1. Authorization: Bearer <secret>
     const authHeader = req.headers.get("authorization");
     if (authHeader?.startsWith("Bearer ")) {
       const token = authHeader.slice(7).trim();
@@ -30,33 +61,35 @@ export async function verifyAdminAuth(req?: NextRequest | Request): Promise<bool
 
     // 2. Custom header
     const keyHeader = req.headers.get("x-admin-key");
-    if (keyHeader === expected) return true;
+    if (keyHeader?.trim() === expected) return true;
 
-    // 3. Query string (NextRequest və ya standart Request üçün)
+    // 3. Query string (Request və ya NextRequest üçün)
     try {
       const url = new URL(req.url);
       const queryKey = url.searchParams.get("admin_key");
-      if (queryKey === expected) return true;
+      if (queryKey?.trim() === expected) return true;
     } catch {
       // url parse fail -> keç
     }
+
+    // 4. Request headers cookie
+    const cookieHeader = req.headers.get("cookie");
+    if (cookieHeader) {
+      const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${ADMIN_COOKIE_NAME}=([^;]+)`));
+      if (match && decodeURIComponent(match[1].trim()) === expected) {
+        return true;
+      }
+    }
   }
 
-  // 4. Cookie yoxlanışı
+  // 5. Next.js cookies() store yoxlanışı (Server Components və Route Handlers)
   try {
     const cookieStore = await cookies();
     const session = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
-    if (session === expected) return true;
+    if (session?.trim() === expected) return true;
   } catch {
     // cookies() konteksti yoxdursa keç
   }
 
-  // Lokal dev mühitində avtomatik icazə (istifadəçi üçün friction-suz təcrübə)
-  if (process.env.NODE_ENV !== "production") {
-    return true;
-  }
-
   return false;
 }
-
-export { ADMIN_COOKIE_NAME };

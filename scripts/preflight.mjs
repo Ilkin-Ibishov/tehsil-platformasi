@@ -44,6 +44,7 @@ runStep("Web TypeScript Check (npx tsc --noEmit)", "npx tsc --noEmit", webDir);
 
 // 2. Selftests
 runStep("Invite URL Selftest (url.selftest.mts)", "npx tsx web/lib/invite/url.selftest.mts");
+runStep("Cascade Guards Selftest (guards.selftest.mts)", "npx tsx web/lib/cascade/guards.selftest.mts");
 runStep("Answer Matcher Selftest (answer.selftest.mts)", "npx tsx web/lib/verify/answer.selftest.mts");
 runStep("DIM Template Engine Selftest (template.selftest.mts)", "npx tsx web/lib/cascade/template.selftest.mts");
 runStep("Answer Leakage Guard Selftest (leak.selftest.mts)", "npx tsx web/lib/verify/leak.selftest.mts");

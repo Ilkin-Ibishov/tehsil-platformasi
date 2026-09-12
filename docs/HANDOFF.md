@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (236) · Antigravity → Cowork
+Etdim:    Yeni pilot dəvət kodları sistemə əlavə edildi: `aygun-invite`, `rustam-invite`, `deniz-invite`, `ulvi-invite`; `web/lib/cascade/guards.ts`-dəki `DEFAULT_PILOT_INVITES` yeniləndi; `web/lib/cascade/guards.selftest.mts`-ə vahid testlər əlavə olundu; `scripts/preflight.mjs`-ə `guards.selftest.mts` yoxlama addımı inteqrasiya edildi.
+Tapşırıq: meta / no ClickUp — Yeni Pilot Dəvət Kodlarının Aktivləşdirilməsi
+Diqqət:   Fərdi dəvət kodları tək cihaz kilidi (single-user device lock) qaydasına tabedir; demo kodları toxunulmaz saxlanılıb.
+
 ## 2026-09-12 (235) · Antigravity → Cowork
 Etdim:    /learn əsasında sistem dərsləri və invariantları daimi qaydalara və bacarıqlara həkk olundu: `.agents/rules/00-session.md` və `.cursor/rules/00-session.mdc`-yə Windows PowerShell `&&` komanda zəncirləmə sintaksis tələsi əlavə edildi (yalnız `;` istifadəsi); `.agents/rules/30-migrations.md`, `.cursor/rules/30-migrations.mdc` və `.agents/skills/backend-developer/SKILL.md`-yə PostgreSQL `attempts` vs `attempt_items` qranulyarlıq fərqləri (`kind` yalnız `attempts`-də), `step_events.attempt_id` FK-nın sessiyaya bağlanması, `question_id` sütun adı, `match_path = 'bank'` və 11 kanonik səhv kodunun dinamik `title_az` qanunu yazıldı; `scripts/sync-agent-context.mjs` və preflight 15/15 tam keçdi.
 Tapşırıq: meta / no ClickUp — /learn Persistent PowerShell & Postgres Schema Invariants

@@ -16,12 +16,18 @@ check("contains invite20", all.has("invite20"), true);
 check("contains ilkin-01", all.has("ilkin-01"), true);
 check("contains soak-dim-01", all.has("soak-dim-01"), true);
 check("contains test-01", all.has("test-01"), true);
+check("contains aygun-invite", all.has("aygun-invite"), true);
+check("contains rustam-invite", all.has("rustam-invite"), true);
+check("contains deniz-invite", all.has("deniz-invite"), true);
+check("contains ulvi-invite", all.has("ulvi-invite"), true);
 
 // 2. Case-insensitivity & trimming
 check("check lowercase invite01", checkInviteCode("invite01"), { ok: true, studentRef: "invite01" });
 check("check UPPERCASE INVITE01", checkInviteCode("INVITE01"), { ok: true, studentRef: "invite01" });
 check("check mixed case InViTe02", checkInviteCode("InViTe02"), { ok: true, studentRef: "invite02" });
 check("check with whitespace '  invite03  '", checkInviteCode("  invite03  "), { ok: true, studentRef: "invite03" });
+check("check uppercase RUSTAM-INVITE", checkInviteCode("RUSTAM-INVITE"), { ok: true, studentRef: "rustam-invite" });
+check("check spaced '  deniz-invite '", checkInviteCode("  deniz-invite "), { ok: true, studentRef: "deniz-invite" });
 
 // 3. Invalid codes rejected
 check("check invalid code 'bad_code'", checkInviteCode("bad_code"), { ok: false });
