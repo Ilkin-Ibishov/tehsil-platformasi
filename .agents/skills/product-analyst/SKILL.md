@@ -56,3 +56,11 @@ Measure the core student conversion funnel across the vertical slice:
 - The product's fundamental differentiator is pointing out **where** the student got stuck rather than handing over the final answer.
 - Step breakdown must test intermediate concepts rather than asking for the full solution in step 1.
 - Misconceptions must be explicitly named via `error_code` enum, not generic text.
+
+---
+
+## 5. Onboarding & İdentifikasiya Prinsipləri
+
+- **Faza 1 İnvariantı**: Sıfır auth divarı. Giriş birbaşa Kamera ➔ Həll axınıdır. Retensiya `localStorage`-dakı `device_id` ilə izlənilir.
+- **Deferred Onboarding**: Hesab və identifikasiya yalnız Faza 2-də və mütləq şagird dəyər gördükdən sonra (ilk həllər, ardıcıllıq/streak saxlanması) təklif edilməlidir.
+- **İstifadəçi ≠ Alıcı Asimmetriyası**: Şagird üçün email ünsiyyət vasitəsi deyil (open rate <5%). Monetizasiya və tərəqqi hesabatı üçün şagirdin emaili deyil, valideynin WhatsApp / telefon nömrəsi hədəflənməlidir (Faza 3/4).

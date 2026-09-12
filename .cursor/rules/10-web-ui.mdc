@@ -21,3 +21,4 @@ alwaysApply: false
 - **Empathetic Copy Invariant:** error and diagnosis copy is supportive (e.g. `"qeyd olundu, birlikdə düzəldəcəyik"`), never punitive (`"hesabatına yazıldı"`, `"cəza"`). Onboarding labels stay welcoming (`"TANIŞLIQ"`, not mechanical `"QURAŞDIRMA"`).
 - After UI changes, run `ux-design-review` (read `references/known-state.md` first).
 - Pedagogical guard: skipping a step without recording an `error_code` is a product defect, not a UX shortcut.
+- **Zero Auth-Wall Invariant (Faza 1):** Şagirdin qarşısına kamera və ya həll axınından əvvəl heç bir məcburi email/qeydiyyat və ya OAuth divarı qoyula bilməz (`PRODUCT.md`). İlkin giriş sürtünməsiz olmalı, identifikasiya anonim `device_id` ilə idarə olunmalıdır.

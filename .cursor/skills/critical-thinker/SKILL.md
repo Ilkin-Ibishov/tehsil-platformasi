@@ -92,6 +92,7 @@ Before finalizing any technical plan, invert the question:
 2. **Bulanıq / Əyri DİM Səhifəsi**: Şagird qələmlə qaralanmış test toplusunu çəkir. Qat 1 OCR səhv oxuyur, Qat 5 isə xəyali tənlik həll edir.
 3. **Cavab Ovcuna Verilməsi**: İpucu o qədər açıqdır ki, şagird düşünmədən cavabı yazır və öyrənmə sıfır olur.
 4. **Gizli Xərc Partlayışı**: Bir istifadəçi eyni sualı 10 dəfə fərqli bucaqdan çəkir, keş bypass olur, xərc \$0.15-ə qalxır.
+5. **Giriş Baryerləri & Premature Auth (Drop-off tələsi)**: Şagirdin qarşısına girişdə email/şifrə divarı qoyulur (40–60% drop-off). Şagird linki Telegram/Instagram-dan açanda Google OAuth in-app webview-də `403: disallowed_useragent` atır və tətbiq tərk edilir.
 
 ---
 

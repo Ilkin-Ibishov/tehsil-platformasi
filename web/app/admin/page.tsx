@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAdminAnalyticsData } from "@/lib/admin/analytics";
+import { verifyAdminAuth } from "@/lib/admin/auth";
 import type { TimeRange, EnvironmentKind } from "@/lib/admin/types";
 
 export const dynamic = "force-dynamic";
@@ -8,10 +9,16 @@ type PageProps = {
   searchParams: Promise<{
     range?: string;
     kind?: string;
+    admin_key?: string;
   }>;
 };
 
 export default async function AdminDashboardPage(props: PageProps) {
+  const isAuthorized = await verifyAdminAuth();
+  if (!isAuthorized) {
+    return null;
+  }
+
   const searchParams = await props.searchParams;
   const range = (searchParams.range || "7d") as TimeRange;
   const kind = (searchParams.kind || "all") as EnvironmentKind;

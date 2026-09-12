@@ -16,3 +16,4 @@ Contract lives in `docs/STEP-SCHEMA.json` (and OCR in `docs/TRANSCRIBE-SCHEMA.js
 - Active model is `public.app_config.active_model` (DB-driven, no redeploy needed). Pricing is kept alongside the registry in `web/lib/models.ts`.
 - LLM fallback: 2 consecutive 503s switch to next model via `pickFallbackModel()`.
 - Zero leakage (ADR-017): Intermediate steps must never give away final answers.
+- **Invite Code Lifecycle & Device Locks**: Pilot and individual student invites are registered in `DEFAULT_PILOT_INVITES` (`web/lib/cascade/guards.ts`). Individual codes are single-device locked via `invite_redemptions` on first redemption, while `MULTI_USE_DEMO_CODES` (`demo`, `demo2026`) are exempt. Any newly added invite code must be tested in `web/lib/cascade/guards.selftest.mts` and guarded by `scripts/preflight.mjs`.

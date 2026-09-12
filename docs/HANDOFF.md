@@ -15,6 +15,16 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (239) · Antigravity → Cowork
+Etdim:    /learn əsasında sistem dərsləri və invariantları daimi qaydalara və bacarıqlara həkk olundu: `.agents/rules/00-session.md` və `.cursor/rules/00-session.mdc`-yə Windows PowerShell `curl` alias tələsi (yalnız `curl.exe -I` istifadəsi); `.agents/rules/20-solve-cascade.md` və `.cursor/rules/20-solve-cascade.mdc`-yə dəvət kodları lifecycle-ı, tək cihaz kilidi və `guards.selftest.mts` preflight qorunması; `.agents/skills/push-verify/SKILL.md` və `.cursor/skills/push-verify/SKILL.md`-yə deploy sonrası canlı `curl.exe -I` HTTP 200 doğrulaması əlavə edildi; `scripts/sync-agent-context.mjs` və preflight 16/16 tam keçdi.
+Tapşırıq: meta / no ClickUp — /learn Persistent PowerShell curl & Invite Code Invariants
+Diqqət:   PowerShell-də `curl` əmri birbaşa işlədilməməli, həmişə `curl.exe` çağırılmalıdır; yeni dəvət kodları `DEFAULT_PILOT_INVITES` və `guards.selftest.mts` ilə qorunmalıdır.
+
+## 2026-09-12 (238) · Antigravity → Cowork
+Etdim:    /learn və /critical-thinker əsasında auth və mobil baryer dərsləri daimi qaydalara və bacarıqlara həkk olundu: `.agents/skills/critical-thinker/SKILL.md`-yə giriş baryerləri, premature auth və in-app webview (Google 403) pre-mortem bəndi əlavə edildi; `.agents/skills/product-analyst/SKILL.md`-yə Faza 1 sıfır auth invariantı, deferred onboarding və istifadəçi (şagird) ≠ alıcı (valideyn) prinsipləri yazıldı; `.agents/rules/10-web-ui.md` və `.cursor/rules/10-web-ui.mdc`-yə "Zero Auth-Wall Invariant (Faza 1)" əlavə olundu; `scripts/sync-agent-context.mjs` uğurla icra edildi.
+Tapşırıq: meta / no ClickUp — /learn Persistent Zero Auth-Wall & In-App Webview Invariants
+Diqqət:   Faza 1-də şagirdin qarşısına heç bir auth divarı qoyula bilməz; identifikasiya anonim `device_id` ilə aparılır; Google OAuth mobil webview-lərdə 403 verdiyindən deferred model tətbiq olunmalıdır.
+
 ## 2026-09-12 (237) · Antigravity → Cowork
 Etdim:    Admin paneli auditi (P0 Auth qapısı, KPI dürüstlüyü, Funnel zaman filtrləri, Frozen 11 error codes) tam həll edildi: `web/app/admin/layout.tsx`-də server səviyyəsində `verifyAdminAuth()` ilə icazəsiz girişlər bloklandı və `<AdminLoginGate />` ilə təhlükəsiz şifrə daxilolma interfeysi yaradıldı; `web/lib/admin/auth.ts`-də prod-da default dev secret ləğv edildi, `NODE_ENV !== "production"` bypass-ı silindi; `web/app/api/admin/auth/route.ts` login/logout və `th_admin_session` cookie idarəetməsi quruldu; `web/lib/admin/analytics.ts`-də uydurma `p90 = avg * 1.4` ləğv edilərək Postgres `percentile_cont(0.90)` ilə real latensiya hesablandı; kamera S6 keş faizi (`cameraCacheHitRate`) ilə sual bankı (`bankMatchRate`) bir-birindən tamamilə ayrıldı; `getCalibratedFallbackData`-ya `isSampleData: true` bayrağı və UI xəbərdarlıq banneri əlavə olundu; telemetriya sorğularına `ts_server` vaxt filtri tətbiq edildi; `ERROR_CODE_LABELS` frozen 11 enum-a tam uyğunlaşdırıldı; preflight 16/16 tam keçdi.
 Tapşırıq: meta / no ClickUp — Admin Panel Audit (Auth Security Gate, KPI Honesty & S6 Bake Protection)

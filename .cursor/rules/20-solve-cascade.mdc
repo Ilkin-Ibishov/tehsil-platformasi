@@ -24,6 +24,8 @@ Zero leakage (ADR-017): intermediate steps must never give away the final answer
 
 Active model is `public.app_config.active_model`, not an env hardcoded in a component. Price lives next to the model in `web/lib/models.ts`. Do not remove `trackAIGeneration()` from `web/lib/llm.ts`.
 
+**Invite code lifecycle & device locks:** Pilot and individual student invites are registered in `DEFAULT_PILOT_INVITES` (`web/lib/cascade/guards.ts`). Individual codes are single-device locked via `invite_redemptions` on first redemption, while `MULTI_USE_DEMO_CODES` (`demo`, `demo2026`) are exempt. Any newly added invite code must be tested in `web/lib/cascade/guards.selftest.mts` and guarded by `scripts/preflight.mjs`.
+
 ## LLM fallback (2026-08-19)
 
 `web/lib/llm.ts` has model fallback: 2 consecutive 503 → `pickFallbackModel()` (next in registry). `LLMResult` carries `fallbackUsed` + `fallbackFrom`. `attempt_items.model_used` (jsonb) records `{qat1, qat5}`. Telemetry: `solve.cascade` + `solve.response` props include `model`, `fallback_used`, `fallback_from`.

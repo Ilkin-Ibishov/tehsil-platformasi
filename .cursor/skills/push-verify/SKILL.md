@@ -37,6 +37,14 @@ vercel ls
 vercel inspect <deployment-url> --logs
 ```
 
+### 2b. Live HTTP Response Verification
+
+Always verify live endpoint availability using native `curl.exe` (on Windows PowerShell, `curl` is an alias to `Invoke-WebRequest` which can hang):
+```bash
+curl.exe -I <deployment-url>
+```
+Confirm `HTTP/1.1 200 OK` or `HTTP/2 200` before concluding the deployment verification.
+
 ---
 
 ## 3. Post-Deploy Observability Audit (Sentry & PostHog)

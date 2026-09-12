@@ -9,3 +9,4 @@
 - **Math Keyboard Invariant**: The math input toolbar (`MathKeyboardBar.tsx`) must provide algebraic expression primitives (`x`, `(`, `)`) alongside arithmetic chips (`√`, `/`, `²`, etc.) to prevent mobile keyboard bouncing during step responses.
 - **Empathetic Copy Invariant**: Error feedback and step diagnosis copy must be framed supportively (e.g. `"qeyd olundu, birlikdə düzəldəcəyik"`), never punitive or bureaucratic (avoid `"hesabatına yazıldı"`, `"cəza"`). Onboarding labels must be welcoming (`"TANIŞLIQ"` instead of mechanical `"QURAŞDIRMA"`).
 - **Pedagogical Guard**: Skipping steps without recording an `error_code` is a product defect, not a UX shortcut.
+- **Zero Auth-Wall Invariant (Faza 1)**: Şagirdin qarşısına kamera və ya həll axınından əvvəl heç bir məcburi email/qeydiyyat və ya OAuth divarı qoyula bilməz (`PRODUCT.md`). İlkin giriş sürtünməsiz olmalı, identifikasiya anonim `device_id` ilə idarə olunmalıdır.
