@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (235) · Antigravity → Cowork
+Etdim:    /learn əsasında sistem dərsləri və invariantları daimi qaydalara və bacarıqlara həkk olundu: `.agents/rules/00-session.md` və `.cursor/rules/00-session.mdc`-yə Windows PowerShell `&&` komanda zəncirləmə sintaksis tələsi əlavə edildi (yalnız `;` istifadəsi); `.agents/rules/30-migrations.md`, `.cursor/rules/30-migrations.mdc` və `.agents/skills/backend-developer/SKILL.md`-yə PostgreSQL `attempts` vs `attempt_items` qranulyarlıq fərqləri (`kind` yalnız `attempts`-də), `step_events.attempt_id` FK-nın sessiyaya bağlanması, `question_id` sütun adı, `match_path = 'bank'` və 11 kanonik səhv kodunun dinamik `title_az` qanunu yazıldı; `scripts/sync-agent-context.mjs` və preflight 15/15 tam keçdi.
+Tapşırıq: meta / no ClickUp — /learn Persistent PowerShell & Postgres Schema Invariants
+Diqqət:   PowerShell-də komandalar əsla `&&` ilə zəncirlənməməlidir; `attempt_items`-də `kind` axtarılmamalı, həmişə `attempts att ON att.id = ai.attempt_id` ilə qoşulmalıdır.
+
 ## 2026-09-12 (234) · Antigravity → Cowork
 Etdim:    Admin paneli və analitika mühərriki canlı Supabase verilənlər bazası (`oxjzehxnbumgyoqjonju`) ilə ətraflı audit edildi: `attempts` və `attempt_items` arasındakı `kind` və `attempt_id` FK fərqləri aradan qaldırıldı; `step_events.attempt_id` üzrə xəta sorğusu real 65 xəta hadisəsi və 11 kanonik `error_code` ilə sinxronlaşdırıldı; `public.topic_codes` və `public.questions` əsasında real `topicFailureHotspots` sorğusu yazıldı; `MatchPathItem`-ə `'bank'` əlavə edildi ("Sual Bankı (Qat 2)"); `public.events` (1,611 hadisə) əsasında real şagird funnel-i və addım tərketmə (`step.abandoned`) paylanması qoşuldu; `reports/route.ts`-dəki `problem_id` → `question_id` və `jsonb` `stem` uyğunsuzluğu həll edildi; `typecheck` və `analytics.selftest.mts` 6/6 pass.
 Tapşırıq: meta / no ClickUp — Admin Analitika & Verilənlər Bazası Doğruluğu Auditi

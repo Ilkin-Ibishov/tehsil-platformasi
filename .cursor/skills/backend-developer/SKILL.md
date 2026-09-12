@@ -113,6 +113,12 @@ Gecikmə və ya xətaları araşdırarkən lokal fərziyyələr yerinə real al�
    ```
 4. **Şagird Axınında Öz-Özünü Sağaldan Sxem (Self-Healing)**: Naməlum `topic_code` və ya `error_code` gələrsə, sərt FK ilə 500 atmayın; triggerlər `active=false, needs_review=true` ilə qeydə almalıdır.
 5. **Cavabların Təcrid Edilməsi (ADR-017)**: Düzgün cavablar və addım həlləri `private` sxemində saxlanılır. `app_runtime` birbaşa `private.*` oxuya bilməz.
+6. **Attempt Sessiyası vs Attempt Items & Telemetriya Sxeması (Schema Traps)**:
+   - `attempts` (sessiya): `id`, `student_ref`, `kind`, `started_at`. `kind` (`corpus_soak`, `photo_solve`, `bank_practice`) yalnız bu cədvəldədir; `attempt_items`-də `kind` YOXDUR. Həmişə `LEFT JOIN public.attempts att ON att.id = ai.attempt_id` ilə `att.kind` oxunmalıdır.
+   - `step_events.attempt_id`: `attempts.id`-yə (sessiyaya) bağlıdır. `attempt_items` ilə qoşularkən `ON ai.attempt_id = se.attempt_id` istifadə edin (`ai.id` ilə deyil).
+   - `question_id` (not `problem_id`): `attempt_items` cədvəlində sual ID-si `question_id` adlanır.
+   - `MatchPathItem`: `match_path = 'bank'` (Qat 2 Sual Bankı, 0 xərc) həmişə kaskad təsnifatında dəstəklənməlidir.
+   - 11 Kanonik Səhv Kodu: Rəsmi tərcümələr üçün `LEFT JOIN public.error_codes ec ON ec.code = se.error_code` ilə `ec.title_az` oxunmalıdır.
 
 ---
 

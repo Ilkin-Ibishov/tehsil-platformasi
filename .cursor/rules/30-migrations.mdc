@@ -16,4 +16,11 @@ Before writing SQL, read the TypeScript that inserts/updates the table. A constr
 - Grant only objects the live code path actually calls.
 - Migration must be applied before the reading code merges to `main`.
 
+## Attempt vs Attempt_Items Schema & FK Invariants
+- `public.attempts`: session table (`id`, `student_ref`, `kind`, `started_at`). `kind` (`corpus_soak`, `photo_solve`, `bank_practice`) lives ONLY here; `attempt_items` has no `kind` column.
+- `step_events.attempt_id`: references `attempts(id)`, NOT `attempt_items(id)`. Join with `attempt_items` via `ON ai.attempt_id = se.attempt_id`.
+- `attempt_items.question_id`: references questions (`question_id`, not `problem_id`).
+- `attempt_items.match_path`: supports `'bank'` (Layer 2 Question Bank, 0 cost).
+- Dynamic Error Codes: join `LEFT JOIN public.error_codes ec ON ec.code = se.error_code` for official Azerbaijani `title_az`.
+
 Full procedure: `.cursor/skills/write-migration/SKILL.md`.
