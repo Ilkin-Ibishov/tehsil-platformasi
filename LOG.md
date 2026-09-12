@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-09-12: HANDOFF 239 — /learn Persistent PowerShell curl & Invite Invariants: 00-session-a curl.exe alias tələsi, 20-solve-cascade-a dəvət kodları tək-cihaz və preflight qorunması, push-verify-a canlı HTTP 200 testi; preflight 16/16 pass.
 - 2026-09-12: HANDOFF 237 — Admin paneli auditi (P0 Auth qapısı, KPI dürüstlüyü, Funnel zaman filtrləri, Frozen 11 error codes): layout verifyAdminAuth qapısı, prod dev secret ləğvi, login/logout cookie idarəetməsi, real p90 latensiya, cameraCacheHitRate vs bankMatchRate bölgüsü, sample data bayrağı; preflight 16/16 pass.
 - 2026-09-12: HANDOFF 236 — Yeni pilot dəvət kodları sistemə əlavə edildi: aygun-invite, rustam-invite, deniz-invite, ulvi-invite; guards.selftest.mts və preflight inteqrasiyası.
 - 2026-09-12: HANDOFF 235 — /learn Persistent Invariants: PowerShell ';' zəncirləmə, PostgreSQL attempt_items vs attempts fərqləri, question_id və 11 kanonik xəta kodu.

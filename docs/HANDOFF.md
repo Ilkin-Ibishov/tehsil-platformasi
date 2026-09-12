@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (240) · Antigravity → Cowork
+Etdim:    Admin paneli auditi və təhlükəsizlik düzəlişləri `main` budağına push edildi (commit `77015d4`); GitHub Actions CI (run 34700865747) 41 saniyədə uğurla tamamlandı; Vercel Production deployment-i (`web-cg0s1nw2l-ilkin-ibishovs-projects.vercel.app`) 29 saniyədə Ready oldu; canlı prod yoxlaması ilə təsdiqləndi: `Has AdminLoginGate: true`, `Has Dashboard Title: false`, `Has Cəmi Həll: false` (sıfır məlumat sızması, tam qapalı qoruma).
+Tapşırıq: meta / no ClickUp — Push & Deploy Doğrulaması (Admin Audit & Zero RSC Leakage)
+Diqqət:   Prod mühitində `/admin` yalnız etibarlı `ADMIN_SECRET_KEY` ilə açıla bilər; icazəsiz sorğularda nə HTML, nə də RSC payload heç bir məlumat daşımır.
+
 ## 2026-09-12 (239) · Antigravity → Cowork
 Etdim:    /learn əsasında sistem dərsləri və invariantları daimi qaydalara və bacarıqlara həkk olundu: `.agents/rules/00-session.md` və `.cursor/rules/00-session.mdc`-yə Windows PowerShell `curl` alias tələsi (yalnız `curl.exe -I` istifadəsi); `.agents/rules/20-solve-cascade.md` və `.cursor/rules/20-solve-cascade.mdc`-yə dəvət kodları lifecycle-ı, tək cihaz kilidi və `guards.selftest.mts` preflight qorunması; `.agents/skills/push-verify/SKILL.md` və `.cursor/skills/push-verify/SKILL.md`-yə deploy sonrası canlı `curl.exe -I` HTTP 200 doğrulaması əlavə edildi; `scripts/sync-agent-context.mjs` və preflight 16/16 tam keçdi.
 Tapşırıq: meta / no ClickUp — /learn Persistent PowerShell curl & Invite Code Invariants
