@@ -11,6 +11,7 @@ type ReportItem = {
   description: string;
   createdAt: string;
   hasCapture: boolean;
+  inviteCode: string | null;
 };
 
 type ForensicDetail = {
@@ -126,7 +127,12 @@ export default function AdminReportsPage() {
                   <span className="text-[var(--t3)] font-mono">{r.createdAt.slice(0, 16).replace("T", " ")}</span>
                 </div>
                 <p className="text-xs font-medium text-[var(--t1)] line-clamp-2 leading-relaxed">{r.description}</p>
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex items-center gap-2 pt-1 flex-wrap">
+                  {r.inviteCode && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--accsoft)] text-[var(--acc)] font-mono font-semibold border border-[var(--acc)]/20">
+                      🎫 {r.inviteCode}
+                    </span>
+                  )}
                   {r.hasCapture && (
                     <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono">
                       Şəkil Mövcuddur
@@ -162,12 +168,20 @@ export default function AdminReportsPage() {
             </div>
           ) : forensicDetail ? (
             <div className="flex flex-col gap-6">
-              {/* Şikayət Mətni */}
+              {/* Şikayət Mətni + Dəvət Kodu */}
               <div className="p-4 rounded-xl bg-[var(--bg)] border border-[var(--bor)]">
                 <span className="text-xs text-[var(--t3)] block font-semibold uppercase tracking-wider mb-1">
                   Şagirdin / Testerin Rəyi
                 </span>
                 <p className="text-sm font-medium text-rose-300 leading-relaxed">{forensicDetail.description}</p>
+                {selectedReportId && reports.find((r) => r.id === selectedReportId)?.inviteCode && (
+                  <div className="mt-3 pt-3 flex items-center gap-2" style={{ borderTop: "1px solid var(--bor)" }}>
+                    <span className="text-[10px] text-[var(--t3)] uppercase tracking-wider font-semibold">Dəvət Kodu:</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--accsoft)] text-[var(--acc)] font-mono font-semibold border border-[var(--acc)]/20">
+                      🎫 {reports.find((r) => r.id === selectedReportId)?.inviteCode}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Kəsilmiş Şəkil (Signed URL ilə) */}

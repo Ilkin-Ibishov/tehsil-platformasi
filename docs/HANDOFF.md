@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (246) · Antigravity → Cowork
+Etdim:    Bütün dəvət kodlu şagirdlər üçün `TesterPanel` avtomatik aktivləşdirildi: `web/lib/telemetry/index.ts`-ə `getAttemptId()` export əlavə edildi; `web/lib/invite/url.ts`-də `validateAndStoreInviteCode` uğurunda `localStorage.setItem("TESTER_MODE","true")` + `window.dispatchEvent(new Event("th_invite_updated"))` yazıldı; `web/components/kamera/InviteGate.tsx`-də manuel daxiletmə uğurunda eyni işlənildi; `web/components/TesterPanel.tsx` tam yenidən yazıldı — `th_invite_code` VƏ ya `TESTER_MODE` yoxlanır, `th_invite_updated`/`storage` hadisə dinləyiciləri əlavə edildi, `getDeviceId()`/`getAttemptId()` düzgün istifadəsi, `metadata.invite_code` rapora əlavə olundu, UI dizayn tokenlərinə uyğunlaşdırıldı; `web/app/api/admin/reports/route.ts`-ə `metadata` sütunu sorğulandı, `inviteCode` çıxarıldı; `web/app/admin/sikayetler/page.tsx`-ə dəvət kodu çipi (siyahı və forensik detail ekranında) əlavə olundu; `npx tsc --noEmit` sıfır xəta ilə keçdi.
+Tapşırıq: meta / no ClickUp — Dəvət Kodlu Şagirdlər üçün Avtomatik Bug Reporting Aktivləşdirilməsi
+Diqqət:   Artıq şagirdlər `/tester` URL-inə daxil olmadan — yalnız dəvət kodu ilə giriş etməklə — bütün səhifələrdə `🐞 Problem bildir` düyməsini görür; admin `/admin/sikayetler`-də hansı şagirdin göndərdiyini dəvət kodu çipi ilə ayırd edə bilər.
+
 ## 2026-09-12 (245) · Antigravity → Cowork
 Etdim:    AdminLoginGate və AdminLogoutButton-da ESLint və React Compiler qaydaları tam tənzimləndi: `executeLogin` hoisting xətası aradan qaldırıldı, `useEffect` daxilində synchronous setState xətası `setTimeout` asinxron idarəetməsi ilə həll edildi; `AdminLogoutButton`-a Next.js relative assign qaydası üçün niyyətli qeyd əlavə olundu; lokal `npx eslint` 0 xəta/xəbərdarlıqla uğurla tamamlandı.
 Tapşırıq: meta / no ClickUp — Admin Paneli ESLint və React Compiler Tənzimləməsi

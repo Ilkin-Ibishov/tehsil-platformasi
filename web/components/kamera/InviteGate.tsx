@@ -66,6 +66,8 @@ export function InviteGate({
       }
       try {
         localStorage.setItem(INVITE_CODE_KEY, code);
+        localStorage.setItem("TESTER_MODE", "true");
+        window.dispatchEvent(new Event("th_invite_updated"));
       } catch {
         // localStorage yoxdursa yenə davam et — server yoxlaması əsas qoruma
       }

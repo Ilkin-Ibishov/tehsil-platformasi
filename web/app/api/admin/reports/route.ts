@@ -100,8 +100,9 @@ export async function GET(req: NextRequest) {
       route: string | null;
       description: string;
       created_at: string;
+      metadata: Record<string, unknown> | null;
     }>(`
-      select id, device_id, attempt_id, route, description, created_at
+      select id, device_id, attempt_id, route, description, created_at, metadata
       from public.bug_reports
       order by created_at desc
       limit 50
@@ -115,6 +116,7 @@ export async function GET(req: NextRequest) {
       description: r.description,
       createdAt: r.created_at,
       hasCapture: !!r.attempt_id,
+      inviteCode: (r.metadata as Record<string, unknown> | null)?.invite_code as string | null ?? null,
     }));
 
     return NextResponse.json({ ok: true, data: { reports } });

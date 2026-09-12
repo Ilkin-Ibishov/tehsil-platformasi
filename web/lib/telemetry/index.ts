@@ -46,6 +46,11 @@ export function setAttemptId(attemptId: string | undefined) {
   currentAttemptId = attemptId;
 }
 
+/** Hal-hazırda aktiv olan həll sessiyasının attempt ID-sini qaytarır (varsa). */
+export function getAttemptId(): string | undefined {
+  return currentAttemptId;
+}
+
 let flushing = false;
 
 async function flush(): Promise<void> {

@@ -84,6 +84,8 @@ export async function validateAndStoreInviteCode(
     if (res.ok) {
       try {
         localStorage.setItem(INVITE_STORAGE_KEY, clean);
+        localStorage.setItem("TESTER_MODE", "true");
+        window.dispatchEvent(new Event("th_invite_updated"));
       } catch {
         // localStorage not available
       }
