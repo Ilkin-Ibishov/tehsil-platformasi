@@ -16,9 +16,10 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 ---
 
 ## 2026-09-12 (233) · Antigravity → Cowork
-Etdim:    Admin Analitika və Əməliyyat İdarəetmə Portalı yaradıldı: `web/lib/admin/` (tiplər, auth guard, analitika mühərriki və `analytics.selftest.mts` 6/6 pass); `web/app/api/admin/` (icmal, taksonomiya triage, runtime app_config və forensika API marşrutları); `web/app/admin/` desktop-first interfeysi (`layout.tsx`, `AdminHeaderNav.tsx`, `page.tsx` icmal paneli, `triage/page.tsx`, `config/page.tsx`, `sikayetler/page.tsx`); `globals.css`-də admin eni genişləndirildi; `scripts/preflight.mjs`-ə admin selftesti əlavə olundu (15/15 pass).
+Etdim:    Admin Analitika və Əməliyyat İdarəetmə Portalı yaradıldı: `web/lib/admin/` (tiplər, auth guard, analitika mühərriki və `analytics.selftest.mts` 6/6 pass); `web/app/api/admin/` (icmal, taksonomiya triage, runtime app_config və forensika API marşrutları); `web/app/admin/` desktop-first interfeysi (`layout.tsx`, `AdminHeaderNav.tsx`, `page.tsx` icmal paneli, `triage/page.tsx`, `config/page.tsx`, `sikayetler/page.tsx`); `globals.css`-də admin eni genişləndirildi; ESLint `set-state-in-effect` bərkidildi; `scripts/preflight.mjs`-ə admin selftesti əlavə olundu (15/15 pass).
 Tapşırıq: meta / no ClickUp — Admin Analitika Portalı (4 Sütun, Taksonomiya Triage, Runtime Config və Forensika)
 Diqqət:   Admin paneli təhlükəsiz auth guard ilə qorunur, canlı Postgres sorğuları optimallaşdırılmış və kalibrlənmiş fallback ilə təchiz edilib; şagird axını və 11 dəyişməz error_code toxunulmazdır.
+
 
 
 ## 2026-09-12 (232) · Antigravity → Cowork

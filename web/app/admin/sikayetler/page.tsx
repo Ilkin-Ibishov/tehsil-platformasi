@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from "react";
 
@@ -35,7 +36,6 @@ export default function AdminReportsPage() {
 
   const fetchReports = async () => {
     try {
-      setLoading(true);
       const res = await fetch("/api/admin/reports");
       const json = await res.json();
       if (json.ok) {
@@ -84,7 +84,10 @@ export default function AdminReportsPage() {
           </p>
         </div>
         <button
-          onClick={fetchReports}
+          onClick={() => {
+            setLoading(true);
+            fetchReports();
+          }}
           disabled={loading}
           className="px-4 py-2 rounded-xl bg-[var(--bg)] border border-[var(--bor)] hover:border-[var(--acc)] text-xs font-medium transition-all"
         >

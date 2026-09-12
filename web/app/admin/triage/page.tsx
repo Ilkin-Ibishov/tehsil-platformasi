@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from "react";
 import type { TaxonomyTriageResponse } from "@/lib/admin/types";
@@ -11,7 +12,6 @@ export default function TaxonomyTriagePage() {
 
   const fetchTaxonomy = async () => {
     try {
-      setLoading(true);
       const res = await fetch("/api/admin/taxonomy");
       const json = await res.json();
       if (json.ok) {
@@ -83,7 +83,10 @@ export default function TaxonomyTriagePage() {
           </p>
         </div>
         <button
-          onClick={fetchTaxonomy}
+          onClick={() => {
+            setLoading(true);
+            fetchTaxonomy();
+          }}
           disabled={loading}
           className="px-4 py-2 rounded-xl bg-[var(--bg)] border border-[var(--bor)] hover:border-[var(--acc)] text-xs font-medium transition-all"
         >

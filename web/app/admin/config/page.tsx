@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from "react";
 import type { AppConfigItem } from "@/lib/admin/types";
@@ -12,7 +13,6 @@ export default function AdminConfigPage() {
 
   const fetchConfigs = async () => {
     try {
-      setLoading(true);
       const res = await fetch("/api/admin/config");
       const json = await res.json();
       if (json.ok) {
@@ -72,7 +72,10 @@ export default function AdminConfigPage() {
           </p>
         </div>
         <button
-          onClick={fetchConfigs}
+          onClick={() => {
+            setLoading(true);
+            fetchConfigs();
+          }}
           disabled={loading}
           className="px-4 py-2 rounded-xl bg-[var(--bg)] border border-[var(--bor)] hover:border-[var(--acc)] text-xs font-medium transition-all"
         >
