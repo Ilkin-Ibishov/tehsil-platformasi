@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (241) · Antigravity → Cowork
+Etdim:    İstifadəçinin tələbi ilə Admin paneli üçün gizli giriş açarı `London2027@@` təyin edildi və konfiqurasiya olundu: `web/lib/admin/auth.ts`-də `DEFAULT_DEV_SECRET = "London2027@@"`; `web/.env.example`-ə `ADMIN_SECRET_KEY` sənədləşməsi əlavə olundu; Vercel CLI vasitəsilə `ilkin-ibishovs-projects/web` layihəsinin həm `Production`, həm də `Development` mühitlərinə `ADMIN_SECRET_KEY="London2027@@"` şifrələnmiş dəyişən kimi uğurla əlavə edildi (`vercel env add`); `web/lib/admin/analytics.selftest.mts` (7/7) və `npx tsc --noEmit` tam keçdi.
+Tapşırıq: meta / no ClickUp — Admin Paneli Giriş Açarının Təyini (Password: London2027@@)
+Diqqət:   Admin paneli (`/admin`) həm lokal inkişaf, həm də canlı Vercel mühitində `London2027@@` açarı ilə qorunur və açılır.
+
 ## 2026-09-12 (240) · Antigravity → Cowork
 Etdim:    Admin paneli auditi və təhlükəsizlik düzəlişləri `main` budağına push edildi (commit `77015d4`); GitHub Actions CI (run 34700865747) 41 saniyədə uğurla tamamlandı; Vercel Production deployment-i (`web-cg0s1nw2l-ilkin-ibishovs-projects.vercel.app`) 29 saniyədə Ready oldu; canlı prod yoxlaması ilə təsdiqləndi: `Has AdminLoginGate: true`, `Has Dashboard Title: false`, `Has Cəmi Həll: false` (sıfır məlumat sızması, tam qapalı qoruma).
 Tapşırıq: meta / no ClickUp — Push & Deploy Doğrulaması (Admin Audit & Zero RSC Leakage)

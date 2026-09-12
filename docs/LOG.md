@@ -1,3 +1,4 @@
+- 2026-09-12: Admin paneli üçün giriş açarı London2027@@ təyin edildi: auth.ts default dev secret, Vercel Production/Development env konfiqurasiyası, analytics selftest 7/7 və preflight 16/16.
 - 2026-09-12: /learn invariantları sistem qaydalarına yazıldı: 00-session (PowerShell && tələsi), 30-migrations və backend-developer (Postgres attempts/attempt_items fərqləri, step_events FK, bank match_path), preflight 15/15 tam keçdi.
 - 2026-09-12: Admin paneli və analitika SQL sorğuları canlı Supabase bazası ilə audit edildi: attempts/attempt_items fərqləri, step_events FK, topic_codes, 11 kanonik error_codes, real funnel telemetriyası və reports question_id uyğunsuzluqları aradan qaldırıldı.
 - 2026-09-11: /learn və /critical-thinker dərsləri daimi qaydalara yazıldı: 00-session (PowerShell quoting invariantı), 40-telemetry (PostHog proxy, identify traits, dual-track, diaqnostik endpointlər), preflight 12/12 tam keçdi.

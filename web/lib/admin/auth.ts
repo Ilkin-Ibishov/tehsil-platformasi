@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { type NextRequest } from "next/server";
 
 export const ADMIN_COOKIE_NAME = "th_admin_session";
-const DEFAULT_DEV_SECRET = "tehsil-admin-secret-2026";
+const DEFAULT_DEV_SECRET = "London2027@@";
 
 /**
  * Gözlənilən admin açarını qaytarır.
