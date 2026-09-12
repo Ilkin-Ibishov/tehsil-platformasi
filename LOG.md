@@ -1,5 +1,6 @@
 # LOG
 
+- 2026-09-12: HANDOFF 237 — Admin paneli auditi (P0 Auth qapısı, KPI dürüstlüyü, Funnel zaman filtrləri, Frozen 11 error codes): layout verifyAdminAuth qapısı, prod dev secret ləğvi, login/logout cookie idarəetməsi, real p90 latensiya, cameraCacheHitRate vs bankMatchRate bölgüsü, sample data bayrağı; preflight 16/16 pass.
 - 2026-09-12: HANDOFF 236 — Yeni pilot dəvət kodları sistemə əlavə edildi: aygun-invite, rustam-invite, deniz-invite, ulvi-invite; guards.selftest.mts və preflight inteqrasiyası.
 - 2026-09-12: HANDOFF 235 — /learn Persistent Invariants: PowerShell ';' zəncirləmə, PostgreSQL attempt_items vs attempts fərqləri, question_id və 11 kanonik xəta kodu.
 - 2026-09-12: HANDOFF 231 — AG-020: Ana Ekran Erqonomikası: 64px streak rəqəmi ləğv edildi, streak>=2 üçün zərif çip quruldu, loru 'dalbadal' kəlməsi 'ardıcıl' ilə əvəzləndi, ekranda 90px yer azad olundu; preflight 14/14 pass.

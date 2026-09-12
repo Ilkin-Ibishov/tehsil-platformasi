@@ -15,6 +15,11 @@ Blok:     <qərar tələb edən şey, varsa — yoxdursa sətri yazma>
 
 ---
 
+## 2026-09-12 (237) · Antigravity → Cowork
+Etdim:    Admin paneli auditi (P0 Auth qapısı, KPI dürüstlüyü, Funnel zaman filtrləri, Frozen 11 error codes) tam həll edildi: `web/app/admin/layout.tsx`-də server səviyyəsində `verifyAdminAuth()` ilə icazəsiz girişlər bloklandı və `<AdminLoginGate />` ilə təhlükəsiz şifrə daxilolma interfeysi yaradıldı; `web/lib/admin/auth.ts`-də prod-da default dev secret ləğv edildi, `NODE_ENV !== "production"` bypass-ı silindi; `web/app/api/admin/auth/route.ts` login/logout və `th_admin_session` cookie idarəetməsi quruldu; `web/lib/admin/analytics.ts`-də uydurma `p90 = avg * 1.4` ləğv edilərək Postgres `percentile_cont(0.90)` ilə real latensiya hesablandı; kamera S6 keş faizi (`cameraCacheHitRate`) ilə sual bankı (`bankMatchRate`) bir-birindən tamamilə ayrıldı; `getCalibratedFallbackData`-ya `isSampleData: true` bayrağı və UI xəbərdarlıq banneri əlavə olundu; telemetriya sorğularına `ts_server` vaxt filtri tətbiq edildi; `ERROR_CODE_LABELS` frozen 11 enum-a tam uyğunlaşdırıldı; preflight 16/16 tam keçdi.
+Tapşırıq: meta / no ClickUp — Admin Panel Audit (Auth Security Gate, KPI Honesty & S6 Bake Protection)
+Diqqət:   Prod-da `/admin` şifrəsiz açıla bilməz; bake qərarları üçün yalnız `cameraCacheHitRate` və ya kamera S6 əsas götürülməlidir, ümumi keş faizinə güvənilməməlidir.
+
 ## 2026-09-12 (236) · Antigravity → Cowork
 Etdim:    Yeni pilot dəvət kodları sistemə əlavə edildi: `aygun-invite`, `rustam-invite`, `deniz-invite`, `ulvi-invite`; `web/lib/cascade/guards.ts`-dəki `DEFAULT_PILOT_INVITES` yeniləndi; `web/lib/cascade/guards.selftest.mts`-ə vahid testlər əlavə olundu; `scripts/preflight.mjs`-ə `guards.selftest.mts` yoxlama addımı inteqrasiya edildi.
 Tapşırıq: meta / no ClickUp — Yeni Pilot Dəvət Kodlarının Aktivləşdirilməsi
